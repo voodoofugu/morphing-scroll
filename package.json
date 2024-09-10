@@ -3,7 +3,7 @@
   "version": "1.0.4",
   "author": "Georg Schilin",
   "license": "MIT",
-  "description": "",
+  "description": "This is a library for the convenience of various object scrolling methods✨",
   "main": "modules/bundle.js",
   "scripts": {
     "build": "webpack"
@@ -14,10 +14,6 @@
     "scroll",
     "scroller",
     "scrolls"
-  ],
-  "tags": [
-    "react",
-    "scroll"
   ],
   "devDependencies": {
     "@babel/cli": "^7.25.6",
