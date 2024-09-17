@@ -3,9 +3,10 @@ import ResizeTracker from "./ResizeTracker";
 import Scroll from "./Scroll";
 
 const RVS = {
-  IntersectionTracker,
-  ResizeTracker,
   Scroll,
+  ResizeTracker,
+  IntersectionTracker,
 };
 
 export default RVS;
+export { Scroll, ResizeTracker, IntersectionTracker };
