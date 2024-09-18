@@ -1,0 +1,15 @@
+{
+  "name": "react-variable-scroll",
+  "author": "Georg Schilin",
+  "license": "MIT",
+  "version": "1.0.5",
+  "description": "This is a library for the convenience of various object scrolling methods✨",
+  "main": "dist/index.js",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^18.3.1"
+  }
+}

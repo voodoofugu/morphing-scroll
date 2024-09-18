@@ -48,7 +48,7 @@ interface ScrollType {
 const Scroll: React.FC<ScrollType> = ({
   scrollID = "",
   className = "",
-  scrollXY = null,
+  scrollXY,
   objectXY,
   xDirection = false,
   gap,
@@ -57,7 +57,7 @@ const Scroll: React.FC<ScrollType> = ({
   scrollTrigger = "←→",
   scrollVisibility = "<O>",
   lazyRender = false,
-  rootMargin = null,
+  rootMargin = NaN,
   suspending = false,
   fallback = null,
   scrollTop = 1,
@@ -77,7 +77,7 @@ const Scroll: React.FC<ScrollType> = ({
 
   let objectsWrapperAligning = false;
   const clickedObject = React.useRef("none");
-  const prevKey = React.useRef<string | null>(null);
+  const prevKey = React.useRef<string | null | undefined>(null);
 
   const [scroll, setScroll] = React.useState(0);
   const [receivedObjectsWrapperSize, setReceivedObjectsWrapperSize] =
@@ -126,8 +126,8 @@ const Scroll: React.FC<ScrollType> = ({
     return objectXY
       ? objectXY
       : xDirection
-      ? [scrollXY[0], scrollXY[1] - pY]
-      : [scrollXY[0] - pY, NaN];
+      ? [scrollXY ? scrollXY[0] : NaN, scrollXY ? scrollXY[1] - pY : NaN]
+      : [scrollXY ? scrollXY[0] - pY : NaN, NaN];
   }, [objectXY, scrollXY, pY, xDirection]);
 
   const xyObject = localObjectXY
@@ -151,12 +151,14 @@ const Scroll: React.FC<ScrollType> = ({
       : rootMargin.length === 2
       ? [rootMargin[1], rootMargin[0], rootMargin[1], rootMargin[0]]
       : rootMargin
-    : null;
+    : 0;
 
-  const [mRootX, mRootY] = rootMargin
-    ? xDirection
-      ? [mRootLocal[3], mRootLocal[1]]
-      : [mRootLocal[2], mRootLocal[0]]
+  const [mRootX, mRootY] = mRootLocal
+    ? rootMargin
+      ? xDirection
+        ? [mRootLocal[3], mRootLocal[1]]
+        : [mRootLocal[2], mRootLocal[0]]
+      : [0, 0]
     : [0, 0];
 
   const localScrollXY = React.useMemo(() => {
@@ -169,10 +171,10 @@ const Scroll: React.FC<ScrollType> = ({
     ? React.useMemo(() => {
         const objects = xDirection
           ? Math.abs(
-              Math.floor((localScrollXY[1] - pY) / (localObjectXY[1] + gapX))
+              Math.floor((localScrollXY[1] - pY) / (localScrollXY[1] + gapX))
             )
           : Math.abs(
-              Math.floor((localScrollXY[0] - pY) / (localObjectXY[0] + gapX))
+              Math.floor((localScrollXY[0] - pY) / (localScrollXY[0] + gapX))
             );
 
         return objects > validChildren.length
@@ -183,7 +185,7 @@ const Scroll: React.FC<ScrollType> = ({
       }, [])
     : validChildren.length;
 
-  const xy = xDirection ? localScrollXY[0] : localScrollXY[1];
+  const xy = xDirection ? localScrollXY[0] || 0 : localScrollXY[1] || 0;
 
   const splitIndices = React.useMemo(() => {
     if (!infiniteScroll || objectsPerDirection <= 1) {
@@ -214,13 +216,15 @@ const Scroll: React.FC<ScrollType> = ({
 
   const objectsWrapperWidth = React.useMemo(() => {
     return (
-      xyObjectReverse * objectsPerDirection + (objectsPerDirection - 1) * gapY
+      (xyObjectReverse ? xyObjectReverse : 0) * objectsPerDirection +
+      (objectsPerDirection - 1) * gapY
     );
   }, [xyObjectReverse, objectsPerDirection, gapY]);
 
   const objectsWrapperHeight = React.useMemo(() => {
     return objectXY
-      ? xyObject * childsPerDirection + (childsPerDirection - 1) * gapX
+      ? (xyObject ? xyObject : 0) * childsPerDirection +
+          (childsPerDirection - 1) * gapX
       : receivedObjectsWrapperSize;
   }, [xyObject, childsPerDirection, gapX, receivedObjectsWrapperSize]);
 
@@ -231,6 +235,7 @@ const Scroll: React.FC<ScrollType> = ({
   const thumbSize = React.useMemo(() => {
     if (scrollVisibility === "<O>" || scrollVisibility === "↓<O>") {
       if (objectsWrapperHeight === 0) return 0;
+      if (!xy) return 0;
       return Math.round((xy / objectsWrapperSizeFull) * xy);
     } else {
       return NaN;
@@ -238,6 +243,7 @@ const Scroll: React.FC<ScrollType> = ({
   }, [xy, objectsWrapperSizeFull, scrollVisibility]);
 
   const endObjectsWrapper = React.useMemo(() => {
+    if (!xy) return objectsWrapperSizeFull;
     return (
       objectsWrapperSizeFull - xy // in scroll vindow
     );
@@ -256,6 +262,7 @@ const Scroll: React.FC<ScrollType> = ({
   }, [scrollTop, objectsWrapperSizeFull, endObjectsWrapper]);
 
   const translateProperty = React.useMemo(() => {
+    if (!localScrollXY[0] || !localScrollXY[1]) return 0;
     return localScrollXY[0] / 2 - localScrollXY[1] / 2;
   }, [localScrollXY]);
 
@@ -277,7 +284,7 @@ const Scroll: React.FC<ScrollType> = ({
         ? indices.slice(-firstChildsInDirection)
         : [];
       balanceHeight =
-        ((xyObjectReverse + gapY) *
+        (((xyObjectReverse ? xyObjectReverse : 0) + gapY) *
           (objectsPerDirection - firstChildsInDirection)) /
         2;
     }
@@ -300,21 +307,23 @@ const Scroll: React.FC<ScrollType> = ({
             return [arrayIndex, indexInArray];
           }
         }
-        return [null, null];
+        return [0, 0];
       })(index, splitIndices);
 
       const elementTop = (function (index: number) {
-        return index !== null ? (xyObject + gapX) * index + pT : null;
+        return index !== 0
+          ? ((xyObject ? xyObject : 0) + gapX) * index + pT
+          : 0;
       })(
         infiniteScroll
           ? objectsPerDirection > 1
             ? indexAndSubIndex[1]
             : index
-          : null
+          : 0
       );
 
       const elementBottom = (function () {
-        return infiniteScroll ? elementTop + localObjectXY[1] : null;
+        return infiniteScroll ? elementTop + localObjectXY[1] : 0;
       })();
 
       const left =
@@ -327,7 +336,7 @@ const Scroll: React.FC<ScrollType> = ({
                 ? balanceHeight
                 : 0
               : 0)
-          : null;
+          : NaN;
 
       return {
         elementTop,
@@ -376,11 +385,13 @@ const Scroll: React.FC<ScrollType> = ({
   const edgeGradientCheck = React.useCallback(() => {
     if (!edgeGradient) return;
 
-    const { scrollTop } = scrollElementRef.current;
+    const scrollTop = scrollElementRef.current?.scrollTop || 0;
     const isNotAtBottom = Math.round(scrollTop + xy) !== objectsWrapperSizeFull;
 
-    scrollContentlRef.current.classList.toggle("edgeBottom", isNotAtBottom);
-    scrollContentlRef.current.classList.toggle("edgeTop", scrollTop > 1);
+    if (scrollContentlRef.current) {
+      scrollContentlRef.current.classList.toggle("edgeBottom", isNotAtBottom);
+      scrollContentlRef.current.classList.toggle("edgeTop", scrollTop > 1);
+    }
   }, [edgeGradient, xy, objectsWrapperSizeFull]);
 
   const handleScroll = React.useCallback(() => {
@@ -413,7 +424,10 @@ const Scroll: React.FC<ScrollType> = ({
       // onScrollValue
       if (onScrollValue) {
         onScrollValue.forEach(([conditionFunc, callbackFunc]) => {
-          if (conditionFunc(scrollElementRef.current.scrollTop)) {
+          if (
+            scrollElementRef.current &&
+            conditionFunc(scrollElementRef.current.scrollTop)
+          ) {
             callbackFunc();
           }
         });
@@ -438,6 +452,7 @@ const Scroll: React.FC<ScrollType> = ({
   );
 
   const handleMouseUp = React.useCallback(() => {
+    if (!customScrollRef.current) return;
     customScrollRef.current.classList.remove("grabbingScroll");
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp);
@@ -447,6 +462,7 @@ const Scroll: React.FC<ScrollType> = ({
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent, clicked: "thumb" | "wrapp") => {
+      if (!customScrollRef.current) return;
       clickedObject.current = clicked;
       (scrollVisibility === "↓<O>" || scrollVisibility === "<O>") &&
         customScrollRef.current.classList.add("grabbingScroll");
@@ -547,13 +563,13 @@ const Scroll: React.FC<ScrollType> = ({
 
       if (prevKey.current === null) {
         animationId = requestAnimationFrame(() =>
-          smoothScroll(200, localScrollTop, scrollCallback)
+          smoothScroll(200, localScrollTop ?? 0, scrollCallback)
         );
       } else if (prevKey.current !== firstChildKey) {
         smoothScroll(200, NaN, scrollCallback);
       } else if (prevKey.current === firstChildKey) {
         animationId = requestAnimationFrame(() =>
-          smoothScroll(200, localScrollTop, () => {})
+          smoothScroll(200, localScrollTop ?? 0, () => {})
         );
       }
 
@@ -601,8 +617,8 @@ const Scroll: React.FC<ScrollType> = ({
 
           const isElementVisible =
             (xDirection ? localScrollXY[0] : localScrollXY[1]) + mRootX >
-              elementTop - scrollElementRef.current?.scrollTop &&
-            elementBottom - scrollElementRef.current?.scrollTop > 0 - mRootY;
+              elementTop - scrollElementRef.current!.scrollTop &&
+            elementBottom - scrollElementRef.current!.scrollTop > 0 - mRootY;
 
           if (isElementVisible) {
             return (
