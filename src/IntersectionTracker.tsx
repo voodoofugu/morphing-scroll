@@ -65,7 +65,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
         if (isVisible && onVisible) {
           onVisible();
         }
-      }, intersectionDeley);
+      }, intersectionDeley) as any;
     } else {
       if (isVisible && onVisible) {
         onVisible();
@@ -74,7 +74,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
 
     return () => {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+        clearTimeout(timeoutRef.current as any);
       }
     };
   }, [isVisible]);
