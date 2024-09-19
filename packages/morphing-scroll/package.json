@@ -1,15 +1,17 @@
 {
-  "name": "react-variable-scroll",
+  "name": "morphing-scroll",
+  "version": "1.0.1",
+  "description": "This is a library for the convenience of various object scrolling methods✨",
   "author": "Georg Schilin",
   "license": "MIT",
-  "version": "1.0.5",
-  "description": "This is a library for the convenience of various object scrolling methods✨",
   "main": "dist/index.js",
   "type": "module",
+  "types": "node_modules/morphing-scroll-types/dist/index.d.ts",
   "files": [
     "dist"
   ],
   "peerDependencies": {
-    "react": "^18.3.1"
+    "react": "^18.3.1",
+    "morphing-scroll-types": "*"
   }
 }
