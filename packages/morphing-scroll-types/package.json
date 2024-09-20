@@ -2,11 +2,10 @@
   "name": "@types/morphing-scroll",
   "version": "1.0.9999",
   "private": true,
+  "type": "module",
   "devDependencies": {
+    "@types/react": "^17.0.0",
     "@types/morphing-scroll": "workspace:."
-  },
-  "peerDependencies": {
-    "react": "^18.3.1"
   },
   "projects": [
     "https://github.com/voodoofugu/morphing-scroll"
