@@ -19,7 +19,7 @@ const ResizeTracker: React.FC<ResizeTrackerProps> = ({
     if (!element) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         const width = entry.contentRect.width;
         const height = entry.contentRect.height;
 

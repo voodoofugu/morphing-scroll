@@ -4,7 +4,7 @@ type IntersectionTrackerProps = {
   children: React.ReactNode;
   root?: Element | null;
   threshold?: number;
-  rootMargin?: number[] | number;
+  rootMargin?: number[] | number | null;
   style?: React.CSSProperties;
   visibleContent?: boolean;
   onVisible?: () => void;
@@ -23,7 +23,9 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
-  const timeoutRef = React.useRef<number | null>(null);
+  const timeoutRef = React.useRef<
+    number | ReturnType<typeof setTimeout> | null
+  >(null);
 
   const marginString = rootMargin
     ? typeof rootMargin === "number"
@@ -65,7 +67,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
         if (isVisible && onVisible) {
           onVisible();
         }
-      }, intersectionDeley) as any;
+      }, intersectionDeley);
     } else {
       if (isVisible && onVisible) {
         onVisible();
@@ -74,7 +76,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
 
     return () => {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current as any);
+        clearTimeout(timeoutRef.current);
       }
     };
   }, [isVisible]);
