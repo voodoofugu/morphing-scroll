@@ -24,9 +24,9 @@ interface ScrollType {
     | "◄|►" // arrows
     | "◄|►/<c>"; // arrows + content
   scrollVisibility?:
-    | "<O>" // visible (default)
-    | "↓<O>" // visible on hover
-    | "<Ø>"; // hidden
+    | "visible" // visible (default)
+    | "hover" // visible on hover
+    | "hidden"; // hidden
   scrollTop?: number | "end";
 
   lazyRender?: boolean;
@@ -55,7 +55,7 @@ const Scroll: React.FC<ScrollType> = ({
   padding = [0, 0, 0, 0],
   scrollReverse = false,
   scrollTrigger = "←→",
-  scrollVisibility = "<O>",
+  scrollVisibility = "visible",
   lazyRender = false,
   rootMargin = NaN,
   suspending = false,
@@ -233,7 +233,7 @@ const Scroll: React.FC<ScrollType> = ({
   }, [objectsWrapperHeight, pLocalXY]);
 
   const thumbSize = React.useMemo(() => {
-    if (scrollVisibility === "<O>" || scrollVisibility === "↓<O>") {
+    if (scrollVisibility === "visible" || scrollVisibility === "hover") {
       if (objectsWrapperHeight === 0) return 0;
       if (!xy) return 0;
       return Math.round((xy / objectsWrapperSizeFull) * xy);
@@ -398,7 +398,7 @@ const Scroll: React.FC<ScrollType> = ({
     if (
       scrollElementRef.current &&
       thumbSize !== 0 &&
-      (scrollVisibility === "<O>" || scrollVisibility === "↓<O>")
+      (scrollVisibility === "visible" || scrollVisibility === "hover")
     ) {
       const newScroll = Math.abs(
         Math.round(
@@ -464,7 +464,7 @@ const Scroll: React.FC<ScrollType> = ({
     (e: React.MouseEvent, clicked: "thumb" | "wrapp") => {
       if (!customScrollRef.current) return;
       clickedObject.current = clicked;
-      (scrollVisibility === "↓<O>" || scrollVisibility === "<O>") &&
+      (scrollVisibility === "hover" || scrollVisibility === "visible") &&
         customScrollRef.current.classList.add("grabbingScroll");
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
@@ -531,7 +531,7 @@ const Scroll: React.FC<ScrollType> = ({
     if (infiniteScroll && lazyRender) {
       scrollReverse && warn("lazyRender", "infiniteScroll", true);
     }
-    if (scrollVisibility === "<Ø>") {
+    if (scrollVisibility === "hidden") {
       scrollReverse && warn("scrollReverse", "scrollVisibility `<O>`");
       (scrollTrigger === "←→" || scrollTrigger === "←→/←O→") &&
         warn("scrollTrigger `←→` or `←→/←O→`", "scrollVisibility `<O>`");
@@ -671,7 +671,7 @@ const Scroll: React.FC<ScrollType> = ({
           : scrollTrigger === "<c>/←O→"
           ? " draggableContent draggableScroll"
           : ""
-      }${scrollVisibility === "↓<O>" ? " scrollOnHover" : ""} ${className}`}
+      }${scrollVisibility === "hover" ? " scrollOnHover" : ""} ${className}`}
       ref={customScrollRef}
       style={{
         width: `${localScrollXY[0]}px`,
@@ -694,7 +694,7 @@ const Scroll: React.FC<ScrollType> = ({
         {edgeGradient && <div className="edge top" style={edgeColor}></div>}
         {edgeGradient && <div className="edge bottom" style={edgeColor}></div>}
 
-        {(scrollVisibility === "<O>" || scrollVisibility === "↓<O>") &&
+        {(scrollVisibility === "visible" || scrollVisibility === "hover") &&
           thumbSize < xy && (
             <div
               className={`scrollBar ${scrollReverse ? "scrollReverse" : ""}`}
