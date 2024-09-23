@@ -2,6 +2,8 @@ import React from "react";
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 
+type ScrollTriggerOptions = "mouseWheel" | "scrollThumb" | "content" | "arrows";
+
 interface ScrollType {
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
@@ -16,17 +18,8 @@ interface ScrollType {
   wrapAlignCenter?: boolean;
 
   scrollReverse?: boolean;
-  scrollTrigger?:
-    | "←→" // mouse wheel (default)
-    | "←→/←O→" // mouse wheel + scroll bar
-    | "<c>" // content
-    | "<c>/←O→" // content + scroll bar
-    | "◄|►" // arrows
-    | "◄|►/<c>"; // arrows + content
-  scrollVisibility?:
-    | "visible" // visible (default)
-    | "hover" // visible on hover
-    | "hidden"; // hidden
+  scrollTrigger?: Array<ScrollTriggerOptions> | ScrollTriggerOptions;
+  scrollVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
 
   lazyRender?: boolean;
@@ -39,7 +32,7 @@ interface ScrollType {
   edgeGradient?: boolean | string;
 
   objectsWrapperMinSize?: number;
-  onScrollValue?: [(scrollTop: number) => boolean, () => void][];
+  onScrollValue?: Array<[(scrollTop: number) => boolean, () => void]>;
   children: React.ReactNode;
   // multipleDirectionQuantity?: boolean;
   // autoSize?: boolean;
@@ -54,10 +47,10 @@ const Scroll: React.FC<ScrollType> = ({
   gap,
   padding = [0, 0, 0, 0],
   scrollReverse = false,
-  scrollTrigger = "←→",
+  scrollTrigger = "mouseWheel",
   scrollVisibility = "visible",
   lazyRender = false,
-  rootMargin = NaN,
+  rootMargin = 0,
   suspending = false,
   fallback = null,
   scrollTop = 1,
@@ -109,37 +102,44 @@ const Scroll: React.FC<ScrollType> = ({
       : padding.length === 3
       ? [padding[0], padding[1], padding[2], padding[1]]
       : padding;
+
   const [pT, pR, pB, pL] = xDirection
     ? [pLocal[1], pLocal[2], pLocal[3], pLocal[0]]
     : pLocal;
+
   const pY = pLocal[1] + pLocal[3];
   const pLocalXY = pT + pB;
 
-  const [gapX, gapY] =
-    typeof gap === "number"
+  const [gapX, gapY] = React.useMemo(() => {
+    return typeof gap === "number"
       ? [gap, gap]
       : xDirection
       ? [gap ? gap[1] : 0, gap ? gap[0] : 0]
       : [0, 0];
+  }, [gap, xDirection]);
+
+  const scrollTriggerLocal = React.useMemo(() => {
+    return typeof scrollTrigger === "string" ? [scrollTrigger] : scrollTrigger;
+  }, [scrollTrigger]);
 
   const localObjectXY = React.useMemo(() => {
     return objectXY
       ? objectXY
       : xDirection
-      ? [scrollXY ? scrollXY[0] : NaN, scrollXY ? scrollXY[1] - pY : NaN]
-      : [scrollXY ? scrollXY[0] - pY : NaN, NaN];
+      ? [scrollXY ? scrollXY[0] : 0, scrollXY ? scrollXY[1] - pY : 0]
+      : [scrollXY ? scrollXY[0] - pY : 0, 0];
   }, [objectXY, scrollXY, pY, xDirection]);
 
   const xyObject = localObjectXY
     ? xDirection
       ? localObjectXY[0]
       : localObjectXY[1]
-    : NaN;
+    : 0;
   const xyObjectReverse = localObjectXY
     ? xDirection
       ? localObjectXY[1]
       : localObjectXY[0]
-    : NaN;
+    : 0;
 
   const mRootLocal = rootMargin
     ? typeof rootMargin === "number"
@@ -238,7 +238,7 @@ const Scroll: React.FC<ScrollType> = ({
       if (!xy) return 0;
       return Math.round((xy / objectsWrapperSizeFull) * xy);
     } else {
-      return NaN;
+      return 0;
     }
   }, [xy, objectsWrapperSizeFull, scrollVisibility]);
 
@@ -336,7 +336,7 @@ const Scroll: React.FC<ScrollType> = ({
                 ? balanceHeight
                 : 0
               : 0)
-          : NaN;
+          : 0;
 
       return {
         elementTop,
@@ -532,9 +532,11 @@ const Scroll: React.FC<ScrollType> = ({
       scrollReverse && warn("lazyRender", "infiniteScroll", true);
     }
     if (scrollVisibility === "hidden") {
-      scrollReverse && warn("scrollReverse", "scrollVisibility `<O>`");
-      (scrollTrigger === "←→" || scrollTrigger === "←→/←O→") &&
-        warn("scrollTrigger `←→` or `←→/←O→`", "scrollVisibility `<O>`");
+      scrollReverse && warn("scrollReverse", "scrollVisibility `hidden`", true);
+      scrollTriggerLocal.includes("scrollThumb") &&
+        warn("scrollTrigger `scrollThumb`", "scrollVisibility `hidden`", true);
+      scrollTriggerLocal.includes("arrows") &&
+        warn("scrollTrigger `arrows`", "scrollVisibility `hidden`", true);
     }
     if (!suspending && fallback) {
       scrollReverse && warn("fallback", "suspending");
@@ -583,8 +585,7 @@ const Scroll: React.FC<ScrollType> = ({
       className="objectsWrapper"
       ref={objectsWrapperRef}
       onMouseDown={(e) =>
-        (scrollTrigger === "<c>" || scrollTrigger === "<c>/←O→") &&
-        handleMouseDown(e, "wrapp")
+        scrollTriggerLocal.includes("content") && handleMouseDown(e, "wrapp")
       }
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
@@ -664,14 +665,10 @@ const Scroll: React.FC<ScrollType> = ({
   return (
     <div
       className={`customScroll${xDirection ? " xDirection" : " yDirection"}${
-        scrollTrigger === "←→/←O→"
-          ? " draggableScroll"
-          : scrollTrigger === "<c>" || scrollTrigger === "◄|►/<c>"
-          ? " draggableContent"
-          : scrollTrigger === "<c>/←O→"
-          ? " draggableContent draggableScroll"
-          : ""
-      }${scrollVisibility === "hover" ? " scrollOnHover" : ""} ${className}`}
+        scrollTriggerLocal.includes("scrollThumb") ? " draggableScroll" : ""
+      }${scrollTriggerLocal.includes("content") ? " draggableContent" : ""}${
+        scrollVisibility === "hover" ? " scrollOnHover" : ""
+      } ${className}`}
       ref={customScrollRef}
       style={{
         width: `${localScrollXY[0]}px`,
@@ -699,7 +696,7 @@ const Scroll: React.FC<ScrollType> = ({
             <div
               className={`scrollBar ${scrollReverse ? "scrollReverse" : ""}`}
               style={
-                scrollTrigger === "←→/←O→" || scrollTrigger === "<c>/←O→"
+                scrollTriggerLocal.includes("scrollThumb")
                   ? {}
                   : { pointerEvents: "none" }
               }
@@ -709,7 +706,7 @@ const Scroll: React.FC<ScrollType> = ({
                   thumbElement ? "" : " defaultThumb"
                 }`}
                 onMouseDown={(e) =>
-                  (scrollTrigger === "←→/←O→" || scrollTrigger === "<c>/←O→") &&
+                  scrollTriggerLocal.includes("scrollThumb") &&
                   handleMouseDown(e, "thumb")
                 }
                 style={{ height: `${thumbSize}px`, top: `${scroll}px` }}
@@ -728,7 +725,7 @@ const Scroll: React.FC<ScrollType> = ({
             ...(objectsWrapperAligning && {
               alignItems: "center",
             }),
-            ...(scrollTrigger === "←→" || scrollTrigger === "←→/←O→"
+            ...(scrollTriggerLocal.includes("mouseWheel")
               ? {
                   overflow: "hidden scroll",
                 }
