@@ -30,6 +30,7 @@ interface ScrollType {
   fallback?: React.ReactNode;
   thumbElement?: React.ReactNode;
   edgeGradient?: boolean | string;
+  arrow?: { size?: number; className?: string; element?: React.ReactNode };
 
   objectsWrapperMinSize?: number;
   onScrollValue?: Array<[(scrollTop: number) => boolean, () => void]>;
@@ -62,6 +63,11 @@ const Scroll: React.FC<ScrollType> = ({
   children,
   onScrollValue,
   thumbElement,
+  arrow = {
+    size: 40,
+    className: "",
+    element: <div className="arrow"></div>,
+  },
 }) => {
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
@@ -163,8 +169,15 @@ const Scroll: React.FC<ScrollType> = ({
 
   const localScrollXY = React.useMemo(() => {
     const [x, y] = scrollXY || localObjectXY;
-    return [x, y];
-  }, [scrollXY, localObjectXY]);
+
+    if (!scrollTriggerLocal.includes("arrows") || !arrow.size) {
+      return [x, y];
+    }
+
+    return xDirection
+      ? [x ? x - arrow.size * 2 : x, y]
+      : [x, y ? y - arrow.size * 2 : y];
+  }, [scrollXY, localObjectXY, arrow]);
 
   // calculations
   const objectsPerDirection = localObjectXY
@@ -398,6 +411,10 @@ const Scroll: React.FC<ScrollType> = ({
     if (scrollContentlRef.current) {
       scrollContentlRef.current.classList.toggle("edgeBottom", isNotAtBottom);
       scrollContentlRef.current.classList.toggle("edgeTop", scrollTop > 1);
+      if (customScrollRef.current && scrollTriggerLocal.includes("arrows")) {
+        customScrollRef.current.classList.toggle("bArrowOff", !isNotAtBottom);
+        customScrollRef.current.classList.toggle("tArrowOff", scrollTop <= 1);
+      }
     }
   }, [edgeGradient, xy, objectsWrapperSizeFull]);
 
@@ -683,15 +700,28 @@ const Scroll: React.FC<ScrollType> = ({
       ref={customScrollRef}
       style={{
         width: `${localScrollXY[0]}px`,
-        height: `${localScrollXY[1]}px`,
+        height:
+          scrollTrigger.includes("arrows") && arrow.size && localScrollXY[1]
+            ? `${localScrollXY[1] + arrow.size * 2}px`
+            : `${localScrollXY[1]}px`,
       }}
     >
       {scrollTriggerLocal.includes("arrows") && (
-        <div className="arrow top"></div>
+        <>
+          {["top", "bottom"].map((position) => (
+            <div
+              key={position}
+              className={`arrowBox ${position}${
+                arrow.className ? ` ` + arrow.className : ""
+              }`}
+              style={{ height: `${arrow.size}px` }}
+            >
+              {arrow.element}
+            </div>
+          ))}
+        </>
       )}
-      {scrollTriggerLocal.includes("arrows") && (
-        <div className="arrow bottom"></div>
-      )}
+
       <div
         className="scrollContent"
         ref={scrollContentlRef}
@@ -703,6 +733,10 @@ const Scroll: React.FC<ScrollType> = ({
           ...(xDirection && {
             transform: `rotate(-90deg) translate(${translateProperty}px, ${translateProperty}px) scaleX(-1)`,
           }),
+          ...(scrollTrigger.includes("arrows") &&
+            arrow.size && {
+              top: `${arrow.size}px`,
+            }),
         }}
       >
         {edgeGradient && <div className="edge top" style={edgeColor}></div>}
