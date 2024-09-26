@@ -73,6 +73,7 @@ const Scroll: React.FC<ScrollType> = ({
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
+  const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
 
   let objectsWrapperAligning = false;
   const clickedObject = React.useRef("none");
@@ -175,15 +176,9 @@ const Scroll: React.FC<ScrollType> = ({
     }
 
     return xDirection
-      ? [x ? x - arrow.size * 2 : x, y]
-      : [x, y ? y - arrow.size * 2 : y];
+      ? [x ? x - arrow.size * 2 : x, y, x, y]
+      : [x, y ? y - arrow.size * 2 : y, x, y]; // [2] & [3] is only for customScroll
   }, [scrollXY, localObjectXY, xDirection, arrow]);
-
-  const localScrollXYForCustomScroll = React.useMemo(() => {
-    const [x, y] = scrollXY || localObjectXY;
-
-    return [x, y];
-  }, [scrollXY, localObjectXY]);
 
   // calculations
   const objectsPerDirection = localObjectXY
@@ -429,18 +424,14 @@ const Scroll: React.FC<ScrollType> = ({
         scrollTo(scrollTop <= xy ? 1 : scrollTop - xy);
       }
 
-      if (arr === "bottom" && length && scrollTop < height) {
-        scrollTo(
-          scrollTop >= xy * (length - 1) && height <= xy * length
-            ? height
-            : scrollTop + xy
-        );
+      if (arr === "bottom" && length && scrollTop + xy !== height) {
+        scrollTo(scrollTop + xy >= xy * length ? height : scrollTop + xy);
       }
     },
     [scrollElementRef, scrollingSizeToObjectsWrapper]
   );
 
-  const edgeGradientArrowsCheck = React.useCallback(() => {
+  const edgeGradientAndArrowsCheck = React.useCallback(() => {
     if (!edgeGradient) return;
 
     const scrollTop = scrollElementRef.current?.scrollTop || 0;
@@ -449,9 +440,30 @@ const Scroll: React.FC<ScrollType> = ({
     if (scrollContentlRef.current) {
       scrollContentlRef.current.classList.toggle("edgeBottom", isNotAtBottom);
       scrollContentlRef.current.classList.toggle("edgeTop", scrollTop > 1);
-      if (customScrollRef.current && scrollTriggerLocal.includes("arrows")) {
-        customScrollRef.current.classList.toggle("bArrowOff", !isNotAtBottom);
-        customScrollRef.current.classList.toggle("tArrowOff", scrollTop <= 1);
+      if (scrollTriggerLocal.includes("arrows")) {
+        scrollContentlRef.current.classList.toggle("bArrowOff", !isNotAtBottom);
+        scrollContentlRef.current.classList.toggle("tArrowOff", scrollTop <= 1);
+      }
+
+      if (sliderBarRef.current) {
+        const wrapEl = objectsWrapperRef.current;
+        if (!wrapEl) return;
+
+        const children = sliderBarRef.current.children;
+        const height = wrapEl.clientHeight;
+
+        function getActiveElem() {
+          Array.from(
+            { length: scrollingSizeToObjectsWrapper(true) || 0 },
+            (_, index) =>
+              children[index].classList.toggle(
+                "active",
+                scrollTop <= xy * (index + 1) &&
+                  scrollTop + xy > xy * (index + 1) // !!!
+              )
+          );
+        }
+        getActiveElem();
       }
     }
   }, [edgeGradient, xy, objectsWrapperSizeFull]);
@@ -496,18 +508,18 @@ const Scroll: React.FC<ScrollType> = ({
       }
     }
 
-    edgeGradientArrowsCheck();
+    edgeGradientAndArrowsCheck();
   }, [xy, thumbSize, scroll]);
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
-      const size = scrollingSizeToObjectsWrapper();
-      if (!size) return;
+      const length = scrollingSizeToObjectsWrapper();
+      if (!length) return;
       const plusMinus = clickedObject.current === "thumb" ? 1 : -1;
       if (xDirection) {
-        scrollElementRef.current!.scrollTop += e.movementX * size * plusMinus;
+        scrollElementRef.current!.scrollTop += e.movementX * length * plusMinus;
       } else {
-        scrollElementRef.current!.scrollTop += e.movementY * size * plusMinus;
+        scrollElementRef.current!.scrollTop += e.movementY * length * plusMinus;
       }
     },
     [xDirection, scrollElementRef, scrollingSizeToObjectsWrapper]
@@ -609,7 +621,7 @@ const Scroll: React.FC<ScrollType> = ({
       setInfiniteScrollState(true);
     }
 
-    edgeGradientArrowsCheck();
+    edgeGradientAndArrowsCheck();
   }, []);
 
   React.useEffect(() => {
@@ -736,8 +748,8 @@ const Scroll: React.FC<ScrollType> = ({
       } ${className}`}
       ref={customScrollRef}
       style={{
-        width: `${localScrollXYForCustomScroll[0]}px`,
-        height: `${localScrollXYForCustomScroll[1]}px`,
+        width: `${localScrollXY[2]}px`,
+        height: `${localScrollXY[3]}px`,
       }}
     >
       <div
@@ -760,51 +772,56 @@ const Scroll: React.FC<ScrollType> = ({
               }),
         }}
       >
-        {scrollTriggerLocal.includes("arrows") && (
-          <>
-            {["top", "bottom"].map((position) => (
-              <div
-                key={position}
-                className={`arrowBox ${position}${
-                  arrow.className ? ` ` + arrow.className : ""
-                }`}
-                style={{ height: `${arrow.size}px` }}
-                onClick={() => handleArrows(position)}
-              >
-                {arrow.element}
-              </div>
-            ))}
-          </>
-        )}
+        {scrollTriggerLocal.includes("arrows") &&
+          ["top", "bottom"].map((position) => (
+            <div
+              key={position}
+              className={`arrowBox ${position}${
+                arrow.className ? ` ` + arrow.className : ""
+              }`}
+              style={{ height: `${arrow.size}px` }}
+              onClick={() => handleArrows(position)}
+            >
+              {arrow.element}
+            </div>
+          ))}
 
         {edgeGradient && <div className="edge top" style={edgeColor}></div>}
         {edgeGradient && <div className="edge bottom" style={edgeColor}></div>}
 
         {(scrollVisibility === "visible" || scrollVisibility === "hover") &&
-          thumbSize < xy && (
+        thumbSize < xy &&
+        !scrollTriggerLocal.includes("arrows") ? (
+          <div
+            className={`scrollBar ${scrollReverse ? "scrollReverse" : ""}`}
+            style={
+              scrollTriggerLocal.includes("scrollThumb")
+                ? {}
+                : { pointerEvents: "none" }
+            }
+          >
             <div
-              className={`scrollBar ${scrollReverse ? "scrollReverse" : ""}`}
-              style={
-                scrollTriggerLocal.includes("scrollThumb")
-                  ? {}
-                  : { pointerEvents: "none" }
+              className={`scrollBarThumb${thumbElement ? "" : " defaultThumb"}`}
+              onMouseDown={(e) =>
+                scrollTriggerLocal.includes("scrollThumb") &&
+                handleMouseDown(e, "thumb")
               }
+              style={{ height: `${thumbSize}px`, top: `${scroll}px` }}
             >
-              <div
-                className={`scrollBarThumb${
-                  thumbElement ? "" : " defaultThumb"
-                }`}
-                onMouseDown={(e) =>
-                  scrollTriggerLocal.includes("scrollThumb") &&
-                  handleMouseDown(e, "thumb")
-                }
-                style={{ height: `${thumbSize}px`, top: `${scroll}px` }}
-              >
-                {thumbElement}
-                <div className="clickField"></div>
-              </div>
+              {thumbElement}
+              <div className="clickField"></div>
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="sliderBar" ref={sliderBarRef}>
+            {Array.from(
+              { length: scrollingSizeToObjectsWrapper(true) || 0 },
+              (_, index) => (
+                <div key={index} className={`sliderElem`}></div>
+              )
+            )}
+          </div>
+        )}
 
         <div
           className="scrollElement"
