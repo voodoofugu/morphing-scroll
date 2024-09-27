@@ -473,16 +473,15 @@ const Scroll: React.FC<ScrollType> = ({
       thumbSize !== 0 &&
       (scrollVisibility === "visible" || scrollVisibility === "hover")
     ) {
-      console.log("handleScroll");
       const newScroll = Math.abs(
         Math.round(
           (scrollElementRef.current.scrollTop / endObjectsWrapper) *
             (xy - thumbSize)
         )
       );
-      // if (newScroll !== topThumb) {
-      //   setTopThumb(newScroll);
-      // }
+      if (newScroll !== topThumb) {
+        setTopThumb(newScroll);
+      }
 
       // avoid jumping to the top when loading new items in the scroll
       if (
@@ -509,7 +508,7 @@ const Scroll: React.FC<ScrollType> = ({
     }
 
     edgeGradientAndArrowsCheck();
-  }, [xy, topThumb]);
+  }, [xy, thumbSize, topThumb]);
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
