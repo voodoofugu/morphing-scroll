@@ -79,7 +79,7 @@ const Scroll: React.FC<ScrollType> = ({
   const clickedObject = React.useRef("none");
   const prevKey = React.useRef<string | null | undefined>(null);
 
-  const [scroll, setScroll] = React.useState(0);
+  const [topThumb, setTopThumb] = React.useState(0);
   const [receivedObjectsWrapperSize, setReceivedObjectsWrapperSize] =
     React.useState(0);
   const [infiniteScrollState, setInfiniteScrollState] = React.useState(false);
@@ -393,7 +393,7 @@ const Scroll: React.FC<ScrollType> = ({
       const scrollValue = xDirection ? localScrollXY[0] : localScrollXY[1];
       if (!scrollValue) return null;
 
-      const calcFn = max ? Math.ceil : Math.round;
+      const calcFn = max ? Math.ceil : Math.floor;
       return calcFn(objectsWrapperHeight / scrollValue);
     },
     [xDirection, localScrollXY, objectsWrapperHeight]
@@ -420,15 +420,19 @@ const Scroll: React.FC<ScrollType> = ({
       const scrollTo = (position: number) =>
         smoothScroll(200, position, () => {});
 
-      if (arr === "top" && scrollTop > 1) {
-        scrollTo(scrollTop <= xy ? 1 : scrollTop - xy);
+      if (arr === "top" && scrollTop > 0) {
+        scrollTo(scrollTop <= xy ? 0 : scrollTop - xy);
       }
 
       if (arr === "bottom" && length && scrollTop + xy !== height) {
         scrollTo(scrollTop + xy >= xy * length ? height : scrollTop + xy);
       }
     },
-    [scrollElementRef, scrollingSizeToObjectsWrapper]
+    [
+      scrollElementRef.current,
+      objectsWrapperRef.current,
+      scrollingSizeToObjectsWrapper,
+    ] // !!!!
   );
 
   const edgeGradientAndArrowsCheck = React.useCallback(() => {
@@ -446,20 +450,15 @@ const Scroll: React.FC<ScrollType> = ({
       }
 
       if (sliderBarRef.current) {
-        const wrapEl = objectsWrapperRef.current;
-        if (!wrapEl) return;
-
         const children = sliderBarRef.current.children;
-        const height = wrapEl.clientHeight;
 
         function getActiveElem() {
           Array.from(
-            { length: scrollingSizeToObjectsWrapper(true) || 0 },
+            { length: scrollingSizeToObjectsWrapper() || 0 },
             (_, index) =>
               children[index].classList.toggle(
                 "active",
-                scrollTop <= xy * (index + 1) &&
-                  scrollTop + xy > xy * (index + 1) // !!!
+                scrollTop <= xy * index && scrollTop >= xy * index
               )
           );
         }
@@ -474,16 +473,17 @@ const Scroll: React.FC<ScrollType> = ({
       thumbSize !== 0 &&
       (scrollVisibility === "visible" || scrollVisibility === "hover")
     ) {
+      console.log("handleScroll");
       const newScroll = Math.abs(
         Math.round(
           (scrollElementRef.current.scrollTop / endObjectsWrapper) *
             (xy - thumbSize)
         )
       );
+      // if (newScroll !== topThumb) {
+      //   setTopThumb(newScroll);
+      // }
 
-      if (newScroll !== scroll) {
-        setScroll(newScroll);
-      }
       // avoid jumping to the top when loading new items in the scroll
       if (
         scrollElementRef.current.scrollTop === 0 && // xDirection!!! scrollLeft === 0
@@ -509,7 +509,7 @@ const Scroll: React.FC<ScrollType> = ({
     }
 
     edgeGradientAndArrowsCheck();
-  }, [xy, thumbSize, scroll]);
+  }, [xy, topThumb]);
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
@@ -557,19 +557,18 @@ const Scroll: React.FC<ScrollType> = ({
 
   const smoothScroll = React.useCallback(
     (duration: number, targetScrollTop: number, callback: () => void) => {
-      if (!scrollElementRef.current) return;
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl) return;
 
-      const startScrollTop = scrollElementRef.current.scrollTop;
+      const startScrollTop = scrollEl.scrollTop;
       const startTime = performance.now();
 
       const scrollStep = (currentTime: number) => {
-        if (!scrollElementRef.current) return;
-
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
 
         if (targetScrollTop) {
-          scrollElementRef.current.scrollTop =
+          scrollEl.scrollTop =
             startScrollTop + (targetScrollTop - startScrollTop) * progress;
         }
 
@@ -582,7 +581,7 @@ const Scroll: React.FC<ScrollType> = ({
 
       requestAnimationFrame(scrollStep);
     },
-    [scrollElementRef]
+    [scrollElementRef.current]
   );
 
   // effects
@@ -806,7 +805,7 @@ const Scroll: React.FC<ScrollType> = ({
                 scrollTriggerLocal.includes("scrollThumb") &&
                 handleMouseDown(e, "thumb")
               }
-              style={{ height: `${thumbSize}px`, top: `${scroll}px` }}
+              style={{ height: `${thumbSize}px`, top: `${topThumb}px` }}
             >
               {thumbElement}
               <div className="clickField"></div>
@@ -815,7 +814,7 @@ const Scroll: React.FC<ScrollType> = ({
         ) : (
           <div className="sliderBar" ref={sliderBarRef}>
             {Array.from(
-              { length: scrollingSizeToObjectsWrapper(true) || 0 },
+              { length: scrollingSizeToObjectsWrapper() || 0 },
               (_, index) => (
                 <div key={index} className={`sliderElem`}></div>
               )
