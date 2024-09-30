@@ -17,9 +17,9 @@ interface ScrollType {
   contentAlignCenter?: boolean;
   wrapAlignCenter?: boolean;
 
-  scrollReverse?: boolean;
+  progressReverse?: boolean;
   scrollTrigger?: Array<ScrollTriggerOptions> | ScrollTriggerOptions;
-  scrollVisibility?: "visible" | "hover" | "hidden";
+  progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
 
   lazyRender?: boolean;
@@ -47,9 +47,9 @@ const Scroll: React.FC<ScrollType> = ({
   xDirection = false,
   gap,
   padding = [0, 0, 0, 0],
-  scrollReverse = false,
+  progressReverse = false,
   scrollTrigger = "mouseWheel",
-  scrollVisibility = "visible",
+  progressVisibility = "visible",
   lazyRender = false,
   rootMargin = 0,
   suspending = false,
@@ -250,14 +250,14 @@ const Scroll: React.FC<ScrollType> = ({
   }, [objectsWrapperHeight, pLocalXY]);
 
   const thumbSize = React.useMemo(() => {
-    if (scrollVisibility === "visible" || scrollVisibility === "hover") {
+    if (progressVisibility === "visible" || progressVisibility === "hover") {
       if (objectsWrapperHeight === 0) return 0;
       if (!xy) return 0;
       return Math.round((xy / objectsWrapperSizeFull) * xy);
     } else {
       return 0;
     }
-  }, [xy, objectsWrapperSizeFull, scrollVisibility]);
+  }, [xy, objectsWrapperSizeFull, progressVisibility]);
 
   const endObjectsWrapper = React.useMemo(() => {
     if (!xy) return objectsWrapperSizeFull;
@@ -413,26 +413,22 @@ const Scroll: React.FC<ScrollType> = ({
       const wrapEl = objectsWrapperRef.current;
       if (!scrollEl || !wrapEl) return;
 
-      const scrollTop = scrollEl.scrollTop || 0;
+      const scrollTop = scrollEl.scrollTop;
       const height = wrapEl.clientHeight;
       const length = scrollingSizeToObjectsWrapper(true);
 
       const scrollTo = (position: number) =>
         smoothScroll(200, position, () => {});
 
-      if (arr === "top" && scrollTop > 0) {
+      if (arr === "first" && scrollTop > 0) {
         scrollTo(scrollTop <= xy ? 0 : scrollTop - xy);
       }
 
-      if (arr === "bottom" && length && scrollTop + xy !== height) {
+      if (arr === "last" && length && scrollTop + xy !== height) {
         scrollTo(scrollTop + xy >= xy * length ? height : scrollTop + xy);
       }
     },
-    [
-      scrollElementRef.current,
-      objectsWrapperRef.current,
-      scrollingSizeToObjectsWrapper,
-    ] // !!!!
+    [scrollElementRef, objectsWrapperRef, scrollingSizeToObjectsWrapper]
   );
 
   const edgeGradientAndArrowsCheck = React.useCallback(() => {
@@ -442,26 +438,27 @@ const Scroll: React.FC<ScrollType> = ({
     const isNotAtBottom = Math.round(scrollTop + xy) !== objectsWrapperSizeFull;
 
     if (scrollContentlRef.current) {
-      scrollContentlRef.current.classList.toggle("edgeBottom", isNotAtBottom);
-      scrollContentlRef.current.classList.toggle("edgeTop", scrollTop > 1);
+      scrollContentlRef.current.classList.toggle("edgeLast", isNotAtBottom);
+      scrollContentlRef.current.classList.toggle("edgeFirst", scrollTop > 1);
       if (scrollTriggerLocal.includes("arrows")) {
-        scrollContentlRef.current.classList.toggle("bArrowOff", !isNotAtBottom);
-        scrollContentlRef.current.classList.toggle("tArrowOff", scrollTop <= 1);
+        scrollContentlRef.current.classList.toggle("l_ArrOff", !isNotAtBottom);
+        scrollContentlRef.current.classList.toggle("f_ArrOff", scrollTop <= 1);
       }
 
       if (sliderBarRef.current) {
-        const children = sliderBarRef.current.children;
-
         function getActiveElem() {
-          Array.from(
-            { length: scrollingSizeToObjectsWrapper() || 0 },
-            (_, index) =>
-              children[index].classList.toggle(
-                "active",
-                scrollTop <= xy * index && scrollTop >= xy * index
-              )
-          );
+          const elements =
+            sliderBarRef.current?.querySelectorAll(".sliderElem");
+          const total = scrollingSizeToObjectsWrapper() || 0;
+
+          elements &&
+            elements.forEach((element, index) => {
+              const isActive =
+                scrollTop >= xy * index && scrollTop < xy * (index + 1);
+              element.classList.toggle("active", isActive);
+            });
         }
+
         getActiveElem();
       }
     }
@@ -471,7 +468,7 @@ const Scroll: React.FC<ScrollType> = ({
     if (
       scrollElementRef.current &&
       thumbSize !== 0 &&
-      (scrollVisibility === "visible" || scrollVisibility === "hover")
+      (progressVisibility === "visible" || progressVisibility === "hover")
     ) {
       const newScroll = Math.abs(
         Math.round(
@@ -479,11 +476,11 @@ const Scroll: React.FC<ScrollType> = ({
             (xy - thumbSize)
         )
       );
-      if (newScroll !== topThumb) {
+      if (newScroll !== topThumb && !scrollTriggerLocal.includes("arrows")) {
         setTopThumb(newScroll);
       }
 
-      // avoid jumping to the top when loading new items in the scroll
+      // avoid jumping to the top when loading new items on top in the scroll
       if (
         scrollElementRef.current.scrollTop === 0 && // xDirection!!! scrollLeft === 0
         clickedObject.current === "none"
@@ -537,7 +534,7 @@ const Scroll: React.FC<ScrollType> = ({
     (e: React.MouseEvent, clicked: "thumb" | "wrapp") => {
       if (!customScrollRef.current) return;
       clickedObject.current = clicked;
-      (scrollVisibility === "hover" || scrollVisibility === "visible") &&
+      (progressVisibility === "hover" || progressVisibility === "visible") &&
         customScrollRef.current.classList.add("grabbingScroll");
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
@@ -566,7 +563,7 @@ const Scroll: React.FC<ScrollType> = ({
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
 
-        if (targetScrollTop) {
+        if (targetScrollTop || targetScrollTop === 0) {
           scrollEl.scrollTop =
             startScrollTop + (targetScrollTop - startScrollTop) * progress;
         }
@@ -598,20 +595,25 @@ const Scroll: React.FC<ScrollType> = ({
       );
     }
     if (!lazyRender && rootMargin) {
-      scrollReverse && warn("rootMargin", "lazyRender");
+      progressReverse && warn("rootMargin", "lazyRender");
     }
     if (infiniteScroll && lazyRender) {
-      scrollReverse && warn("lazyRender", "infiniteScroll", true);
+      progressReverse && warn("lazyRender", "infiniteScroll", true);
     }
-    if (scrollVisibility === "hidden") {
-      scrollReverse && warn("scrollReverse", "scrollVisibility `hidden`", true);
+    if (progressVisibility === "hidden") {
+      progressReverse &&
+        warn("progressReverse", "progressVisibility `hidden`", true);
       scrollTriggerLocal.includes("scrollThumb") &&
-        warn("scrollTrigger `scrollThumb`", "scrollVisibility `hidden`", true);
+        warn(
+          "scrollTrigger `scrollThumb`",
+          "progressVisibility `hidden`",
+          true
+        );
       scrollTriggerLocal.includes("arrows") &&
-        warn("scrollTrigger `arrows`", "scrollVisibility `hidden`", true);
+        warn("scrollTrigger `arrows`", "progressVisibility `hidden`", true);
     }
     if (!suspending && fallback) {
-      scrollReverse && warn("fallback", "suspending");
+      progressReverse && warn("fallback", "suspending");
     }
 
     // other
@@ -742,7 +744,7 @@ const Scroll: React.FC<ScrollType> = ({
       className={`customScroll${xDirection ? " xDirection" : " yDirection"}${
         scrollTriggerLocal.includes("scrollThumb") ? " draggableScroll" : ""
       }${scrollTriggerLocal.includes("content") ? " draggableContent" : ""}${
-        scrollVisibility === "hover" ? " scrollOnHover" : ""
+        progressVisibility === "hover" ? " progressOnHover" : ""
       } ${className}`}
       ref={customScrollRef}
       style={{
@@ -761,17 +763,15 @@ const Scroll: React.FC<ScrollType> = ({
           ...(xDirection && {
             transform: `rotate(-90deg) translate(${translateProperty}px, ${translateProperty}px) scaleX(-1)`,
           }),
-          ...(scrollTrigger.includes("arrows") && arrow.size && !xDirection
-            ? {
-                top: `${arrow.size}px`,
-              }
-            : {
-                left: `${arrow.size}px`,
-              }),
+          ...(scrollTrigger.includes("arrows") &&
+            arrow.size &&
+            (xDirection
+              ? { left: `${arrow.size}px` }
+              : { top: `${arrow.size}px` })),
         }}
       >
         {scrollTriggerLocal.includes("arrows") &&
-          ["top", "bottom"].map((position) => (
+          ["first", "last"].map((position) => (
             <div
               key={position}
               className={`arrowBox ${position}${
@@ -784,42 +784,54 @@ const Scroll: React.FC<ScrollType> = ({
             </div>
           ))}
 
-        {edgeGradient && <div className="edge top" style={edgeColor}></div>}
-        {edgeGradient && <div className="edge bottom" style={edgeColor}></div>}
+        {edgeGradient && <div className="edge first" style={edgeColor}></div>}
+        {edgeGradient && <div className="edge last" style={edgeColor}></div>}
 
-        {(scrollVisibility === "visible" || scrollVisibility === "hover") &&
-        thumbSize < xy &&
-        !scrollTriggerLocal.includes("arrows") ? (
-          <div
-            className={`scrollBar ${scrollReverse ? "scrollReverse" : ""}`}
-            style={
-              scrollTriggerLocal.includes("scrollThumb")
-                ? {}
-                : { pointerEvents: "none" }
-            }
-          >
-            <div
-              className={`scrollBarThumb${thumbElement ? "" : " defaultThumb"}`}
-              onMouseDown={(e) =>
-                scrollTriggerLocal.includes("scrollThumb") &&
-                handleMouseDown(e, "thumb")
-              }
-              style={{ height: `${thumbSize}px`, top: `${topThumb}px` }}
-            >
-              {thumbElement}
-              <div className="clickField"></div>
-            </div>
-          </div>
-        ) : (
-          <div className="sliderBar" ref={sliderBarRef}>
-            {Array.from(
-              { length: scrollingSizeToObjectsWrapper() || 0 },
-              (_, index) => (
-                <div key={index} className={`sliderElem`}></div>
-              )
-            )}
-          </div>
-        )}
+        {(progressVisibility === "visible" || progressVisibility === "hover") &&
+          thumbSize < xy && (
+            <>
+              {!scrollTriggerLocal.includes("arrows") ? (
+                <div
+                  className={`scrollBar${
+                    progressReverse ? " progressReverse" : ""
+                  }`}
+                  style={
+                    scrollTriggerLocal.includes("scrollThumb")
+                      ? {}
+                      : { pointerEvents: "none" }
+                  }
+                >
+                  <div
+                    className={`scrollBarThumb${
+                      thumbElement ? "" : " defaultThumb"
+                    }`}
+                    onMouseDown={(e) =>
+                      scrollTriggerLocal.includes("scrollThumb") &&
+                      handleMouseDown(e, "thumb")
+                    }
+                    style={{ height: `${thumbSize}px`, top: `${topThumb}px` }}
+                  >
+                    {thumbElement}
+                    <div className="clickField"></div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={`sliderBar${
+                    progressReverse ? " progressReverse" : ""
+                  }`}
+                  ref={sliderBarRef}
+                >
+                  {Array.from(
+                    { length: scrollingSizeToObjectsWrapper() || 0 },
+                    (_, index) => (
+                      <div key={index} className={`sliderElem`}></div>
+                    )
+                  )}
+                </div>
+              )}
+            </>
+          )}
 
         <div
           className="scrollElement"
