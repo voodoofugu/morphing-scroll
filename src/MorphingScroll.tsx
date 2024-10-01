@@ -2,7 +2,12 @@ import React from "react";
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 
-type ScrollTriggerOptions = "mouseWheel" | "scrollThumb" | "content" | "arrows";
+type progressTriggerOptions =
+  | "wheel"
+  | "progressElement"
+  | "content"
+  | "arrows"
+  | "loopedArrows";
 
 interface ScrollType {
   scrollID?: string; // This is only used to better recognize warnings
@@ -18,9 +23,10 @@ interface ScrollType {
   wrapAlignCenter?: boolean;
 
   progressReverse?: boolean;
-  scrollTrigger?: Array<ScrollTriggerOptions> | ScrollTriggerOptions;
+  progressTrigger?: Array<progressTriggerOptions> | progressTriggerOptions;
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
+  sliderType?: boolean;
 
   lazyRender?: boolean;
   infiniteScroll?: boolean;
@@ -48,8 +54,9 @@ const Scroll: React.FC<ScrollType> = ({
   gap,
   padding = [0, 0, 0, 0],
   progressReverse = false,
-  scrollTrigger = "mouseWheel",
+  progressTrigger = "wheel",
   progressVisibility = "visible",
+  sliderType = false,
   lazyRender = false,
   rootMargin = 0,
   suspending = false,
@@ -125,9 +132,11 @@ const Scroll: React.FC<ScrollType> = ({
       : [0, 0];
   }, [gap, xDirection]);
 
-  const scrollTriggerLocal = React.useMemo(() => {
-    return typeof scrollTrigger === "string" ? [scrollTrigger] : scrollTrigger;
-  }, [scrollTrigger]);
+  const progressTriggerLocal = React.useMemo(() => {
+    return typeof progressTrigger === "string"
+      ? [progressTrigger]
+      : progressTrigger;
+  }, [progressTrigger]);
 
   const localObjectXY = React.useMemo(() => {
     return objectXY
@@ -168,10 +177,17 @@ const Scroll: React.FC<ScrollType> = ({
       : [0, 0]
     : [0, 0];
 
+  const progressTriggerCheck = React.useCallback(
+    (triggerType: progressTriggerOptions) => {
+      return progressTriggerLocal.includes(triggerType);
+    },
+    [progressTriggerLocal]
+  );
+
   const localScrollXY = React.useMemo(() => {
     const [x, y] = scrollXY || localObjectXY;
 
-    if (!scrollTriggerLocal.includes("arrows") || !arrow.size) {
+    if (!progressTriggerCheck("arrows") || !arrow.size) {
       return [x, y];
     }
 
@@ -408,7 +424,8 @@ const Scroll: React.FC<ScrollType> = ({
 
   // events
   const handleArrows = React.useCallback(
-    (arr: string) => {
+    (arr: string, e?: React.MouseEvent) => {
+      console.log("handleArrows");
       const scrollEl = scrollElementRef.current;
       const wrapEl = objectsWrapperRef.current;
       if (!scrollEl || !wrapEl) return;
@@ -440,7 +457,7 @@ const Scroll: React.FC<ScrollType> = ({
     if (scrollContentlRef.current) {
       scrollContentlRef.current.classList.toggle("edgeLast", isNotAtBottom);
       scrollContentlRef.current.classList.toggle("edgeFirst", scrollTop > 1);
-      if (scrollTriggerLocal.includes("arrows")) {
+      if (progressTriggerCheck("arrows")) {
         scrollContentlRef.current.classList.toggle("l_ArrOff", !isNotAtBottom);
         scrollContentlRef.current.classList.toggle("f_ArrOff", scrollTop <= 1);
       }
@@ -449,7 +466,7 @@ const Scroll: React.FC<ScrollType> = ({
         function getActiveElem() {
           const elements =
             sliderBarRef.current?.querySelectorAll(".sliderElem");
-          const total = scrollingSizeToObjectsWrapper() || 0;
+          const total = scrollingSizeToObjectsWrapper() || 0; // !!!
 
           elements &&
             elements.forEach((element, index) => {
@@ -476,7 +493,7 @@ const Scroll: React.FC<ScrollType> = ({
             (xy - thumbSize)
         )
       );
-      if (newScroll !== topThumb && !scrollTriggerLocal.includes("arrows")) {
+      if (newScroll !== topThumb && !sliderType) {
         setTopThumb(newScroll);
       }
 
@@ -511,33 +528,57 @@ const Scroll: React.FC<ScrollType> = ({
     (e: MouseEvent) => {
       const length = scrollingSizeToObjectsWrapper();
       if (!length) return;
-      const plusMinus = clickedObject.current === "thumb" ? 1 : -1;
-      if (xDirection) {
-        scrollElementRef.current!.scrollTop += e.movementX * length * plusMinus;
-      } else {
-        scrollElementRef.current!.scrollTop += e.movementY * length * plusMinus;
+
+      if (["thumb", "wrapp"].includes(clickedObject.current)) {
+        const plusMinus = clickedObject.current === "thumb" ? 1 : -1;
+        if (xDirection) {
+          scrollElementRef.current!.scrollTop +=
+            e.movementX * length * plusMinus;
+        } else {
+          scrollElementRef.current!.scrollTop +=
+            e.movementY * length * plusMinus;
+        }
+      }
+
+      if (["slider"].includes(clickedObject.current)) {
+        // console.log("e.movementY", e.movementY); // !!!
+
+        if (e.movementY >= 10) {
+          console.log("10");
+        }
       }
     },
     [xDirection, scrollElementRef, scrollingSizeToObjectsWrapper]
   );
 
-  const handleMouseUp = React.useCallback(() => {
-    if (!customScrollRef.current) return;
-    customScrollRef.current.classList.remove("grabbingScroll");
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
-    document.body.style.removeProperty("cursor");
-    clickedObject.current = "none";
-  }, [handleMouseMove, customScrollRef]);
+  const handleMouseUp = React.useCallback(
+    (grabbingElement: HTMLElement | null) => {
+      if (!grabbingElement) return;
+
+      grabbingElement.classList.remove("grabbingElement");
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", () =>
+        handleMouseUp(grabbingElement)
+      );
+      document.body.style.removeProperty("cursor");
+      clickedObject.current = "none";
+    },
+    [handleMouseMove, customScrollRef]
+  );
 
   const handleMouseDown = React.useCallback(
-    (e: React.MouseEvent, clicked: "thumb" | "wrapp") => {
-      if (!customScrollRef.current) return;
+    (
+      e: React.MouseEvent,
+      clicked: "thumb" | "wrapp" | "slider",
+      grabbingElement: HTMLElement | null
+    ) => {
+      if (!grabbingElement) return;
+
       clickedObject.current = clicked;
       (progressVisibility === "hover" || progressVisibility === "visible") &&
-        customScrollRef.current.classList.add("grabbingScroll");
+        grabbingElement.classList.add("grabbingElement");
       window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mouseup", () => handleMouseUp(grabbingElement));
       document.body.style.cursor = "grabbing";
     },
     [handleMouseMove, handleMouseUp, customScrollRef]
@@ -603,14 +644,14 @@ const Scroll: React.FC<ScrollType> = ({
     if (progressVisibility === "hidden") {
       progressReverse &&
         warn("progressReverse", "progressVisibility `hidden`", true);
-      scrollTriggerLocal.includes("scrollThumb") &&
+      progressTriggerCheck("progressElement") &&
         warn(
-          "scrollTrigger `scrollThumb`",
+          "progressTrigger `scrollThumb`",
           "progressVisibility `hidden`",
           true
         );
-      scrollTriggerLocal.includes("arrows") &&
-        warn("scrollTrigger `arrows`", "progressVisibility `hidden`", true);
+      progressTriggerCheck("arrows") &&
+        warn("progressTrigger `arrows`", "progressVisibility `hidden`", true);
     }
     if (!suspending && fallback) {
       progressReverse && warn("fallback", "suspending");
@@ -659,7 +700,8 @@ const Scroll: React.FC<ScrollType> = ({
       className="objectsWrapper"
       ref={objectsWrapperRef}
       onMouseDown={(e) =>
-        scrollTriggerLocal.includes("content") && handleMouseDown(e, "wrapp")
+        progressTriggerCheck("content") &&
+        handleMouseDown(e, "wrapp", customScrollRef.current)
       }
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
@@ -742,8 +784,8 @@ const Scroll: React.FC<ScrollType> = ({
   return (
     <div
       className={`customScroll${xDirection ? " xDirection" : " yDirection"}${
-        scrollTriggerLocal.includes("scrollThumb") ? " draggableScroll" : ""
-      }${scrollTriggerLocal.includes("content") ? " draggableContent" : ""}${
+        progressTriggerCheck("content") ? " draggableContent" : ""
+      }${
         progressVisibility === "hover" ? " progressOnHover" : ""
       } ${className}`}
       ref={customScrollRef}
@@ -763,14 +805,14 @@ const Scroll: React.FC<ScrollType> = ({
           ...(xDirection && {
             transform: `rotate(-90deg) translate(${translateProperty}px, ${translateProperty}px) scaleX(-1)`,
           }),
-          ...(scrollTrigger.includes("arrows") &&
+          ...(progressTriggerCheck("arrows") &&
             arrow.size &&
             (xDirection
               ? { left: `${arrow.size}px` }
               : { top: `${arrow.size}px` })),
         }}
       >
-        {scrollTriggerLocal.includes("arrows") &&
+        {progressTriggerCheck("arrows") &&
           ["first", "last"].map((position) => (
             <div
               key={position}
@@ -790,24 +832,21 @@ const Scroll: React.FC<ScrollType> = ({
         {(progressVisibility === "visible" || progressVisibility === "hover") &&
           thumbSize < xy && (
             <>
-              {!scrollTriggerLocal.includes("arrows") ? (
+              {!sliderType ? (
                 <div
                   className={`scrollBar${
                     progressReverse ? " progressReverse" : ""
+                  }${
+                    progressTriggerCheck("progressElement") ? " draggable" : ""
                   }`}
-                  style={
-                    scrollTriggerLocal.includes("scrollThumb")
-                      ? {}
-                      : { pointerEvents: "none" }
-                  }
                 >
                   <div
                     className={`scrollBarThumb${
                       thumbElement ? "" : " defaultThumb"
                     }`}
                     onMouseDown={(e) =>
-                      scrollTriggerLocal.includes("scrollThumb") &&
-                      handleMouseDown(e, "thumb")
+                      progressTriggerCheck("progressElement") &&
+                      handleMouseDown(e, "thumb", customScrollRef.current)
                     }
                     style={{ height: `${thumbSize}px`, top: `${topThumb}px` }}
                   >
@@ -819,8 +858,13 @@ const Scroll: React.FC<ScrollType> = ({
                 <div
                   className={`sliderBar${
                     progressReverse ? " progressReverse" : ""
+                  }${
+                    progressTriggerCheck("progressElement") ? " draggable" : ""
                   }`}
                   ref={sliderBarRef}
+                  onMouseDown={(e) =>
+                    handleMouseDown(e, "slider", customScrollRef.current)
+                  }
                 >
                   {Array.from(
                     { length: scrollingSizeToObjectsWrapper() || 0 },
@@ -841,7 +885,7 @@ const Scroll: React.FC<ScrollType> = ({
             ...(objectsWrapperAligning && {
               alignItems: "center",
             }),
-            ...(scrollTriggerLocal.includes("mouseWheel")
+            ...(progressTriggerCheck("wheel")
               ? {
                   overflow: "hidden scroll",
                 }
