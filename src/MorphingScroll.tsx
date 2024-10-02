@@ -86,6 +86,9 @@ const Scroll: React.FC<ScrollType> = ({
   const clickedObject = React.useRef("none");
   const prevKey = React.useRef<string | null | undefined>(null);
 
+  const numForSlider = React.useRef<number>(0);
+
+  const [refUpdater, setRefUpdater] = React.useState(false);
   const [topThumb, setTopThumb] = React.useState(0);
   const [receivedObjectsWrapperSize, setReceivedObjectsWrapperSize] =
     React.useState(0);
@@ -541,11 +544,15 @@ const Scroll: React.FC<ScrollType> = ({
       }
 
       if (["slider"].includes(clickedObject.current)) {
-        // console.log("e.movementY", e.movementY); // !!!
-
-        if (e.movementY >= 10) {
-          console.log("10");
+        if (e.movementY > 0) {
+          numForSlider.current += e.movementY;
         }
+
+        if (e.movementY < 0) {
+          numForSlider.current = numForSlider.current - Math.abs(e.movementY);
+        }
+        // console.log("e.movementY", e.movementY);
+        console.log("numForSlider", numForSlider.current);
       }
     },
     [xDirection, scrollElementRef, scrollingSizeToObjectsWrapper]
@@ -560,8 +567,16 @@ const Scroll: React.FC<ScrollType> = ({
       window.removeEventListener("mouseup", () =>
         handleMouseUp(grabbingElement)
       );
+
       document.body.style.removeProperty("cursor");
+
+      if (["slider"].includes(clickedObject.current)) {
+        numForSlider.current = 0;
+      }
+
       clickedObject.current = "none";
+      setRefUpdater((prev) => !prev); // for update ref only
+      console.log("clickedObject.current", clickedObject.current);
     },
     [handleMouseMove, customScrollRef]
   );
@@ -575,6 +590,8 @@ const Scroll: React.FC<ScrollType> = ({
       if (!grabbingElement) return;
 
       clickedObject.current = clicked;
+      setRefUpdater((prev) => !prev); // for update ref only
+
       (progressVisibility === "hover" || progressVisibility === "visible") &&
         grabbingElement.classList.add("grabbingElement");
       window.addEventListener("mousemove", handleMouseMove);
