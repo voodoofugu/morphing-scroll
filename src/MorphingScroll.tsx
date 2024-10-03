@@ -43,6 +43,8 @@ interface ScrollType {
   children?: React.ReactNode;
   // multipleDirectionQuantity?: boolean;
   // autoSize?: boolean;
+
+  pixelsForSwipe?: number;
 }
 
 const Scroll: React.FC<ScrollType> = ({
@@ -75,6 +77,8 @@ const Scroll: React.FC<ScrollType> = ({
     className: "",
     element: <div className="arrow"></div>,
   },
+
+  pixelsForSwipe = 10,
 }) => {
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
@@ -82,10 +86,11 @@ const Scroll: React.FC<ScrollType> = ({
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
   const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
 
-  let objectsWrapperAligning = false;
-  const clickedObject = React.useRef("none");
-  const prevKey = React.useRef<string | null | undefined>(null);
+  const grabbingElementRef = React.useRef<HTMLElement | null>(null);
 
+  let objectsWrapperAligning = false;
+  const prevKey = React.useRef<string | null | undefined>(null);
+  const clickedObject = React.useRef("");
   const numForSlider = React.useRef<number>(0);
 
   const [refUpdater, setRefUpdater] = React.useState(false);
@@ -407,7 +412,7 @@ const Scroll: React.FC<ScrollType> = ({
     return false;
   }, [xDirection, localScrollXY, localObjectXY, gap, objectsWrapperSizeFull]);
 
-  const scrollingSizeToObjectsWrapper = React.useCallback(
+  const scrollXYToobjectsWrapperXY = React.useCallback(
     (max?: boolean) => {
       const scrollValue = xDirection ? localScrollXY[0] : localScrollXY[1];
       if (!scrollValue) return null;
@@ -428,14 +433,13 @@ const Scroll: React.FC<ScrollType> = ({
   // events
   const handleArrows = React.useCallback(
     (arr: string, e?: React.MouseEvent) => {
-      console.log("handleArrows");
       const scrollEl = scrollElementRef.current;
       const wrapEl = objectsWrapperRef.current;
       if (!scrollEl || !wrapEl) return;
 
       const scrollTop = scrollEl.scrollTop;
       const height = wrapEl.clientHeight;
-      const length = scrollingSizeToObjectsWrapper(true);
+      const length = scrollXYToobjectsWrapperXY(true);
 
       const scrollTo = (position: number) =>
         smoothScroll(200, position, () => {});
@@ -448,7 +452,7 @@ const Scroll: React.FC<ScrollType> = ({
         scrollTo(scrollTop + xy >= xy * length ? height : scrollTop + xy);
       }
     },
-    [scrollElementRef, objectsWrapperRef, scrollingSizeToObjectsWrapper]
+    [scrollElementRef, objectsWrapperRef, scrollXYToobjectsWrapperXY]
   );
 
   const edgeGradientAndArrowsCheck = React.useCallback(() => {
@@ -469,7 +473,7 @@ const Scroll: React.FC<ScrollType> = ({
         function getActiveElem() {
           const elements =
             sliderBarRef.current?.querySelectorAll(".sliderElem");
-          const total = scrollingSizeToObjectsWrapper() || 0; // !!!
+          const total = scrollXYToobjectsWrapperXY() || 0; // !!!
 
           elements &&
             elements.forEach((element, index) => {
@@ -529,57 +533,66 @@ const Scroll: React.FC<ScrollType> = ({
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
-      const length = scrollingSizeToObjectsWrapper();
-      if (!length) return;
+      const scrollEl = scrollElementRef.current;
+      const length = scrollXYToobjectsWrapperXY();
+      if (!scrollEl || !length) return;
+
+      let scrollTop = scrollEl.scrollTop;
 
       if (["thumb", "wrapp"].includes(clickedObject.current)) {
         const plusMinus = clickedObject.current === "thumb" ? 1 : -1;
-        if (xDirection) {
-          scrollElementRef.current!.scrollTop +=
-            e.movementX * length * plusMinus;
-        } else {
-          scrollElementRef.current!.scrollTop +=
-            e.movementY * length * plusMinus;
-        }
+
+        scrollTop +=
+          (xDirection ? e.movementX : e.movementY) * length * plusMinus;
       }
 
-      if (["slider"].includes(clickedObject.current)) {
-        if (e.movementY > 0) {
+      if (clickedObject.current === "slider") {
+        const wrapEl = objectsWrapperRef.current;
+        if (!wrapEl) return;
+
+        const height = wrapEl.clientHeight;
+        const scrollTo = (position: number) =>
+          smoothScroll(200, position, () => {});
+
+        const updateScroll = (delta: number) => {
+          const targetScrollTop = scrollTop + delta * xy;
+
+          if (delta > 0) {
+            scrollTo(Math.min(targetScrollTop, height - xy));
+          } else {
+            scrollTo(Math.max(targetScrollTop, 0));
+          }
+        };
+
+        if (e.movementY > 0 && numForSlider.current < pixelsForSwipe) {
           numForSlider.current += e.movementY;
+          if (numForSlider.current >= pixelsForSwipe) updateScroll(1);
+        } else if (e.movementY < 0 && numForSlider.current > -pixelsForSwipe) {
+          numForSlider.current -= Math.abs(e.movementY);
+          if (numForSlider.current <= -pixelsForSwipe) updateScroll(-1);
         }
-
-        if (e.movementY < 0) {
-          numForSlider.current = numForSlider.current - Math.abs(e.movementY);
-        }
-        // console.log("e.movementY", e.movementY);
-        console.log("numForSlider", numForSlider.current);
       }
     },
-    [xDirection, scrollElementRef, scrollingSizeToObjectsWrapper]
+    [xDirection, scrollElementRef, scrollXYToobjectsWrapperXY]
   );
 
-  const handleMouseUp = React.useCallback(
-    (grabbingElement: HTMLElement | null) => {
-      if (!grabbingElement) return;
+  const handleMouseUp = React.useCallback(() => {
+    const grabbingElement = grabbingElementRef.current;
+    if (!grabbingElement) return;
 
-      grabbingElement.classList.remove("grabbingElement");
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", () =>
-        handleMouseUp(grabbingElement)
-      );
+    grabbingElement.classList.remove("grabbingElement");
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
 
-      document.body.style.removeProperty("cursor");
+    document.body.style.removeProperty("cursor");
 
-      if (["slider"].includes(clickedObject.current)) {
-        numForSlider.current = 0;
-      }
+    if (["slider"].includes(clickedObject.current)) {
+      numForSlider.current = 0;
+    }
 
-      clickedObject.current = "none";
-      setRefUpdater((prev) => !prev); // for update ref only
-      console.log("clickedObject.current", clickedObject.current);
-    },
-    [handleMouseMove, customScrollRef]
-  );
+    clickedObject.current = "";
+    setRefUpdater((prev) => !prev); // for update ref only
+  }, [handleMouseMove, customScrollRef]);
 
   const handleMouseDown = React.useCallback(
     (
@@ -588,14 +601,14 @@ const Scroll: React.FC<ScrollType> = ({
       grabbingElement: HTMLElement | null
     ) => {
       if (!grabbingElement) return;
-
+      grabbingElementRef.current = grabbingElement;
       clickedObject.current = clicked;
       setRefUpdater((prev) => !prev); // for update ref only
 
       (progressVisibility === "hover" || progressVisibility === "visible") &&
         grabbingElement.classList.add("grabbingElement");
       window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", () => handleMouseUp(grabbingElement));
+      window.addEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "grabbing";
     },
     [handleMouseMove, handleMouseUp, customScrollRef]
@@ -884,9 +897,11 @@ const Scroll: React.FC<ScrollType> = ({
                   }
                 >
                   {Array.from(
-                    { length: scrollingSizeToObjectsWrapper() || 0 },
+                    { length: scrollXYToobjectsWrapperXY() || 0 },
                     (_, index) => (
-                      <div key={index} className={`sliderElem`}></div>
+                      <div key={index} className={`sliderElem`}>
+                        {thumbElement}
+                      </div>
                     )
                   )}
                 </div>
