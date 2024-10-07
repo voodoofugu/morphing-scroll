@@ -50,6 +50,8 @@ interface ScrollType {
   // autoSize?: boolean;
 
   pixelsForSwipe?: number;
+  progressBarSize?: number;
+  duration?: number;
 }
 
 const Scroll: React.FC<ScrollType> = ({
@@ -80,6 +82,8 @@ const Scroll: React.FC<ScrollType> = ({
   arrows,
 
   pixelsForSwipe = 8,
+  progressBarSize = 4,
+  duration = 200,
 }) => {
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
@@ -456,8 +460,7 @@ const Scroll: React.FC<ScrollType> = ({
       const height = wrapEl.clientHeight;
       const length = scrollXYToobjectsWrapperXY(true);
 
-      const scrollTo = (position: number) =>
-        smoothScroll(200, position, () => {});
+      const scrollTo = (position: number) => smoothScroll(position, () => {});
 
       if (arr === "first" && scrollTop > 0) {
         scrollTo(scrollTop <= xy ? 0 : scrollTop - xy);
@@ -564,7 +567,7 @@ const Scroll: React.FC<ScrollType> = ({
 
         const height = wrapEl.clientHeight;
         const scrollTo = (position: number) =>
-          smoothScroll(200, position, () => {
+          smoothScroll(position, () => {
             numForSlider.current = 0;
             setRefUpdater((prev) => !prev);
           });
@@ -643,7 +646,7 @@ const Scroll: React.FC<ScrollType> = ({
   );
 
   const smoothScroll = React.useCallback(
-    (duration: number, targetScrollTop: number, callback: () => void) => {
+    (targetScrollTop: number, callback: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return;
 
@@ -734,13 +737,13 @@ const Scroll: React.FC<ScrollType> = ({
 
       if (prevKey.current === null) {
         animationId = requestAnimationFrame(() =>
-          smoothScroll(200, localScrollTop ?? 0, scrollCallback)
+          smoothScroll(localScrollTop ?? 0, scrollCallback)
         );
       } else if (prevKey.current !== firstChildKey) {
-        smoothScroll(200, NaN, scrollCallback);
+        smoothScroll(NaN, scrollCallback);
       } else if (prevKey.current === firstChildKey) {
         animationId = requestAnimationFrame(() =>
-          smoothScroll(200, localScrollTop ?? 0, () => {})
+          smoothScroll(localScrollTop ?? 0, () => {})
         );
       }
 
@@ -894,6 +897,7 @@ const Scroll: React.FC<ScrollType> = ({
                   }${
                     progressTriggerCheck("progressElement") ? " draggable" : ""
                   }`}
+                  style={{ width: `${progressBarSize}px` }}
                 >
                   <div
                     className={`scrollBarThumb${
@@ -924,7 +928,11 @@ const Scroll: React.FC<ScrollType> = ({
                   {Array.from(
                     { length: scrollXYToobjectsWrapperXY() || 0 },
                     (_, index) => (
-                      <div key={index} className={`sliderElem`}>
+                      <div
+                        key={index}
+                        className={`sliderElem`}
+                        style={{ width: `${progressBarSize}px` }}
+                      >
                         {thumbElement}
                       </div>
                     )
