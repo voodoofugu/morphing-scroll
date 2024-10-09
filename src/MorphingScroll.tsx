@@ -758,7 +758,7 @@ const Scroll: React.FC<ScrollType> = ({
       ref={objectsWrapperRef}
       onMouseDown={(e) =>
         progressTriggerCheck("content") &&
-        e.target === objectsWrapperRef.current &&
+        // e.target === objectsWrapperRef.current &&
         handleMouseDown(e, "wrapp", objectsWrapperRef.current)
       }
       style={{
