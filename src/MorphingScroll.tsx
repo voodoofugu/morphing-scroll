@@ -222,7 +222,7 @@ const Scroll: React.FC<ScrollType> = ({
     const [x, y] = scrollXY || localObjectXY;
 
     if (!progressTriggerCheck("arrows") || !arrowsLocal.size) {
-      return [x, y];
+      return [x, y, x, y];
     }
 
     return xDirection
