@@ -758,7 +758,6 @@ const Scroll: React.FC<ScrollType> = ({
       ref={objectsWrapperRef}
       onMouseDown={(e) =>
         progressTriggerCheck("content") &&
-        // e.target === objectsWrapperRef.current &&
         handleMouseDown(e, "wrapp", objectsWrapperRef.current)
       }
       style={{
@@ -772,14 +771,6 @@ const Scroll: React.FC<ScrollType> = ({
           }),
         ...(objectsWrapperMinSize && {
           minHeight: `calc(${objectsWrapperMinSize}px - ${pLocalXY}px)`,
-        }),
-        ...(!infiniteScroll &&
-          contentAlignCenter && {
-            flexDirection: "row",
-            justifyContent: "center",
-          }),
-        ...(!xDirection && {
-          flexDirection: "column",
         }),
       }}
     >
