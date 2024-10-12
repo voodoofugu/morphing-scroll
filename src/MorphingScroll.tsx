@@ -1,60 +1,9 @@
 import React from "react";
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
+import { MorphingScrollType, progressTriggerOptions } from "./types";
 
-type progressTriggerOptions =
-  | "wheel"
-  | "progressElement"
-  | "content"
-  | "contentSlider"
-  | "arrows"
-  | "loopedArrows";
-
-interface ScrollType {
-  scrollID?: string; // This is only used to better recognize warnings
-  className?: string;
-  scrollXY?: number[];
-
-  objectXY?: number[];
-  gap?: number[] | number;
-  padding?: number[] | number;
-
-  xDirection?: boolean;
-  contentAlignCenter?: boolean;
-  wrapAlignCenter?: boolean;
-
-  progressReverse?: boolean;
-  progressTrigger?: Array<progressTriggerOptions> | progressTriggerOptions;
-  progressVisibility?: "visible" | "hover" | "hidden";
-  scrollTop?: number | "end";
-  sliderType?: boolean;
-
-  lazyRender?: boolean;
-  infiniteScroll?: boolean;
-  rootMargin?: number[] | number;
-  suspending?: boolean;
-
-  fallback?: React.ReactNode;
-  thumbElement?: React.ReactNode;
-  edgeGradient?: boolean | { color?: string; size?: number };
-  arrows?: {
-    size?: number;
-    className?: string;
-    element?: React.ReactNode;
-  };
-
-  objectsWrapperMinSize?: number;
-  onScrollValue?: Array<[(scrollTop: number) => boolean, () => void]>;
-  children?: React.ReactNode;
-  // multipleDirectionQuantity?: boolean;
-  // autoSize?: boolean;
-
-  pixelsForSwipe?: number;
-  progressBarSize?: number;
-  duration?: number;
-}
-
-const Scroll: React.FC<ScrollType> = ({
+export const MorphingScroll: React.FC<MorphingScrollType> = ({
   scrollID = "",
   className = "",
   scrollXY,
@@ -967,11 +916,9 @@ const Scroll: React.FC<ScrollType> = ({
   );
 };
 
-export default Scroll;
-
 interface ScrollObjectWrapperType
   extends Pick<
-    ScrollType,
+    MorphingScrollType,
     "rootMargin" | "suspending" | "fallback" | "infiniteScroll" | "lazyRender"
   > {
   children: React.ReactNode;

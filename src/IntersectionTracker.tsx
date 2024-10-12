@@ -1,17 +1,7 @@
 import React from "react";
+import { IntersectionTrackerType } from "./types";
 
-type IntersectionTrackerProps = {
-  children: React.ReactNode;
-  root?: Element | null;
-  threshold?: number;
-  rootMargin?: number[] | number | null;
-  style?: React.CSSProperties;
-  visibleContent?: boolean;
-  onVisible?: () => void;
-  intersectionDeley?: number;
-};
-
-const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
+const IntersectionTracker: React.FC<IntersectionTrackerType> = ({
   children,
   root,
   threshold,

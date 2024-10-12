@@ -1,11 +1,10 @@
 import React from "react";
 
-type ResizeTrackerType = {
+export type ResizeTrackerType = {
   children: (width: number, height: number) => React.ReactNode;
   onResize?: (width: number, height: number) => void;
   style?: React.CSSProperties;
 };
-declare const ResizeTracker: React.FC<ResizeTrackerType>;
 
 export type IntersectionTrackerType = {
   children: React.ReactNode;
@@ -18,9 +17,7 @@ export type IntersectionTrackerType = {
   intersectionDeley?: number;
 };
 
-declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
-
-type progressTriggerOptions =
+export type progressTriggerOptions =
   | "wheel"
   | "progressElement"
   | "content"
@@ -28,7 +25,7 @@ type progressTriggerOptions =
   | "arrows"
   | "loopedArrows";
 
-type MorphingScrollType = {
+export type MorphingScrollType = {
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
   scrollXY?: number[];
@@ -69,7 +66,3 @@ type MorphingScrollType = {
   progressBarSize?: number;
   duration?: number;
 };
-declare const MorphingScroll: React.FC<MorphingScrollType>;
-
-export default MorphingScroll;
-export { IntersectionTracker, ResizeTracker };

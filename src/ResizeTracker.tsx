@@ -1,12 +1,7 @@
 import React from "react";
+import { ResizeTrackerType } from "./types";
 
-type ResizeTrackerProps = {
-  children: (width: number, height: number) => React.ReactNode;
-  onResize?: (width: number, height: number) => void;
-  style?: React.CSSProperties;
-};
-
-const ResizeTracker: React.FC<ResizeTrackerProps> = ({
+const ResizeTracker: React.FC<ResizeTrackerType> = ({
   children,
   onResize,
   style,
