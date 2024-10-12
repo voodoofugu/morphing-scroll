@@ -5,9 +5,7 @@ type ResizeTrackerType = {
   onResize?: (width: number, height: number) => void;
   style?: React.CSSProperties;
 };
-declare const ResizeTracker: React.FC<ResizeTrackerType>;
-
-export type IntersectionTrackerType = {
+type IntersectionTrackerType = {
   children: React.ReactNode;
   root?: Element | null;
   threshold?: number;
@@ -17,9 +15,6 @@ export type IntersectionTrackerType = {
   onVisible?: () => void;
   intersectionDeley?: number;
 };
-
-declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
-
 type progressTriggerOptions =
   | "wheel"
   | "progressElement"
@@ -27,48 +22,48 @@ type progressTriggerOptions =
   | "contentSlider"
   | "arrows"
   | "loopedArrows";
-
 type MorphingScrollType = {
-  scrollID?: string; // This is only used to better recognize warnings
+  scrollID?: string;
   className?: string;
   scrollXY?: number[];
-
   objectXY?: number[];
   gap?: number[] | number;
   padding?: number[] | number;
-
   xDirection?: boolean;
   contentAlignCenter?: boolean;
   wrapAlignCenter?: boolean;
-
   progressReverse?: boolean;
   progressTrigger?: Array<progressTriggerOptions> | progressTriggerOptions;
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
   sliderType?: boolean;
-
   lazyRender?: boolean;
   infiniteScroll?: boolean;
   rootMargin?: number[] | number;
   suspending?: boolean;
-
   fallback?: React.ReactNode;
   thumbElement?: React.ReactNode;
-  edgeGradient?: boolean | { color?: string; size?: number };
+  edgeGradient?:
+    | boolean
+    | {
+        color?: string;
+        size?: number;
+      };
   arrows?: {
     size?: number;
     className?: string;
     element?: React.ReactNode;
   };
-
   objectsWrapperMinSize?: number;
   onScrollValue?: Array<[(scrollTop: number) => boolean, () => void]>;
   children?: React.ReactNode;
-
   pixelsForSwipe?: number;
   progressBarSize?: number;
   duration?: number;
 };
+
+declare const ResizeTracker: React.FC<ResizeTrackerType>;
+declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
 declare const MorphingScroll: React.FC<MorphingScrollType>;
 
 export default MorphingScroll;
