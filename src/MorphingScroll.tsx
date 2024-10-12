@@ -3,7 +3,7 @@ import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import { MorphingScrollType, progressTriggerOptions } from "./types";
 
-export const MorphingScroll: React.FC<MorphingScrollType> = ({
+const MorphingScroll: React.FC<MorphingScrollType> = ({
   scrollID = "",
   className = "",
   scrollXY,
@@ -915,6 +915,8 @@ export const MorphingScroll: React.FC<MorphingScrollType> = ({
     </div>
   );
 };
+
+export default MorphingScroll;
 
 interface ScrollObjectWrapperType
   extends Pick<
