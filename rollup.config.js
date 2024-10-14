@@ -13,14 +13,14 @@ export default [
         format: "cjs",
         exports: "named",
       },
-      {
-        file: "dist/esm/index.js",
-        format: "esm",
-        exports: "named",
-        globals: {
-          react: "React",
-        },
-      },
+      // {
+      //   file: "dist/esm/index.js",
+      //   format: "esm",
+      //   exports: "named",
+      //   globals: {
+      //     react: "React",
+      //   },
+      // },
     ],
     plugins: [
       del({ targets: "dist/*" }),
