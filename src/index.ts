@@ -1,6 +1,12 @@
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
-import MorphingScroll from "./MorphingScroll";
+import Scroll from "./MorphingScroll";
 
-export default MorphingScroll;
-export { ResizeTracker, IntersectionTracker };
+const Morphing = {
+  Scroll,
+  ResizeTracker,
+  IntersectionTracker,
+};
+
+export default Morphing;
+export { Scroll, ResizeTracker, IntersectionTracker };

@@ -1,10 +1,10 @@
 {
   "name": "morphing-scroll",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "This is a library for the convenience of various object scrolling methods 💫",
   "author": "Georg Schilin",
   "license": "MIT",
-  "main": "index.js",
+  "main": "cjs/index.js",
   "type": "module",
   "types": "./index.d.ts",
   "keywords": [

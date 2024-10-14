@@ -1,8 +1,5 @@
 import * as React from "react";
-import MorphingScroll, {
-  IntersectionTracker,
-  ResizeTracker,
-} from "morphing-scroll";
+import Scroll, { IntersectionTracker, ResizeTracker } from "morphing-scroll";
 
 const TestIntersectionTracker: React.FC = () => (
   <IntersectionTracker
@@ -18,8 +15,8 @@ const TestIntersectionTracker: React.FC = () => (
   </IntersectionTracker>
 );
 
-const TestMorphingScroll: React.FC = () => (
-  <MorphingScroll
+const TestScroll: React.FC = () => (
+  <Scroll
     scrollID="scroll-1"
     className="custom-scroll"
     scrollXY={[0, 0]}
@@ -46,7 +43,7 @@ const TestMorphingScroll: React.FC = () => (
     ]}
   >
     <div>Scrollable content</div>
-  </MorphingScroll>
+  </Scroll>
 );
 
 const TestResizeTracker: React.FC = () => (
@@ -65,7 +62,7 @@ const TestResizeTracker: React.FC = () => (
 const tests = (
   <div>
     <TestIntersectionTracker />
-    <TestMorphingScroll />
+    <TestScroll />
     <TestResizeTracker />
   </div>
 );

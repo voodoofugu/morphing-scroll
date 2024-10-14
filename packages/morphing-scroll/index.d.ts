@@ -22,7 +22,7 @@ type progressTriggerOptions =
   | "contentSlider"
   | "arrows"
   | "loopedArrows";
-type MorphingScrollType = {
+type ScrollType = {
   scrollID?: string;
   className?: string;
   scrollXY?: number[];
@@ -64,7 +64,13 @@ type MorphingScrollType = {
 
 declare const ResizeTracker: React.FC<ResizeTrackerType>;
 declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
-declare const MorphingScroll: React.FC<MorphingScrollType>;
+declare const Scroll: React.FC<ScrollType>;
 
-export default MorphingScroll;
-export { IntersectionTracker, ResizeTracker };
+const Morphing = {
+  Scroll,
+  ResizeTracker,
+  IntersectionTracker,
+};
+
+export default Morphing;
+export { Scroll, ResizeTracker, IntersectionTracker };

@@ -25,7 +25,7 @@ export type progressTriggerOptions =
   | "arrows"
   | "loopedArrows";
 
-export type MorphingScrollType = {
+export type ScrollType = {
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
   scrollXY?: number[];

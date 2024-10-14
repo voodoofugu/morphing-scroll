@@ -12,7 +12,7 @@ interface IntersectionTrackerProps {
 }
 declare const IntersectionTracker: React.FC<IntersectionTrackerProps>;
 
-interface MorphingScrollType {
+interface ScrollType {
   scrollID?: string;
   className?: string;
   scrollXY?: number[];
@@ -37,7 +37,7 @@ interface MorphingScrollType {
   onScrollValue?: Array<[(scrollTop: number) => boolean, () => void]>;
   children: React.ReactNode;
 }
-declare const MorphingScroll: React.FC<MorphingScrollType>;
+declare const Scroll: React.FC<ScrollType>;
 
 interface ResizeTrackerProps {
   children: (width: number, height: number) => React.ReactNode;
@@ -46,5 +46,5 @@ interface ResizeTrackerProps {
 }
 declare const ResizeTracker: React.FC<ResizeTrackerProps>;
 
-export default MorphingScroll;
+export default Scroll;
 export { IntersectionTracker, ResizeTracker };
