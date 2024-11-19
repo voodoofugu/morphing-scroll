@@ -186,13 +186,18 @@ const Scroll: React.FC<ScrollType> = ({
           return 1;
         }
         const objects = xDirection
-          ? Math.abs(
-              Math.floor((localScrollXY[1] - pY) / (localScrollXY[1] + gapX))
+          ? Math.floor(
+              (localScrollXY[1] - pY) /
+                (localObjectXY[1]
+                  ? localObjectXY[1] + gapX
+                  : localScrollXY[1] + gapX)
             )
-          : Math.abs(
-              Math.floor((localScrollXY[0] - pY) / (localScrollXY[0] + gapX))
+          : Math.floor(
+              (localScrollXY[0] - pY) /
+                (localObjectXY[0]
+                  ? localObjectXY[0] + gapX
+                  : localScrollXY[0] + gapX)
             );
-
         return objects > validChildren.length
           ? validChildren.length
           : objects < 1
@@ -329,7 +334,7 @@ const Scroll: React.FC<ScrollType> = ({
       const elementTop = (function (index: number) {
         return index !== 0
           ? ((xyObject ? xyObject : 0) + gapX) * index + pT
-          : 0;
+          : pT;
       })(
         infiniteScroll
           ? objectsPerDirection > 1
