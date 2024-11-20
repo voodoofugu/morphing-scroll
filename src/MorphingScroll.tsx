@@ -829,9 +829,6 @@ const Scroll: React.FC<ScrollType> = ({
             </div>
           ))}
 
-        {edgeGradient && <div className="edge first" style={edgeStyle}></div>}
-        {edgeGradient && <div className="edge last" style={edgeStyle}></div>}
-
         {(progressVisibility === "visible" || progressVisibility === "hover") &&
           thumbSize < xy && (
             <>
@@ -916,6 +913,9 @@ const Scroll: React.FC<ScrollType> = ({
             </ResizeTracker>
           )}
         </div>
+
+        {edgeGradient && <div className="edge first" style={edgeStyle}></div>}
+        {edgeGradient && <div className="edge last" style={edgeStyle}></div>}
       </div>
     </div>
   );
