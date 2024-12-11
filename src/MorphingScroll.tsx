@@ -717,6 +717,9 @@ const Scroll: React.FC<ScrollType> = ({
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         ...(gap ? { gap: `${gapX}px ${gapY}px` } : {}),
+        ...(contentAlignCenter && !infiniteScroll
+          ? { justifyContent: "center" }
+          : {}),
         ...(objectsWrapperWidth ? { width: `${objectsWrapperWidth}px` } : {}),
         ...(objectXY &&
           objectsWrapperHeight && {
