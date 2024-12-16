@@ -34,6 +34,8 @@ const Scroll: React.FC<ScrollType> = ({
   progressBarSize = 4,
   duration = 200,
 }) => {
+  const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
+
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
@@ -47,7 +49,6 @@ const Scroll: React.FC<ScrollType> = ({
   const clickedObject = React.useRef("");
   const numForSlider = React.useRef<number>(0);
 
-  const [refUpdater, setRefUpdater] = React.useState(false);
   const [topThumb, setTopThumb] = React.useState(0);
   const [receivedObjectsWrapperSize, setReceivedObjectsWrapperSize] =
     React.useState(0);
@@ -523,7 +524,7 @@ const Scroll: React.FC<ScrollType> = ({
         const scrollTo = (position: number) =>
           smoothScroll(position, () => {
             numForSlider.current = 0;
-            setRefUpdater((prev) => !prev);
+            forceUpdate();
           });
 
         const updateScroll = (delta: number) => {
@@ -567,7 +568,7 @@ const Scroll: React.FC<ScrollType> = ({
     document.body.style.removeProperty("cursor");
 
     clickedObject.current = "";
-    setRefUpdater((prev) => !prev); // for update ref only
+    forceUpdate(); // for update ref only
   }, [handleMouseMove, customScrollRef]);
 
   const handleMouseDown = React.useCallback(
@@ -580,7 +581,7 @@ const Scroll: React.FC<ScrollType> = ({
 
       grabbingElementRef.current = grabbingElement;
       clickedObject.current = clicked;
-      setRefUpdater((prev) => !prev); // for update ref only
+      forceUpdate(); // for update ref only
 
       (progressVisibility === "hover" || progressVisibility === "visible") &&
         grabbingElement.classList.add("grabbingElement");
