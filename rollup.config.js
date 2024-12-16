@@ -27,8 +27,12 @@ export default [
       resolve(),
       commonjs(),
       typescript(),
-      terser(),
+      terser({
+        output: {
+          comments: false, // Удаляет все комментарии
+        },
+      }),
     ],
-    external: ["react"],
+    external: (id) => /^react/.test(id),
   },
 ];
