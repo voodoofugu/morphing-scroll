@@ -52,7 +52,6 @@ const Scroll: React.FC<ScrollType> = ({
   const [topThumb, setTopThumb] = React.useState(0);
   const [receivedObjectsWrapperSize, setReceivedObjectsWrapperSize] =
     React.useState(0);
-  const [infiniteScrollState, setInfiniteScrollState] = React.useState(false);
 
   const validChildren = React.useMemo(() => {
     return React.Children.toArray(children).filter(
@@ -671,7 +670,7 @@ const Scroll: React.FC<ScrollType> = ({
 
     // other
     if (infiniteScroll) {
-      setInfiniteScrollState(true);
+      forceUpdate();
     }
 
     edgeGradientAndArrowsCheck();
@@ -717,11 +716,10 @@ const Scroll: React.FC<ScrollType> = ({
       }
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
-        ...(gap ? { gap: `${gapX}px ${gapY}px` } : {}),
-        ...(contentAlignCenter && !infiniteScroll
-          ? { justifyContent: "center" }
-          : {}),
-        ...(objectsWrapperWidth ? { width: `${objectsWrapperWidth}px` } : {}),
+        ...(gap && { gap: `${gapX}px ${gapY}px` }),
+        ...(contentAlignCenter &&
+          !infiniteScroll && { justifyContent: "center" }),
+        ...(objectsWrapperWidth && { width: `${objectsWrapperWidth}px` }),
         ...(objectXY &&
           objectsWrapperHeight && {
             position: "absolute",
@@ -734,11 +732,20 @@ const Scroll: React.FC<ScrollType> = ({
     >
       {validChildren.map((child, index) => {
         const key = (child as React.ReactElement).key;
+        const commonProps = {
+          scrollElementRef,
+          xyObjectReverse,
+          xyObject,
+          rootMargin,
+          suspending,
+          fallback,
+          mRootLocal,
+          localObjectXY,
+        };
 
-        if (infiniteScroll && infiniteScrollState) {
+        if (infiniteScroll && scrollElementRef.current) {
           const { elementTop, elementBottom, left } =
             memoizedChildrenData[index];
-
           const isElementVisible =
             (xDirection ? localScrollXY[0] ?? 0 : localScrollXY[1] ?? 0) +
               mRootX >
@@ -749,18 +756,10 @@ const Scroll: React.FC<ScrollType> = ({
             return (
               <ScrollObjectWrapper
                 key={key}
-                scrollElementRef={scrollElementRef}
-                xyObjectReverse={xyObjectReverse}
-                xyObject={xyObject}
-                rootMargin={rootMargin}
-                suspending={suspending}
-                fallback={fallback}
+                {...commonProps}
                 elementTop={elementTop}
                 left={left}
-                mRootLocal={mRootLocal}
                 infiniteScroll={infiniteScroll}
-                infiniteScrollState={infiniteScrollState}
-                localObjectXY={localObjectXY}
               >
                 {child}
               </ScrollObjectWrapper>
@@ -770,14 +769,7 @@ const Scroll: React.FC<ScrollType> = ({
           return (
             <ScrollObjectWrapper
               key={key}
-              scrollElementRef={scrollElementRef}
-              xyObjectReverse={xyObjectReverse}
-              xyObject={xyObject}
-              rootMargin={rootMargin}
-              suspending={suspending}
-              fallback={fallback}
-              mRootLocal={mRootLocal}
-              localObjectXY={localObjectXY}
+              {...commonProps}
               lazyRender={lazyRender}
             >
               {child}
@@ -937,7 +929,6 @@ interface ScrollObjectWrapperType
   left?: number;
   mRootLocal?: number[] | number | null;
   scrollElementRef: React.RefObject<HTMLDivElement>;
-  infiniteScrollState?: boolean;
   xyObject: number | null;
   xyObjectReverse: number | null;
   localObjectXY: (number | null)[];
@@ -950,7 +941,6 @@ const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
     left,
     mRootLocal,
     scrollElementRef,
-    infiniteScrollState,
     xyObject,
     xyObjectReverse,
     localObjectXY,
@@ -966,54 +956,46 @@ const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
       children
     );
 
-    if (infiniteScroll && infiniteScrollState) {
-      return (
-        <IntersectionTracker
-          root={scrollElementRef.current}
-          rootMargin={rootMargin}
-          style={{
+    const wrapStyle1 = localObjectXY[0]
+      ? { width: `${localObjectXY[0]}px` }
+      : {};
+
+    const wrapStyle2 = {
+      width: `${xyObjectReverse}px`,
+      height: `${xyObject}px`,
+    };
+
+    const commonProps = {
+      root: scrollElementRef.current,
+      rootMargin: infiniteScroll ? rootMargin : mRootLocal,
+      style: infiniteScroll
+        ? ({
+            ...wrapStyle2,
             position: "absolute",
-            width: `${xyObjectReverse}px`,
-            height: `${xyObject}px`,
             top: `${elementTop}px`,
             ...(left !== null ? { left: `${left}px` } : {}),
-          }}
-        >
-          <div
-            style={{
-              width: `${xyObjectReverse}px`,
-            }}
-          >
-            {content}
-          </div>
-        </IntersectionTracker>
-      );
-    } else {
-      const wrapStyle1 = localObjectXY[0]
-        ? {
-            width: `${localObjectXY[0]}px`,
-            // height: `${localObjectXY[1]}px`,
-          }
-        : {};
-      const wrapStyle2 = {
-        width: `${xyObjectReverse}px`,
-        height: `${xyObject}px`,
-      };
+          } as React.CSSProperties)
+        : wrapStyle2,
+    };
 
-      return lazyRender ? (
-        <IntersectionTracker
-          root={scrollElementRef.current}
-          rootMargin={mRootLocal}
-          style={wrapStyle2}
-        >
-          <div style={wrapStyle1}>{content}</div>
-        </IntersectionTracker>
-      ) : (
-        <div style={wrapStyle2}>
-          <div style={wrapStyle1}>{content}</div>
-        </div>
-      );
-    }
+    const innerContent = <div style={wrapStyle1}>{content}</div>;
+
+    return infiniteScroll ? (
+      <div
+        style={{
+          position: "absolute",
+          top: `${elementTop}px`,
+          ...(left !== null ? { left: `${left}px` } : {}),
+        }}
+      >
+        {innerContent}
+      </div>
+    ) : lazyRender ? (
+      <IntersectionTracker {...commonProps}>{innerContent}</IntersectionTracker>
+    ) : (
+      <div style={wrapStyle2}>{innerContent}</div>
+    );
   }
 );
+
 ScrollObjectWrapper.displayName = "ScrollObject";
