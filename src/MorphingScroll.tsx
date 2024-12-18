@@ -21,14 +21,16 @@ const Scroll: React.FC<ScrollType> = ({
   fallback = null,
   scrollTop = 1,
   infiniteScroll = false,
-  contentAlignCenter = false,
-  wrapAlignCenter = false,
   edgeGradient,
   objectsWrapperMinSize,
   children,
   onScrollValue,
   thumbElement,
   arrows,
+
+  contentAlignCenter = false,
+  wrapAlignCenter = false,
+  contentAlign,
 
   pixelsForSwipe = 8,
   progressBarSize = 4,
@@ -44,7 +46,6 @@ const Scroll: React.FC<ScrollType> = ({
 
   const grabbingElementRef = React.useRef<HTMLElement | null>(null);
 
-  let objectsWrapperAligning = false;
   const prevKey = React.useRef<string | null | undefined>(null);
   const clickedObject = React.useRef("");
   const numForSlider = React.useRef<number>(0);
@@ -105,7 +106,8 @@ const Scroll: React.FC<ScrollType> = ({
     : pLocal;
 
   const pY = pLocal[1] + pLocal[3];
-  const pLocalXY = pT + pB;
+  const pLocalY = pT + pB;
+  const pLocalX = pL + pR;
 
   const [gapX, gapY] = React.useMemo(() => {
     return typeof gap === "number"
@@ -249,38 +251,42 @@ const Scroll: React.FC<ScrollType> = ({
       : receivedObjectsWrapperSize;
   }, [xyObject, childsPerDirection, gapX, receivedObjectsWrapperSize]);
 
-  const objectsWrapperSizeFull = React.useMemo(() => {
-    return objectsWrapperHeight + pLocalXY;
-  }, [objectsWrapperHeight, pLocalXY]);
+  const objectsWrapperHeightFull = React.useMemo(() => {
+    return objectsWrapperHeight + pLocalY;
+  }, [objectsWrapperHeight, pLocalY]);
+
+  const objectsWrapperWidthFull = React.useMemo(() => {
+    return objectsWrapperWidth + pLocalX;
+  }, [objectsWrapperWidth, pLocalX]);
 
   const thumbSize = React.useMemo(() => {
     if (progressVisibility === "visible" || progressVisibility === "hover") {
       if (objectsWrapperHeight === 0) return 0;
       if (!xy) return 0;
-      return Math.round((xy / objectsWrapperSizeFull) * xy);
+      return Math.round((xy / objectsWrapperHeightFull) * xy);
     } else {
       return 0;
     }
-  }, [xy, objectsWrapperSizeFull, progressVisibility]);
+  }, [xy, objectsWrapperHeightFull, progressVisibility]);
 
   const endObjectsWrapper = React.useMemo(() => {
-    if (!xy) return objectsWrapperSizeFull;
+    if (!xy) return objectsWrapperHeightFull;
     return (
-      objectsWrapperSizeFull - xy // in scroll vindow
+      objectsWrapperHeightFull - xy // in scroll vindow
     );
-  }, [objectsWrapperSizeFull, xy]);
+  }, [objectsWrapperHeightFull, xy]);
 
   const localScrollTop = React.useMemo(() => {
     if (scrollTop) {
       return typeof scrollTop === "number"
         ? scrollTop
         : scrollTop === "end"
-        ? objectsWrapperSizeFull > xy
+        ? objectsWrapperHeightFull > xy
           ? endObjectsWrapper
           : 0
         : 0;
     }
-  }, [scrollTop, objectsWrapperSizeFull, endObjectsWrapper]);
+  }, [scrollTop, objectsWrapperHeightFull, endObjectsWrapper]);
 
   const translateProperty = React.useMemo(() => {
     if (!localScrollXY[0] || !localScrollXY[1]) return 0;
@@ -376,21 +382,54 @@ const Scroll: React.FC<ScrollType> = ({
     objectsPerDirection,
   ]);
 
-  objectsWrapperAligning = React.useMemo(() => {
-    if (!localScrollXY[0] || !localScrollXY[1]) return false;
-    if (wrapAlignCenter && scrollXY) {
-      if (xDirection) {
-        if (localScrollXY[0] > objectsWrapperSizeFull) {
-          return true;
-        }
-      } else {
-        if (localScrollXY[1] > objectsWrapperSizeFull) {
-          return true;
-        }
-      }
+  const contentAlignLocal = React.useMemo(() => {
+    if (!contentAlign) return {};
+
+    const [verticalAlign, horizontalAlign = "start"] = contentAlign;
+
+    const vAlign =
+      verticalAlign === "start"
+        ? "flex-start"
+        : verticalAlign === "center"
+        ? "center"
+        : "flex-end";
+
+    const hAlign =
+      horizontalAlign === "start"
+        ? "flex-start"
+        : horizontalAlign === "center"
+        ? "center"
+        : "flex-end";
+
+    const scrollX = localScrollXY[0] ?? 0;
+    const scrollY = localScrollXY[1] ?? 0;
+
+    const shouldAlignHeight = xDirection
+      ? scrollX > objectsWrapperHeightFull
+      : scrollY > objectsWrapperHeightFull;
+
+    const shouldAlignWidth = xDirection
+      ? scrollY > objectsWrapperWidthFull
+      : scrollX > objectsWrapperWidthFull;
+
+    const alignStyles: Record<string, string> = {};
+
+    if (shouldAlignWidth) {
+      alignStyles.justifyContent = xDirection ? hAlign : vAlign;
     }
-    return false;
-  }, [xDirection, localScrollXY, localObjectXY, gap, objectsWrapperSizeFull]);
+
+    if (shouldAlignHeight) {
+      alignStyles.alignItems = xDirection ? vAlign : hAlign;
+    }
+
+    return alignStyles;
+  }, [
+    contentAlign,
+    xDirection,
+    localScrollXY,
+    objectsWrapperHeightFull,
+    objectsWrapperWidthFull,
+  ]);
 
   const scrollXYToobjectsWrapperXY = React.useCallback(
     (max?: boolean) => {
@@ -431,7 +470,8 @@ const Scroll: React.FC<ScrollType> = ({
     if (!edgeGradient) return;
 
     const scrollTop = scrollElementRef.current?.scrollTop || 0;
-    const isNotAtBottom = Math.round(scrollTop + xy) !== objectsWrapperSizeFull;
+    const isNotAtBottom =
+      Math.round(scrollTop + xy) !== objectsWrapperHeightFull;
 
     if (scrollContentlRef.current) {
       scrollContentlRef.current.classList.toggle("edgeLast", isNotAtBottom);
@@ -457,7 +497,7 @@ const Scroll: React.FC<ScrollType> = ({
         getActiveElem();
       }
     }
-  }, [edgeGradient, xy, objectsWrapperSizeFull]);
+  }, [edgeGradient, xy, objectsWrapperHeightFull]);
 
   const handleScroll = React.useCallback(() => {
     if (
@@ -593,10 +633,10 @@ const Scroll: React.FC<ScrollType> = ({
 
   const handleResize = React.useCallback(
     (_: number, height: number) => {
-      const newSize = height - pLocalXY;
+      const newSize = height - pLocalY;
       setReceivedObjectsWrapperSize(newSize);
     },
-    [xDirection, pLocalXY, objectsWrapperHeight]
+    [xDirection, pLocalY, objectsWrapperHeight]
   );
 
   const smoothScroll = React.useCallback(
@@ -726,7 +766,7 @@ const Scroll: React.FC<ScrollType> = ({
             height: `${objectsWrapperHeight}px`,
           }),
         ...(objectsWrapperMinSize && {
-          minHeight: `calc(${objectsWrapperMinSize}px - ${pLocalXY}px)`,
+          minHeight: `calc(${objectsWrapperMinSize}px - ${pLocalY}px)`,
         }),
       }}
     >
@@ -885,9 +925,7 @@ const Scroll: React.FC<ScrollType> = ({
           ref={scrollElementRef}
           onScroll={handleScroll}
           style={{
-            ...(objectsWrapperAligning && {
-              alignItems: "center",
-            }),
+            ...contentAlignLocal,
             ...(progressTriggerCheck("wheel")
               ? {
                   overflow: "hidden scroll",

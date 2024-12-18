@@ -25,6 +25,8 @@ export type progressTriggerOptions =
   | "arrows"
   | "loopedArrows";
 
+type AlignT = "start" | "center" | "end";
+
 export type ScrollType = {
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
@@ -37,6 +39,7 @@ export type ScrollType = {
   xDirection?: boolean;
   contentAlignCenter?: boolean;
   wrapAlignCenter?: boolean;
+  contentAlign?: [AlignT, AlignT];
 
   progressReverse?: boolean;
   progressTrigger?: Array<progressTriggerOptions> | progressTriggerOptions;
