@@ -986,6 +986,7 @@ const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
           position: "absolute",
           top: `${elementTop}px`,
           ...(left !== null ? { left: `${left}px` } : {}),
+          ...wrapStyle2,
         }}
       >
         {innerContent}
