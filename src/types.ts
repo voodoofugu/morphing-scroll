@@ -37,8 +37,7 @@ export type ScrollType = {
   padding?: number[] | number;
 
   xDirection?: boolean;
-  contentAlignCenter?: boolean;
-  wrapAlignCenter?: boolean;
+  elementsAlign?: AlignT;
   contentAlign?: [AlignT, AlignT];
 
   progressReverse?: boolean;

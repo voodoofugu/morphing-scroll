@@ -28,8 +28,7 @@ const Scroll: React.FC<ScrollType> = ({
   thumbElement,
   arrows,
 
-  contentAlignCenter = false,
-  wrapAlignCenter = false,
+  elementsAlign = false,
   contentAlign,
 
   pixelsForSwipe = 8,
@@ -113,7 +112,7 @@ const Scroll: React.FC<ScrollType> = ({
     return typeof gap === "number"
       ? [gap, gap]
       : xDirection
-      ? [gap ? gap[1] : 0, gap ? gap[0] : 0]
+      ? [gap?.[1] ?? 0, gap?.[0] ?? 0]
       : [0, 0];
   }, [gap, xDirection]);
 
@@ -127,7 +126,7 @@ const Scroll: React.FC<ScrollType> = ({
     return objectXY
       ? objectXY
       : xDirection
-      ? [scrollXY ? scrollXY[0] : null, scrollXY ? scrollXY[1] - pY : null]
+      ? [scrollXY?.[0] ?? null, scrollXY ? scrollXY[1] - pY : null]
       : [scrollXY ? scrollXY[0] - pY : null, null];
   }, [objectXY, scrollXY, pY, xDirection]);
 
@@ -246,8 +245,7 @@ const Scroll: React.FC<ScrollType> = ({
 
   const objectsWrapperHeight = React.useMemo(() => {
     return objectXY
-      ? (xyObject ? xyObject : 0) * childsPerDirection +
-          (childsPerDirection - 1) * gapX
+      ? (xyObject ?? 0) * childsPerDirection + (childsPerDirection - 1) * gapX
       : receivedObjectsWrapperSize;
   }, [xyObject, childsPerDirection, gapX, receivedObjectsWrapperSize]);
 
@@ -295,9 +293,9 @@ const Scroll: React.FC<ScrollType> = ({
 
   const memoizedChildrenData = React.useMemo(() => {
     let lastIndices: number[] = [];
-    let balanceHeight: number = 0;
+    let alignSpace: number = 0;
 
-    if (infiniteScroll && contentAlignCenter) {
+    if (infiniteScroll && elementsAlign) {
       const indices = Array.from(
         { length: validChildren.length },
         (_, index) => index
@@ -310,10 +308,17 @@ const Scroll: React.FC<ScrollType> = ({
       lastIndices = firstChildsInDirection
         ? indices.slice(-firstChildsInDirection)
         : [];
-      balanceHeight =
-        (((xyObjectReverse ? xyObjectReverse : 0) + gapY) *
-          (objectsPerDirection - firstChildsInDirection)) /
-        2;
+
+      if (elementsAlign === "center") {
+        alignSpace =
+          (((xyObjectReverse ?? 0) + gapY) *
+            (objectsPerDirection - firstChildsInDirection)) /
+          2;
+      } else if (elementsAlign === "end") {
+        alignSpace =
+          ((xyObjectReverse ?? 0) + gapY) *
+          (objectsPerDirection - firstChildsInDirection);
+      }
     }
 
     return validChildren.map((_, index) => {
@@ -338,9 +343,7 @@ const Scroll: React.FC<ScrollType> = ({
       })(index, splitIndices);
 
       const elementTop = (function (index: number) {
-        return index !== 0
-          ? ((xyObject ? xyObject : 0) + gapX) * index + pT
-          : pT;
+        return index !== 0 ? ((xyObject ?? 0) + gapX) * index + pT : pT;
       })(
         infiniteScroll
           ? objectsPerDirection > 1
@@ -360,9 +363,9 @@ const Scroll: React.FC<ScrollType> = ({
           ? xyObjectReverse * indexAndSubIndex[0] +
             gapY * indexAndSubIndex[0] +
             (xDirection ? pLocal[0] : pLocal[1]) +
-            (contentAlignCenter && lastIndices.length > 0
+            (elementsAlign && lastIndices.length > 0
               ? lastIndices.includes(index)
-                ? balanceHeight
+                ? alignSpace
                 : 0
               : 0)
           : 0;
@@ -444,7 +447,7 @@ const Scroll: React.FC<ScrollType> = ({
 
   // events
   const handleArrows = React.useCallback(
-    (arr: string, e?: React.MouseEvent) => {
+    (arr: string) => {
       const scrollEl = scrollElementRef.current;
       const wrapEl = objectsWrapperRef.current;
       if (!scrollEl || !wrapEl) return;
@@ -757,8 +760,15 @@ const Scroll: React.FC<ScrollType> = ({
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         ...(gap && { gap: `${gapX}px ${gapY}px` }),
-        ...(contentAlignCenter &&
-          !infiniteScroll && { justifyContent: "center" }),
+        ...(elementsAlign &&
+          !infiniteScroll && {
+            justifyContent:
+              elementsAlign === "start"
+                ? "flex-start"
+                : elementsAlign === "center"
+                ? "center"
+                : "flex-end",
+          }),
         ...(objectsWrapperWidth && { width: `${objectsWrapperWidth}px` }),
         ...(objectXY &&
           objectsWrapperHeight && {
