@@ -17,7 +17,7 @@ export type IntersectionTrackerType = {
   intersectionDeley?: number;
 };
 
-export type progressTriggerOptions =
+export type progressTriggerT =
   | "wheel"
   | "progressElement"
   | "content"
@@ -41,7 +41,7 @@ export type ScrollType = {
   contentAlign?: [AlignT, AlignT];
 
   progressReverse?: boolean;
-  progressTrigger?: Array<progressTriggerOptions> | progressTriggerOptions;
+  progressTrigger?: Array<progressTriggerT>;
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
   sliderType?: boolean;

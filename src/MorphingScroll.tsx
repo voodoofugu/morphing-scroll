@@ -1,7 +1,7 @@
 import React from "react";
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
-import { ScrollType, progressTriggerOptions } from "./types";
+import { ScrollType, progressTriggerT } from "./types";
 
 const Scroll: React.FC<ScrollType> = ({
   scrollID = "",
@@ -79,7 +79,9 @@ const Scroll: React.FC<ScrollType> = ({
   const edgeGradientDefault = { color: "rgba(0,0,0,0.4)", size: 40 };
 
   // variables
-  const arrowsLocal = { ...arrowsDefault, ...arrows };
+  const arrowsLocal = React.useMemo(() => {
+    return { ...arrowsDefault, ...arrows };
+  }, [arrows]);
 
   const edgeGradientLocal =
     typeof edgeGradient === "object"
@@ -115,12 +117,6 @@ const Scroll: React.FC<ScrollType> = ({
       ? [gap?.[1] ?? 0, gap?.[0] ?? 0]
       : [0, 0];
   }, [gap, xDirection]);
-
-  const progressTriggerLocal = React.useMemo(() => {
-    return typeof progressTrigger === "string"
-      ? [progressTrigger]
-      : progressTrigger;
-  }, [progressTrigger]);
 
   const localObjectXY = React.useMemo(() => {
     return objectXY
@@ -162,10 +158,10 @@ const Scroll: React.FC<ScrollType> = ({
     : [0, 0];
 
   const progressTriggerCheck = React.useCallback(
-    (triggerType: progressTriggerOptions) => {
-      return progressTriggerLocal.includes(triggerType);
+    (triggerType: progressTriggerT) => {
+      return progressTrigger.includes(triggerType);
     },
-    [progressTriggerLocal]
+    [progressTrigger]
   );
 
   const localScrollXY = React.useMemo(() => {
@@ -180,34 +176,30 @@ const Scroll: React.FC<ScrollType> = ({
       : [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScroll
   }, [scrollXY, localObjectXY, xDirection, arrows]);
 
-  // calculations
-  const objectsPerDirection = localObjectXY
-    ? React.useMemo(() => {
-        if (!localScrollXY[0] || !localScrollXY[1]) {
-          return 1;
-        }
-        const objects = xDirection
-          ? Math.floor(
-              (localScrollXY[1] - pY) /
-                (localObjectXY[1]
-                  ? localObjectXY[1] + gapX
-                  : localScrollXY[1] + gapX)
-            )
-          : Math.floor(
-              (localScrollXY[0] - pY) /
-                (localObjectXY[0]
-                  ? localObjectXY[0] + gapX
-                  : localScrollXY[0] + gapX)
-            );
-        return objects > validChildren.length
-          ? validChildren.length
-          : objects < 1
-          ? 1
-          : objects;
-      }, [])
-    : validChildren.length;
-
   const xy = xDirection ? localScrollXY[0] || 0 : localScrollXY[1] || 0;
+
+  // calculations
+  const objectsPerDirection = React.useMemo(() => {
+    if (!localObjectXY) return validChildren.length;
+
+    if (!localScrollXY[0] || !localScrollXY[1]) return 1;
+
+    const [scrollX, scrollY] = localScrollXY;
+    const [objectX, objectY] = localObjectXY;
+
+    const objectSize = xDirection
+      ? objectY
+        ? objectY + gapX
+        : scrollY + gapX
+      : objectX
+      ? objectX + gapX
+      : scrollX + gapX;
+
+    const availableSpace = xDirection ? scrollY - pY : scrollX - pY;
+    const objects = Math.floor(availableSpace / objectSize);
+
+    return Math.max(1, Math.min(objects, validChildren.length));
+  }, [localObjectXY, localScrollXY, xDirection, gapX, pY]);
 
   const splitIndices = React.useMemo(() => {
     if (!infiniteScroll || objectsPerDirection <= 1) {
@@ -946,9 +938,11 @@ const Scroll: React.FC<ScrollType> = ({
           {objectXY ? (
             objectsWrapper
           ) : (
+            // здесь не продумана логика поведения при отсутствии objectXY
             <ResizeTracker
               onResize={handleResize}
-              // ???
+              // это задаёт размер для ResizeTracker когда есть infiniteScroll и всё абсолютно
+              // но это не работает пока
               // style={{
               //   minHeight: `${localScrollXY[1]}px`,
               // }}

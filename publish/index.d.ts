@@ -15,7 +15,7 @@ type IntersectionTrackerType = {
   onVisible?: () => void;
   intersectionDeley?: number;
 };
-type progressTriggerOptions =
+type progressTriggerT =
   | "wheel"
   | "progressElement"
   | "content"
@@ -33,7 +33,7 @@ type ScrollType = {
   contentAlignCenter?: boolean;
   wrapAlignCenter?: boolean;
   progressReverse?: boolean;
-  progressTrigger?: Array<progressTriggerOptions> | progressTriggerOptions;
+  progressTrigger?: Array<progressTriggerT> | progressTriggerT;
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
   sliderType?: boolean;
