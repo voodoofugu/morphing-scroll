@@ -5,6 +5,7 @@ type ResizeTrackerType = {
   onResize?: (width: number, height: number) => void;
   style?: React.CSSProperties;
 };
+
 type IntersectionTrackerType = {
   children: React.ReactNode;
   root?: Element | null;
@@ -15,6 +16,7 @@ type IntersectionTrackerType = {
   onVisible?: () => void;
   intersectionDeley?: number;
 };
+
 type progressTriggerT =
   | "wheel"
   | "progressElement"
@@ -22,6 +24,7 @@ type progressTriggerT =
   | "contentSlider"
   | "arrows"
   | "loopedArrows";
+type AlignT = "start" | "center" | "end";
 type ScrollType = {
   scrollID?: string;
   className?: string;
@@ -30,10 +33,10 @@ type ScrollType = {
   gap?: number[] | number;
   padding?: number[] | number;
   xDirection?: boolean;
-  contentAlignCenter?: boolean;
-  wrapAlignCenter?: boolean;
+  elementsAlign?: AlignT;
+  contentAlign?: [AlignT, AlignT];
   progressReverse?: boolean;
-  progressTrigger?: Array<progressTriggerT> | progressTriggerT;
+  progressTrigger?: Array<progressTriggerT>;
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
   sliderType?: boolean;
@@ -43,12 +46,7 @@ type ScrollType = {
   suspending?: boolean;
   fallback?: React.ReactNode;
   thumbElement?: React.ReactNode;
-  edgeGradient?:
-    | boolean
-    | {
-        color?: string;
-        size?: number;
-      };
+  edgeGradient?: boolean | { color?: string; size?: number };
   arrows?: {
     size?: number;
     className?: string;
