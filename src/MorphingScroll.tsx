@@ -826,9 +826,9 @@ const Scroll: React.FC<ScrollType> = ({
     <div
       className={`customScroll${xDirection ? " xDirection" : " yDirection"}${
         progressTriggerCheck("content") ? " draggableContent" : ""
-      }${
-        progressVisibility === "hover" ? " progressOnHover" : ""
-      } ${className}`}
+      }${progressVisibility === "hover" ? " progressOnHover" : ""}${
+        className ? ` ${className}` : ""
+      }`}
       ref={customScrollRef}
       style={{
         width: `${localScrollXY[2]}px`,
