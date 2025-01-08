@@ -1,9 +1,10 @@
 import React from "react";
 
 export type ResizeTrackerType = {
-  children: (width: number, height: number) => React.ReactNode;
-  onResize?: (width: number, height: number) => void;
+  measure?: "inner" | "outer" | "all";
   style?: React.CSSProperties;
+  onResize?: (width: number, height: number) => void;
+  children: (width: number, height: number) => React.ReactNode;
 };
 
 export type IntersectionTrackerType = {
@@ -28,11 +29,12 @@ export type progressTriggerT =
 type AlignT = "start" | "center" | "end";
 
 export type ScrollType = {
+  scrollXY: number[] | "auto";
+  objectXY: number[] | "auto";
+
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
-  scrollXY?: number[];
 
-  objectXY?: number[];
   gap?: number[] | number;
   padding?: number[] | number;
 
@@ -61,10 +63,13 @@ export type ScrollType = {
   };
 
   objectsWrapperMinSize?: number;
-  onScrollValue?: Array<[(scrollTop: number) => boolean, () => void]>;
+  onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
 
   pixelsForSwipe?: number;
   progressBarSize?: number;
   duration?: number;
+
+  isScrolling?: (status: boolean) => void;
+  renderOnScroll?: boolean;
 };

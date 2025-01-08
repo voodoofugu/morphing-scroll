@@ -1,0 +1,15 @@
+Пропсы:
+
+- onScrollValue?: Array<(scroll: number) => boolean>;
+это колбек для вызова при удобного вызова при определённых значениях скролла:
+onScrollValue={[
+  (scroll) => scroll < 200 && console.log("scroll < 200"),
+  (scroll) => scroll > 200 && console.log("scroll > 200"),
+]}
+
+- isScrolling?: (status: boolean) => void;
+колбек функция для передачи boolean состояния прокрутки
+
+- renderOnScroll?: boolean;
+значение для остоновки рендера элементов при прокрутке, элементы автоматически
+заменяются на null или fallback если его передали
