@@ -47,8 +47,6 @@ const Scroll: React.FC<ScrollType> = ({
   const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
 
   const grabbingElementRef = React.useRef<HTMLElement | null>(null);
-
-  const prevKey = React.useRef<string | null | undefined>(null);
   const clickedObject = React.useRef("");
   const numForSlider = React.useRef<number>(0);
   const loadedObjects = React.useRef<(string | null)[]>([]);
@@ -73,16 +71,6 @@ const Scroll: React.FC<ScrollType> = ({
       (child) => child !== null && child !== undefined
     );
   }, [children]);
-
-  const firstChildKey = React.useMemo(() => {
-    if (validChildren.length > 0) {
-      const firstChild = validChildren[0];
-
-      if (React.isValidElement(firstChild)) {
-        return firstChild.key;
-      }
-    }
-  }, [validChildren]);
 
   // default
   const arrowsDefault = {
@@ -485,7 +473,7 @@ const Scroll: React.FC<ScrollType> = ({
       const height = wrapEl.clientHeight;
       const length = scrollXYLocalToobjectsWrapperXY(true);
 
-      const scrollTo = (position: number) => smoothScroll(position, () => {});
+      const scrollTo = (position: number) => smoothScroll(position);
 
       if (arr === "first" && scrollTopEl > 0) {
         scrollTo(scrollTopEl <= xy ? 0 : scrollTopEl - xy);
@@ -706,36 +694,35 @@ const Scroll: React.FC<ScrollType> = ({
     [xDirection, pLocalY, objectsWrapperHeight]
   );
 
+  let frameId: number;
   const smoothScroll = React.useCallback(
-    (targetScrollTop: number, callback: () => void) => {
-      console.log("smoothScroll");
+    (targetScrollTop: number, callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return;
 
       const startScrollTop = scrollEl.scrollTop;
       const startTime = performance.now();
 
-      const easeInOutQuad = (t: number) =>
-        t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-
       const scrollStep = (currentTime: number) => {
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
-        const easedProgress = easeInOutQuad(progress);
 
         if (targetScrollTop !== undefined && targetScrollTop !== null) {
           scrollEl.scrollTop =
-            startScrollTop + (targetScrollTop - startScrollTop) * easedProgress;
+            startScrollTop + (targetScrollTop - startScrollTop) * progress;
         }
 
         if (timeElapsed < duration) {
           requestAnimationFrame(scrollStep);
         } else {
-          callback();
+          callback?.();
         }
       };
 
-      requestAnimationFrame(scrollStep);
+      frameId = requestAnimationFrame(scrollStep);
+
+      // Возвращаем функцию для отмены
+      return () => cancelAnimationFrame(frameId);
     },
     [scrollElementRef]
   );
@@ -790,24 +777,13 @@ const Scroll: React.FC<ScrollType> = ({
 
   React.useEffect(() => {
     if (scrollElementRef.current && validChildren.length > 0) {
-      let animationId: number;
+      const cancelScroll = smoothScroll(localScrollTop);
 
-      // prevKey ???
-      if (prevKey.current === null || prevKey.current !== firstChildKey) {
-        animationId = requestAnimationFrame(() =>
-          smoothScroll(localScrollTop, () => {
-            prevKey.current = firstChildKey;
-          })
-        );
-      } else {
-        animationId = requestAnimationFrame(() =>
-          smoothScroll(localScrollTop, () => {})
-        );
-      }
-
-      return () => cancelAnimationFrame(animationId);
+      return () => {
+        if (cancelScroll) cancelScroll(); // cancelAnimationFrame for smoothScroll
+      };
     }
-  }, [localScrollTop, objectsWrapperHeight, firstChildKey]);
+  }, [localScrollTop, objectsWrapperHeight]);
 
   React.useEffect(() => {
     const scrollEl = scrollElementRef.current;
