@@ -29,8 +29,8 @@ export type progressTriggerT =
 type AlignT = "start" | "center" | "end";
 
 export type ScrollType = {
-  scrollXY: number[] | "auto";
-  objectXY: number[] | "auto";
+  scrollXY?: number[];
+  objectXY: (number | "inner" | "outer" | "firstChild")[];
 
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
