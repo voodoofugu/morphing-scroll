@@ -30,7 +30,7 @@ type AlignT = "start" | "center" | "end";
 
 export type ScrollType = {
   scrollXY?: number[];
-  objectXY: (number | "inner" | "outer" | "firstChild")[];
+  objectXY: (number | "none" | "firstChild")[];
 
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;

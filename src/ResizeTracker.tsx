@@ -16,37 +16,21 @@ const ResizeTracker: React.FC<ResizeTrackerType> = ({
 
     if (!element) return;
 
-    const updateDimensions = (width: number, height: number) => {
-      setDimensions({ width, height });
-      onResize && onResize(width, height);
-    };
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        const height = entry.contentRect.height;
 
-    const observeElement = (target: Element) => {
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const { width, height } = entry.contentRect;
-          updateDimensions(width, height);
-        }
-      });
-      resizeObserver.observe(target);
-      return resizeObserver;
-    };
+        setDimensions({ width, height });
+        onResize && onResize(width, height);
+      }
+    });
 
-    const resizeObservers: ResizeObserver[] = [];
-
-    if (measure === "outer" && parentElement) {
-      resizeObservers.push(observeElement(parentElement));
-    } else if (measure === "inner") {
-      resizeObservers.push(observeElement(element));
-    } else if (measure === "all" && parentElement) {
-      resizeObservers.push(
-        observeElement(element),
-        observeElement(parentElement)
-      );
-    }
+    resizeObserver.observe(element);
 
     return () => {
-      resizeObservers.forEach((observer) => observer.disconnect());
+      resizeObserver.unobserve(element);
+      resizeObserver.disconnect();
     };
   }, [measure, onResize]);
 
