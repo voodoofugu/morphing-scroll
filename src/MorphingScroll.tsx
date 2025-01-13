@@ -41,6 +41,7 @@ const Scroll: React.FC<ScrollType> = ({
 }) => {
   const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
 
+  // const prevKey = React.useRef<string | null | undefined>(null);
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
@@ -72,6 +73,18 @@ const Scroll: React.FC<ScrollType> = ({
       (child) => child !== null && child !== undefined
     );
   }, [children]);
+
+  // const firstChildKey = React.useMemo(() => {
+  //   if (validChildren.length > 0) {
+  //     const firstChild = validChildren[0];
+
+  //     if (React.isValidElement(firstChild)) {
+  //       return firstChild.key;
+  //     }
+  //   }
+  // }, [validChildren]);
+  // scrollID && console.log("firstChildKey", firstChildKey);
+  // localScrollTop
 
   // default
   const arrowsDefault = {
@@ -228,11 +241,12 @@ const Scroll: React.FC<ScrollType> = ({
   }, [validChildren.length, objectsPerDirection]);
 
   const objectsWrapperWidth = React.useMemo(() => {
+    const objPerDirLocal = objectsPerDirection ? objectsPerDirection : 1;
     return xyObjectReverse
-      ? xyObjectReverse * objectsPerDirection + (objectsPerDirection - 1) * gapY
+      ? xyObjectReverse * objPerDirLocal + (objPerDirLocal - 1) * gapY
       : !infiniteScroll
       ? receivedWrapSize.width
-      : (receivedChildSize.width + gapY) * objectsPerDirection - gapY;
+      : (receivedChildSize.width + gapY) * objPerDirLocal - gapY;
   }, [
     xyObjectReverse,
     objectsPerDirection,
@@ -812,8 +826,8 @@ const Scroll: React.FC<ScrollType> = ({
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
-          infiniteScroll && objectsWrapperHeight
-            ? `${objectsWrapperHeight}px`
+          infiniteScroll && objectsWrapperHeightFull
+            ? `${objectsWrapperHeightFull}px`
             : "fit-content",
         width: objectsWrapperWidth ? `${objectsWrapperWidth}px` : "",
 
@@ -898,6 +912,7 @@ const Scroll: React.FC<ScrollType> = ({
                 attribute={renderOnScroll ? `${key}` : ""}
                 objectsPerDirection={objectsPerDirection}
                 objectXY={objectXY}
+                xDirection={xDirection}
               >
                 {childLocal}
               </ScrollObjectWrapper>
@@ -911,6 +926,7 @@ const Scroll: React.FC<ScrollType> = ({
               lazyRender={lazyRender}
               objectsPerDirection={objectsPerDirection}
               objectXY={objectXY}
+              xDirection={xDirection}
             >
               {childLocal}
             </ScrollObjectWrapper>
@@ -1016,7 +1032,6 @@ const Scroll: React.FC<ScrollType> = ({
                     style={{ height: `${thumbSize}px`, top: `${topThumb}px` }}
                   >
                     {thumbElement}
-                    <div className="clickField"></div>
                   </div>
                 </div>
               ) : (
@@ -1080,6 +1095,7 @@ interface ScrollObjectWrapperType
   attribute?: string;
   objectsPerDirection: number;
   objectXY: (number | "none" | "firstChild")[];
+  xDirection: boolean;
 }
 
 const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
@@ -1099,7 +1115,7 @@ const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
     lazyRender,
     attribute,
     objectsPerDirection,
-    objectXY,
+    xDirection,
   }) => {
     const content = suspending ? (
       <React.Suspense fallback={fallback}>{children}</React.Suspense>
@@ -1110,10 +1126,16 @@ const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
     const wrapStyle1 = {
       width: xyObjectReverse ? `${xyObjectReverse}px` : "",
       height: xyObject ? `${xyObject}px` : "",
+      ...(xDirection && {
+        display: "flex",
+      }),
     };
 
     const wrapStyle2 = {
       width: objectXYLocal[0] ? `${objectXYLocal[0]}px` : "",
+      ...(xDirection && {
+        transform: "rotate(-90deg) scaleX(-1)",
+      }),
     };
 
     const commonProps = {
