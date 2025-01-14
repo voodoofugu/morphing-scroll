@@ -49,7 +49,7 @@ export type ScrollType = {
   sliderType?: boolean;
 
   lazyRender?: boolean;
-  infiniteScroll?: boolean;
+  infiniteScroll?: boolean | "freezeOnScroll";
   rootMargin?: number[] | number;
   suspending?: boolean;
 
@@ -71,5 +71,4 @@ export type ScrollType = {
   duration?: number;
 
   isScrolling?: (status: boolean) => void;
-  renderOnScroll?: boolean;
 };

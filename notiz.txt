@@ -10,6 +10,8 @@ onScrollValue={[
 - isScrolling?: (status: boolean) => void;
 колбек функция для передачи boolean состояния прокрутки
 
-- renderOnScroll?: boolean;
+- infiniteScroll?:
+• reezeOnScroll?: boolean;
 значение для остоновки рендера элементов при прокрутке, элементы автоматически
-заменяются на null или fallback если его передали
+заменяются на null или fallback (если его передали)
+что бы загрузка прекращалась только для незагруженных элементов используется атрибут "data-id"

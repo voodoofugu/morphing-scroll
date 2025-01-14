@@ -37,7 +37,6 @@ const Scroll: React.FC<ScrollType> = ({
   duration = 200,
 
   isScrolling,
-  renderOnScroll,
 }) => {
   const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
 
@@ -67,6 +66,8 @@ const Scroll: React.FC<ScrollType> = ({
     width: 0,
     height: 0,
   });
+
+  const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
 
   const validChildren = React.useMemo(() => {
     return React.Children.toArray(children).filter(
@@ -796,15 +797,18 @@ const Scroll: React.FC<ScrollType> = ({
       }, 200);
     };
 
+    scrollEl.addEventListener("scroll", handleScroll);
+
     return () => {
+      scrollEl.removeEventListener("scroll", handleScroll);
       clearTimeout(scrollTimeout);
     };
   }, []);
 
   React.useEffect(() => {
-    if (renderOnScroll) {
-      const elements = document.querySelectorAll("[data-id]");
-      const dataIds = Array.from(elements, (el) => el.getAttribute("data-id"));
+    if (infiniteScroll === "freezeOnScroll") {
+      const elements = document.querySelectorAll(`[wrap-id^="${id}-"]`);
+      const dataIds = Array.from(elements, (el) => el.getAttribute("wrap-id"));
 
       loadedObjects.current = dataIds;
     }
@@ -874,8 +878,8 @@ const Scroll: React.FC<ScrollType> = ({
         };
 
         const childRenderOnScroll =
-          renderOnScroll &&
-          !loadedObjects.current.includes(`${key}`) &&
+          infiniteScroll === "freezeOnScroll" &&
+          !loadedObjects.current.includes(`${id}-${key}`) &&
           scrollingStatus
             ? fallback
             : child;
@@ -909,7 +913,9 @@ const Scroll: React.FC<ScrollType> = ({
                 elementTop={elementTop}
                 left={left}
                 infiniteScroll={infiniteScroll}
-                attribute={renderOnScroll ? `${key}` : ""}
+                attribute={
+                  infiniteScroll === "freezeOnScroll" ? `${id}-${key}` : ""
+                }
                 objectsPerDirection={objectsPerDirection}
                 objectXY={objectXY}
                 xDirection={xDirection}
@@ -1156,7 +1162,7 @@ const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
     };
 
     const innerContent = (
-      <div {...(attribute ? { "data-id": attribute } : {})} style={wrapStyle2}>
+      <div {...(attribute ? { "wrap-id": attribute } : {})} style={wrapStyle2}>
         {content}
       </div>
     );
