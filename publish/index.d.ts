@@ -62,13 +62,23 @@ type ScrollType = {
 
 declare const ResizeTracker: React.FC<ResizeTrackerType>;
 declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
+
+/**
+ * `Scroll` component.
+ * @param scrollID - Optional: Scroll ID.
+ * @param className - Optional: Scroll class name.
+ * @param size - Optional: Scroll size.
+ * @example `<Scroll size={[100, 100]} />`
+ * @param objectsSize - Optional: Cell size for each transmitted object.
+ * @param xDirection - Optional: Direction of horizontal scrolling.
+ * @param gap - Optional: Gap between cells.
+ * @param padding - Optional: Objects Wrapper padding.
+ * @param progressReverse - Optional: Reverse progress bar (scrollBar or slider).
+ * @param children - Optional: React children elements.
+ * @returns React component.
+ * @see {@link https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll Documentation}
+ */
+
 declare const Scroll: React.FC<ScrollType>;
 
-const Morphing = {
-  Scroll,
-  ResizeTracker,
-  IntersectionTracker,
-};
-
-export default Morphing;
 export { Scroll, ResizeTracker, IntersectionTracker };
