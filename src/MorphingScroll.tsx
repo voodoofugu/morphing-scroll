@@ -40,7 +40,6 @@ const Scroll: React.FC<ScrollType> = ({
 }) => {
   const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
 
-  // const prevKey = React.useRef<string | null | undefined>(null);
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
@@ -51,6 +50,10 @@ const Scroll: React.FC<ScrollType> = ({
   const clickedObject = React.useRef("");
   const numForSlider = React.useRef<number>(0);
   const loadedObjects = React.useRef<(string | null)[]>([]);
+  const firstChildKeyRef = React.useRef<string | null | undefined>(null);
+  const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const [topThumb, setTopThumb] = React.useState(0);
   const [scrollingStatus, setScrollingStatus] = React.useState(false);
@@ -75,17 +78,17 @@ const Scroll: React.FC<ScrollType> = ({
     );
   }, [children]);
 
-  // const firstChildKey = React.useMemo(() => {
-  //   if (validChildren.length > 0) {
-  //     const firstChild = validChildren[0];
+  const firstChildKey = React.useMemo(() => {
+    if (scrollTop !== "end") return;
 
-  //     if (React.isValidElement(firstChild)) {
-  //       return firstChild.key;
-  //     }
-  //   }
-  // }, [validChildren]);
-  // scrollID && console.log("firstChildKey", firstChildKey);
-  // localScrollTop
+    if (validChildren.length > 0) {
+      const firstChild = validChildren[0];
+
+      if (React.isValidElement(firstChild)) {
+        return firstChild.key;
+      }
+    }
+  }, [validChildren]);
 
   // default
   const arrowsDefault = {
@@ -485,8 +488,6 @@ const Scroll: React.FC<ScrollType> = ({
   );
 
   const edgeGradientAndArrowsCheck = React.useCallback(() => {
-    if (!edgeGradient) return;
-
     const scrollTopEl = scrollElementRef.current?.scrollTop || 0;
     const isNotAtBottom =
       Math.round(scrollTopEl + xy) !== objectsWrapperHeightFull;
@@ -518,19 +519,29 @@ const Scroll: React.FC<ScrollType> = ({
         getActiveElem();
       }
     }
-  }, [edgeGradient, xy, objectsWrapperHeightFull]);
+  }, [xy, objectsWrapperHeightFull]);
 
   const handleScroll = React.useCallback(() => {
+    const scrollEl = scrollElementRef.current;
+    if (!scrollEl) return;
+
+    // scroll status
+    infiniteScroll === "freezeOnScroll" && setScrollingStatus(true);
+    isScrolling?.(true);
+
+    scrollTimeout.current && clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => {
+      infiniteScroll === "freezeOnScroll" && setScrollingStatus(false);
+      isScrolling?.(false);
+    }, 200);
+
+    // newScroll
     if (
-      scrollElementRef.current &&
       thumbSize !== 0 &&
       (progressVisibility === "visible" || progressVisibility === "hover")
     ) {
       const newScroll = Math.abs(
-        Math.round(
-          (scrollElementRef.current.scrollTop / endObjectsWrapper) *
-            (xy - thumbSize)
-        )
+        Math.round((scrollEl.scrollTop / endObjectsWrapper) * (xy - thumbSize))
       );
       if (newScroll !== topThumb && !sliderType) {
         setTopThumb(newScroll);
@@ -538,23 +549,30 @@ const Scroll: React.FC<ScrollType> = ({
 
       // avoid jumping to the top when loading new items on top in the scroll
       if (
-        scrollElementRef.current.scrollTop === 0 && // xDirection!!! scrollLeft === 0
+        scrollEl.scrollTop === 0 && // xDirection!!! scrollLeft === 0
         clickedObject.current === "none"
       ) {
-        scrollElementRef.current.scrollTop = 1;
+        scrollEl.scrollTop = 1;
       }
       // onScrollValue
       if (onScrollValue) {
         onScrollValue.forEach((conditionFunc) => {
-          if (scrollElementRef.current) {
-            conditionFunc(scrollElementRef.current.scrollTop);
-          }
+          conditionFunc(scrollEl.scrollTop);
         });
       }
     }
 
-    edgeGradientAndArrowsCheck();
-  }, [xy, thumbSize, topThumb]);
+    edgeGradient && edgeGradientAndArrowsCheck();
+  }, [
+    xy,
+    thumbSize,
+    topThumb,
+    progressVisibility,
+    sliderType,
+    onScrollValue,
+    edgeGradientAndArrowsCheck,
+    isScrolling,
+  ]);
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
@@ -693,7 +711,7 @@ const Scroll: React.FC<ScrollType> = ({
   const smoothScroll = React.useCallback(
     (targetScrollTop: number, callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl) return;
+      if (!scrollEl) return null;
 
       const startScrollTop = scrollEl.scrollTop;
       const startTime = performance.now();
@@ -772,38 +790,29 @@ const Scroll: React.FC<ScrollType> = ({
 
   React.useEffect(() => {
     if (scrollElementRef.current && validChildren.length > 0) {
-      const cancelScroll = smoothScroll(localScrollTop);
+      let cancelScroll: (() => void) | null;
+
+      if (scrollTop === "end") {
+        if (!firstChildKeyRef.current) {
+          firstChildKeyRef.current = firstChildKey;
+        }
+        cancelScroll =
+          firstChildKeyRef.current === firstChildKey
+            ? smoothScroll(localScrollTop)
+            : null;
+
+        firstChildKeyRef.current = firstChildKey;
+      } else {
+        cancelScroll = smoothScroll(localScrollTop);
+      }
 
       return () => {
         if (cancelScroll) cancelScroll(); // cancelAnimationFrame for smoothScroll
+        loadedObjects.current = [];
+        scrollTimeout.current && clearTimeout(scrollTimeout.current);
       };
     }
   }, [localScrollTop, objectsWrapperHeight]);
-
-  React.useEffect(() => {
-    const scrollEl = scrollElementRef.current;
-    if (!scrollEl) return;
-
-    let scrollTimeout: ReturnType<typeof setTimeout>;
-
-    const handleScroll = () => {
-      setScrollingStatus(true);
-      isScrolling?.(true);
-
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        setScrollingStatus(false);
-        isScrolling?.(false);
-      }, 200);
-    };
-
-    scrollEl.addEventListener("scroll", handleScroll);
-
-    return () => {
-      scrollEl.removeEventListener("scroll", handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, []);
 
   React.useEffect(() => {
     if (infiniteScroll === "freezeOnScroll") {
@@ -812,10 +821,6 @@ const Scroll: React.FC<ScrollType> = ({
 
       loadedObjects.current = dataIds;
     }
-
-    return () => {
-      loadedObjects.current = [];
-    };
   }, [scrollingStatus]);
 
   // contents
@@ -944,7 +949,7 @@ const Scroll: React.FC<ScrollType> = ({
 
   const content = (
     <div
-      m-s="←♦→"
+      m-s="〈♦〉"
       className={`customScroll${xDirection ? " xDirection" : " yDirection"}${
         progressTriggerCheck("content") ? " draggableContent" : ""
       }${progressVisibility === "hover" ? " progressOnHover" : ""}${
