@@ -29,8 +29,8 @@ export type progressTriggerT =
 type AlignT = "start" | "center" | "end";
 
 export type ScrollType = {
-  scrollXY?: number[];
-  objectXY: (number | "none" | "firstChild")[];
+  size?: number[];
+  objectsSize: (number | "none" | "firstChild")[];
 
   scrollID?: string; // This is only used to better recognize warnings
   className?: string;
@@ -62,7 +62,7 @@ export type ScrollType = {
     element?: React.ReactNode;
   };
 
-  objectsWrapperMinSize?: number;
+  objectsBoxFullMinSize?: boolean;
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
 
