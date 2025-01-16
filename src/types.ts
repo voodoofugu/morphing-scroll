@@ -54,7 +54,7 @@ export type ScrollType = {
   suspending?: boolean;
 
   fallback?: React.ReactNode;
-  thumbElement?: React.ReactNode;
+  thumbElement?: boolean | React.ReactNode;
   edgeGradient?: boolean | { color?: string; size?: number };
   arrows?: {
     size?: number;

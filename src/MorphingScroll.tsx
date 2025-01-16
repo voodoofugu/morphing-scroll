@@ -44,6 +44,7 @@ const Scroll: React.FC<ScrollType> = ({
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollBarThumbRef = React.useRef<HTMLDivElement | null>(null);
   const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
 
   const grabbingElementRef = React.useRef<HTMLElement | null>(null);
@@ -466,6 +467,17 @@ const Scroll: React.FC<ScrollType> = ({
   );
 
   // events
+  const mouseOnRefDown = (el: HTMLDivElement | null) => {
+    if (el) {
+      el.style.cursor = "grabbing";
+    }
+  };
+  const mouseOnRefUp = (el: HTMLDivElement | null) => {
+    if (el && el.style.cursor === "grabbing") {
+      el.style.cursor = "grab";
+    }
+  };
+
   const handleArrows = React.useCallback(
     (arr: string) => {
       const scrollEl = scrollElementRef.current;
@@ -641,6 +653,8 @@ const Scroll: React.FC<ScrollType> = ({
     window.removeEventListener("mouseup", handleMouseUp);
 
     document.body.style.removeProperty("cursor");
+    mouseOnRefUp(objectsWrapperRef.current);
+    mouseOnRefUp(scrollBarThumbRef.current);
 
     clickedObject.current = "";
     forceUpdate(); // for update ref only
@@ -832,10 +846,12 @@ const Scroll: React.FC<ScrollType> = ({
     <div
       className="objectsWrapper"
       ref={objectsWrapperRef}
-      onMouseDown={(e) =>
-        progressTriggerCheck("content") &&
-        handleMouseDown(e, "wrapp", objectsWrapperRef.current)
-      }
+      onMouseDown={(e) => {
+        if (progressTriggerCheck("content")) {
+          handleMouseDown(e, "wrapp", objectsWrapperRef.current);
+          mouseOnRefDown(objectsWrapperRef.current);
+        }
+      }}
       style={{
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
@@ -844,6 +860,7 @@ const Scroll: React.FC<ScrollType> = ({
             : "fit-content",
         width: objectsWrapperWidth ? `${objectsWrapperWidth}px` : "",
 
+        ...(progressTriggerCheck("content") && { cursor: "grab" }),
         ...(infiniteScroll && {
           position: "relative",
         }),
@@ -956,10 +973,8 @@ const Scroll: React.FC<ScrollType> = ({
     <div
       m-s="〈♦〉"
       className={`customScroll${xDirection ? " xDirection" : " yDirection"}${
-        progressTriggerCheck("content") ? " draggableContent" : ""
-      }${progressVisibility === "hover" ? " progressOnHover" : ""}${
-        className ? ` ${className}` : ""
-      }`}
+        progressVisibility === "hover" ? " progressOnHover" : ""
+      }${className ? ` ${className}` : ""}`}
       ref={customScrollRef}
       style={{
         width: `${sizeLocal[2]}px`,
@@ -987,12 +1002,20 @@ const Scroll: React.FC<ScrollType> = ({
           ref={scrollElementRef}
           onScroll={handleScroll}
           style={{
+            display: "flex",
+            width: "100%",
+            height: "100%",
             ...contentAlignLocal,
             ...(progressTriggerCheck("wheel")
               ? {
                   overflow: "hidden scroll",
                 }
               : { overflow: "hidden hidden" }),
+            ...(thumbElement
+              ? {
+                  scrollbarWidth: "none",
+                }
+              : {}),
           }}
         >
           {typeof objectsSize[0] !== "string" ||
@@ -1024,37 +1047,55 @@ const Scroll: React.FC<ScrollType> = ({
           ))}
 
         {(progressVisibility === "visible" || progressVisibility === "hover") &&
-          thumbSize < xy && (
+          thumbSize < xy &&
+          thumbElement && (
             <>
               {!sliderType ? (
                 <div
-                  className={`scrollBar${
-                    progressReverse ? " progressReverse" : ""
-                  }${
-                    progressTriggerCheck("progressElement") ? " draggable" : ""
-                  }`}
-                  style={{ width: `${progressBarSize}px` }}
+                  className="scrollBar"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                    width: `${progressBarSize}px`,
+                    height: "100%",
+                    ...(!progressTriggerCheck("progressElement") && {
+                      pointerEvents: "none",
+                    }),
+                  }}
                 >
                   <div
-                    className={`scrollBarThumb${
-                      thumbElement ? "" : " defaultThumb"
-                    }`}
-                    onMouseDown={(e) =>
-                      progressTriggerCheck("progressElement") &&
-                      handleMouseDown(e, "thumb", customScrollRef.current)
-                    }
-                    style={{ height: `${thumbSize}px`, top: `${topThumb}px` }}
+                    ref={scrollBarThumbRef}
+                    className="scrollBarThumb"
+                    onMouseDown={(e) => {
+                      if (progressTriggerCheck("progressElement")) {
+                        handleMouseDown(e, "thumb", customScrollRef.current);
+                        mouseOnRefDown(scrollBarThumbRef.current);
+                      }
+                    }}
+                    style={{
+                      height: `${thumbSize}px`,
+                      transform: `translateY(${topThumb}px)`,
+                      ...(progressTriggerCheck("progressElement") && {
+                        cursor: "grab",
+                      }),
+                    }}
                   >
                     {thumbElement}
                   </div>
                 </div>
               ) : (
                 <div
-                  className={`sliderBar${
-                    progressReverse ? " progressReverse" : ""
-                  }${
-                    progressTriggerCheck("progressElement") ? " draggable" : ""
-                  }`}
+                  className="sliderBar"
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                    ...(!progressTriggerCheck("progressElement") && {
+                      pointerEvents: "none",
+                    }),
+                  }}
                   ref={sliderBarRef}
                   onMouseDown={(e) =>
                     handleMouseDown(e, "slider", customScrollRef.current)
