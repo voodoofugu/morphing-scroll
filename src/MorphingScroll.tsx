@@ -1075,7 +1075,8 @@ const Scroll: React.FC<ScrollType> = ({
                     }}
                     style={{
                       height: `${thumbSize}px`,
-                      transform: `translateY(${topThumb}px)`,
+                      willChange: "transform", // свойство убирает артефакты во время анимации
+                      transform: `translateY(${topThumb}px)`, // translateZ для улучшения производительности и сглаживания
                       ...(progressTriggerCheck("progressElement") && {
                         cursor: "grab",
                       }),
