@@ -18,17 +18,11 @@ export type IntersectionTrackerType = {
   intersectionDeley?: number;
 };
 
-export type progressTriggerT =
-  | "wheel"
-  | "progressElement"
-  | "content"
-  | "contentSlider"
-  | "arrows"
-  | "loopedArrows";
-
 type AlignT = "start" | "center" | "end";
 
 export type ScrollType = {
+  type?: "scroll" | "slider"; // "progress"
+
   size?: number[];
   objectsSize: (number | "none" | "firstChild")[];
 
@@ -43,18 +37,24 @@ export type ScrollType = {
   contentAlign?: [AlignT, AlignT];
 
   progressReverse?: boolean;
-  progressTrigger?: Array<progressTriggerT>;
+  progressTrigger?: Array<
+    | "wheel"
+    | "progressElement"
+    | "content"
+    | "contentSlider" // ??
+    | "arrows"
+    | "loopedArrows"
+  >;
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: number | "end";
-  sliderType?: boolean;
 
   lazyRender?: boolean;
-  infiniteScroll?: boolean | "freezeOnScroll";
+  infiniteScroll?: boolean;
   rootMargin?: number[] | number;
   suspending?: boolean;
 
   fallback?: React.ReactNode;
-  thumbElement?: boolean | React.ReactNode;
+  progressElement?: boolean | React.ReactNode | "none";
   edgeGradient?: boolean | { color?: string; size?: number };
   arrows?: {
     size?: number;
@@ -71,4 +71,5 @@ export type ScrollType = {
   duration?: number;
 
   isScrolling?: (status: boolean) => void;
+  stopLoadOnScroll?: boolean;
 };
