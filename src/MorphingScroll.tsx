@@ -55,7 +55,9 @@ const Scroll: React.FC<ScrollType> = ({
   const scrollBarThumbRef = React.useRef<HTMLDivElement | null>(null);
   const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
 
-  const clickedObject = React.useRef("");
+  const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
+    "none"
+  );
   const numForSlider = React.useRef<number>(0);
   const loadedObjects = React.useRef<(string | null)[]>([]);
   const firstChildKeyRef = React.useRef<string | null | undefined>(null);
@@ -493,16 +495,23 @@ const Scroll: React.FC<ScrollType> = ({
       el.style.cursor = "grab";
     }
   };
-  // const mouseOnRefEnter = (el: HTMLDivElement | null) => {
-  //   if (el) {
-  //     el.style.cursor = "grab";
-  //   }
-  // };
-  // const mouseOnRefLeave = (el: HTMLDivElement | null) => {
-  //   if (el) {
-  //     el.style.cursor = "default";
-  //   }
-  // };
+
+  const mouseOnRefEnter = (el: HTMLDivElement | null, childClass: string) => {
+    if (el) {
+      const child = el.querySelector(`.${childClass}`) as HTMLDivElement;
+      if (child) {
+        child.style.opacity = "1";
+      }
+    }
+  };
+  const mouseOnRefLeave = (el: HTMLDivElement | null, childClass: string) => {
+    if (el) {
+      const child = el.querySelector(`.${childClass}`) as HTMLDivElement;
+      if (child) {
+        child.style.opacity = "0";
+      }
+    }
+  };
 
   const handleArrows = React.useCallback(
     (arr: string) => {
@@ -557,7 +566,6 @@ const Scroll: React.FC<ScrollType> = ({
 
   const handleScroll = React.useCallback(() => {
     forceUpdate();
-    console.log("handleScroll");
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
@@ -663,17 +671,42 @@ const Scroll: React.FC<ScrollType> = ({
     [xDirection, scrollElementRef, sizeLocalToObjectsWrapperXY]
   );
 
-  const handleMouseUp = React.useCallback(() => {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
+  const handleMouseUp = React.useCallback(
+    (mouseUpEvent: MouseEvent) => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
 
-    document.body.style.removeProperty("cursor");
-    mouseOnRefUp(objectsWrapperRef.current);
-    mouseOnRefUp(scrollBarThumbRef.current);
+      document.body.style.removeProperty("cursor");
+      mouseOnRefUp(objectsWrapperRef.current);
+      mouseOnRefUp(scrollBarThumbRef.current);
 
-    clickedObject.current = "";
-    forceUpdate(); // for update ref only
-  }, [handleMouseMove, customScrollRef]);
+      clickedObject.current = "none";
+
+      // обрабатываем progressVisibility "hover" для элемента прогресса
+      if (progressVisibility === "hover") {
+        let target = mouseUpEvent.target as HTMLElement | null;
+        let isChildOfScrollContent = false;
+        // Проверяем, находится ли target внутри scrollContentlRef.current
+        while (target && target !== document.body) {
+          if (target === scrollContentlRef.current) {
+            isChildOfScrollContent = true;
+            break;
+          }
+          target = target.parentNode as HTMLElement | null;
+        }
+
+        if (!isChildOfScrollContent) {
+          mouseOnRefLeave(
+            scrollContentlRef.current,
+            type === "scroll" ? "scrollBar" : "sliderBar"
+          );
+        }
+      }
+
+      forceUpdate(); // for update ref only
+    },
+    [handleMouseMove, customScrollRef, progressVisibility, type]
+  );
 
   const handleMouseDown = React.useCallback(
     (clicked: "thumb" | "wrapp" | "slider") => {
@@ -852,7 +885,7 @@ const Scroll: React.FC<ScrollType> = ({
     <div
       className="objectsWrapper"
       ref={objectsWrapperRef}
-      onMouseDown={(e) => {
+      onMouseDown={() => {
         if (progressTriggerCheck("content")) {
           handleMouseDown("wrapp");
           mouseOnRefDown(objectsWrapperRef.current);
@@ -987,6 +1020,22 @@ const Scroll: React.FC<ScrollType> = ({
       <div
         className="scrollContent"
         ref={scrollContentlRef}
+        onMouseEnter={() =>
+          progressVisibility === "hover" &&
+          mouseOnRefEnter(
+            scrollContentlRef.current,
+            type === "scroll" ? "scrollBar" : "sliderBar"
+          )
+        }
+        onMouseLeave={() =>
+          progressVisibility === "hover" &&
+          clickedObject.current !== "thumb" &&
+          clickedObject.current !== "slider" &&
+          mouseOnRefLeave(
+            scrollContentlRef.current,
+            type === "scroll" ? "scrollBar" : "sliderBar"
+          )
+        }
         style={{
           position: "relative",
           width: xDirection ? `${sizeLocal[1]}px` : `${sizeLocal[0]}px`,
@@ -1108,13 +1157,14 @@ const Scroll: React.FC<ScrollType> = ({
                     }),
                     ...(progressVisibility === "hover" && {
                       opacity: 0,
+                      transition: "opacity 0.1s ease-in-out",
                     }),
                   }}
                 >
                   <div
                     ref={scrollBarThumbRef}
                     className="scrollBarThumb"
-                    onMouseDown={(e) => {
+                    onMouseDown={() => {
                       if (progressTriggerCheck("progressElement")) {
                         handleMouseDown("thumb");
                         mouseOnRefDown(scrollBarThumbRef.current);
@@ -1143,9 +1193,13 @@ const Scroll: React.FC<ScrollType> = ({
                     ...(!progressTriggerCheck("progressElement") && {
                       pointerEvents: "none",
                     }),
+                    ...(progressVisibility === "hover" && {
+                      opacity: 0,
+                      transition: "opacity 0.1s ease-in-out",
+                    }),
                   }}
                   ref={sliderBarRef}
-                  onMouseDown={(e) => handleMouseDown("slider")}
+                  onMouseDown={() => handleMouseDown("slider")}
                 >
                   {Array.from(
                     { length: sizeLocalToObjectsWrapperXY() || 0 },
