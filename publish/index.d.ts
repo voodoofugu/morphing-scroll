@@ -50,8 +50,6 @@ type ScrollType = {
   objectsBoxFullMinSize?: boolean;
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
-  pixelsForSwipe?: number;
-  progressBarSize?: number;
   duration?: number;
   isScrolling?: (status: boolean) => void;
 };
@@ -86,7 +84,7 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
     (scroll) => scroll > 200 && console.log("scroll > 200"),
   ]}`
  * @param children - Optional: React children elements.
- * @param pixelsForSwipe - Optional: Number of pixels for swipe. !!!
+ * @param duration - Optional: Scrolling animation duration in ms.
  * @returns React component.
  * @see {@link https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll Documentation}
  */

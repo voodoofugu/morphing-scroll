@@ -39,8 +39,6 @@ const Scroll: React.FC<ScrollType> = ({
   elementsAlign = false,
   contentAlign,
 
-  pixelsForSwipe = 8,
-  progressBarSize = 4,
   duration = 200,
 
   isScrolling,
@@ -101,6 +99,8 @@ const Scroll: React.FC<ScrollType> = ({
   }, [validChildren]);
 
   // default
+  const pixelsForSwipe = 1;
+
   const arrowsDefault = {
     size: 40,
   };
@@ -1150,7 +1150,7 @@ const Scroll: React.FC<ScrollType> = ({
                     position: "absolute",
                     top: 0,
                     ...(progressReverse ? { left: 0 } : { right: 0 }),
-                    width: `${progressBarSize}px`,
+                    width: "fit-content",
                     height: "100%",
                     ...(!progressTriggerCheck("progressElement") && {
                       pointerEvents: "none",
@@ -1207,7 +1207,7 @@ const Scroll: React.FC<ScrollType> = ({
                       <div
                         key={index}
                         className="sliderElem"
-                        style={{ width: `${progressBarSize}px` }}
+                        style={{ width: "fit-content" }}
                       >
                         {progressElement}
                       </div>

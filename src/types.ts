@@ -66,8 +66,6 @@ export type ScrollType = {
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
 
-  pixelsForSwipe?: number;
-  progressBarSize?: number;
   duration?: number;
 
   isScrolling?: (status: boolean) => void;
