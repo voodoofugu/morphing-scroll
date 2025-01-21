@@ -46,7 +46,7 @@ export type ScrollType = {
     | "loopedArrows"
   >;
   progressVisibility?: "visible" | "hover" | "hidden";
-  scrollTop?: number | "end";
+  scrollTop?: { value: number | "end"; duration?: number };
 
   lazyRender?: boolean;
   infiniteScroll?: boolean;
@@ -65,8 +65,6 @@ export type ScrollType = {
   objectsBoxFullMinSize?: boolean;
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
-
-  duration?: number;
 
   isScrolling?: (status: boolean) => void;
   stopLoadOnScroll?: boolean;

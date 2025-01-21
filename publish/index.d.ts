@@ -34,7 +34,7 @@ type ScrollType = {
     "wheel" | "progressElement" | "content" | "arrows" | "loopedArrows"
   >;
   progressVisibility?: "visible" | "hover" | "hidden";
-  scrollTop?: number | "end";
+  scrollTop?: { value: number | "end"; duration?: number };
   lazyRender?: boolean;
   infiniteScroll?: boolean | "freezeOnScroll";
   rootMargin?: number[] | number;
@@ -50,7 +50,6 @@ type ScrollType = {
   objectsBoxFullMinSize?: boolean;
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
-  duration?: number;
   isScrolling?: (status: boolean) => void;
 };
 
@@ -65,12 +64,14 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
  * @param size - Optional: Scroll width and height.
  * @param objectsSize - Optional: Cell width and height for each transmitted object.
  * @param xDirection - Optional: Direction of horizontal scrolling.
+ * @param contentAlign - Optional: Content alignment then it is smaller than Objects Wrapper.
+ * @param elementsAlign - Optional: Objects alignment in Objects Wrapper.
  * @param gap - Optional: Gap between cells.
  * @param padding - Optional: Objects Wrapper padding.
  * @param progressReverse - Optional: Reverse progress bar (scroll / slider).
  * @param progressTrigger - Optional: Array of trigger elements for progress bar.
  * @param progressVisibility - Optional: Hide or show progress bar.
- * @param scrollTop - Optional: Initial scroll position.
+ * @param scrollTop - Optional: There are two parameters: "value" - scroll position and "duration" - scroll animation duration.
  * @param lazyRender - Optional: Enable objects rendering when they are in the viewport.
  * @param infiniteScroll - Optional: Enable objects and objects wrapper rendering when they are in the viewport.
  * @param rootMargin - Optional: Expand objects Wrapper margin for objects rendering.
@@ -78,13 +79,15 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
  * @param fallback - Optional: Add Fallback element.
  * @param progressElement - Optional: Add custom progress element (scroll / slider).
  * @param edgeGradient - Optional: Enable edge gradient then objects Wrapper is outside the Scroll. You can add gradient color and size. By default color: "rgba(0,0,0,0.4)", size: 40.
+ * @param arrows - Optional: Add arrows. !!!
  * @param objectsBoxFullMinSize - Optional: Objects Wrapper gets min-height equal to the Scroll height.
  * @param onScrollValue - Optional: Add callback for scroll value.
  * @example `onScrollValue={[
     (scroll) => scroll > 200 && console.log("scroll > 200"),
   ]}`
  * @param children - Optional: React children elements.
- * @param duration - Optional: Scrolling animation duration in ms.
+ * @param isScrolling - Optional: Add callback for boolean scroll status.
+ * @example `isScrolling={(value) => console.log(value)}`
  * @returns React component.
  * @see {@link https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll Documentation}
  */

@@ -27,7 +27,7 @@ const Scroll: React.FC<ScrollType> = ({
   rootMargin = 0,
   suspending = false,
   fallback = null,
-  scrollTop = 1,
+  scrollTop,
   infiniteScroll = false,
   edgeGradient,
   objectsBoxFullMinSize,
@@ -38,8 +38,6 @@ const Scroll: React.FC<ScrollType> = ({
 
   elementsAlign = false,
   contentAlign,
-
-  duration = 200,
 
   isScrolling,
   stopLoadOnScroll,
@@ -80,25 +78,13 @@ const Scroll: React.FC<ScrollType> = ({
 
   const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
 
-  const validChildren = React.useMemo(() => {
-    return React.Children.toArray(children).filter(
-      (child) => child !== null && child !== undefined
-    );
-  }, [children]);
-
-  const firstChildKey = React.useMemo(() => {
-    if (scrollTop !== "end") return;
-
-    if (validChildren.length > 0) {
-      const firstChild = validChildren[0];
-
-      if (React.isValidElement(firstChild)) {
-        return firstChild.key;
-      }
-    }
-  }, [validChildren]);
-
   // default
+  const scrollTopLocal = {
+    value: 1,
+    duration: 200,
+    ...scrollTop,
+  };
+
   const pixelsForSwipe = 1;
 
   const arrowsDefault = {
@@ -116,6 +102,24 @@ const Scroll: React.FC<ScrollType> = ({
   const edgeGradientDefault = { color: "rgba(0,0,0,0.4)", size: 40 };
 
   // variables
+  const validChildren = React.useMemo(() => {
+    return React.Children.toArray(children).filter(
+      (child) => child !== null && child !== undefined
+    );
+  }, [children]);
+
+  const firstChildKey = React.useMemo(() => {
+    if (scrollTopLocal.value !== "end") return;
+
+    if (validChildren.length > 0) {
+      const firstChild = validChildren[0];
+
+      if (React.isValidElement(firstChild)) {
+        return firstChild.key;
+      }
+    }
+  }, [validChildren]);
+
   const arrowsLocal = React.useMemo(() => {
     return { ...arrowsDefault, ...arrows };
   }, [arrows]);
@@ -320,9 +324,9 @@ const Scroll: React.FC<ScrollType> = ({
   }, [objectsWrapperHeightFull, xy]);
 
   const localScrollTop = React.useMemo(() => {
-    return typeof scrollTop === "number"
-      ? scrollTop
-      : scrollTop === "end" && objectsWrapperHeightFull > xy
+    return typeof scrollTopLocal.value === "number"
+      ? scrollTopLocal.value
+      : scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy
       ? endObjectsWrapper
       : 1;
   }, [scrollTop, objectsWrapperHeightFull, endObjectsWrapper]);
@@ -775,14 +779,14 @@ const Scroll: React.FC<ScrollType> = ({
 
       const scrollStep = (currentTime: number) => {
         const timeElapsed = currentTime - startTime;
-        const progress = Math.min(timeElapsed / duration, 1);
+        const progress = Math.min(timeElapsed / scrollTopLocal.duration, 1);
 
         if (targetScrollTop !== undefined && targetScrollTop !== null) {
           scrollEl.scrollTop =
             startScrollTop + (targetScrollTop - startScrollTop) * progress;
         }
 
-        if (timeElapsed < duration) {
+        if (timeElapsed < scrollTopLocal.duration) {
           requestAnimationFrame(scrollStep);
         } else {
           callback?.();
@@ -849,7 +853,7 @@ const Scroll: React.FC<ScrollType> = ({
     if (scrollElementRef.current && validChildren.length > 0) {
       let cancelScroll: (() => void) | null;
 
-      if (scrollTop === "end") {
+      if (scrollTopLocal.value === "end") {
         if (!firstChildKeyRef.current) {
           firstChildKeyRef.current = firstChildKey;
         }
