@@ -1,12 +1,15 @@
 import React from "react";
 
-type ResizeTrackerType = {
-  children: (width: number, height: number) => React.ReactNode;
-  onResize?: (width: number, height: number) => void;
+type ResizeTrackerT = {
+  measure?: "inner" | "outer" | "all";
   style?: React.CSSProperties;
+  onResize?: (width: number, height: number) => void;
+  children: (width: number, height: number) => React.ReactNode;
 };
 
-type IntersectionTrackerType = {
+declare const ResizeTracker: React.FC<ResizeTrackerT>;
+
+type IntersectionTrackerT = {
   children: React.ReactNode;
   root?: Element | null;
   threshold?: number;
@@ -17,89 +20,105 @@ type IntersectionTrackerType = {
   intersectionDeley?: number;
 };
 
-type AlignT = "start" | "center" | "end";
-type ScrollType = {
-  type?: "scroll" | "slider";
-  size?: number[];
-  objectsSize: (number | "none" | "firstChild")[];
+declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
+
+export type MorphScrollT = {
+  // General Settings
   scrollID?: string;
   className?: string;
+  children?: React.ReactNode;
+
+  // Scroll Settings
+  type?: "scroll" | "slider";
+  direction?: "x" | "y";
+  scrollTop?: { value: number | "end"; duration?: number };
+  stopLoadOnScroll?: boolean;
+  onScrollValue?: Array<(scroll: number) => boolean>;
+  isScrolling?: (status: boolean) => void;
+
+  // Visual Settings
+  size?: number[];
+  objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
   padding?: number[] | number;
-  direction?: boolean;
-  elementsAlign?: AlignT;
-  contentAlign?: [AlignT, AlignT];
+  contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
+  elementsAlign?: "start" | "center" | "end";
+  edgeGradient?: boolean | { color?: string; size?: number };
+  objectsWrapFullMinSize?: boolean;
+
+  // Progress and Rendering
   progressReverse?: boolean;
+  progressVisibility?: "visible" | "hover" | "hidden";
   progressTrigger?: {
     wheel?: boolean;
-    progressElement?: boolean;
     content?: boolean;
-    arrows?:
-      | boolean
-      | { size?: number; element?: React.ReactNode; looped?: boolean };
+    progressElement?: boolean | React.ReactNode;
+    arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
-  progressVisibility?: "visible" | "hover" | "hidden";
-  scrollTop?: { value: number | "end"; duration?: number };
+
+  // Additional Settings
   lazyRender?: boolean;
-  infiniteScroll?: boolean | "freezeOnScroll";
+  infiniteScroll?: boolean;
   rootMargin?: number[] | number;
   suspending?: boolean;
   fallback?: React.ReactNode;
-  progressElement?: boolean | React.ReactNode | "none";
-  edgeGradient?: boolean | { color?: string; size?: number };
-  objectsWrapFullMinSize?: boolean;
-  onScrollValue?: Array<(scroll: number) => boolean>;
-  children?: React.ReactNode;
-  isScrolling?: (status: boolean) => void;
 };
 
-declare const ResizeTracker: React.FC<ResizeTrackerType>;
-declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
-
 /**
- * `Scroll` component.
+ * `MorphScroll` component.
  *
  * ### General Settings
- * @param scrollID - *(string | undefined)* Scroll identifier.
- * @param className - *(string | undefined)* Additional CSS class for the component.
- * @param children - *(React.ReactNode)* Child elements.
+ * @param scrollID - Optional: Scroll identifier.
+ * @param className - Optional: Additional CSS class for the component.
+ * @param children - Optional: Child elements.
  *
  * ### Scroll Settings
- * @param type - *(string)* Type of progress element. Default: `"scroll"`.
- * @param direction - *(boolean | undefined)* Scrolling direction.
- * @param scrollTop - *(number | "end" | undefined)* Scroll position and animation duration.
- * @param onScrollValue - *(Array<(scroll: number) => boolean> | undefined)* Callback for scroll value.
+ * @param type - Optional: Type of progress element. Default: `"scroll"`.
+ * @param direction - Optional: Scrolling direction.
+ * @param scrollTop - Optional: Scroll position and animation duration.
+ * @param stopLoadOnScroll - Optional: Stop loading when scrolling.
+ * @param onScrollValue - Optional: Callback for scroll value.
  * @example
  * `onScrollValue={[
  *   (scroll) => scroll > 200 && console.log("scroll > 200"),
  * ]}`
- * @param isScrolling - *(function | undefined)* Callback for scroll status.
+ * @param isScrolling - Optional: Callback for scroll status.
  * @example
  * `isScrolling={(value) => console.log(value)}`
  *
  * ### Visual Settings
- * @param size - *(number[] | undefined)* Scroll width and height.
- * @param objectsSize - *(Array<number | "none" | "firstChild">)* Size of cells for each object.
- * @param gap - *(number | number[] | undefined)* Gap between cells.
- * @param padding - *(number | number[] | undefined)* Padding for the objects wrapper.
- * @param edgeGradient - *(boolean | { color?: string; size?: number } | undefined)* Edge gradient. Default: `{ color: "rgba(0,0,0,0.4)", size: 40 }`.
+ * @param size - Optional: Scroll width and height.
+ * @param objectsSize - Required: Size of cells for each object.
+ * @param gap - Optional: Gap between cells.
+ * @param padding - Optional: Padding for the `objectsWrapper`.
+ * @param contentAlign - Optional: Aligns the content when it is smaller than the MorphScroll `size`.
+ * @param elementsAlign - Optional: Aligns the objects within the `objectsWrapper`.
+ * @param edgeGradient - Optional: Edge gradient. Default: `{ color: "rgba(0,0,0,0.4)", size: 40 }`.
+ * @param objectsWrapFullMinSize - Optional: Sets the `min-height` of the `objectsWrapper` to match the height of the MorphScroll.
  *
  * ### Progress and Rendering
- * @param progressReverse - *(boolean | undefined)* Reverse the progress bar direction.
- * @param progressTrigger - *(Array<string> | undefined)* Triggers for the progress bar. Default: `{ wheel: true }`.
- * @param progressVisibility - *(string | undefined)* Visibility of the progress bar.
+ * @param progressReverse - Optional: Reverse the progress bar direction.
+ * @param progressVisibility - Optional: Visibility of the progress bar.
+ * @param progressTrigger - Optional: Triggers for the progress bar. Default: `{ wheel: true }`.
+ * @example
+ * `progressTrigger={
+ *   wheel: true,
+ *   content: true,
+ *   progressElement: `true/false` or <YourProgressComponent/>
+ *   arrows: true or { size: number, element: <YourArrowComponent/> }
+ * }`
  *
  * ### Additional Settings
- * @param lazyRender - *(boolean | undefined)* Lazy rendering of objects.
- * @param infiniteScroll - *(boolean | "freezeOnScroll" | undefined)* Infinite scrolling.
- * @param rootMargin - *(number | number[] | undefined)* Margin expansion for object rendering.
- * @param suspending - *(boolean | undefined)* Adds React Suspense.
- * @param fallback - *(React.ReactNode | undefined)* Fallback element for error handling.
+ * @param lazyRender - Optional: Lazy rendering of objects.
+ * @param infiniteScroll - Optional: Infinite scrolling.
+ * @param rootMargin - Optional: Margin expansion for object rendering.
+ * @param suspending - Optional: Adds React Suspense.
+ * @param fallback - Optional: Fallback element for error handling.
  *
  * @returns React component.
  * @see [Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll)
  */
 
-declare const Scroll: React.FC<ScrollType>;
+declare const MorphScroll: React.FC<MorphScrollT>;
 
-export { Scroll, ResizeTracker, IntersectionTracker };
+export { MorphScroll, ResizeTracker, IntersectionTracker };

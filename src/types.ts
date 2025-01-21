@@ -1,13 +1,13 @@
 import React from "react";
 
-export type ResizeTrackerType = {
+export type ResizeTrackerT = {
   measure?: "inner" | "outer" | "all";
   style?: React.CSSProperties;
   onResize?: (width: number, height: number) => void;
   children: (width: number, height: number) => React.ReactNode;
 };
 
-export type IntersectionTrackerType = {
+export type IntersectionTrackerT = {
   children: React.ReactNode;
   root?: Element | null;
   threshold?: number;
@@ -18,54 +18,46 @@ export type IntersectionTrackerType = {
   intersectionDeley?: number;
 };
 
-type AlignT = "start" | "center" | "end";
+export type MorphScrollT = {
+  // General Settings
+  scrollID?: string;
+  className?: string;
+  children?: React.ReactNode;
 
-export type ScrollType = {
-  type?: "scroll" | "slider"; // "progress"
+  // Scroll Settings
+  type?: "scroll" | "slider";
+  direction?: "x" | "y";
+  scrollTop?: { value: number | "end"; duration?: number };
+  stopLoadOnScroll?: boolean;
+  onScrollValue?: Array<(scroll: number) => boolean>;
+  isScrolling?: (status: boolean) => void;
 
+  // Visual Settings
   size?: number[];
   objectsSize: (number | "none" | "firstChild")[];
-
-  scrollID?: string; // This is only used to better recognize warnings
-  className?: string;
-
   gap?: number[] | number;
   padding?: number[] | number;
+  contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
+  elementsAlign?: "start" | "center" | "end";
+  edgeGradient?: boolean | { color?: string; size?: number };
+  objectsWrapFullMinSize?: boolean;
 
-  direction?: "x" | "y";
-  elementsAlign?: AlignT;
-  contentAlign?: [AlignT, AlignT];
-
+  // Progress and Rendering
   progressReverse?: boolean;
+  progressVisibility?: "visible" | "hover" | "hidden";
   progressTrigger?: {
     wheel?: boolean;
-    progressElement?: boolean;
     content?: boolean;
-    arrows?:
-      | boolean
-      | { size?: number; element?: React.ReactNode; looped?: boolean };
+    progressElement?: boolean | React.ReactNode;
+    arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
-  progressVisibility?: "visible" | "hover" | "hidden";
-  scrollTop?: { value: number | "end"; duration?: number };
 
+  // Additional Settings
   lazyRender?: boolean;
   infiniteScroll?: boolean;
   rootMargin?: number[] | number;
   suspending?: boolean;
-
   fallback?: React.ReactNode;
-  progressElement?: boolean | React.ReactNode | "none";
-  edgeGradient?: boolean | { color?: string; size?: number };
-  arrows?: {
-    element?: React.ReactNode;
-    size?: number;
-  };
-
-  objectsWrapFullMinSize?: boolean;
-  onScrollValue?: Array<(scroll: number) => boolean>;
-  children?: React.ReactNode;
-
-  isScrolling?: (status: boolean) => void;
-  stopLoadOnScroll?: boolean;
 };
+
 // progressTrigger contentSlider & arrows looped

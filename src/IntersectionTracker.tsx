@@ -1,7 +1,7 @@
 import React from "react";
-import { IntersectionTrackerType } from "./types";
+import { IntersectionTrackerT } from "./types";
 
-const IntersectionTracker: React.FC<IntersectionTrackerType> = ({
+const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   children,
   root,
   threshold,

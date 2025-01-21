@@ -2,12 +2,12 @@
 import React from "react";
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
-import { ScrollType } from "./types";
+import { MorphScrollT } from "./types";
 
 //получаем типы progressTrigger из массива
-type ProgressTriggerType = ScrollType["progressTrigger"];
+type ProgressTriggerType = MorphScrollT["progressTrigger"];
 
-const Scroll: React.FC<ScrollType> = ({
+const MorphScroll: React.FC<MorphScrollT> = ({
   scrollID = "",
   type = "scroll",
   className = "",
@@ -29,7 +29,6 @@ const Scroll: React.FC<ScrollType> = ({
   objectsWrapFullMinSize,
   children,
   onScrollValue,
-  progressElement,
 
   elementsAlign = false,
   contentAlign,
@@ -1056,7 +1055,8 @@ const Scroll: React.FC<ScrollType> = ({
                   overflow: "hidden scroll",
                 }
               : { overflow: "hidden hidden" }),
-            ...(progressElement || progressElement === "none"
+            ...(typeof progressTrigger.progressElement !== "boolean" ||
+            progressTrigger.progressElement === false
               ? {
                   scrollbarWidth: "none",
                 }
@@ -1128,8 +1128,7 @@ const Scroll: React.FC<ScrollType> = ({
 
         {progressVisibility !== "hidden" &&
           thumbSize < xy &&
-          progressElement &&
-          progressElement !== "none" && (
+          typeof progressTrigger.progressElement !== "boolean" && (
             <>
               {type !== "slider" ? (
                 <div
@@ -1140,7 +1139,7 @@ const Scroll: React.FC<ScrollType> = ({
                     ...(progressReverse ? { left: 0 } : { right: 0 }),
                     width: "fit-content",
                     height: "100%",
-                    ...(!progressTrigger.progressElement && {
+                    ...(!progressTrigger.progressElement !== false && {
                       pointerEvents: "none",
                     }),
                     ...(progressVisibility === "hover" && {
@@ -1167,7 +1166,7 @@ const Scroll: React.FC<ScrollType> = ({
                       }),
                     }}
                   >
-                    {progressElement}
+                    {progressTrigger.progressElement}
                   </div>
                 </div>
               ) : (
@@ -1197,7 +1196,7 @@ const Scroll: React.FC<ScrollType> = ({
                         className="sliderElem"
                         style={{ width: "fit-content" }}
                       >
-                        {progressElement}
+                        {progressTrigger.progressElement}
                       </div>
                     )
                   )}
@@ -1220,11 +1219,11 @@ const Scroll: React.FC<ScrollType> = ({
   }
 };
 
-export default Scroll;
+export default MorphScroll;
 
 interface ScrollObjectWrapperType
   extends Pick<
-    ScrollType,
+    MorphScrollT,
     "rootMargin" | "suspending" | "fallback" | "infiniteScroll" | "lazyRender"
   > {
   children: React.ReactNode;

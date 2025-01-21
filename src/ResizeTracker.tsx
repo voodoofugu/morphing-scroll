@@ -1,7 +1,7 @@
 import React from "react";
-import { ResizeTrackerType } from "./types";
+import { ResizeTrackerT } from "./types";
 
-const ResizeTracker: React.FC<ResizeTrackerType> = ({
+const ResizeTracker: React.FC<ResizeTrackerT> = ({
   measure = "inner",
   style,
   onResize,
