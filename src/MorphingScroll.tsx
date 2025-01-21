@@ -5,11 +5,7 @@ import ResizeTracker from "./ResizeTracker";
 import { ScrollType } from "./types";
 
 //получаем типы progressTrigger из массива
-type ProgressTriggerType = NonNullable<
-  ScrollType["progressTrigger"]
-> extends Array<infer U>
-  ? U
-  : never;
+type ProgressTriggerType = ScrollType["progressTrigger"];
 
 const Scroll: React.FC<ScrollType> = ({
   scrollID = "",
@@ -21,7 +17,7 @@ const Scroll: React.FC<ScrollType> = ({
   gap,
   padding = [0, 0, 0, 0],
   progressReverse = false,
-  progressTrigger = "wheel",
+  progressTrigger = { wheel: true },
   progressVisibility = "visible",
   lazyRender = false,
   rootMargin = 0,
@@ -30,11 +26,10 @@ const Scroll: React.FC<ScrollType> = ({
   scrollTop,
   infiniteScroll = false,
   edgeGradient,
-  objectsBoxFullMinSize,
+  objectsWrapFullMinSize,
   children,
   onScrollValue,
   progressElement,
-  arrows,
 
   elementsAlign = false,
   contentAlign,
@@ -90,6 +85,7 @@ const Scroll: React.FC<ScrollType> = ({
   const arrowsDefault = {
     size: 40,
   };
+
   const arrowsStyle: React.CSSProperties = {
     position: "absolute",
     width: "100%",
@@ -120,9 +116,12 @@ const Scroll: React.FC<ScrollType> = ({
     }
   }, [validChildren]);
 
-  const arrowsLocal = React.useMemo(() => {
-    return { ...arrowsDefault, ...arrows };
-  }, [arrows]);
+  const arrowsLocal = {
+    ...arrowsDefault,
+    ...(typeof progressTrigger.arrows === "object"
+      ? progressTrigger.arrows
+      : {}),
+  };
 
   const edgeGradientLocal =
     typeof edgeGradient === "object"
@@ -210,27 +209,20 @@ const Scroll: React.FC<ScrollType> = ({
       : [0, 0]
     : [0, 0];
 
-  const progressTriggerCheck = React.useCallback(
-    (triggerType: ProgressTriggerType) => {
-      return progressTrigger.includes(triggerType);
-    },
-    [progressTrigger]
-  );
-
   const sizeLocal = React.useMemo(() => {
     const [x, y] =
       size && Array.isArray(size)
         ? size
         : [receivedScrollSize.width, receivedScrollSize.height];
 
-    if (!progressTriggerCheck("arrows") || !arrowsLocal.size) {
+    if (!progressTrigger.arrows || !arrowsLocal.size) {
       return [x, y, x, y];
     }
 
     return xDirection
       ? [x ? x - arrowsLocal.size * 2 : x, y, x, y]
       : [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScroll
-  }, [size, xDirection, arrows, receivedScrollSize]);
+  }, [size, xDirection, arrowsLocal.size, receivedScrollSize]);
 
   const xy = xDirection ? sizeLocal[0] : sizeLocal[1];
   const xyReverse = xDirection ? sizeLocal[1] : sizeLocal[0];
@@ -824,17 +816,14 @@ const Scroll: React.FC<ScrollType> = ({
     if (progressVisibility === "hidden") {
       progressReverse &&
         warn("progressReverse", "progressVisibility `hidden`", true);
-      progressTriggerCheck("progressElement") &&
+      progressTrigger.progressElement &&
         warn(
           "progressTrigger [`scrollThumb`]",
           "progressVisibility `hidden`",
           true
         );
-      progressTriggerCheck("arrows") &&
+      progressTrigger.arrows &&
         warn("progressTrigger [`arrows`]", "progressVisibility `hidden`", true);
-    }
-    if (!progressTriggerCheck("arrows") && arrows) {
-      progressReverse && warn("arrows", "progressTrigger [`arrows`]");
     }
 
     if (!suspending && fallback) {
@@ -890,7 +879,7 @@ const Scroll: React.FC<ScrollType> = ({
       className="objectsWrapper"
       ref={objectsWrapperRef}
       onMouseDown={() => {
-        if (progressTriggerCheck("content")) {
+        if (progressTrigger.content) {
           handleMouseDown("wrapp");
           mouseOnRefDown(objectsWrapperRef.current);
         }
@@ -903,7 +892,7 @@ const Scroll: React.FC<ScrollType> = ({
             : "fit-content",
         width: objectsWrapperWidth ? `${objectsWrapperWidth}px` : "",
 
-        ...(progressTriggerCheck("content") && { cursor: "grab" }),
+        ...(progressTrigger.content && { cursor: "grab" }),
         ...(infiniteScroll && {
           position: "relative",
         }),
@@ -928,7 +917,7 @@ const Scroll: React.FC<ScrollType> = ({
                 ? "center"
                 : "flex-end",
           }),
-        ...(objectsBoxFullMinSize && {
+        ...(objectsWrapFullMinSize && {
           minHeight: `${xy - pLocalY}px`,
         }),
       }}
@@ -1047,7 +1036,7 @@ const Scroll: React.FC<ScrollType> = ({
           ...(xDirection && {
             transform: `rotate(-90deg) translate(${translateProperty}px, ${translateProperty}px) scaleX(-1)`,
           }),
-          ...(progressTriggerCheck("arrows") &&
+          ...(progressTrigger.arrows &&
             arrowsLocal.size &&
             (xDirection
               ? { left: `${arrowsLocal.size}px` }
@@ -1063,7 +1052,7 @@ const Scroll: React.FC<ScrollType> = ({
             width: "100%",
             height: "100%",
             ...contentAlignLocal,
-            ...(progressTriggerCheck("wheel")
+            ...(progressTrigger.wheel
               ? {
                   overflow: "hidden scroll",
                 }
@@ -1108,12 +1097,10 @@ const Scroll: React.FC<ScrollType> = ({
           ></div>
         )}
 
-        {progressTriggerCheck("arrows") && (
+        {progressTrigger.arrows && (
           <>
             <div
-              className={`arrowBox${scrollTopFromRef > 1 ? " active" : ""}${
-                arrowsLocal.className ? ` ` + arrowsLocal.className : ""
-              }`}
+              className={`arrowBox${scrollTopFromRef > 1 ? " active" : ""}`}
               style={{
                 ...arrowsStyle,
                 top: 0,
@@ -1126,9 +1113,7 @@ const Scroll: React.FC<ScrollType> = ({
             </div>
 
             <div
-              className={`arrowBox${isNotAtBottom ? " active" : ""}${
-                arrowsLocal.className ? ` ` + arrowsLocal.className : ""
-              }`}
+              className={`arrowBox${isNotAtBottom ? " active" : ""}`}
               style={{
                 ...arrowsStyle,
                 bottom: 0,
@@ -1156,7 +1141,7 @@ const Scroll: React.FC<ScrollType> = ({
                     ...(progressReverse ? { left: 0 } : { right: 0 }),
                     width: "fit-content",
                     height: "100%",
-                    ...(!progressTriggerCheck("progressElement") && {
+                    ...(!progressTrigger.progressElement && {
                       pointerEvents: "none",
                     }),
                     ...(progressVisibility === "hover" && {
@@ -1169,7 +1154,7 @@ const Scroll: React.FC<ScrollType> = ({
                     ref={scrollBarThumbRef}
                     className="scrollBarThumb"
                     onMouseDown={() => {
-                      if (progressTriggerCheck("progressElement")) {
+                      if (progressTrigger.progressElement) {
                         handleMouseDown("thumb");
                         mouseOnRefDown(scrollBarThumbRef.current);
                       }
@@ -1178,7 +1163,7 @@ const Scroll: React.FC<ScrollType> = ({
                       height: `${thumbSize}px`,
                       willChange: "transform", // свойство убирает артефакты во время анимации
                       transform: `translateY(${topThumb.current}px)`, // translateZ для улучшения производительности и сглаживания
-                      ...(progressTriggerCheck("progressElement") && {
+                      ...(progressTrigger.progressElement && {
                         cursor: "grab",
                       }),
                     }}
@@ -1194,7 +1179,7 @@ const Scroll: React.FC<ScrollType> = ({
                     top: "50%",
                     transform: "translateY(-50%)",
                     ...(progressReverse ? { left: 0 } : { right: 0 }),
-                    ...(!progressTriggerCheck("progressElement") && {
+                    ...(!progressTrigger.progressElement && {
                       pointerEvents: "none",
                     }),
                     ...(progressVisibility === "hover" && {

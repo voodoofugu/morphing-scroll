@@ -37,14 +37,14 @@ export type ScrollType = {
   contentAlign?: [AlignT, AlignT];
 
   progressReverse?: boolean;
-  progressTrigger?: Array<
-    | "wheel"
-    | "progressElement"
-    | "content"
-    | "contentSlider" // ??
-    | "arrows"
-    | "loopedArrows"
-  >;
+  progressTrigger?: {
+    wheel?: boolean;
+    progressElement?: boolean;
+    content?: boolean;
+    arrows?:
+      | boolean
+      | { size?: number; element?: React.ReactNode; looped?: boolean };
+  };
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: { value: number | "end"; duration?: number };
 
@@ -57,15 +57,15 @@ export type ScrollType = {
   progressElement?: boolean | React.ReactNode | "none";
   edgeGradient?: boolean | { color?: string; size?: number };
   arrows?: {
-    size?: number;
-    className?: string;
     element?: React.ReactNode;
+    size?: number;
   };
 
-  objectsBoxFullMinSize?: boolean;
+  objectsWrapFullMinSize?: boolean;
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
 
   isScrolling?: (status: boolean) => void;
   stopLoadOnScroll?: boolean;
 };
+// progressTrigger contentSlider & arrows looped

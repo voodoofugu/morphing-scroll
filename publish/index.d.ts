@@ -30,9 +30,14 @@ type ScrollType = {
   elementsAlign?: AlignT;
   contentAlign?: [AlignT, AlignT];
   progressReverse?: boolean;
-  progressTrigger?: Array<
-    "wheel" | "progressElement" | "content" | "arrows" | "loopedArrows"
-  >;
+  progressTrigger?: {
+    wheel?: boolean;
+    progressElement?: boolean;
+    content?: boolean;
+    arrows?:
+      | boolean
+      | { size?: number; element?: React.ReactNode; looped?: boolean };
+  };
   progressVisibility?: "visible" | "hover" | "hidden";
   scrollTop?: { value: number | "end"; duration?: number };
   lazyRender?: boolean;
@@ -42,12 +47,7 @@ type ScrollType = {
   fallback?: React.ReactNode;
   progressElement?: boolean | React.ReactNode | "none";
   edgeGradient?: boolean | { color?: string; size?: number };
-  arrows?: {
-    size?: number;
-    className?: string;
-    element?: React.ReactNode;
-  };
-  objectsBoxFullMinSize?: boolean;
+  objectsWrapFullMinSize?: boolean;
   onScrollValue?: Array<(scroll: number) => boolean>;
   children?: React.ReactNode;
   isScrolling?: (status: boolean) => void;
@@ -69,7 +69,7 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
  * @param gap - Optional: Gap between cells.
  * @param padding - Optional: Objects Wrapper padding.
  * @param progressReverse - Optional: Reverse progress bar (scroll / slider).
- * @param progressTrigger - Optional: Array of trigger elements for progress bar.
+ * @param progressTrigger - Optional: Enable Triggers for progress bar (scroll / slider). By default: { wheel: true }.
  * @param progressVisibility - Optional: Hide or show progress bar.
  * @param scrollTop - Optional: There are two parameters: "value" - scroll position and "duration" - scroll animation duration.
  * @param lazyRender - Optional: Enable objects rendering when they are in the viewport.
@@ -79,8 +79,7 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
  * @param fallback - Optional: Add Fallback element.
  * @param progressElement - Optional: Add custom progress element (scroll / slider).
  * @param edgeGradient - Optional: Enable edge gradient then objects Wrapper is outside the Scroll. You can add gradient color and size. By default color: "rgba(0,0,0,0.4)", size: 40.
- * @param arrows - Optional: Add arrows. !!!
- * @param objectsBoxFullMinSize - Optional: Objects Wrapper gets min-height equal to the Scroll height.
+ * @param objectsWrapFullMinSize - Optional: Objects Wrapper gets min-height equal to the Scroll height.
  * @param onScrollValue - Optional: Add callback for scroll value.
  * @example `onScrollValue={[
     (scroll) => scroll > 200 && console.log("scroll > 200"),
