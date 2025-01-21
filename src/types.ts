@@ -32,7 +32,7 @@ export type ScrollType = {
   gap?: number[] | number;
   padding?: number[] | number;
 
-  xDirection?: boolean;
+  direction?: "x" | "y";
   elementsAlign?: AlignT;
   contentAlign?: [AlignT, AlignT];
 

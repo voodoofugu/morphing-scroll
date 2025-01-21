@@ -26,7 +26,7 @@ type ScrollType = {
   className?: string;
   gap?: number[] | number;
   padding?: number[] | number;
-  xDirection?: boolean;
+  direction?: boolean;
   elementsAlign?: AlignT;
   contentAlign?: [AlignT, AlignT];
   progressReverse?: boolean;
@@ -58,37 +58,46 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerType>;
 
 /**
  * `Scroll` component.
- * @param scrollID - Optional: Scroll ID.
- * @param type - Optional: Change type of progress element. By default "scroll".
- * @param className - Optional: Add class name to scroll.
- * @param size - Optional: Scroll width and height.
- * @param objectsSize - Optional: Cell width and height for each transmitted object.
- * @param xDirection - Optional: Direction of horizontal scrolling.
- * @param contentAlign - Optional: Content alignment then it is smaller than Objects Wrapper.
- * @param elementsAlign - Optional: Objects alignment in Objects Wrapper.
- * @param gap - Optional: Gap between cells.
- * @param padding - Optional: Objects Wrapper padding.
- * @param progressReverse - Optional: Reverse progress bar (scroll / slider).
- * @param progressTrigger - Optional: Enable Triggers for progress bar (scroll / slider). By default: { wheel: true }.
- * @param progressVisibility - Optional: Hide or show progress bar.
- * @param scrollTop - Optional: There are two parameters: "value" - scroll position and "duration" - scroll animation duration.
- * @param lazyRender - Optional: Enable objects rendering when they are in the viewport.
- * @param infiniteScroll - Optional: Enable objects and objects wrapper rendering when they are in the viewport.
- * @param rootMargin - Optional: Expand objects Wrapper margin for objects rendering.
- * @param suspending - Optional: Add React Suspense.
- * @param fallback - Optional: Add Fallback element.
- * @param progressElement - Optional: Add custom progress element (scroll / slider).
- * @param edgeGradient - Optional: Enable edge gradient then objects Wrapper is outside the Scroll. You can add gradient color and size. By default color: "rgba(0,0,0,0.4)", size: 40.
- * @param objectsWrapFullMinSize - Optional: Objects Wrapper gets min-height equal to the Scroll height.
- * @param onScrollValue - Optional: Add callback for scroll value.
- * @example `onScrollValue={[
-    (scroll) => scroll > 200 && console.log("scroll > 200"),
-  ]}`
- * @param children - Optional: React children elements.
- * @param isScrolling - Optional: Add callback for boolean scroll status.
- * @example `isScrolling={(value) => console.log(value)}`
+ *
+ * ### General Settings
+ * @param scrollID - *(string | undefined)* Scroll identifier.
+ * @param className - *(string | undefined)* Additional CSS class for the component.
+ * @param children - *(React.ReactNode)* Child elements.
+ *
+ * ### Scroll Settings
+ * @param type - *(string)* Type of progress element. Default: `"scroll"`.
+ * @param direction - *(boolean | undefined)* Scrolling direction.
+ * @param scrollTop - *(number | "end" | undefined)* Scroll position and animation duration.
+ * @param onScrollValue - *(Array<(scroll: number) => boolean> | undefined)* Callback for scroll value.
+ * @example
+ * `onScrollValue={[
+ *   (scroll) => scroll > 200 && console.log("scroll > 200"),
+ * ]}`
+ * @param isScrolling - *(function | undefined)* Callback for scroll status.
+ * @example
+ * `isScrolling={(value) => console.log(value)}`
+ *
+ * ### Visual Settings
+ * @param size - *(number[] | undefined)* Scroll width and height.
+ * @param objectsSize - *(Array<number | "none" | "firstChild">)* Size of cells for each object.
+ * @param gap - *(number | number[] | undefined)* Gap between cells.
+ * @param padding - *(number | number[] | undefined)* Padding for the objects wrapper.
+ * @param edgeGradient - *(boolean | { color?: string; size?: number } | undefined)* Edge gradient. Default: `{ color: "rgba(0,0,0,0.4)", size: 40 }`.
+ *
+ * ### Progress and Rendering
+ * @param progressReverse - *(boolean | undefined)* Reverse the progress bar direction.
+ * @param progressTrigger - *(Array<string> | undefined)* Triggers for the progress bar. Default: `{ wheel: true }`.
+ * @param progressVisibility - *(string | undefined)* Visibility of the progress bar.
+ *
+ * ### Additional Settings
+ * @param lazyRender - *(boolean | undefined)* Lazy rendering of objects.
+ * @param infiniteScroll - *(boolean | "freezeOnScroll" | undefined)* Infinite scrolling.
+ * @param rootMargin - *(number | number[] | undefined)* Margin expansion for object rendering.
+ * @param suspending - *(boolean | undefined)* Adds React Suspense.
+ * @param fallback - *(React.ReactNode | undefined)* Fallback element for error handling.
+ *
  * @returns React component.
- * @see {@link https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll Documentation}
+ * @see [Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll)
  */
 
 declare const Scroll: React.FC<ScrollType>;
