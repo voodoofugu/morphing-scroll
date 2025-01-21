@@ -219,7 +219,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return direction === "x"
       ? [x ? x - arrowsLocal.size * 2 : x, y, x, y]
-      : [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScroll
+      : [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScrollRef
   }, [size, direction, arrowsLocal.size, receivedScrollSize]);
 
   const xy = direction === "x" ? sizeLocal[0] : sizeLocal[1];
@@ -1000,8 +1000,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const content = (
     <div
-      m-s="〈♦〉"
-      className={`customScroll${className ? ` ${className}` : ""}`}
+      morph-scroll="〈♦〉"
+      className={`${className && className}`}
       ref={customScrollRef}
       style={{
         width: `${sizeLocal[2]}px`,
@@ -1063,8 +1063,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               : {}),
           }}
         >
-          {typeof objectsSize[0] !== "string" ||
-          typeof objectsSize[1] !== "string" ||
+          {(typeof objectsSize[0] !== "string" ||
+            typeof objectsSize[1] !== "string") &&
           infiniteScroll ? (
             objectsWrapper
           ) : (
