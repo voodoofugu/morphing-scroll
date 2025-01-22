@@ -4,9 +4,6 @@ import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import { MorphScrollT } from "./types";
 
-//получаем типы progressTrigger из массива
-type ProgressTriggerType = MorphScrollT["progressTrigger"];
-
 const MorphScroll: React.FC<MorphScrollT> = ({
   scrollID = "",
   type = "scroll",
