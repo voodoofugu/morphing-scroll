@@ -1060,14 +1060,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               : {}),
           }}
         >
-          {(typeof objectsSize[0] !== "string" ||
-            typeof objectsSize[1] !== "string") &&
+          {typeof objectsSize[0] === "string" ||
+          typeof objectsSize[1] === "string" ||
           infiniteScroll ? (
-            objectsWrapper
-          ) : (
             <ResizeTracker onResize={wrapResize}>
               {() => objectsWrapper}
             </ResizeTracker>
+          ) : (
+            objectsWrapper
           )}
         </div>
 
