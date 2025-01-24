@@ -11,7 +11,7 @@ export type IntersectionTrackerT = {
   children: React.ReactNode;
   root?: Element | null;
   threshold?: number;
-  rootMargin?: number[] | number | null;
+  rootMargin?: number[] | number;
   style?: React.CSSProperties;
   visibleContent?: boolean;
   onVisible?: () => void;

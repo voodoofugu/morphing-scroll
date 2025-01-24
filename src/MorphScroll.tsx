@@ -4,6 +4,21 @@ import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import { MorphScrollT } from "./types";
 
+export const numOrArrFormat = (
+  v?: number | number[],
+  r?: boolean
+): number[] | undefined => {
+  if (v === undefined) return;
+  if (typeof v === "number") return [v, v, v, v];
+  if (v.length === 2) {
+    return r ? [v[0], v[1], v[0], v[1]] : [v[1], v[0], v[1], v[0]];
+  }
+  if (v.length === 4) {
+    return r ? [v[1], v[0], v[3], v[2]] : v;
+  }
+  return;
+};
+
 const MorphScroll: React.FC<MorphScrollT> = ({
   scrollID = "",
   type = "scroll",
@@ -12,7 +27,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   objectsSize,
   direction = "y",
   gap,
-  padding = [0, 0, 0, 0],
+  padding,
   progressReverse = false,
   progressTrigger = { wheel: true },
   progressVisibility = "visible",
@@ -134,19 +149,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     height: `${edgeGradientLocal.size}px`,
   };
 
-  const pLocal =
-    typeof padding === "number"
-      ? [padding, padding, padding, padding]
-      : padding.length === 2
-      ? [padding[0], padding[1], padding[0], padding[1]]
-      : padding.length === 3
-      ? [padding[0], padding[1], padding[2], padding[1]]
-      : padding;
+  const [pT, pR, pB, pL] = numOrArrFormat(padding, direction !== "x") || [
+    0, 0, 0, 0,
+  ];
 
-  const [pT, pR, pB, pL] =
-    direction === "x" ? [pLocal[1], pLocal[2], pLocal[3], pLocal[0]] : pLocal;
-
-  const pY = pLocal[1] + pLocal[3];
   const pLocalY = pT + pB;
   const pLocalX = pL + pR;
 
@@ -177,32 +183,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : null;
 
     return [x, y];
-  }, [objectsSize, pY, receivedChildSize]);
+  }, [objectsSize, receivedChildSize]);
 
   const xyObject =
     direction === "x" ? objectsSizeLocal[0] : objectsSizeLocal[1];
   const xyObjectReverse =
     direction === "x" ? objectsSizeLocal[1] : objectsSizeLocal[0];
 
-  const mRootLocal = rootMargin
-    ? typeof rootMargin === "number"
-      ? [rootMargin, rootMargin, rootMargin, rootMargin]
-      : direction === "x"
-      ? rootMargin.length === 2
-        ? [rootMargin[0], rootMargin[1], rootMargin[0], rootMargin[1]]
-        : [rootMargin[1], rootMargin[0], rootMargin[3], rootMargin[2]]
-      : rootMargin.length === 2
-      ? [rootMargin[1], rootMargin[0], rootMargin[1], rootMargin[0]]
-      : rootMargin
-    : null;
-
-  const [mRootX, mRootY] = mRootLocal
-    ? rootMargin
-      ? direction === "x"
-        ? [mRootLocal[3], mRootLocal[1]]
-        : [mRootLocal[2], mRootLocal[0]]
-      : [0, 0]
-    : [0, 0];
+  const mRootLocal = React.useMemo(() => {
+    return numOrArrFormat(rootMargin, direction === "x");
+  }, [rootMargin, direction]);
+  const [mRootX, mRootY] = mRootLocal ? [mRootLocal[2], mRootLocal[0]] : [0, 0];
 
   const sizeLocal = React.useMemo(() => {
     const [x, y] =
@@ -226,10 +217,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsPerDirection = React.useMemo(() => {
     const objectSize = xyObjectReverse ? xyObjectReverse + gapX : null;
 
-    const objects = objectSize ? Math.floor((xyReverse - pY) / objectSize) : 1;
+    const objects = objectSize
+      ? Math.floor((xyReverse - pLocalX) / objectSize)
+      : 1;
 
     return objects;
-  }, [xyObjectReverse, xyReverse, gapX, pY]);
+  }, [xyObjectReverse, xyReverse, gapX, pLocalX]);
 
   const splitIndices = React.useMemo(() => {
     if (!infiniteScroll || objectsPerDirection <= 1) {
@@ -394,7 +387,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         infiniteScroll && xyObjectReverse
           ? xyObjectReverse * indexAndSubIndex[0] +
             gapY * indexAndSubIndex[0] +
-            (direction === "x" ? pLocal[0] : pLocal[1]) +
+            pT +
             (elementsAlign && lastIndices.length > 0
               ? lastIndices.includes(index)
                 ? alignSpace
@@ -1060,14 +1053,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               : {}),
           }}
         >
-          {typeof objectsSize[0] === "string" ||
-          typeof objectsSize[1] === "string" ||
+          {(typeof objectsSize[0] !== "string" ||
+            typeof objectsSize[1] !== "string") &&
           infiniteScroll ? (
+            objectsWrapper
+          ) : (
             <ResizeTracker onResize={wrapResize}>
               {() => objectsWrapper}
             </ResizeTracker>
-          ) : (
-            objectsWrapper
           )}
         </div>
 
@@ -1226,7 +1219,7 @@ interface ScrollObjectWrapperType
   children: React.ReactNode;
   elementTop?: number;
   left?: number;
-  mRootLocal?: number[] | number | null;
+  mRootLocal?: number[] | number;
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
   xyObject: number | null;
   xyObjectReverse: number | null;

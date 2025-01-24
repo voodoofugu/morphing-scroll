@@ -1,12 +1,15 @@
+/* eslint-disable react/no-unknown-property */
 import React from "react";
 import { IntersectionTrackerT } from "./types";
 
+import { numOrArrFormat } from "./MorphScroll";
+
 const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
-  children,
+  style,
   root,
+  children,
   threshold,
   rootMargin,
-  style,
   visibleContent = false,
   onVisible,
   intersectionDeley,
@@ -17,27 +20,30 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     number | ReturnType<typeof setTimeout> | null
   >(null);
 
-  const marginString = rootMargin
-    ? typeof rootMargin === "number"
-      ? `${rootMargin}px ${rootMargin}px ${rootMargin}px ${rootMargin}px`
-      : rootMargin.length === 2
-      ? `${rootMargin[0]}px ${rootMargin[1]}px ${rootMargin[0]}px ${rootMargin[1]}px`
-      : `${rootMargin[0]}px ${rootMargin[1]}px ${rootMargin[2]}px ${rootMargin[3]}px`
-    : "";
+  const margin = numOrArrFormat(rootMargin);
 
-  const callback = (entries: IntersectionObserverEntry[]) => {
-    entries.forEach((entry) => {
-      setIsVisible(entry.isIntersecting);
-    });
+  const callback = ([entry]: IntersectionObserverEntry[]) => {
+    setIsVisible(entry.isIntersecting);
   };
 
-  const options = {
+  const options: IntersectionObserverInit = {
     root,
     threshold,
-    rootMargin: marginString,
+    rootMargin: margin
+      ? `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`
+      : "",
+  };
+
+  const clearTimeoutRef = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
 
   React.useEffect(() => {
+    if (visibleContent) return;
+
     const observer = new IntersectionObserver(callback, options);
 
     if (observableElement.current) {
@@ -49,31 +55,28 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
         observer.unobserve(observableElement.current);
       }
     };
-  }, [root, threshold, rootMargin]);
+  }, [root, threshold, rootMargin, visibleContent]);
 
   React.useEffect(() => {
+    if (visibleContent || !onVisible || !isVisible) return;
+    clearTimeoutRef();
+
     if (intersectionDeley) {
-      timeoutRef.current = setTimeout(() => {
-        if (isVisible && onVisible) {
-          onVisible();
-        }
-      }, intersectionDeley);
+      timeoutRef.current = setTimeout(onVisible, intersectionDeley);
     } else {
-      if (isVisible && onVisible) {
-        onVisible();
-      }
+      onVisible();
     }
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      clearTimeoutRef();
     };
-  }, [isVisible]);
+  }, [isVisible, intersectionDeley, onVisible, visibleContent]);
+
+  const content = visibleContent ? children : isVisible && children;
 
   return (
-    <div ref={observableElement} style={style}>
-      {visibleContent ? children : isVisible && children}
+    <div ref={observableElement} intersection-tracker="〈♦〉" style={style}>
+      {content}
     </div>
   );
 };
