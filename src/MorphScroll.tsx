@@ -46,7 +46,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   contentAlign,
 
   isScrolling,
-  stopLoadOnScroll,
+  stopLoadOnScroll = false,
 }) => {
   const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
 
@@ -583,9 +583,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
       // onScrollValue
       if (onScrollValue) {
-        onScrollValue.forEach((conditionFunc) => {
-          conditionFunc(scrollEl.scrollTop);
-        });
+        onScrollValue(scrollEl.scrollTop);
       }
     }
 

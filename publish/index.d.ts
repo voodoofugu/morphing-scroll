@@ -153,21 +153,22 @@ export type MorphScrollT = {
   scrollTop?: { value: number | "end"; duration?: number };
   /**---
    * ✨ *Stop loading when scrolling.*
+   * @default-false
    */
   stopLoadOnScroll?: boolean;
   /**---
    * ✨ *Callback for scroll value.*
    * @example
-   * `onScrollValue={[
+   * `onScrollValue={
    *   (scroll) => scroll > 200 && console.log("scroll > 200")
-   * ]}`
+   * }`
    */
-  onScrollValue?: Array<(scroll: number) => boolean>;
+  onScrollValue?: (scroll: number) => void;
   /**---
    * ✨ *Callback for scroll status.*
    * @example `isScrolling={(value) => console.log(value)}`
    */
-  isScrolling?: (status: boolean) => void;
+  isScrolling?: (motion: boolean) => void;
   /**---
    * ✨ *MorphScroll width and height.*
    */
