@@ -30,7 +30,8 @@ npm install morphing-scroll
 
 ### Props:
 
-- **`className`:** _Additional classes for the component._<br />
+- ### **`className`:** _Additional classes for the component._<br />
+
   <details>
   <summary><strong>more:</strong></summary>
   <strong>type:</strong> string<br />
@@ -48,7 +49,8 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`children` (required):** _Custom user content._
+- ### **`children` (required):** _Custom user content._
+
   <details>
   <summary><strong>more:</strong></summary>
   <strong>type:</strong> React.ReactNode<br />
@@ -65,7 +67,8 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`type`:** _Type of progress element._<br />
+- ### **`type`:** _Type of progress element._<br />
+
   <details>
   <summary><strong>more:</strong></summary>
   <strong>type:</strong> "scroll" | "slider"<br />
@@ -84,7 +87,8 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`scrollTop`:** _Scroll position and animation duration._
+- ### **`scrollTop`:** _Scroll position and animation duration._
+
   <details>
   <summary><strong>more:</strong></summary>
   <strong>type:</strong> { value: number | "end"; duration?: number }<br />
