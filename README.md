@@ -47,7 +47,8 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-  ## </details>
+  </details>
+  <h2 />
 
 - **`children` (required):**<br />
   _Custom user content._
