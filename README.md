@@ -30,6 +30,7 @@ npm install morphing-scroll
 
 ### Props:
 
+- ##### GENERAL SETTINGS:
 - **`className`:** _Additional classes for the component._<br />
   <details>
   <summary><strong>more:</strong></summary>
@@ -64,6 +65,8 @@ npm install morphing-scroll
 
   </details>
   <h2>
+
+  - ##### SCROLL SETTINGS:
 
 - **`type`:** _Type of progress element._<br />
   <details>
