@@ -33,6 +33,7 @@ npm install morphing-scroll
 ##### GENERAL SETTINGS:
 
 - **`className`:** _Additional classes for the component._<br />
+
   <h2>
 
   <details>
@@ -50,6 +51,7 @@ npm install morphing-scroll
   ```
 
   </details>
+
   <h2>
 
 - **`children` (required):** _Custom user content._
@@ -71,13 +73,18 @@ npm install morphing-scroll
 ##### SCROLL SETTINGS:
 
 - **`type`:** _Type of progress element._<br />
-  <h2>
 
-  <details>
-  <summary><strong>more:</strong></summary>
-  <strong>type:</strong> "scroll" | "slider"<br />
-  <strong>default:</strong> "scroll"<br />
-  <strong>example:</strong>
+    <h2>
+
+    <details>
+    <summary><strong>more:</strong></summary>
+    <strong>type:</strong> "scroll" | "slider"<br />
+    <strong>default:</strong> "scroll"<br />
+    <strong>Description:</strong> <em><br />
+    This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
+    With the default <code>type="scroll"</code>, it functions as a typical scrollbar. However, with <code>type="slider"</code>, it displays distinct elements indicating the number of full scroll steps within the list.<br />
+    For more details, refer to <code>progressTrigger/progressElement</code>.</em><br />
+    <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -88,8 +95,9 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-  </details>
-  <h2>
+    </details>
+
+    <h2>
 
 - **`scrollTop`:** _Scroll position and animation duration._
   <details>
@@ -111,6 +119,7 @@ npm install morphing-scroll
   ```
 
   </details>
+
   <h2>
 
 - **`stopLoadOnScroll`:** _Stop loading when scrolling._
@@ -124,6 +133,8 @@ npm install morphing-scroll
   </details>
 
 - **`isScrolling`:** _Callback function for scroll status._
+
+##### VISUAL SETTINGS:
 
 - **`size`:** _MorphScroll width and height._
 
@@ -146,6 +157,8 @@ npm install morphing-scroll
 - **`progressVisibility`:** _Visibility of the progress bar._
 
 - **`objectsWrapFullMinSize`:** _Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll._
+
+##### PROGRESS AND RENDERING:
 
 - **`progressTrigger`:** _Triggers for the progress bar._
 
