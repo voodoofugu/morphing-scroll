@@ -33,6 +33,7 @@ npm install morphing-scroll
 ##### GENERAL SETTINGS:
 
 - **`className`:** _Additional classes for the component._<br />
+  <h2>
   <details>
   <summary><strong>more:</strong></summary>
   <strong>type:</strong> string<br />
@@ -48,6 +49,7 @@ npm install morphing-scroll
   ```
 
   </details>
+
   <h2>
 
 - **`children` (required):** _Custom user content._
@@ -65,11 +67,11 @@ npm install morphing-scroll
   ```
 
   </details>
-  <h2>
 
 ##### SCROLL SETTINGS:
 
 - **`type`:** _Type of progress element._<br />
+  <h2>
   <details>
   <summary><strong>more:</strong></summary>
   <strong>type:</strong> "scroll" | "slider"<br />
@@ -86,6 +88,7 @@ npm install morphing-scroll
   ```
 
   </details>
+
   <h2>
 
 - **`scrollTop`:** _Scroll position and animation duration._
