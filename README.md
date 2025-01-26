@@ -46,7 +46,7 @@ npm install morphing-scroll
   ```
 
   </details>
-  <hr>
+  <h2>
 
 - **`children` (required):** _Custom user content._
   <details>
@@ -63,6 +63,7 @@ npm install morphing-scroll
   ```
 
   </details>
+  <h2>
 
 - **`type`:** _Type of progress element._<br />
   <details>
@@ -81,6 +82,7 @@ npm install morphing-scroll
   ```
 
   </details>
+  <h2>
 
 - **`scrollTop`:** _Scroll position and animation duration._
   <details>
@@ -102,6 +104,7 @@ npm install morphing-scroll
   ```
 
   </details>
+  <h2>
 
 - **`stopLoadOnScroll`:** _Stop loading when scrolling._
 
