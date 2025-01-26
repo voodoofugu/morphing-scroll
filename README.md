@@ -32,6 +32,10 @@ npm install morphing-scroll
 
 - #### **`className`:**<br />
 
+  <p align="center">
+    <hr style="width: 50%; border: 1px solid black;">
+  </p>
+
   _Additional classes for the component._<br />
   **type:** string<br />
   **example:**
