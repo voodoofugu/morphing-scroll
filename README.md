@@ -9,7 +9,7 @@
 - [MorphScroll](#-morph_scroll-)
 - [ResizeTracker](#-resizet_racker-)
 - [IntersectionTracker](#-intersection_tracker-)
-- [More](#-more-)
+- [More](#-More-)
 - [API](#-api-)
 
 ## 〈♦ About 〉
@@ -34,9 +34,9 @@ npm install morphing-scroll
 
 - **`className`:** _Additional classes for the component._<br />
   <details>
-  <summary><strong>more:</strong></summary>
-  <strong>type:</strong> string<br />
-  <strong>example:</strong>
+  <summary><strong>More:</strong></summary>
+  <strong>Type:</strong> string<br />
+  <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -52,9 +52,13 @@ npm install morphing-scroll
 
 - **`children` (required):** _Custom user content._
   <details>
-  <summary><strong>more:</strong></summary>
-  <strong>type:</strong> React.ReactNode<br />
-  <strong>example:</strong>
+  <summary><strong>More:</strong></summary>
+  <strong>Type:</strong> React.ReactNode<br />
+  <strong>Description:</strong> <em><br />
+  This is where you can pass your list elements.<br />
+  Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will have the same keys as your list items. This helps <code>MorphScroll</code> render the correct cells for your current list.<br />
+  Additionally, if you pass <code>null</code> instead of just <code>undefined</code>, the <code>MorphScroll</code> component will render nothing.</em><br />
+  <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -71,13 +75,13 @@ npm install morphing-scroll
 
 - **`type`:** _Type of progress element._<br />
     <details>
-    <summary><strong>more:</strong></summary>
-    <strong>type:</strong> "scroll" | "slider"<br />
-    <strong>default:</strong> "scroll"<br />
+    <summary><strong>More:</strong></summary>
+    <strong>Type:</strong> "scroll" | "slider"<br />
+    <strong>Default:</strong> "scroll"<br />
     <strong>Description:</strong> <em><br />
     This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
     With the default <code>type="scroll"</code>, it functions as a typical scrollbar. However, with <code>type="slider"</code>, it displays distinct elements indicating the number of full scroll steps within the list.<br />
-    For more details, refer to <code>progressTrigger/progressElement</code>.</em><br />
+    For More details, refer to <code>progressTrigger/progressElement</code>.</em><br />
     <strong>Example:</strong>
 
   ```tsx
@@ -94,10 +98,10 @@ npm install morphing-scroll
 
 - **`scrollTop`:** _Scroll position and animation duration._
   <details>
-  <summary><strong>more:</strong></summary>
-  <strong>type:</strong> { value: number | "end"; duration?: number }<br />
-  <strong>default:</strong> { value: 1; duration: 200 }<br />
-  <strong>description:</strong> <em><br />
+  <summary><strong>More:</strong></summary>
+  <strong>Type:</strong> { value: number | "end"; duration?: number }<br />
+  <strong>Default:</strong> { value: 1; duration: 200 }<br />
+  <strong>Description:</strong> <em><br />
   The default value for <code>value</code> is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value <code>"end"</code> scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />
   The <code>duration</code> parameter specifies the scrolling speed for the <code>scrollTop</code> values. This parameter is optional and you can only use `value'.</em><br />
   <strong>example:</strong>
