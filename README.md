@@ -31,13 +31,10 @@ npm install morphing-scroll
 ### Props:
 
 - **`className`:** Additional class for the component.
-
----
-
 - **`children`:** Child elements.
 - **`type`:** Type of progress element.
 
-* Default: `scroll`
+Default: `scroll`
 
 - **`scrollTop`:** Scroll position and animation duration.
 - **`stopLoadOnScroll`:** Stop loading when scrolling.
