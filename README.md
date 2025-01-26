@@ -4,13 +4,13 @@
 
 ## 〈♦ Table of contents 〉
 
-- [About](#-about)
-- [Installation](#-installation)
-- [MorphScroll](#-morph_scroll)
-- [ResizeTracker](#-resizet_racker)
-- [IntersectionTracker](#-intersection_tracker)
-- [More](#-more)
-- [API](#-api)
+- [About](#-about-)
+- [Installation](#-installation-)
+- [MorphScroll](#-morph_scroll-)
+- [ResizeTracker](#-resizet_racker-)
+- [IntersectionTracker](#-intersection_tracker-)
+- [More](#-more-)
+- [API](#-api-)
 
 ## 〈♦ About 〉
 
