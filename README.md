@@ -31,60 +31,87 @@ npm install morphing-scroll
 ### Props:
 
 - **`className`:**<br />
-  Additional classes for the component.<br />
-  type: string
+  _Additional classes for the component._<br />
+  **type:** string<br />
+  **example:**
+
+  ```tsx
+  <MorphScroll className="my-class" />
+  ```
+
 - **`children`:**<br />
-  Custom user content.
-  type: React.ReactNode
+  _Custom user content._
+  **type:** React.ReactNode
+
 - **`type`:**<br />
-  Type of progress element.<br />
-  type: "scroll" | "slider"
-  default: "scroll"
+  _Type of progress element._<br />
+  **type:** "scroll" | "slider"<br />
+  **default:** "scroll"
+
 - **`scrollTop`:**<br />
-  Scroll position and animation duration.
+  _Scroll position and animation duration._
+
 - **`stopLoadOnScroll`:**<br />
-  Stop loading when scrolling.
+  _Stop loading when scrolling._
+
 - **`onScrollValue`:**<br />
-  Callback for scroll value.
+  _Callback for scroll value._
   <details>
   <summary>example:</summary>
     onScrollValue={[
      (scroll) => scroll > 200 && console.log("scroll > 200")
     ]}
   </details>
+
 - **`isScrolling`:**<br />
-  Callback function for scroll status.
+  _Callback function for scroll status._
+
 - **`size`:**<br />
-  MorphScroll width and height.
-- **`objectsSize`:** ◄ REQUIRED ►<br />
-  Required: Size of cells for each object.
+  _MorphScroll width and height._
+
+- **`objectsSize`:** _REQUIRED_<br />
+  _Required: Size of cells for each object._
+
 - **`gap`:**<br />
-  Gap between cells.
+  _Gap between cells._
+
 - **`padding`:**<br />
-  Padding for the `objectsWrapper`.
+  _Padding for the `objectsWrapper`._
+
 - **`direction`:**<br />
-  Scrolling direction.
+  _Scrolling direction._
+
 - **`contentAlign`:**<br />
-  Aligns the content when it is smaller than the MorphScroll `size`.
+  _Aligns the content when it is smaller than the MorphScroll `size`._
+
 - **`elementsAlign`:**<br />
-  Aligns the objects within the `objectsWrapper`.
+  _Aligns the objects within the `objectsWrapper`._
+
 - **`edgeGradient`:**<br />
-  Edge gradient.
+  _Edge gradient._
+
 - **`progressReverse`:**<br />
-  Reverse the progress bar direction.
+  _Reverse the progress bar direction._
+
 - **`progressVisibility`:**<br />
-  Visibility of the progress bar.
+  _Visibility of the progress bar._
+
 - **`objectsWrapFullMinSize`:**<br />
-  Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.
+  _Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll._
+
 - **`progressTrigger`:**<br />
-  Triggers for the progress bar.
+  _Triggers for the progress bar._
+
 - **`lazyRender`:**<br />
-  Lazy rendering of objects.
+  _Lazy rendering of objects._
+
 - **`infiniteScroll`:**<br />
-  Infinite scrolling.
+  _Infinite scrolling._
+
 - **`rootMargin`:**<br />
-  Margin expansion for object rendering.
+  _Margin expansion for object rendering._
+
 - **`suspending`:**<br />
-  Adds React Suspense.
+  _Adds React Suspense._
 - **`fallback`:**<br />
-  Fallback element for error handling.
+  _Fallback element for error handling._
