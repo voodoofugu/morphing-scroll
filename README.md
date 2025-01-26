@@ -34,7 +34,8 @@ npm install morphing-scroll
   <details>
   <summary>more:</summary>
   <strong>type:</strong> string<br />
-  <strong>example:</strong><br />
+  <strong>example:</strong>
+
   ```tsx
   <MorphScroll
     className="my-class"
@@ -43,6 +44,7 @@ npm install morphing-scroll
     {children}
   </MorphScroll>
   ```
+
   </details>
 
 - **`children` (required):**<br />
