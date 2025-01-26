@@ -28,10 +28,6 @@ npm install morphing-scroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-### Props:
-
-- **className (required):** Additional class for the component.
-
 <details>
 
 ### <summary>Props:</summary>
