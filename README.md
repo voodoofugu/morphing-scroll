@@ -34,7 +34,7 @@ npm install morphing-scroll
 
   <details>
 
-  <summary>MORE:</summary>
+  <summary>more:</summary>
   <strong>type:</strong> string<br />
   <strong>example:</strong><br />
 
@@ -48,6 +48,7 @@ npm install morphing-scroll
   ```
 
   </details>
+  <hr style="border-width: 1px;">
 
 - **`children` (required):**<br />
   _Custom user content._
