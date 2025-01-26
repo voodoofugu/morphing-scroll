@@ -32,7 +32,7 @@ npm install morphing-scroll
 
 - **`className`:** _Additional classes for the component._<br />
 
-  <details>
+  ## <details>
 
   <summary>more:</summary>
   <strong>type:</strong> string<br />
@@ -48,7 +48,6 @@ npm install morphing-scroll
   ```
 
   </details>
-  <h2 />
 
 - **`children` (required):**<br />
   _Custom user content._
