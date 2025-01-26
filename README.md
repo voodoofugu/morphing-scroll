@@ -28,43 +28,36 @@ npm install morphing-scroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-<details>
+### Props:
 
-<summary>Props:</summary>
-
-- **className (required):** Additional class for the component.
-- **children:** Child elements.
-- **type:** Type of progress element.
-- **scrollTop:** Scroll position and animation duration.
-- **stopLoadOnScroll:** Stop loading when scrolling.
-- **onScrollValue:** Callback for scroll value.
-
+- **`className`:** Additional class for the component.
+- **`children`:** Child elements.
+- **`type`:** Type of progress element.
+  Default: `scroll`
+- **`scrollTop`:** Scroll position and animation duration.
+- **`stopLoadOnScroll`:** Stop loading when scrolling.
+- **`onScrollValue`:** Callback for scroll value.
   <details>
-
   <summary>Example:</summary>
     onScrollValue={[
      (scroll) => scroll > 200 && console.log("scroll > 200")
     ]}
-
   </details>
-
-- **isScrolling:** Callback function for scroll status.
-- **size:** MorphScroll width and height.
-- **objectsSize:** Required: Size of cells for each object.
-- **gap:** Gap between cells.
-- **padding:** Padding for the `objectsWrapper`.
-- **direction:** Scrolling direction.
-- **contentAlign:** Aligns the content when it is smaller than the MorphScroll `size`.
-- **elementsAlign:** Aligns the objects within the `objectsWrapper`.
-- **edgeGradient:** Edge gradient.
-- **progressReverse:** Reverse the progress bar direction.
-- **progressVisibility:** Visibility of the progress bar.
-- **objectsWrapFullMinSize:** Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.
-- **progressTrigger:** Triggers for the progress bar.
-- **lazyRender:** Lazy rendering of objects.
-- **infiniteScroll:** Infinite scrolling.
-- **rootMargin:** Margin expansion for object rendering.
-- **suspending:** Adds React Suspense.
-- **fallback:** Fallback element for error handling.
-
-</details>
+- **`isScrolling`:** Callback function for scroll status.
+- **`size`:** MorphScroll width and height.
+- **`objectsSize` (required):** Required: Size of cells for each object.
+- **`gap`:** Gap between cells.
+- **`padding`:** Padding for the `objectsWrapper`.
+- **`direction`:** Scrolling direction.
+- **`contentAlign`:** Aligns the content when it is smaller than the MorphScroll `size`.
+- **`elementsAlign`:** Aligns the objects within the `objectsWrapper`.
+- **`edgeGradient`:** Edge gradient.
+- **`progressReverse`:** Reverse the progress bar direction.
+- **`progressVisibility`:** Visibility of the progress bar.
+- **`objectsWrapFullMinSize`:** Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.
+- **`progressTrigger`:** Triggers for the progress bar.
+- **`lazyRender`:** Lazy rendering of objects.
+- **`infiniteScroll`:** Infinite scrolling.
+- **`rootMargin`:** Margin expansion for object rendering.
+- **`suspending`:** Adds React Suspense.
+- **`fallback`:** Fallback element for error handling.
