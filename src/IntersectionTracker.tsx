@@ -12,7 +12,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   rootMargin,
   visibleContent = false,
   onVisible,
-  intersectionDeley,
+  intersectionDelay,
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
@@ -61,8 +61,8 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     if (visibleContent || !onVisible || !isVisible) return;
     clearTimeoutRef();
 
-    if (intersectionDeley) {
-      timeoutRef.current = setTimeout(onVisible, intersectionDeley);
+    if (intersectionDelay) {
+      timeoutRef.current = setTimeout(onVisible, intersectionDelay);
     } else {
       onVisible();
     }
@@ -70,7 +70,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     return () => {
       clearTimeoutRef();
     };
-  }, [isVisible, intersectionDeley, onVisible, visibleContent]);
+  }, [isVisible, intersectionDelay, onVisible, visibleContent]);
 
   const content = visibleContent ? children : isVisible && children;
 

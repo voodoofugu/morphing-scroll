@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import React from "react";
 import { ResizeTrackerT } from "./types";
 
@@ -12,7 +13,6 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
 
   React.useEffect(() => {
     const element = containerRef.current;
-    const parentElement = element?.parentElement;
 
     if (!element) return;
 
@@ -53,8 +53,8 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
 
   return (
     <div
-      className="resizeTracker"
       ref={containerRef}
+      resize-tracker="〈♦〉"
       style={{
         ...measureStyles[measure],
         ...style,

@@ -2,167 +2,226 @@ import React from "react";
 
 // RESIZE_TRACKER //////////////////////////////////
 type ResizeTrackerT = {
-  measure?: "inner" | "outer" | "all";
-  style?: React.CSSProperties;
-  onResize?: (width: number, height: number) => void;
+  /**---
+   * ✨ *Render-prop function receiving the container's size.*
+   *
+   * @param width - Current width in pixels.
+   * @param height - Current height in pixels.
+   * @example
+   * ```tsx
+   * <ResizeTracker>
+   *   {(width, height) => <div>{`${width}x${height}`}</div>}
+   * </ResizeTracker>
+   * ```
+   * */
   children: (width: number, height: number) => React.ReactNode;
+  /**---
+   * ✨ *Custom inline styles for the ResizeTracker.*
+   */
+  style?: React.CSSProperties;
+  /**---
+   * ✨ *Defines size measurement behavior*
+   * #### Options:
+   * - `"inner"`: Fits content.
+   * - `"outer"`: Fills parent.
+   * - `"all"`: Combines both.
+   *
+   * @default-"inner"
+   */
+  measure?: "inner" | "outer" | "all";
+  /**---
+   * ✨ *Callback on dimension change.*
+   *
+   * @param width - Updated width (in px).
+   * @param height - Updated height (in px).
+   * @example
+   * ```typescript
+   * onResize={(width, height) => console.log(`New size: ${width}x${height}`)}
+   * ```
+   */
+  onResize?: (width: number, height: number) => void;
 };
 
+/**
+ * ## *ResizeTracker component*〈♦〉
+ *
+ * ---
+ * ## PROPS:
+ * - `children` *◄ REQUIRED ►*
+ * - `style`
+ * - `measure`
+ * - `onResize`
+ * ##### ! MORE DETAILS IN PROPS OR LINKS !
+ *
+ * ---
+ * ## RETURNS:
+ * React component.
+ *
+ * ---
+ * ## LINKS:
+ * [ResizeTracker Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ *
+ * [MDN Reference for Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+ */
 declare const ResizeTracker: React.FC<ResizeTrackerT>;
 
 // INTERSECTION_TRACKER ////////////////////////////
 type IntersectionTrackerT = {
-  /**
-   * Inline styles for the IntersectionTracker component.
-   */
-  style?: React.CSSProperties;
-  /**
-   * The root element for IntersectionObserver.
-   * @default viewport
-   */
-  root?: Element | null;
-  /**
-   * Child elements to be rendered when visible.
+  /**---
+   * ✨ *Child elements to be rendered when visible.*
    */
   children: React.ReactNode;
-  /**
-   * Visibility threshold for triggering intersection events.
+  /**---
+   * ✨ *Custom inline styles for the IntersectionTracker component.*
+   */
+  style?: React.CSSProperties;
+  /**---
+   * ✨ *The root element for IntersectionObserver.*
+   * @default-viewport
+   */
+  root?: Element | null;
+  /**---
+   * ✨ *Margin around the root.
+   * Can be a single number or an array of up to 4 numbers (top, right, bottom, left).*
+   */
+  rootMargin?: number[] | number;
+  /**---
+   * ✨ Visibility threshold for triggering intersection events.
    * A value between 0.0 (out of view) and 1.0 (fully visible).
    */
   threshold?: number;
-  /**
-   * Margin around the root.
-   * Can be a single number or an array of up to 4 numbers (top, right, bottom, left).
-   */
-  rootMargin?: number[] | number;
-  /**
-   * Renders children regardless of their visibility in the viewport.
-   * @default false
+  /**---
+   * ✨ Renders children regardless of their visibility in the viewport.
+   * @default-false
    */
   visibleContent?: boolean;
-  /**
-   * Callback function triggered when `children` become visible.
+  /**---
+   * ✨ Callback function triggered when `children` become visible.
    */
   onVisible?: () => void;
-  /**
-   * Delay (in ms) before invoking `onVisible`.
+  /**---
+   * ✨ Delay (in ms) before invoking `onVisible`.
    */
-  intersectionDeley?: number;
+  intersectionDelay?: number;
 };
 
 /**
- * ## IntersectionTracker component〈♦〉
+ * ## *IntersectionTracker component*〈♦〉
  *
- * ### General Settings
- * @param children- `Required`
+ * ---
+ * ## PROPS:
+ * - `children` *◄ REQUIRED ►*
+ * - `style`
+ * - `root`
+ * - `rootMargin`
+ * - `threshold`
+ * - `visibleContent`
+ * - `onVisible`
+ * - `intersectionDelay`
+ * ##### ! MORE DETAILS IN PROPS OR LINKS !
  *
- * ### Other
- * @returns React component.
+ * ---
+ * ## RETURNS:
+ * React component.
  *
- * ### Links
- * @see [Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ * ---
+ * ## LINKS:
+ * [IntersectionTracker Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ *
+ * [MDN Reference for Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  */
-
 declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
 // MORPH_SCROLL ////////////////////////////////////
 export type MorphScrollT = {
-  /**
-   * Scroll identifier.
-   */
-  scrollID?: string;
-  /**
-   * Additional class for the component.
+  /**---
+   * ✨ *Additional class for the component.*
    */
   className?: string;
-  /**
-   * Child elements.
+  /**---
+   * ✨ *Child elements.*
    */
   children?: React.ReactNode;
-
-  /**
-   * Type of progress element.
-   * @default "scroll"
+  /**---
+   * ✨ *Type of progress element.*
+   * @default-"scroll"
    */
   type?: "scroll" | "slider";
-  /**
-   * Scroll position and animation duration.
+  /**---
+   * ✨ *Scroll position and animation duration.*
    */
   scrollTop?: { value: number | "end"; duration?: number };
-  /**
-   * Stop loading when scrolling.
+  /**---
+   * ✨ *Stop loading when scrolling.*
    */
   stopLoadOnScroll?: boolean;
-  /**
-   * Callback for scroll value.
+  /**---
+   * ✨ *Callback for scroll value.*
    * @example
    * `onScrollValue={[
    *   (scroll) => scroll > 200 && console.log("scroll > 200")
    * ]}`
    */
   onScrollValue?: Array<(scroll: number) => boolean>;
-  /**
-   * Callback for scroll status.
-   * @example
-   * `isScrolling={(value) => console.log(value)}`
+  /**---
+   * ✨ *Callback for scroll status.*
+   * @example `isScrolling={(value) => console.log(value)}`
    */
   isScrolling?: (status: boolean) => void;
-
-  /**
-   * Scroll width and height.
+  /**---
+   * ✨ *MorphScroll width and height.*
    */
   size?: number[];
-  /**
-   * Required: Size of cells for each object.
+  /**---
+   * ✨ *Required: Size of cells for each object.*
    */
   objectsSize: (number | "none" | "firstChild")[];
-  /**
-   * Gap between cells.
+  /**---
+   * ✨ *Gap between cells.*
    */
   gap?: number[] | number;
-  /**
-   * Padding for the `objectsWrapper`.
+  /**---
+   * ✨ *Padding for the `objectsWrapper`.*
    */
   padding?: number[] | number;
-  /**
-   * Scrolling direction.
+  /**---
+   * ✨ *Scrolling direction.*
    */
   direction?: "x" | "y";
-  /**
-   * Aligns the content when it is smaller than the MorphScroll `size`.
+  /**---
+   * ✨ *Aligns the content when it is smaller than the MorphScroll `size`.*
    */
   contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
-  /**
-   * Aligns the objects within the `objectsWrapper`.
+  /**---
+   * ✨ *Aligns the objects within the `objectsWrapper`.*
    */
   elementsAlign?: "start" | "center" | "end";
-  /**
-   * Edge gradient.
+  /**---
+   * ✨ *Edge gradient.*
    * @default { color: "rgba(0,0,0,0.4)", size: 40 }
    */
   edgeGradient?: boolean | { color?: string; size?: number };
-  /**
-   * Reverse the progress bar direction.
+  /**---
+   * ✨ *Reverse the progress bar direction.*
    */
   progressReverse?: boolean;
-  /**
-   * Visibility of the progress bar.
+  /**---
+   * ✨ *Visibility of the progress bar.*
    */
   progressVisibility?: "visible" | "hover" | "hidden";
-  /**
-   * Sets the `min-height` of the `objectsWrapper` to match the height of the MorphScroll.
+  /**---
+   * ✨ *Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.*
    */
   objectsWrapFullMinSize?: boolean;
-
-  /**
-   * Triggers for the progress bar.
-   * @default { wheel: true }
+  /**---
+   * ✨ *Triggers for the progress bar.*
+   * @default-{ wheel: true }
    * @example
    * `progressTrigger={
    *   wheel: true,
    *   content: true,
-   *   progressElement: `true/false` or <YourProgressComponent/>,
-   *   arrows: true or { size: number, element: <YourArrowComponent/> }
+   *   progressElement: true // false // <YourProgressComponent/>,
+   *   arrows: true // { size: number, element: <YourArrowComponent/> }
    * }`
    */
   progressTrigger?: {
@@ -171,69 +230,73 @@ export type MorphScrollT = {
     progressElement?: boolean | React.ReactNode;
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
-  /**
-   * Lazy rendering of objects.
+  /**---
+   * ✨ *Lazy rendering of objects.*
    */
   lazyRender?: boolean;
-  /**
-   * Infinite scrolling.
+  /**---
+   * ✨ *Infinite scrolling.*
    */
   infiniteScroll?: boolean;
-  /**
-   * Margin expansion for object rendering.
+  /**---
+   * ✨ *Margin expansion for object rendering.*
    */
   rootMargin?: number[] | number;
-  /**
-   * Adds React Suspense.
+  /**---
+   * ✨ *Adds React Suspense.*
    */
   suspending?: boolean;
-  /**
-   * Fallback element for error handling.
+  /**---
+   * ✨ *Fallback element for error handling.*
    */
   fallback?: React.ReactNode;
 };
 
 /**
- * ## MorphScroll component〈♦〉
+ * ## *MorphScroll component*〈♦〉
  *
- * ### General Settings
- * @param scrollID
- * @param className
- * @param children
+ * ---
+ * ## PROPS:
+ * #### • GENERAL SETTINGS:
+ * - `className`
+ * - `children`
  *
- * ### Scroll Settings
- * @param type
- * @param scrollTop
- * @param stopLoadOnScroll
- * @param onScrollValue
- * @param isScrolling
+ * #### • SCROLL SETTINGS:
+ * - `type`
+ * - `scrollTop`
+ * - `stopLoadOnScroll`
+ * - `onScrollValue`
+ * - `isScrolling`
  *
- * ### Visual Settings
- * @param size
- * @param objectsSize - `Required`
- * @param gap
- * @param padding
- * @param direction
- * @param contentAlign
- * @param elementsAlign
- * @param edgeGradient
- * @param progressReverse
- * @param progressVisibility
- * @param objectsWrapFullMinSize
+ * #### • VISUAL SETTINGS:
+ * - `size`
+ * - `objectsSize` *◄ REQUIRED ►*
+ * - `gap`
+ * - `padding`
+ * - `direction`
+ * - `contentAlign`
+ * - `elementsAlign`
+ * - `edgeGradient`
+ * - `progressReverse`
+ * - `progressVisibility`
+ * - `objectsWrapFullMinSize`
  *
- * ### Progress and Rendering
- * @param progressTrigger
- * @param lazyRender
- * @param infiniteScroll
- * @param rootMargin
- * @param suspending
- * @param fallback
+ * #### • PROGRESS AND RENDERING:
+ * - `progressTrigger`
+ * - `lazyRender`
+ * - `infiniteScroll`
+ * - `rootMargin`
+ * - `suspending`
+ * - `fallback`
+ * ##### ! MORE DETAILS IN PROPS OR LINKS !
  *
- * ### Other
- * @returns React component.
+ * ---
+ * ## RETURNS:
+ * React component.
  *
- * ### Links
- * @see [Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll)
+ * ---
+ * ## LINKS:
+ * [MorphScroll Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll)
  */
 declare const MorphScroll: React.FC<MorphScrollT>;
 

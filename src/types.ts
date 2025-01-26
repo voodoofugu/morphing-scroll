@@ -1,21 +1,21 @@
 import React from "react";
 
 export type ResizeTrackerT = {
-  measure?: "inner" | "outer" | "all";
-  style?: React.CSSProperties;
-  onResize?: (width: number, height: number) => void;
   children: (width: number, height: number) => React.ReactNode;
+  style?: React.CSSProperties;
+  measure?: "inner" | "outer" | "all";
+  onResize?: (width: number, height: number) => void;
 };
 
 export type IntersectionTrackerT = {
   children: React.ReactNode;
-  root?: Element | null;
-  threshold?: number;
-  rootMargin?: number[] | number;
   style?: React.CSSProperties;
+  root?: Element | null;
+  rootMargin?: number[] | number;
+  threshold?: number;
   visibleContent?: boolean;
   onVisible?: () => void;
-  intersectionDeley?: number;
+  intersectionDelay?: number;
 };
 
 export type MorphScrollT = {

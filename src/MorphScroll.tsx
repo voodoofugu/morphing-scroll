@@ -149,7 +149,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     height: `${edgeGradientLocal.size}px`,
   };
 
-  const [pT, pR, pB, pL] = numOrArrFormat(padding, direction !== "x") || [
+  const [pT, pR, pB, pL] = numOrArrFormat(padding, direction === "x") || [
     0, 0, 0, 0,
   ];
 
