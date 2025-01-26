@@ -33,7 +33,7 @@ npm install morphing-scroll
 - **`className`:** _Additional classes for the component._<br />
   <details>
   <summary>more:</summary>
-  <strong>type:</strong><br />string<br />
+  <strong>type:</strong> string<br />
   <strong>example:</strong>
 
   ```tsx
@@ -46,11 +46,12 @@ npm install morphing-scroll
   ```
 
   </details>
+  <h2>
 
 - **`children` (required):** _Custom user content._
   <details>
   <summary>more:</summary>
-  <strong>type:</strong><br />React.ReactNode<br />
+  <strong>type:</strong> React.ReactNode<br />
   <strong>example:</strong>
 
   ```tsx
@@ -66,8 +67,8 @@ npm install morphing-scroll
 - **`type`:** _Type of progress element._<br />
   <details>
   <summary>more:</summary>
-  <strong>type:</strong><br />"scroll" | "slider"<br />
-  <strong>default:</strong><br />"scroll"<br />
+  <strong>type:</strong> "scroll" | "slider"<br />
+  <strong>default:</strong> "scroll"<br />
   <strong>example:</strong>
 
   ```tsx
@@ -84,11 +85,11 @@ npm install morphing-scroll
 - **`scrollTop`:** _Scroll position and animation duration._
   <details>
   <summary>more:</summary>
-  <strong>type:</strong><br />{ value: number | "end"; duration?: number }<br />
-  <strong>default:</strong><br />{ value: 1; duration: 200 }<br />
+  <strong>type:</strong> { value: number | "end"; duration?: number }<br />
+  <strong>default:</strong> { value: 1; duration: 200 }<br />
   <strong>description:</strong> <em><br />
-  The default value for `value` is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value `"end"` scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />
-  The `duration` parameter specifies the scrolling speed for the `scrollTop` values. This parameter is optional and you can only use `value'.</em><br />
+  The default value for <code>value</code> is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value <code>"end"</code> scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />
+  The <code>duration</code> parameter specifies the scrolling speed for the <code>scrollTop</code> values. This parameter is optional and you can only use `value'.</em><br />
   <strong>example:</strong>
 
   ```tsx
