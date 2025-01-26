@@ -20,7 +20,6 @@ export const numOrArrFormat = (
 };
 
 const MorphScroll: React.FC<MorphScrollT> = ({
-  scrollID = "",
   type = "scroll",
   className = "",
   size,
@@ -789,7 +788,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       console.warn(
         `You are using the ${prop} ${
           availability ? "with" : "without"
-        } ${missingProp}${scrollID ? ` in ${scrollID}` : ""} 👺`
+        } ${missingProp} 👺`
       );
     }
     if (!lazyRender && rootMargin) {

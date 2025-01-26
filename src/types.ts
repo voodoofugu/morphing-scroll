@@ -20,7 +20,6 @@ export type IntersectionTrackerT = {
 
 export type MorphScrollT = {
   // General Settings
-  scrollID?: string;
   className?: string;
   children?: React.ReactNode;
 
