@@ -31,14 +31,10 @@ npm install morphing-scroll
 ### Props:
 
 - **`className`:** _Additional classes for the component._<br />
-
   <details>
-
-  ## <summary>more:</summary>
-
+  <summary>more:</summary>
   <strong>type:</strong> string<br />
   <strong>example:</strong><br />
-
   ```tsx
   <MorphScroll
     className="my-class"
@@ -47,7 +43,6 @@ npm install morphing-scroll
     {children}
   </MorphScroll>
   ```
-
   </details>
 
 - **`children` (required):**<br />
