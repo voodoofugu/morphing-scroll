@@ -32,15 +32,13 @@ npm install morphing-scroll
 
 - **`className`:** Additional class for the component.
 - **`children`:** Child elements.
-- **`type`:** Type of progress element.
-
-Default: `scroll`
-
+- **`type`:** Type of progress element.<br />
+  Default: scroll
 - **`scrollTop`:** Scroll position and animation duration.
 - **`stopLoadOnScroll`:** Stop loading when scrolling.
 - **`onScrollValue`:** Callback for scroll value.
   <details>
-  <summary>Example:</summary>
+  <summary>example:</summary>
     onScrollValue={[
      (scroll) => scroll > 200 && console.log("scroll > 200")
     ]}
