@@ -30,13 +30,11 @@ npm install morphing-scroll
 
 ### Props:
 
-- #### **`className`:**<br />
-
-  _Additional classes for the component._<br />
-    <details>
-    <summary>more:</summary>
-    <strong>type:</strong> string<br />
-    <strong>example:</strong>
+- **`className`:** _Additional classes for the component._<br />
+  <details>
+  <summary>more:</summary>
+  <strong>type:</strong> string<br />
+  <strong>example:</strong>
 
   ```tsx
   <MorphScroll
@@ -47,25 +45,64 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-    </details>
+  </details>
 
-- **`children` (required):**<br />
-  _Custom user content._
-  **type:** React.ReactNode
+- **`children` (required):** _Custom user content._
+  <details>
+  <summary>more:</summary>
+  <strong>type:</strong> React.ReactNode<br />
+  <strong>example:</strong>
 
-- **`type`:**<br />
-  _Type of progress element._<br />
-  **type:** "scroll" | "slider"<br />
-  **default:** "scroll"
+  ```tsx
+  <MorphScroll
+  // your props
+  >
+    {children}
+  </MorphScroll>
+  ```
 
-- **`scrollTop`:**<br />
-  _Scroll position and animation duration._
+  </details>
 
-- **`stopLoadOnScroll`:**<br />
-  _Stop loading when scrolling._
+- **`type`:** _Type of progress element._<br />
+  <details>
+  <summary>more:</summary>
+  <strong>type:</strong> "scroll" | "slider"<br />
+  <strong>default:</strong> "scroll"<br />
+  <strong>example:</strong>
 
-- **`onScrollValue`:**<br />
-  _Callback for scroll value._
+  ```tsx
+  <MorphScroll
+    type="slider"
+    // another props
+  >
+    {children}
+  </MorphScroll>
+  ```
+
+  </details>
+
+- **`scrollTop`:** _Scroll position and animation duration._
+  <details>
+  <summary>more:</summary>
+  <strong>type:</strong> { value: number | "end"; duration?: number }<br />
+  <strong>default:</strong> { value: 1; duration: 200 }<br />
+  <strong>description:</strong> <em>The default value for `value` is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value `"end"` scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />The `duration` parameter specifies the scrolling speed for the `scrollTop` values. This parameter is optional and you can only use `value'.</em><br />
+  <strong>example:</strong>
+
+  ```tsx
+  <MorphScroll
+    scrollTop={{ value: 100; duration: 100 }}
+    // another props
+  >
+    {children}
+  </MorphScroll>
+  ```
+
+  </details>
+
+- **`stopLoadOnScroll`:** _Stop loading when scrolling._
+
+- **`onScrollValue`:** _Callback for scroll value._
   <details>
   <summary>example:</summary>
     onScrollValue={[
@@ -73,55 +110,37 @@ npm install morphing-scroll
     ]}
   </details>
 
-- **`isScrolling`:**<br />
-  _Callback function for scroll status._
+- **`isScrolling`:** _Callback function for scroll status._
 
-- **`size`:**<br />
-  _MorphScroll width and height._
+- **`size`:** _MorphScroll width and height._
 
-- **`objectsSize` (required):**<br />
-  _Required: Size of cells for each object._
+- **`objectsSize` (required):** _Required: Size of cells for each object._
 
-- **`gap`:**<br />
-  _Gap between cells._
+- **`gap`:** _Gap between cells._
 
-- **`padding`:**<br />
-  _Padding for the `objectsWrapper`._
+- **`padding`:** _Padding for the `objectsWrapper`._
 
-- **`direction`:**<br />
-  _Scrolling direction._
+- **`direction`:** _Scrolling direction._
 
-- **`contentAlign`:**<br />
-  _Aligns the content when it is smaller than the MorphScroll `size`._
+- **`contentAlign`:** _Aligns the content when it is smaller than the MorphScroll `size`._
 
-- **`elementsAlign`:**<br />
-  _Aligns the objects within the `objectsWrapper`._
+- **`elementsAlign`:** _Aligns the objects within the `objectsWrapper`._
 
-- **`edgeGradient`:**<br />
-  _Edge gradient._
+- **`edgeGradient`:** _Edge gradient._
 
-- **`progressReverse`:**<br />
-  _Reverse the progress bar direction._
+- **`progressReverse`:** _Reverse the progress bar direction._
 
-- **`progressVisibility`:**<br />
-  _Visibility of the progress bar._
+- **`progressVisibility`:** _Visibility of the progress bar._
 
-- **`objectsWrapFullMinSize`:**<br />
-  _Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll._
+- **`objectsWrapFullMinSize`:** _Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll._
 
-- **`progressTrigger`:**<br />
-  _Triggers for the progress bar._
+- **`progressTrigger`:** _Triggers for the progress bar._
 
-- **`lazyRender`:**<br />
-  _Lazy rendering of objects._
+- **`lazyRender`:** _Lazy rendering of objects._
 
-- **`infiniteScroll`:**<br />
-  _Infinite scrolling._
+- **`infiniteScroll`:** _Infinite scrolling._
 
-- **`rootMargin`:**<br />
-  _Margin expansion for object rendering._
+- **`rootMargin`:** _Margin expansion for object rendering._
 
-- **`suspending`:**<br />
-  _Adds React Suspense._
-- **`fallback`:**<br />
-  _Fallback element for error handling._
+- **`suspending`:** _Adds React Suspense._
+- **`fallback`:** _Fallback element for error handling._
