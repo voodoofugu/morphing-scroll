@@ -30,7 +30,8 @@ npm install morphing-scroll
 
 ### Props:
 
-- **`className`:**<br />
+- #### **`className`:**<br />
+
   _Additional classes for the component._<br />
   **type:** string<br />
   **example:**
@@ -39,7 +40,7 @@ npm install morphing-scroll
   <MorphScroll className="my-class" />
   ```
 
-- **`children`:**<br />
+- **`children` (required):**<br />
   _Custom user content._
   **type:** React.ReactNode
 
@@ -69,7 +70,7 @@ npm install morphing-scroll
 - **`size`:**<br />
   _MorphScroll width and height._
 
-- **`objectsSize`:** _REQUIRED_<br />
+- **`objectsSize` (required):**<br />
   _Required: Size of cells for each object._
 
 - **`gap`:**<br />
