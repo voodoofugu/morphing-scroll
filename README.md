@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center" style="height: 282px;">
   <img src="https://drive.google.com/uc?export=view&id=1zaKS3ZOVpeVEY2xcwZmUhdYuRBGBzZRR" alt="logo"/>
 </div>
 
@@ -30,7 +30,7 @@ npm install morphing-scroll
 
 <details>
 
-### <summary>Props:</summary>
+<summary>Props:</summary>
 
 - **className (required):** Additional class for the component.
 - **children:** Child elements.
