@@ -46,7 +46,7 @@ npm install morphing-scroll
   ```
 
   </details>
-  <code></code>
+  <blockquote></blockquote>
 
 - **`children` (required):** _Custom user content._
   <details>
