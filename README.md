@@ -1,5 +1,5 @@
 <div align="center" style="height: 282px;">
-  <img src="https://drive.google.com/uc?export=view&id=1zaKS3ZOVpeVEY2xcwZmUhdYuRBGBzZRR" alt="logo"/>
+  <img src="https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa" alt="logo"/>
 </div>
 
 ## 〈♦ Table of contents 〉
@@ -82,7 +82,6 @@ npm install morphing-scroll
 - **`type`:** _Type of progress element._
     <details>
     <summary><strong>More:</strong></summary>
-    <br />
     <strong>‣ Type:</strong> "scroll" | "slider"<br />
     <br />
     <strong>‣ Default:</strong> "scroll"<br />
