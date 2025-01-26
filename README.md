@@ -36,6 +36,8 @@ npm install morphing-scroll
   <details>
   <summary><strong>More:</strong></summary>
   <strong>Type:</strong> string<br />
+  <strong>Description:</strong> <em><br />
+  This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.</em><br />
   <strong>Example:</strong>
 
   ```tsx
@@ -56,8 +58,9 @@ npm install morphing-scroll
   <strong>Type:</strong> React.ReactNode<br />
   <strong>Description:</strong> <em><br />
   This is where you can pass your list elements.<br />
-  Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will have the same keys as your list items. This helps <code>MorphScroll</code> render the correct cells for your current list.<br />
-  Additionally, if you pass <code>null</code> instead of just <code>undefined</code>, the <code>MorphScroll</code> component will render nothing.</em><br />
+  Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will use the same keys as your list items, allowing it to render the correct cells for the current list.<br />
+  Additionally, <code>MorphScroll</code> handles a passed <code>null</code> value the same way as <code>undefined</code>, rendering nothing in both cases.</em><br />
+
   <strong>Example:</strong>
 
   ```tsx
