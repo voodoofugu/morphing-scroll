@@ -75,7 +75,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   const content = visibleContent ? children : isVisible && children;
 
   return (
-    <div ref={observableElement} intersection-tracker="〈♦〉" style={style}>
+    <div ref={observableElement} intersection-tracker="〈•〉" style={style}>
       {content}
     </div>
   );

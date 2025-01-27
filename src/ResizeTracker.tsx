@@ -54,7 +54,7 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
   return (
     <div
       ref={containerRef}
-      resize-tracker="〈♦〉"
+      resize-tracker="〈—〉"
       style={{
         ...measureStyles[measure],
         ...style,

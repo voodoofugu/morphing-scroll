@@ -44,7 +44,7 @@ npm install morphing-scroll
 
   ```tsx
   <MorphScroll
-    className="my-class"
+    className="your-class"
     // another props
   >
     {children}
@@ -216,7 +216,8 @@ npm install morphing-scroll
   This parameter sets the width and height of the <code>MorphScroll</code> component as an array of two numbers. These values help define the visual container for the scrollable area.<br />
   *The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.<br />
   <br />
-  If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes. See the <code>ResizeTracker</code> section for more details.</em><br />
+  If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.<br />
+  *See the <code>ResizeTracker</code> section for more details.</em><br />
   <br />
   <strong>‣ Example:</strong>
 
@@ -238,13 +239,21 @@ npm install morphing-scroll
   <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
-  .</em><br />
+  This parameter is the only required one. It defines the size of cells for each of your objects. <code>ObjectsSize</code> use an array of values.<br />
+  *The values are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.<br />
+  <br />
+  If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes—they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
+  <br />
+  If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.</em><br />
   <br />
   <strong>‣ Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    objectsSize={[40, 40]}
+    // objectsSize={["none", "none"]}
+    // objectsSize={["firstChild", "firstChild"]}
+    // another props
   >
     {children}
   </MorphScroll>
@@ -256,7 +265,7 @@ npm install morphing-scroll
 - **`gap`:** _Gap between cells._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> number[] | number<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -277,7 +286,7 @@ npm install morphing-scroll
 - **`padding`:** _Padding for the `objectsWrapper`._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> number[] | number<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -298,7 +307,9 @@ npm install morphing-scroll
 - **`direction`:** _Scrolling direction._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> "x" | "y"<br />
+  <br />
+  <strong>‣ Default:</strong> "y"<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -319,7 +330,7 @@ npm install morphing-scroll
 - **`contentAlign`:** _Aligns the content when it is smaller than the MorphScroll `size`._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> ["start" | "center" | "end", "start" | "center" | "end"]<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -340,7 +351,7 @@ npm install morphing-scroll
 - **`elementsAlign`:** _Aligns the objects within the `objectsWrapper`._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> "start" | "center" | "end"<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -361,7 +372,9 @@ npm install morphing-scroll
 - **`edgeGradient`:** _Edge gradient._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> boolean | { color?: string; size?: number }<br />
+  <br />
+  <strong>‣ Default:</strong> if true { color: "rgba(0,0,0,0.4)", size: 40 }<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -382,7 +395,9 @@ npm install morphing-scroll
 - **`progressReverse`:** _Reverse the progress bar direction._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> boolean<br />
+  <br />
+  <strong>‣ Default:</strong> false<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -403,7 +418,9 @@ npm install morphing-scroll
 - **`progressVisibility`:** _Visibility of the progress bar._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> "visible" | "hover" | "hidden"<br />
+  <br />
+  <strong>‣ Default:</strong> "visible"<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -424,7 +441,9 @@ npm install morphing-scroll
 - **`objectsWrapFullMinSize`:** _Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> boolean<br />
+  <br />
+  <strong>‣ Default:</strong> false<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -447,7 +466,9 @@ npm install morphing-scroll
 - **`progressTrigger`:** _Triggers for the progress bar._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> { wheel?: boolean; content?: boolean; progressElement?: boolean | React.ReactNode; arrows?: boolean | { size?: number; element?: React.ReactNode }; }<br />
+  <br />
+  <strong>‣ Default:</strong> { wheel: true }<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />

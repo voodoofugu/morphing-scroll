@@ -37,7 +37,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   scrollTop,
   infiniteScroll = false,
   edgeGradient,
-  objectsWrapFullMinSize,
+  objectsWrapFullMinSize = false,
   children,
   onScrollValue,
 

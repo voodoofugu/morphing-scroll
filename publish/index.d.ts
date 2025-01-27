@@ -187,6 +187,7 @@ export type MorphScrollT = {
   padding?: number[] | number;
   /**---
    * ✨ *Scrolling direction.*
+   * @default-"y"
    */
   direction?: "x" | "y";
   /**---
@@ -199,19 +200,22 @@ export type MorphScrollT = {
   elementsAlign?: "start" | "center" | "end";
   /**---
    * ✨ *Edge gradient.*
-   * @default { color: "rgba(0,0,0,0.4)", size: 40 }
+   * @default if true { color: "rgba(0,0,0,0.4)", size: 40 }
    */
   edgeGradient?: boolean | { color?: string; size?: number };
   /**---
    * ✨ *Reverse the progress bar direction.*
+   * @default false
    */
   progressReverse?: boolean;
   /**---
    * ✨ *Visibility of the progress bar.*
+   * @default "visible"
    */
   progressVisibility?: "visible" | "hover" | "hidden";
   /**---
    * ✨ *Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.*
+   * @default-false
    */
   objectsWrapFullMinSize?: boolean;
   /**---
