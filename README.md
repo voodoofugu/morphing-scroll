@@ -307,7 +307,7 @@ npm install morphing-scroll
     // padding={[10, 10, 10, 10]}
     // another props
   >
-    {children}s
+    {children}
   </MorphScroll>
   ```
 
