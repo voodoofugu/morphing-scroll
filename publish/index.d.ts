@@ -215,7 +215,6 @@ export type MorphScrollT = {
   progressVisibility?: "visible" | "hover" | "hidden";
   /**---
    * ✨ *Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.*
-   * @default-false
    */
   objectsWrapFullMinSize?: boolean;
   /**---
@@ -237,6 +236,7 @@ export type MorphScrollT = {
   };
   /**---
    * ✨ *Lazy rendering of objects.*
+   * @default false
    */
   lazyRender?: boolean;
   /**---

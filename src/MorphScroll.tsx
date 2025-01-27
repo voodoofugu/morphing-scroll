@@ -159,8 +159,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return typeof gap === "number"
       ? [gap, gap]
       : direction === "x"
-      ? [gap?.[1] ?? 0, gap?.[0] ?? 0]
-      : [0, 0];
+      ? [gap?.[0] ?? 0, gap?.[1] ?? 0]
+      : [gap?.[1] ?? 0, gap?.[0] ?? 0];
   }, [gap, direction]);
 
   const objectsSizeLocal = React.useMemo(() => {
@@ -274,7 +274,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [xyObject, childsPerDirection, gapX, receivedWrapSize, receivedChildSize]);
 
   const objectsWrapperHeightFull = React.useMemo(() => {
-    return objectsWrapperHeight + pLocalY;
+    return objectsWrapperHeight ? objectsWrapperHeight + pLocalY : 0;
   }, [objectsWrapperHeight, pLocalY]);
 
   const objectsWrapperWidthFull = React.useMemo(() => {
@@ -386,7 +386,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         infiniteScroll && xyObjectReverse
           ? xyObjectReverse * indexAndSubIndex[0] +
             gapY * indexAndSubIndex[0] +
-            pT +
+            pL +
             (elementsAlign && lastIndices.length > 0
               ? lastIndices.includes(index)
                 ? alignSpace
@@ -869,12 +869,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }
       }}
       style={{
-        padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
+        // padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
-          infiniteScroll && objectsWrapperHeightFull
+          (infiniteScroll && objectsWrapperHeightFull) ||
+          objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
-        width: objectsWrapperWidth ? `${objectsWrapperWidth}px` : "",
+        width: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
 
         ...(progressTrigger.content && { cursor: "grab" }),
         ...(infiniteScroll && {
@@ -882,7 +883,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }),
         ...(!infiniteScroll && {
           display: "flex",
+          alignContent: "center",
         }),
+        ...(!infiniteScroll &&
+          direction === "y" && {
+            alignItems: "center",
+          }),
         ...(!infiniteScroll &&
           objectsPerDirection > 1 && {
             flexWrap: "wrap",

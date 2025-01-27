@@ -242,7 +242,7 @@ npm install morphing-scroll
   This parameter is the only required one. It defines the size of cells for each of your objects. <code>ObjectsSize</code> use an array of values.<br />
   *The values are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.<br />
   <br />
-  If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes—they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
+  If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes—they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes for absolute positioning.. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
   <br />
   If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.</em><br />
   <br />
@@ -268,13 +268,16 @@ npm install morphing-scroll
   <strong>‣ Type:</strong> number[] | number<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
-  .</em><br />
+  This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
+  *The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
   <br />
   <strong>‣ Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    gap={10}
+    // gap={[10, 10]}
+    // another props
   >
     {children}
   </MorphScroll>
@@ -289,15 +292,22 @@ npm install morphing-scroll
   <strong>‣ Type:</strong> number[] | number<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
-  .</em><br />
+  This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
+  <br />
+  *For a two-number array, the values follow the <code>horizontal/vertical</code> rule, while a four-number array follows the <code>top/right/bottom/left</code> rule. All values are in pixels and apply regardless of the <code>direction</code>.<br />
+  <br />
+  *Important: this is not a CSS property, even though its name might suggest otherwise. It specifically refers to modifying the width and height of the scrollable wrapper, affecting the dimensions of the scrollable area.</em><br />
   <br />
   <strong>‣ Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    padding={10}
+    // padding={[10, 10]}
+    // padding={[10, 10, 10, 10]}
+    // another props
   >
-    {children}
+    {children}s
   </MorphScroll>
   ```
 
@@ -312,13 +322,15 @@ npm install morphing-scroll
   <strong>‣ Default:</strong> "y"<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
-  .</em><br />
+  This parameter changes the scroll or slider type direction based on the provided value.<br />
+  You can set it to horizontal or vertical to customize the component according to your needs.</em><br />
   <br />
   <strong>‣ Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    direction="x"
+    // another props
   >
     {children}
   </MorphScroll>
@@ -466,7 +478,12 @@ npm install morphing-scroll
 - **`progressTrigger`:** _Triggers for the progress bar._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> { wheel?: boolean; content?: boolean; progressElement?: boolean | React.ReactNode; arrows?: boolean | { size?: number; element?: React.ReactNode }; }<br />
+  <strong>‣ Type:</strong> {><br />
+    wheel?: boolean;><br />
+    content?: boolean;><br />
+    progressElement?: boolean | React.ReactNode;><br />
+    arrows?: boolean | { size?: number; element?: React.ReactNode };><br />
+  }<br />
   <br />
   <strong>‣ Default:</strong> { wheel: true }<br />
   <br />
@@ -489,7 +506,9 @@ npm install morphing-scroll
 - **`lazyRender`:** _Lazy rendering of objects._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> boolean<br />
+  <br />
+  <strong>‣ Default:</strong> false<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -510,7 +529,9 @@ npm install morphing-scroll
 - **`infiniteScroll`:** _Infinite scrolling._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> boolean<br />
+  <br />
+  <strong>‣ Default:</strong> false<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -531,7 +552,7 @@ npm install morphing-scroll
 - **`rootMargin`:** _Margin expansion for object rendering._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> number[] | number<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -552,7 +573,9 @@ npm install morphing-scroll
 - **`suspending`:** _Adds React Suspense._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> boolean<br />
+  <br />
+  <strong>‣ Default:</strong> false<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
@@ -573,7 +596,7 @@ npm install morphing-scroll
 - **`fallback`:** _Fallback element for error handling._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> (number | "none" | "firstChild")[]<br />
+  <strong>‣ Type:</strong> React.ReactNode<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />
