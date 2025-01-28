@@ -108,12 +108,13 @@ npm install morphing-scroll
 - **`scrollTop`:** _Scroll position and animation duration._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> { value: number | "end"; duration?: number }<br />
+  <strong>‣ Type:</strong> { value: number | "end" | null; duration?: number }<br />
   <br />
   <strong>‣ Default:</strong> { value: 1; duration: 200 }<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
-  The default value for <code>value</code> is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value <code>"end"</code> scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />
+  This parameter will help you set your own scroll values.<br />
+  The default value for <code>value</code> is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value parameter also accepts <code>null</code>, this is done so that after using <code>scrollTop</code> you can reset the passed value for later use of the same value. The value <code>"end"</code> scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />
   The <code>duration</code> parameter specifies the scrolling speed for the <code>scrollTop</code> values. This parameter is optional and you can only use `value'.</em><br />
   <br />
   <strong>‣ Example:</strong>

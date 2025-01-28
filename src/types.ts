@@ -26,7 +26,7 @@ export type MorphScrollT = {
   // Scroll Settings
   type?: "scroll" | "slider";
   direction?: "x" | "y";
-  scrollTop?: { value: number | "end"; duration?: number };
+  scrollTop?: { value: number | "end" | null; duration?: number };
   stopLoadOnScroll?: boolean;
   onScrollValue?: (scroll: number) => void;
   isScrolling?: (motion: boolean) => void;
