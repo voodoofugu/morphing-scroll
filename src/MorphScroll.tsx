@@ -56,12 +56,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollBarThumbRef = React.useRef<HTMLDivElement | null>(null);
   const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
 
+  const firstChildKeyRef = React.useRef<string | null>(null);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
     "none"
   );
   const numForSlider = React.useRef<number>(0);
   const loadedObjects = React.useRef<(string | null)[]>([]);
-  const firstChildKeyRef = React.useRef<string | null | undefined>(null);
   const topThumb = React.useRef<number>(0);
   const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -115,7 +115,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [children]);
 
   const firstChildKey = React.useMemo(() => {
-    if (scrollTopLocal.value !== "end") return;
+    if (scrollTopLocal.value !== "end") return null;
 
     if (validChildren.length > 0) {
       const firstChild = validChildren[0];
@@ -124,6 +124,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return firstChild.key;
       }
     }
+    return null;
   }, [validChildren]);
 
   const arrowsLocal = {
@@ -555,12 +556,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!scrollEl) return;
 
     // scroll status
-    stopLoadOnScroll && setScrollingStatus(true);
-    isScrolling?.(true);
+    !scrollingStatus && isScrolling?.(true);
+    (stopLoadOnScroll || isScrolling) && setScrollingStatus(true);
 
     scrollTimeout.current && clearTimeout(scrollTimeout.current);
     scrollTimeout.current = setTimeout(() => {
-      stopLoadOnScroll && setScrollingStatus(false);
+      (stopLoadOnScroll || isScrolling) && setScrollingStatus(false);
       isScrolling?.(false);
     }, 200);
 
@@ -594,6 +595,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     progressVisibility,
     onScrollValue,
     sliderAndArrowsCheck,
+    edgeGradient,
     isScrolling,
   ]);
 
@@ -777,6 +779,82 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef]
   );
 
+  const scrollObjectWrapper = (
+    elementTop?: number,
+    left?: number,
+    attribute?: string,
+    children?: React.ReactNode,
+    key?: string
+  ) => {
+    const content = suspending ? (
+      <React.Suspense fallback={fallback}>{children}</React.Suspense>
+    ) : (
+      children
+    );
+
+    const wrapStyle1 = {
+      width: xyObjectReverse ? `${xyObjectReverse}px` : "",
+      height: xyObject ? `${xyObject}px` : "",
+      ...(direction === "x" && {
+        display: "flex",
+      }),
+    };
+
+    const wrapStyle2 = {
+      width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
+      ...(direction === "x" && {
+        transform: "rotate(-90deg) scaleX(-1)",
+      }),
+    };
+
+    const commonProps = {
+      root: scrollElementRef.current,
+      rootMargin: infiniteScroll ? rootMargin : mRootLocal,
+      style: infiniteScroll
+        ? ({
+            ...wrapStyle1,
+            position: "absolute",
+            top: `${elementTop}px`,
+            ...(left && { left: `${left}px` }),
+            ...(!xyObjectReverse &&
+              objectsPerDirection === 1 && {
+                transform: "translateX(-50%)",
+              }),
+          } as React.CSSProperties)
+        : wrapStyle1,
+    };
+
+    const innerContent = (
+      <div {...(attribute ? { "wrap-id": attribute } : {})} style={wrapStyle2}>
+        {content}
+      </div>
+    );
+
+    return infiniteScroll ? (
+      <div
+        key={key}
+        style={{
+          position: "absolute",
+          top: `${elementTop}px`,
+          ...(left && { left: `${left}px` }),
+          ...(!xyObjectReverse &&
+            objectsPerDirection === 1 && {
+              transform: "translateX(-50%)",
+            }),
+          ...wrapStyle1,
+        }}
+      >
+        {innerContent}
+      </div>
+    ) : lazyRender ? (
+      <IntersectionTracker {...commonProps}>{innerContent}</IntersectionTracker>
+    ) : (
+      <div key={key} style={wrapStyle1}>
+        {innerContent}
+      </div>
+    );
+  };
+
   // effects
   React.useEffect(() => {
     // warn handling
@@ -877,6 +955,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             : "fit-content",
         width: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
 
+        // ...((objectsSize[1] === "none" || objectsSize[2] === "none") && {
+        //   padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
+        // }),
         ...(progressTrigger.content && { cursor: "grab" }),
         ...(infiniteScroll && {
           position: "relative",
@@ -914,16 +995,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     >
       {validChildren.map((child, index) => {
         const key = (child as React.ReactElement).key;
-        const commonProps = {
-          scrollElementRef,
-          xyObjectReverse,
-          xyObject,
-          rootMargin,
-          suspending,
-          fallback,
-          mRootLocal,
-          objectsSizeLocal,
-        };
 
         const childRenderOnScroll =
           stopLoadOnScroll &&
@@ -956,35 +1027,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             elementBottom - scrollTopFromRef > 0 - mRootY;
 
           if (isElementVisible) {
-            return (
-              <ScrollObjectWrapper
-                key={key}
-                {...commonProps}
-                elementTop={elementTop}
-                left={left}
-                infiniteScroll={infiniteScroll}
-                attribute={stopLoadOnScroll ? `${id}-${key}` : ""}
-                objectsPerDirection={objectsPerDirection}
-                objectsSize={objectsSize}
-                direction={direction}
-              >
-                {childLocal}
-              </ScrollObjectWrapper>
+            return scrollObjectWrapper(
+              elementTop,
+              left,
+              "",
+              childLocal,
+              key ?? ""
             );
           }
         } else {
-          return (
-            <ScrollObjectWrapper
-              key={key}
-              {...commonProps}
-              lazyRender={lazyRender}
-              objectsPerDirection={objectsPerDirection}
-              objectsSize={objectsSize}
-              direction={direction}
-              attribute={stopLoadOnScroll ? `${id}-${key}` : ""}
-            >
-              {childLocal}
-            </ScrollObjectWrapper>
+          return scrollObjectWrapper(
+            0,
+            0,
+            `${stopLoadOnScroll ? `${id}-${key}` : ""}`,
+            childLocal,
+            key ?? ""
           );
         }
       })}
@@ -1213,110 +1270,3 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 };
 
 export default MorphScroll;
-
-interface ScrollObjectWrapperType
-  extends Pick<
-    MorphScrollT,
-    "rootMargin" | "suspending" | "fallback" | "infiniteScroll" | "lazyRender"
-  > {
-  children: React.ReactNode;
-  elementTop?: number;
-  left?: number;
-  mRootLocal?: number[] | number;
-  scrollElementRef: React.RefObject<HTMLDivElement | null>;
-  xyObject: number | null;
-  xyObjectReverse: number | null;
-  objectsSizeLocal: (number | null)[];
-  attribute?: string;
-  objectsPerDirection: number;
-  objectsSize: (number | "none" | "firstChild")[];
-  direction: "x" | "y";
-}
-
-const ScrollObjectWrapper: React.FC<ScrollObjectWrapperType> = React.memo(
-  ({
-    children,
-    elementTop,
-    left,
-    mRootLocal,
-    scrollElementRef,
-    xyObject,
-    xyObjectReverse,
-    objectsSizeLocal,
-    rootMargin,
-    suspending,
-    fallback,
-    infiniteScroll,
-    lazyRender,
-    attribute,
-    objectsPerDirection,
-    direction,
-  }) => {
-    const content = suspending ? (
-      <React.Suspense fallback={fallback}>{children}</React.Suspense>
-    ) : (
-      children
-    );
-
-    const wrapStyle1 = {
-      width: xyObjectReverse ? `${xyObjectReverse}px` : "",
-      height: xyObject ? `${xyObject}px` : "",
-      ...(direction === "x" && {
-        display: "flex",
-      }),
-    };
-
-    const wrapStyle2 = {
-      width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
-      ...(direction === "x" && {
-        transform: "rotate(-90deg) scaleX(-1)",
-      }),
-    };
-
-    const commonProps = {
-      root: scrollElementRef.current,
-      rootMargin: infiniteScroll ? rootMargin : mRootLocal,
-      style: infiniteScroll
-        ? ({
-            ...wrapStyle1,
-            position: "absolute",
-            top: `${elementTop}px`,
-            ...(left && { left: `${left}px` }),
-            ...(!xyObjectReverse &&
-              objectsPerDirection === 1 && {
-                transform: "translateX(-50%)",
-              }),
-          } as React.CSSProperties)
-        : wrapStyle1,
-    };
-
-    const innerContent = (
-      <div {...(attribute ? { "wrap-id": attribute } : {})} style={wrapStyle2}>
-        {content}
-      </div>
-    );
-
-    return infiniteScroll ? (
-      <div
-        style={{
-          position: "absolute",
-          top: `${elementTop}px`,
-          ...(left && { left: `${left}px` }),
-          ...(!xyObjectReverse &&
-            objectsPerDirection === 1 && {
-              transform: "translateX(-50%)",
-            }),
-          ...wrapStyle1,
-        }}
-      >
-        {innerContent}
-      </div>
-    ) : lazyRender ? (
-      <IntersectionTracker {...commonProps}>{innerContent}</IntersectionTracker>
-    ) : (
-      <div style={wrapStyle1}>{innerContent}</div>
-    );
-  }
-);
-
-ScrollObjectWrapper.displayName = "ScrollObject";

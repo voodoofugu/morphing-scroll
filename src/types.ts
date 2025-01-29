@@ -29,7 +29,7 @@ export type MorphScrollT = {
   scrollTop?: { value: number | "end" | null; duration?: number };
   stopLoadOnScroll?: boolean;
   onScrollValue?: (scroll: number) => void;
-  isScrolling?: (motion: boolean) => void;
+  isScrolling?: (motion: boolean) => boolean;
 
   // Visual Settings
   size?: number[];
