@@ -279,7 +279,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [objectsWrapperHeight, pLocalY]);
 
   const objectsWrapperWidthFull = React.useMemo(() => {
-    return objectsWrapperWidth + pLocalX;
+    return objectsWrapperWidth ? objectsWrapperWidth + pLocalX : 0;
   }, [objectsWrapperWidth, pLocalX]);
 
   const scrollTopFromRef = scrollElementRef.current?.scrollTop || 0;
@@ -955,7 +955,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             : "fit-content",
         width: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
 
-        // ...((objectsSize[1] === "none" || objectsSize[2] === "none") && {
+        // ...(objectsSize[1] === "none" && {
         //   padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         // }),
         ...(progressTrigger.content && { cursor: "grab" }),
@@ -1113,9 +1113,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               : {}),
           }}
         >
-          {(typeof objectsSize[0] !== "string" ||
-            typeof objectsSize[1] !== "string") &&
-          infiniteScroll ? (
+          {objectsSize[0] !== "none" && objectsSize[1] !== "none" ? (
             objectsWrapper
           ) : (
             <ResizeTracker onResize={wrapResize}>
