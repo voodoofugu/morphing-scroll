@@ -109,9 +109,38 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // variables
   const validChildren = React.useMemo(() => {
-    return React.Children.toArray(children).filter(
-      (child) => child !== null && child !== undefined
-    );
+    const filterValidChildren = (child: React.ReactNode): React.ReactNode[] => {
+      if (child === null || child === undefined) {
+        return [];
+      }
+
+      if (React.isValidElement(child)) {
+        const childElement = child as React.ReactElement<any>;
+
+        if (childElement.type === React.Fragment) {
+          return React.Children.toArray(childElement.props.children).flatMap(
+            filterValidChildren
+          );
+        }
+
+        if (typeof childElement.type === "function") {
+          const renderedChild = (childElement.type as React.FC<any>)(
+            childElement.props
+          );
+          if (renderedChild === null || renderedChild === undefined) {
+            return [];
+          }
+        }
+
+        return [childElement];
+      }
+
+      return [child];
+    };
+
+    return React.Children.toArray(children)
+      .flatMap(filterValidChildren)
+      .filter(Boolean);
   }, [children]);
 
   const firstChildKey = React.useMemo(() => {
