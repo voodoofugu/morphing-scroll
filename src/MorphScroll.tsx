@@ -80,6 +80,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     width: 0,
     height: 0,
   });
+  const [emptyElementKeys, setEmptyElementKeys] = React.useState<string[]>([]);
 
   const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
 
@@ -123,15 +124,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           );
         }
 
-        if (typeof childElement.type === "function") {
-          const renderedChild = (childElement.type as React.FC<any>)(
-            childElement.props
-          );
-          if (renderedChild === null || renderedChild === undefined) {
-            return [];
-          }
-        }
-
         return [childElement];
       }
 
@@ -140,8 +132,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return React.Children.toArray(children)
       .flatMap(filterValidChildren)
-      .filter(Boolean);
-  }, [children]);
+      .filter(Boolean)
+      .filter((child) =>
+        React.isValidElement(child)
+          ? !emptyElementKeys.includes(child.key as string)
+          : true
+      );
+  }, [children, emptyElementKeys]);
 
   const firstChildKey = React.useMemo(() => {
     if (scrollTopLocal.value !== "end") return null;
@@ -876,7 +873,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         {innerContent}
       </div>
     ) : lazyRender ? (
-      <IntersectionTracker {...commonProps}>{innerContent}</IntersectionTracker>
+      <IntersectionTracker key={key} {...commonProps}>
+        {innerContent}
+      </IntersectionTracker>
     ) : (
       <div key={key} style={wrapStyle1}>
         {innerContent}
@@ -949,20 +948,35 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       return () => {
         if (cancelScroll) cancelScroll(); // cancelAnimationFrame for smoothScroll
-        loadedObjects.current = [];
         scrollTimeout.current && clearTimeout(scrollTimeout.current);
+        loadedObjects.current = [];
       };
     }
   }, [localScrollTop, objectsWrapperHeight]);
 
+  const getDataIdsFromAtr = React.useCallback(() => {
+    const elements = document.querySelectorAll(`[wrap-id^="${id}-"]`);
+    return elements;
+  }, []);
+
   React.useEffect(() => {
     if (stopLoadOnScroll) {
-      const elements = document.querySelectorAll(`[wrap-id^="${id}-"]`);
-      const dataIds = Array.from(elements, (el) => el.getAttribute("wrap-id"));
-
+      const dataIds = Array.from(getDataIdsFromAtr(), (el) =>
+        el.getAttribute("wrap-id")
+      );
       loadedObjects.current = dataIds;
     }
   }, [scrollingStatus]);
+
+  React.useEffect(() => {
+    const emptyElementKays = Array.from(getDataIdsFromAtr())
+      .filter((el) => el.children.length === 0)
+      .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
+      .filter(Boolean) as string[];
+
+    setEmptyElementKeys(emptyElementKays);
+    console.log("emptyElementKays", emptyElementKays);
+  }, [children]);
 
   // contents
   const objectsWrapper = (
@@ -1059,7 +1073,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             return scrollObjectWrapper(
               elementTop,
               left,
-              "",
+              `${id}-${key}`,
               childLocal,
               key ?? ""
             );
@@ -1068,7 +1082,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           return scrollObjectWrapper(
             0,
             0,
-            `${stopLoadOnScroll ? `${id}-${key}` : ""}`,
+            `${id}-${key}`,
             childLocal,
             key ?? ""
           );
