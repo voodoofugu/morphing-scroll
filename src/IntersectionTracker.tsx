@@ -21,18 +21,13 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   >(null);
 
   const margin = numOrArrFormat(rootMargin);
+  const rootMarginStr = margin
+    ? `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`
+    : "";
 
-  const callback = ([entry]: IntersectionObserverEntry[]) => {
+  const callback = React.useCallback(([entry]: IntersectionObserverEntry[]) => {
     setIsVisible(entry.isIntersecting);
-  };
-
-  const options: IntersectionObserverInit = {
-    root,
-    threshold,
-    rootMargin: margin
-      ? `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`
-      : "",
-  };
+  }, []);
 
   const clearTimeoutRef = () => {
     if (timeoutRef.current) {
@@ -42,37 +37,41 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   };
 
   React.useEffect(() => {
-    if (visibleContent) return;
-
-    const observer = new IntersectionObserver(callback, options);
+    const observer = new IntersectionObserver(callback, {
+      root,
+      threshold,
+      rootMargin: rootMarginStr,
+    });
 
     if (observableElement.current) {
       observer.observe(observableElement.current);
     }
 
     return () => {
-      if (observableElement.current) {
-        observer.unobserve(observableElement.current);
-      }
+      observer.disconnect();
     };
-  }, [root, threshold, rootMargin, visibleContent]);
+  }, [root, threshold, rootMarginStr]);
 
   React.useEffect(() => {
-    if (visibleContent || !onVisible || !isVisible) return;
+    if (!isVisible || !onVisible) return;
     clearTimeoutRef();
 
     if (intersectionDelay) {
-      timeoutRef.current = setTimeout(onVisible, intersectionDelay);
+      timeoutRef.current = setTimeout(() => {
+        if (isVisible && onVisible) {
+          onVisible();
+        }
+      }, intersectionDelay);
     } else {
-      onVisible();
+      if (isVisible && onVisible) {
+        onVisible();
+      }
     }
 
-    return () => {
-      clearTimeoutRef();
-    };
-  }, [isVisible, intersectionDelay, onVisible, visibleContent]);
+    return () => clearTimeoutRef();
+  }, [isVisible, intersectionDelay, onVisible]);
 
-  const content = visibleContent ? children : isVisible && children;
+  const content = visibleContent || isVisible ? children : null;
 
   return (
     <div ref={observableElement} intersection-tracker="〈•〉" style={style}>

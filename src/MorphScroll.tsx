@@ -30,12 +30,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   progressReverse = false,
   progressTrigger = { wheel: true },
   progressVisibility = "visible",
-  lazyRender = false,
-  rootMargin = 0,
   suspending = false,
   fallback = null,
   scrollTop,
-  infiniteScroll = false,
   edgeGradient,
   objectsWrapFullMinSize = false,
   children,
@@ -46,6 +43,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   isScrolling,
   stopLoadOnScroll = false,
+
+  render = { default: true },
 }) => {
   const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
 
@@ -66,6 +65,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  const emptyElementKeysString = React.useRef<string>("");
 
   const [scrollingStatus, setScrollingStatus] = React.useState(false);
   const [receivedScrollSize, setReceivedScrollSize] = React.useState({
@@ -80,7 +80,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     width: 0,
     height: 0,
   });
-  const [emptyElementKeys, setEmptyElementKeys] = React.useState<string[]>([]);
 
   const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
 
@@ -135,10 +134,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       .filter(Boolean)
       .filter((child) =>
         React.isValidElement(child)
-          ? !emptyElementKeys.includes(child.key as string)
+          ? !emptyElementKeysString.current.includes(child.key as string)
           : true
       );
-  }, [children, emptyElementKeys]);
+  }, [children, emptyElementKeysString.current]);
 
   const firstChildKey = React.useMemo(() => {
     if (scrollTopLocal.value !== "end") return null;
@@ -217,8 +216,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction === "x" ? objectsSizeLocal[1] : objectsSizeLocal[0];
 
   const mRootLocal = React.useMemo(() => {
-    return numOrArrFormat(rootMargin, direction === "x");
-  }, [rootMargin, direction]);
+    return numOrArrFormat(
+      render.type === "lazy" ? render.rootMargin || 0 : 0,
+      direction === "x"
+    );
+  }, [render, direction]);
+
   const [mRootX, mRootY] = mRootLocal ? [mRootLocal[2], mRootLocal[0]] : [0, 0];
 
   const sizeLocal = React.useMemo(() => {
@@ -251,7 +254,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [xyObjectReverse, xyReverse, gapX, pLocalX]);
 
   const splitIndices = React.useMemo(() => {
-    if (!infiniteScroll || objectsPerDirection <= 1) {
+    if (render.type !== "virtual" || objectsPerDirection <= 1) {
       return [];
     }
 
@@ -269,7 +272,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     });
 
     return result;
-  }, [children, objectsPerDirection, infiniteScroll]);
+  }, [children, objectsPerDirection, render.type]);
 
   const childsPerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -281,7 +284,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const objPerDirLocal = objectsPerDirection ? objectsPerDirection : 1;
     return xyObjectReverse
       ? xyObjectReverse * objPerDirLocal + (objPerDirLocal - 1) * gapY
-      : !infiniteScroll
+      : render.type !== "virtual"
       ? receivedWrapSize.width
       : (receivedChildSize.width + gapY) * objPerDirLocal - gapY;
   }, [
@@ -290,15 +293,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     gapY,
     receivedWrapSize,
     receivedChildSize,
+    render.type,
   ]);
 
   const objectsWrapperHeight = React.useMemo(() => {
     return xyObject
       ? xyObject * childsPerDirection + (childsPerDirection - 1) * gapX
-      : !infiniteScroll
+      : render.type !== "virtual"
       ? receivedWrapSize.height
       : (receivedChildSize.height + gapX) * childsPerDirection - gapX;
-  }, [xyObject, childsPerDirection, gapX, receivedWrapSize, receivedChildSize]);
+  }, [
+    xyObject,
+    childsPerDirection,
+    gapX,
+    receivedWrapSize,
+    receivedChildSize,
+    render.type,
+  ]);
 
   const objectsWrapperHeightFull = React.useMemo(() => {
     return objectsWrapperHeight ? objectsWrapperHeight + pLocalY : 0;
@@ -346,7 +357,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     let lastIndices: number[] = [];
     let alignSpace: number = 0;
 
-    if (infiniteScroll && elementsAlign) {
+    if (render.type === "virtual" && elementsAlign) {
       const indices = Array.from(
         { length: validChildren.length },
         (_, index) => index
@@ -396,7 +407,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const elementTop = (function (index: number) {
         return index !== 0 ? ((xyObject ?? 0) + gapX) * index + pT : pT;
       })(
-        infiniteScroll
+        render.type === "virtual"
           ? objectsPerDirection > 1
             ? indexAndSubIndex[1]
             : index
@@ -404,13 +415,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
 
       const elementBottom = (function () {
-        return infiniteScroll && objectsSizeLocal[1]
+        return render.type === "virtual" && objectsSizeLocal[1]
           ? elementTop + objectsSizeLocal[1]
           : 0;
       })();
 
       const left =
-        infiniteScroll && xyObjectReverse
+        render.type === "virtual" && xyObjectReverse
           ? xyObjectReverse * indexAndSubIndex[0] +
             gapY * indexAndSubIndex[0] +
             pL +
@@ -432,7 +443,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     splitIndices,
     objectsSizeLocal,
     gap,
-    infiniteScroll,
+    render.type,
     objectsPerDirection,
   ]);
 
@@ -577,18 +588,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [xy, objectsWrapperHeightFull]);
 
   const handleScroll = React.useCallback(() => {
-    forceUpdate();
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
     // scroll status
+    const shouldUpdateScroll = stopLoadOnScroll || isScrolling;
     !scrollingStatus && isScrolling?.(true);
-    (stopLoadOnScroll || isScrolling) && setScrollingStatus(true);
+    shouldUpdateScroll && setScrollingStatus(true);
 
     scrollTimeout.current && clearTimeout(scrollTimeout.current);
     scrollTimeout.current = setTimeout(() => {
-      (stopLoadOnScroll || isScrolling) && setScrollingStatus(false);
+      shouldUpdateScroll && setScrollingStatus(false);
       isScrolling?.(false);
+      render.type !== "default" && updateEmptyElementKeys();
+      forceUpdate();
     }, 200);
 
     // newScroll
@@ -604,9 +617,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
 
       // avoid jumping to the top when loading new items on top in the scroll
-      if (scrollEl.scrollTop === 0 && clickedObject.current === "none") {
-        scrollEl.scrollTop = 1;
-      }
+      // if (scrollEl.scrollTop === 0 && clickedObject.current === "none") {
+      //   scrollEl.scrollTop = 1;
+      // }
       // onScrollValue
       if (onScrollValue) {
         onScrollValue(scrollEl.scrollTop);
@@ -614,6 +627,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     edgeGradient && sliderAndArrowsCheck();
+    render.type !== "default" && updateEmptyElementKeys();
+
+    forceUpdate();
   }, [
     xy,
     thumbSize,
@@ -835,19 +851,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const commonProps = {
       root: scrollElementRef.current,
-      rootMargin: infiniteScroll ? rootMargin : mRootLocal,
-      style: infiniteScroll
-        ? ({
-            ...wrapStyle1,
-            position: "absolute",
-            top: `${elementTop}px`,
-            ...(left && { left: `${left}px` }),
-            ...(!xyObjectReverse &&
-              objectsPerDirection === 1 && {
-                transform: "translateX(-50%)",
-              }),
-          } as React.CSSProperties)
-        : wrapStyle1,
+      rootMargin: render.type === "lazy" ? render.rootMargin : mRootLocal,
+      style:
+        render.type === "virtual"
+          ? ({
+              ...wrapStyle1,
+              position: "absolute",
+              top: `${elementTop}px`,
+              ...(left && { left: `${left}px` }),
+              ...(!xyObjectReverse &&
+                objectsPerDirection === 1 && {
+                  transform: "translateX(-50%)",
+                }),
+            } as React.CSSProperties)
+          : wrapStyle1,
     };
 
     const innerContent = (
@@ -856,7 +873,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       </div>
     );
 
-    return infiniteScroll ? (
+    return render.type === "virtual" ? (
       <div
         key={key}
         style={{
@@ -872,7 +889,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       >
         {innerContent}
       </div>
-    ) : lazyRender ? (
+    ) : render.type === "lazy" ? (
       <IntersectionTracker key={key} {...commonProps}>
         {innerContent}
       </IntersectionTracker>
@@ -883,49 +900,35 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     );
   };
 
+  const getDataIdsFromAtr = React.useCallback(() => {
+    const elements = document.querySelectorAll(`[wrap-id^="${id}-"]`);
+    return elements;
+  }, []);
+
+  const updateEmptyElementKeys = React.useCallback(() => {
+    const emptyElementKays = Array.from(getDataIdsFromAtr())
+      .filter((el) => el.children.length === 0)
+      .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
+      .filter(Boolean)
+      .join("/");
+    if (!emptyElementKeysString.current) {
+      emptyElementKeysString.current = emptyElementKays;
+    } else if (
+      emptyElementKays &&
+      emptyElementKeysString.current !== emptyElementKays
+    ) {
+      emptyElementKeysString.current = emptyElementKays;
+    }
+  }, []);
+
   // effects
   React.useEffect(() => {
-    // warn handling
-    function warn(
-      prop: string,
-      missingProp: string,
-      availability: boolean = false
-    ) {
-      console.warn(
-        `You are using the ${prop} ${
-          availability ? "with" : "without"
-        } ${missingProp} 👺`
-      );
-    }
-    if (!lazyRender && rootMargin) {
-      progressReverse && warn("rootMargin", "lazyRender");
-    }
-    if (infiniteScroll && lazyRender) {
-      progressReverse && warn("lazyRender", "infiniteScroll", true);
-    }
-    if (progressVisibility === "hidden") {
-      progressReverse &&
-        warn("progressReverse", "progressVisibility `hidden`", true);
-      progressTrigger.progressElement &&
-        warn(
-          "progressTrigger [`scrollThumb`]",
-          "progressVisibility `hidden`",
-          true
-        );
-      progressTrigger.arrows &&
-        warn("progressTrigger [`arrows`]", "progressVisibility `hidden`", true);
-    }
-
-    if (!suspending && fallback) {
-      progressReverse && warn("fallback", "suspending");
-    }
-
-    // other
-    if (infiniteScroll) {
+    if (render.type === "virtual") {
       forceUpdate();
     }
 
     sliderAndArrowsCheck();
+    updateEmptyElementKeys();
   }, []);
 
   React.useEffect(() => {
@@ -954,11 +957,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
   }, [localScrollTop, objectsWrapperHeight]);
 
-  const getDataIdsFromAtr = React.useCallback(() => {
-    const elements = document.querySelectorAll(`[wrap-id^="${id}-"]`);
-    return elements;
-  }, []);
-
   React.useEffect(() => {
     if (stopLoadOnScroll) {
       const dataIds = Array.from(getDataIdsFromAtr(), (el) =>
@@ -967,16 +965,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       loadedObjects.current = dataIds;
     }
   }, [scrollingStatus]);
-
-  React.useEffect(() => {
-    const emptyElementKays = Array.from(getDataIdsFromAtr())
-      .filter((el) => el.children.length === 0)
-      .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
-      .filter(Boolean) as string[];
-
-    setEmptyElementKeys(emptyElementKays);
-    console.log("emptyElementKays", emptyElementKays);
-  }, [children]);
 
   // contents
   const objectsWrapper = (
@@ -992,7 +980,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       style={{
         // padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
-          (infiniteScroll && objectsWrapperHeightFull) ||
+          (render.type === "virtual" && objectsWrapperHeightFull) ||
           objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
@@ -1002,28 +990,28 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         //   padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         // }),
         ...(progressTrigger.content && { cursor: "grab" }),
-        ...(infiniteScroll && {
+        ...(render.type === "virtual" && {
           position: "relative",
         }),
-        ...(!infiniteScroll && {
+        ...(render.type !== "virtual" && {
           display: "flex",
           alignContent: "center",
         }),
-        ...(!infiniteScroll &&
+        ...(render.type !== "virtual" &&
           direction === "y" && {
             alignItems: "center",
           }),
-        ...(!infiniteScroll &&
+        ...(render.type !== "virtual" &&
           objectsPerDirection > 1 && {
             flexWrap: "wrap",
           }),
-        ...(!infiniteScroll &&
+        ...(render.type !== "virtual" &&
           objectsPerDirection <= 1 && {
             flexDirection: "column",
           }),
-        ...(gap && !infiniteScroll && { gap: `${gapX}px ${gapY}px` }),
+        ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(elementsAlign &&
-          !infiniteScroll && {
+          render.type !== "virtual" && {
             justifyContent:
               elementsAlign === "start"
                 ? "flex-start"
@@ -1060,7 +1048,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             childRenderOnScroll
           );
 
-        if (infiniteScroll) {
+        if (render.type === "virtual") {
           const { elementTop, elementBottom, left } =
             memoizedChildrenData[index];
           const isElementVisible =

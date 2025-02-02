@@ -41,7 +41,7 @@ export type MorphScrollT = {
   edgeGradient?: boolean | { color?: string; size?: number };
   objectsWrapFullMinSize?: boolean;
 
-  // Progress and Rendering
+  // Progress Settings
   progressReverse?: boolean;
   progressVisibility?: "visible" | "hover" | "hidden";
   progressTrigger?: {
@@ -51,10 +51,11 @@ export type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
 
-  // Additional Settings
-  lazyRender?: boolean;
-  infiniteScroll?: boolean;
-  rootMargin?: number[] | number;
+  // Rendering Settings
+  render?:
+    | { type: "default" }
+    | { type: "lazy"; rootMargin?: number }
+    | { type: "virtual" };
   suspending?: boolean;
   fallback?: React.ReactNode;
 };
