@@ -85,7 +85,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // default
   const scrollTopLocal = {
-    value: 0,
+    // value: 1,
     duration: 200,
     ...scrollTop,
   };
