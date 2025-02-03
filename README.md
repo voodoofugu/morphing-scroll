@@ -30,7 +30,7 @@ npm install morphing-scroll
 
 ### Props:
 
-##### — GENERAL SETTINGS:
+##### - GENERAL SETTINGS:
 
 - **`className`:** _Additional classes for the component._
   <details>
@@ -78,7 +78,7 @@ npm install morphing-scroll
 
   </details>
 
-##### — SCROLL SETTINGS:
+##### - SCROLL SETTINGS:
 
 - **`type`:** _Type of progress element._
     <details>
@@ -237,7 +237,7 @@ npm install morphing-scroll
 
   </details>
 
-##### — VISUAL SETTINGS:
+##### - VISUAL SETTINGS:
 
 - **`size`:** _MorphScroll width and height._
   <details>
@@ -276,7 +276,7 @@ npm install morphing-scroll
   This parameter is the only required one. It defines the size of cells for each of your objects. <code>ObjectsSize</code> use an array of values.<br />
   *The values are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.<br />
   <br />
-  If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes—they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes for absolute positioning.. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
+  If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes for absolute positioning.. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
   <br />
   If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.</em><br />
   <br />
@@ -489,7 +489,7 @@ npm install morphing-scroll
 
   </details>
 
-##### — PROGRESS AND RENDERING:
+##### - PROGRESS AND RENDERING:
 
 - **`progressTrigger`:** _Triggers for the progress bar._
   <details>
