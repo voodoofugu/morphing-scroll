@@ -44,7 +44,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   isScrolling,
   stopLoadOnScroll = false,
 
-  render = { default: true },
+  render = { type: "default" },
+  emptyElements,
 }) => {
   const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
 
@@ -108,36 +109,40 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const edgeGradientDefault = { color: "rgba(0,0,0,0.4)", size: 40 };
 
   // variables
-  const validChildren = React.useMemo(() => {
-    const filterValidChildren = (child: React.ReactNode): React.ReactNode[] => {
+  // optimization validChildren
+  const filterValidChildren = React.useCallback(
+    (child: React.ReactNode): React.ReactNode[] => {
       if (child === null || child === undefined) {
         return [];
       }
-
       if (React.isValidElement(child)) {
         const childElement = child as React.ReactElement<any>;
-
         if (childElement.type === React.Fragment) {
           return React.Children.toArray(childElement.props.children).flatMap(
             filterValidChildren
           );
         }
-
         return [childElement];
       }
-
       return [child];
-    };
-
+    },
+    []
+  );
+  const shouldTrackKeys = emptyElements?.mode === "clear";
+  const keys = React.useMemo(
+    () => (shouldTrackKeys ? emptyElementKeysString.current : ""),
+    [shouldTrackKeys, emptyElementKeysString.current]
+  );
+  const validChildren = React.useMemo(() => {
     return React.Children.toArray(children)
       .flatMap(filterValidChildren)
       .filter(Boolean)
       .filter((child) =>
-        React.isValidElement(child)
+        shouldTrackKeys && React.isValidElement(child)
           ? !emptyElementKeysString.current.includes(child.key as string)
           : true
       );
-  }, [children, emptyElementKeysString.current]);
+  }, [children, shouldTrackKeys, keys]);
 
   const firstChildKey = React.useMemo(() => {
     if (scrollTopLocal.value !== "end") return null;
@@ -345,7 +350,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? scrollTopLocal.value
       : scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy
       ? endObjectsWrapper
-      : 1;
+      : 0;
   }, [scrollTop, objectsWrapperHeightFull, endObjectsWrapper]);
 
   const translateProperty = React.useMemo(() => {
@@ -744,6 +749,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [handleMouseMove, handleMouseUp, customScrollRef]
   );
 
+  // functions
   const scrollResize = React.useCallback(
     (width: number, height: number) => {
       const newSize = { width: width, height: height - pLocalY };
@@ -1025,13 +1031,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }}
     >
       {validChildren.map((child, index) => {
-        const key = (child as React.ReactElement).key;
+        const key = (child as React.ReactElement).key || "";
 
         const childRenderOnScroll =
           stopLoadOnScroll &&
           !loadedObjects.current.includes(`${id}-${key}`) &&
           scrollingStatus
             ? fallback
+            : emptyElements?.mode === "fallback" &&
+              emptyElementKeysString.current.includes(key)
+            ? emptyElements.element ?? fallback
             : child;
 
         const childLocal =
@@ -1063,17 +1072,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               left,
               `${id}-${key}`,
               childLocal,
-              key ?? ""
+              key
             );
           }
         } else {
-          return scrollObjectWrapper(
-            0,
-            0,
-            `${id}-${key}`,
-            childLocal,
-            key ?? ""
-          );
+          return scrollObjectWrapper(0, 0, `${id}-${key}`, childLocal, key);
         }
       })}
     </div>

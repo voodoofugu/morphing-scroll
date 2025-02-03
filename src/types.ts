@@ -39,23 +39,24 @@ export type MorphScrollT = {
   contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number };
-  objectsWrapFullMinSize?: boolean;
-
-  // Progress Settings
   progressReverse?: boolean;
   progressVisibility?: "visible" | "hover" | "hidden";
+  objectsWrapFullMinSize?: boolean;
+
+  // Progress & Rendering
   progressTrigger?: {
     wheel?: boolean;
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
-
-  // Rendering Settings
   render?:
     | { type: "default" }
     | { type: "lazy"; rootMargin?: number }
     | { type: "virtual" };
+  emptyElements?:
+    | { mode: "clear" }
+    | { mode: "fallback"; element?: React.ReactNode };
   suspending?: boolean;
   fallback?: React.ReactNode;
 };

@@ -105,6 +105,31 @@ npm install morphing-scroll
     </details>
     <h2>
 
+- **`direction`:** _Scrolling direction._
+  <details>
+  <summary><strong>More:</strong></summary>
+  <strong>‣ Type:</strong> "x" | "y"<br />
+  <br />
+  <strong>‣ Default:</strong> "y"<br />
+  <br />
+  <strong>‣ Description:</strong> <em><br />
+  This parameter changes the scroll or slider type direction based on the provided value.<br />
+  You can set it to horizontal or vertical to customize the component according to your needs.</em><br />
+  <br />
+  <strong>‣ Example:</strong>
+
+  ```tsx
+  <MorphScroll
+    direction="x"
+    // another props
+  >
+    {children}
+  </MorphScroll>
+  ```
+
+  </details>
+  <h2>
+
 - **`scrollTop`:** _Scroll position and animation duration._
   <details>
   <summary><strong>More:</strong></summary>
@@ -315,31 +340,6 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`direction`:** _Scrolling direction._
-  <details>
-  <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> "x" | "y"<br />
-  <br />
-  <strong>‣ Default:</strong> "y"<br />
-  <br />
-  <strong>‣ Description:</strong> <em><br />
-  This parameter changes the scroll or slider type direction based on the provided value.<br />
-  You can set it to horizontal or vertical to customize the component according to your needs.</em><br />
-  <br />
-  <strong>‣ Example:</strong>
-
-  ```tsx
-  <MorphScroll
-    direction="x"
-    // another props
-  >
-    {children}
-  </MorphScroll>
-  ```
-
-  </details>
-  <h2>
-
 - **`contentAlign`:** _Aligns the content when it is smaller than the MorphScroll `size`._
   <details>
   <summary><strong>More:</strong></summary>
@@ -504,10 +504,13 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`lazyRender`:** _Lazy rendering of objects._
+- **`render`:** _Types of rendering for optimization._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> boolean<br />
+  <strong>‣ Type:</strong><br />
+    | { type: "default" }<br />
+    | { type: "lazy"; rootMargin?: number }<br />
+    | { type: "virtual" }<br />
   <br />
   <strong>‣ Default:</strong> false<br />
   <br />
@@ -527,33 +530,14 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`infiniteScroll`:** _Infinite scrolling._
+- **`emptyElements`:** _Processing of empty scroll elements._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> boolean<br />
+  <strong>‣ Type:</strong><br />
+    | { mode: "clear" }<br />
+    | { mode: "fallback"; element?: React.ReactNode }<br />
   <br />
   <strong>‣ Default:</strong> false<br />
-  <br />
-  <strong>‣ Description:</strong> <em><br />
-  .</em><br />
-  <br />
-  <strong>‣ Example:</strong>
-
-  ```tsx
-  <MorphScroll
-  // another props
-  >
-    {children}
-  </MorphScroll>
-  ```
-
-  </details>
-  <h2>
-
-- **`rootMargin`:** _Margin expansion for object rendering._
-  <details>
-  <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> number[] | number<br />
   <br />
   <strong>‣ Description:</strong> <em><br />
   .</em><br />

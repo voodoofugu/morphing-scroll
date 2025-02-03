@@ -148,6 +148,11 @@ export type MorphScrollT = {
    */
   type?: "scroll" | "slider";
   /**---
+   * ✨ *Scrolling direction.*
+   * @default-"y"
+   */
+  direction?: "x" | "y";
+  /**---
    * ✨ *Scroll position and animation duration.*
    */
   scrollTop?: { value: number | "end" | null; duration?: number };
@@ -185,11 +190,6 @@ export type MorphScrollT = {
    * ✨ *Padding for the `objectsWrapper`.*
    */
   padding?: number[] | number;
-  /**---
-   * ✨ *Scrolling direction.*
-   * @default-"y"
-   */
-  direction?: "x" | "y";
   /**---
    * ✨ *Aligns the content when it is smaller than the MorphScroll `size`.*
    */
@@ -235,18 +235,19 @@ export type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   /**---
-   * ✨ *Lazy rendering of objects.*
-   * @default false
+   * ✨ *Types of rendering for optimization.*
+   * @default-{ type: "default" }
    */
-  lazyRender?: boolean;
+  render?:
+    | { type: "default" }
+    | { type: "lazy"; rootMargin?: number }
+    | { type: "virtual" };
   /**---
-   * ✨ *Infinite scrolling.*
+   * ✨ *Processing of empty scroll elements.*
    */
-  infiniteScroll?: boolean;
-  /**---
-   * ✨ *Margin expansion for object rendering.*
-   */
-  rootMargin?: number[] | number;
+  emptyElements?:
+    | { mode: "clear" }
+    | { mode: "fallback"; element?: React.ReactNode };
   /**---
    * ✨ *Adds React Suspense.*
    */
@@ -268,6 +269,7 @@ export type MorphScrollT = {
  *
  * #### • SCROLL SETTINGS:
  * - `type`
+ * - `direction`
  * - `scrollTop`
  * - `stopLoadOnScroll`
  * - `onScrollValue`
@@ -278,7 +280,6 @@ export type MorphScrollT = {
  * - `objectsSize` *◄ REQUIRED ►*
  * - `gap`
  * - `padding`
- * - `direction`
  * - `contentAlign`
  * - `elementsAlign`
  * - `edgeGradient`
@@ -288,9 +289,8 @@ export type MorphScrollT = {
  *
  * #### • PROGRESS AND RENDERING:
  * - `progressTrigger`
- * - `lazyRender`
- * - `infiniteScroll`
- * - `rootMargin`
+ * - `render`
+ * - `emptyElements`
  * - `suspending`
  * - `fallback`
  * ##### ! MORE DETAILS IN PROPS OR LINKS !
