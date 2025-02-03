@@ -479,11 +479,11 @@ npm install morphing-scroll
 - **`progressTrigger`:** _Triggers for the progress bar._
   <details>
   <summary><strong>More:</strong></summary>
-  <strong>‣ Type:</strong> {><br />
-    wheel?: boolean;><br />
-    content?: boolean;><br />
-    progressElement?: boolean | React.ReactNode;><br />
-    arrows?: boolean | { size?: number; element?: React.ReactNode };><br />
+  <strong>‣ Type:</strong> {<br />
+      wheel?: boolean;><br />
+      content?: boolean;><br />
+      progressElement?: boolean | React.ReactNode;><br />
+      arrows?: boolean | { size?: number; element?: React.ReactNode };><br />
   }<br />
   <br />
   <strong>‣ Default:</strong> { wheel: true }<br />
