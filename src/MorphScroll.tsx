@@ -350,7 +350,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? scrollTopLocal.value
       : scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy
       ? endObjectsWrapper
-      : 0;
+      : null;
   }, [scrollTop, objectsWrapperHeightFull, endObjectsWrapper]);
 
   const translateProperty = React.useMemo(() => {
@@ -605,8 +605,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollTimeout.current = setTimeout(() => {
       shouldUpdateScroll && setScrollingStatus(false);
       isScrolling?.(false);
-      render.type !== "default" && updateEmptyElementKeys();
-      forceUpdate();
+      if (render.type !== "default") {
+        updateEmptyElementKeys();
+        forceUpdate();
+      }
     }, 200);
 
     // newScroll
@@ -796,7 +798,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   let frameId: number;
   const smoothScroll = React.useCallback(
-    (targetScrollTop: number, callback?: () => void) => {
+    (targetScrollTop: number | null, callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
@@ -807,9 +809,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / scrollTopLocal.duration, 1);
 
-        if (targetScrollTop !== undefined && targetScrollTop !== null) {
+        if (targetScrollTop !== undefined) {
           scrollEl.scrollTop =
-            startScrollTop + (targetScrollTop - startScrollTop) * progress;
+            startScrollTop +
+            ((targetScrollTop || 0) - startScrollTop) * progress;
         }
 
         if (timeElapsed < scrollTopLocal.duration) {
