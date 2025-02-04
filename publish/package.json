@@ -14,7 +14,7 @@
     "scroller"
   ],
   "peerDependencies": {
-    "react": ">=16 <20"
+    "react": ">=18 <20"
   },
   "repository": {
     "type": "git",
