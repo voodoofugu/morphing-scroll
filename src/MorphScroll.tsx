@@ -187,11 +187,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const pLocalX = pL + pR;
 
   const [gapX, gapY] = React.useMemo(() => {
-    return typeof gap === "number"
-      ? [gap, gap]
-      : direction === "x"
-      ? [gap?.[0] ?? 0, gap?.[1] ?? 0]
-      : [gap?.[1] ?? 0, gap?.[0] ?? 0];
+    if (typeof gap === "number") {
+      return [gap, gap];
+    }
+    if (Array.isArray(gap)) {
+      return direction === "x"
+        ? [gap[0] ?? 0, gap[1] ?? 0]
+        : [gap[1] ?? 0, gap[0] ?? 0];
+    }
+    return [0, 0];
   }, [gap, direction]);
 
   const objectsSizeLocal = React.useMemo(() => {
