@@ -306,11 +306,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const objectsWrapperHeight = React.useMemo(() => {
+    const childsQuantity = childsPerDirection - 1;
+    const childsGap = childsQuantity <= 0 ? 0 : childsQuantity * gapX;
     return xyObject
-      ? xyObject * childsPerDirection + (childsPerDirection - 1) * gapX
+      ? xyObject * childsPerDirection + childsGap
       : render.type !== "virtual"
       ? receivedWrapSize.height
-      : (receivedChildSize.height + gapX) * childsPerDirection - gapX;
+      : receivedChildSize.height + childsGap;
   }, [
     xyObject,
     childsPerDirection,
@@ -1183,7 +1185,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             </ResizeTracker>
           )}
         </div>
-
         {edgeGradient && (
           <div
             className="edge"
@@ -1205,7 +1206,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             }}
           ></div>
         )}
-
         {progressTrigger.arrows && (
           <>
             <div
@@ -1237,7 +1237,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         )}
 
         {progressVisibility !== "hidden" &&
-          thumbSize < xy &&
+          thumbSize < objectsWrapperHeight &&
           typeof progressTrigger.progressElement !== "boolean" && (
             <>
               {type !== "slider" ? (
