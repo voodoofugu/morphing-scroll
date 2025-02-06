@@ -552,8 +552,15 @@ npm install morphing-scroll
   <summary><strong><em>MORE:</em></strong></summary>
   <br />
   <strong>• Type:</strong><br />
-    | { mode: "clear" }<br />
-    | { mode: "fallback"; element?: React.ReactNode }<br />
+    | {
+        mode: "clear"
+        closeSelector?: string;
+      }<br />
+    | {
+        mode: "fallback";
+        closeSelector?: string;
+        element?: React.ReactNode
+      }<br />
   <br />
   <strong>• Default:</strong> false<br />
   <br />
