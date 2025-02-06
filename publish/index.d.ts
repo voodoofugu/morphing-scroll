@@ -246,8 +246,15 @@ export type MorphScrollT = {
    * ✨ *Processing of empty scroll elements.*
    */
   emptyElements?:
-    | { mode: "clear" }
-    | { mode: "fallback"; element?: React.ReactNode };
+    | {
+        mode: "clear";
+        closeClass?: string;
+      }
+    | {
+        mode: "fallback";
+        closeClass?: string;
+        element?: React.ReactNode;
+      };
   /**---
    * ✨ *Adds React Suspense.*
    */
