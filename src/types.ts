@@ -55,8 +55,12 @@ export type MorphScrollT = {
     | { type: "lazy"; rootMargin?: number }
     | { type: "virtual" };
   emptyElements?:
-    | { mode: "clear" }
-    | { mode: "fallback"; element?: React.ReactNode };
+    | { mode: "clear"; closeClass?: string }
+    | {
+        mode: "fallback";
+        closeClass?: string;
+        element?: React.ReactNode;
+      };
   suspending?: boolean;
   fallback?: React.ReactNode;
 };

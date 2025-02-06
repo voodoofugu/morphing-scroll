@@ -609,7 +609,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollTimeout.current = setTimeout(() => {
       shouldUpdateScroll && setScrollingStatus(false);
       isScrolling?.(false);
-      if (render.type !== "default") {
+      if (emptyElements && render.type !== "default") {
         updateEmptyElementKeys();
         forceUpdate();
       }
@@ -638,7 +638,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     edgeGradient && sliderAndArrowsCheck();
-    render.type !== "default" && updateEmptyElementKeys();
+    emptyElements && render.type !== "default" && updateEmptyElementKeys();
 
     forceUpdate();
   }, [
@@ -650,6 +650,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     sliderAndArrowsCheck,
     edgeGradient,
     isScrolling,
+    stopLoadOnScroll,
+    emptyElements,
+    render,
   ]);
 
   const handleMouseMove = React.useCallback(
@@ -813,11 +816,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / scrollTopLocal.duration, 1);
 
-        if (targetScrollTop !== undefined) {
-          scrollEl.scrollTop =
-            startScrollTop +
-            ((targetScrollTop || 0) - startScrollTop) * progress;
-        }
+        scrollEl.scrollTop =
+          startScrollTop + ((targetScrollTop ?? 0) - startScrollTop) * progress;
 
         if (timeElapsed < scrollTopLocal.duration) {
           requestAnimationFrame(scrollStep);
@@ -881,7 +881,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
 
     const innerContent = (
-      <div {...(attribute ? { "wrap-id": attribute } : {})} style={wrapStyle2}>
+      <div
+        {...(attribute ? { "wrap-id": attribute } : {})}
+        onClick={updateEmptyKeysClick}
+        style={wrapStyle2}
+      >
         {content}
       </div>
     );
@@ -928,11 +932,30 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       emptyElementKeysString.current = emptyElementKays;
     } else if (
       emptyElementKays &&
-      emptyElementKeysString.current !== emptyElementKays
+      !emptyElementKeysString.current.includes(emptyElementKays)
     ) {
-      emptyElementKeysString.current = emptyElementKays;
+      emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyElementKays}`;
     }
-  }, []);
+  }, [emptyElementKeysString.current]);
+
+  const updateEmptyKeysClick = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (!emptyElements?.closeClass) return;
+
+      const target = event.target as HTMLElement;
+      const closeClass =
+        target.classList.contains(`${emptyElements?.closeClass}`) ||
+        target.closest(`${emptyElements?.closeClass}`);
+
+      if (closeClass) {
+        scrollTimeout.current = setTimeout(() => {
+          updateEmptyElementKeys();
+          forceUpdate();
+        });
+      }
+    },
+    [emptyElements]
+  );
 
   // effects
   React.useEffect(() => {
@@ -941,7 +964,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     sliderAndArrowsCheck();
-    updateEmptyElementKeys();
+    emptyElements && updateEmptyElementKeys();
   }, []);
 
   React.useEffect(() => {
@@ -968,7 +991,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         loadedObjects.current = [];
       };
     }
-  }, [localScrollTop, objectsWrapperHeight]);
+  }, [localScrollTop]);
 
   React.useEffect(() => {
     if (stopLoadOnScroll) {
@@ -977,7 +1000,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
       loadedObjects.current = dataIds;
     }
-  }, [scrollingStatus]);
+  }, [stopLoadOnScroll]);
 
   // contents
   const objectsWrapper = (
