@@ -248,11 +248,11 @@ export type MorphScrollT = {
   emptyElements?:
     | {
         mode: "clear";
-        closeClass?: string;
+        closeSelector?: string;
       }
     | {
         mode: "fallback";
-        closeClass?: string;
+        closeSelector?: string;
         element?: React.ReactNode;
       };
   /**---
