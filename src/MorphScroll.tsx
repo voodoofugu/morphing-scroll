@@ -945,7 +945,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const target = event.target as HTMLElement;
       const closeSelector = target.closest(emptyElements?.closeSelector);
 
-      console.log("closeSelector", closeSelector);
       if (closeSelector) {
         scrollTimeout.current = setTimeout(() => {
           updateEmptyElementKeys();
