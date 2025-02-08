@@ -1,8 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
 import { IntersectionTrackerT } from "./types";
-
-import { numOrArrFormat } from "./MorphScroll";
+import numOrArrFormat from "./numOrArrFormat";
 
 const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   style,
