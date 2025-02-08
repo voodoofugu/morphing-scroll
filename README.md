@@ -137,7 +137,11 @@ npm install morphing-scroll
   <details>
   <summary><strong><em>MORE:</em></strong></summary>
   <br />
-  <strong>• Type:</strong> { value: number | "end" | null; duration?: number }<br />
+  <strong>• Type:</strong>{<br />
+      value: number | "end" | null;<br />
+      duration?: number;<br />
+      updater?: boolean;<br />
+    }<br />
   <br />
   <strong>• Default:</strong> { value: 1; duration: 200 }<br />
   <br />

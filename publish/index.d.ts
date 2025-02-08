@@ -155,7 +155,11 @@ export type MorphScrollT = {
   /**---
    * ✨ *Scroll position and animation duration.*
    */
-  scrollTop?: { value: number | "end" | null; duration?: number };
+  scrollTop?: {
+    value: number | "end" | null;
+    duration?: number;
+    updater?: boolean;
+  };
   /**---
    * ✨ *Stop loading when scrolling.*
    * @default-false

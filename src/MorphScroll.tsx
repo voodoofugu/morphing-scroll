@@ -86,9 +86,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // default
   const scrollTopLocal = {
-    // value: 1,
-    duration: 200,
-    ...scrollTop,
+    value: scrollTop?.value ?? 0,
+    duration: scrollTop?.duration ?? 200,
   };
 
   const pixelsForSwipe = 1;
@@ -155,7 +154,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     }
     return null;
-  }, [validChildren]);
+  }, [validChildren, scrollTopLocal.value]);
 
   const arrowsLocal = {
     ...arrowsDefault,
@@ -356,8 +355,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? scrollTopLocal.value
       : scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy
       ? endObjectsWrapper
-      : null;
-  }, [scrollTop, objectsWrapperHeightFull, endObjectsWrapper]);
+      : 0;
+  }, [objectsWrapperHeightFull, endObjectsWrapper, xy, scrollTopLocal.value]);
 
   const translateProperty = React.useMemo(() => {
     if (!sizeLocal[0] || !sizeLocal[1]) return 0;
@@ -807,33 +806,36 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   let frameId: number;
   const smoothScroll = React.useCallback(
-    (targetScrollTop: number | null, callback?: () => void) => {
+    (targetScrollTop: number, callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
       const startScrollTop = scrollEl.scrollTop;
-      const startTime = performance.now();
+      let startTime: number | null = null;
 
       const scrollStep = (currentTime: number) => {
-        const timeElapsed = currentTime - startTime;
+        if (startTime === null) startTime = currentTime; // Фиксируем начальное время в первом кадре
+
+        const timeElapsed = Math.round(currentTime - startTime);
         const progress = Math.min(timeElapsed / scrollTopLocal.duration, 1);
 
         scrollEl.scrollTop =
-          startScrollTop + ((targetScrollTop ?? 0) - startScrollTop) * progress;
+          startScrollTop + (targetScrollTop - startScrollTop) * progress;
 
-        if (timeElapsed < scrollTopLocal.duration) {
-          requestAnimationFrame(scrollStep);
+        if (timeElapsed <= scrollTopLocal.duration) {
+          frameId = requestAnimationFrame(scrollStep);
         } else {
           callback?.();
+          console.log("callback");
         }
       };
 
-      frameId = requestAnimationFrame(scrollStep);
+      frameId = requestAnimationFrame(scrollStep); // Первый кадр фиксирует startTime
 
-      // Возвращаем функцию для отмены
+      // Возвращаем функцию для отмены анимации
       return () => cancelAnimationFrame(frameId);
     },
-    [scrollElementRef]
+    [scrollElementRef, scrollTopLocal.duration, scrollTopLocal.value]
   );
 
   const scrollObjectWrapper = (
@@ -991,7 +993,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         loadedObjects.current = [];
       };
     }
-  }, [localScrollTop]);
+  }, [
+    scrollElementRef.current,
+    localScrollTop,
+    scrollTop?.updater,
+    scrollTopLocal.value,
+    firstChildKey,
+    firstChildKeyRef.current,
+    smoothScroll,
+  ]);
 
   React.useEffect(() => {
     if (stopLoadOnScroll) {
