@@ -803,7 +803,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         if (startTime === null) startTime = currentTime; // Фиксируем начальное время в первом кадре
 
         const timeElapsed = Math.round(currentTime - startTime);
-        const progress = Math.min(timeElapsed / scrollTopLocal.duration, 1);
+        const progress =
+          Math.min(timeElapsed / scrollTopLocal.duration, 1) || 0;
 
         scrollEl.scrollTop =
           startScrollTop + (targetScrollTop - startScrollTop) * progress;
@@ -812,7 +813,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           frameId = requestAnimationFrame(scrollStep);
         } else {
           callback?.();
-          console.log("callback");
         }
       };
 
