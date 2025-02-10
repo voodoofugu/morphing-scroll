@@ -72,7 +72,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // default
   const scrollTopLocal = {
-    value: scrollTop?.value ?? 0,
+    value: scrollTop?.value ?? null,
     duration: scrollTop?.duration ?? 200,
   };
 
@@ -335,14 +335,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       objectsWrapperHeightFull - xy // in scroll vindow
     );
   }, [objectsWrapperHeightFull, xy]);
-
-  const localScrollTop = React.useMemo(() => {
-    return typeof scrollTopLocal.value === "number"
-      ? scrollTopLocal.value
-      : scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy
-      ? endObjectsWrapper
-      : 0;
-  }, [objectsWrapperHeightFull, endObjectsWrapper, xy, scrollTopLocal.value]);
 
   const translateProperty = React.useMemo(() => {
     if (!sizeLocal[0] || !sizeLocal[1]) return 0;
@@ -959,18 +951,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (scrollElementRef.current && validChildren.length > 0) {
       let cancelScroll: (() => void) | null;
 
-      if (scrollTopLocal.value === "end") {
+      if (scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy) {
         if (!firstChildKeyRef.current) {
           firstChildKeyRef.current = firstChildKey;
         }
+
         cancelScroll =
           firstChildKeyRef.current === firstChildKey
-            ? smoothScroll(localScrollTop)
+            ? smoothScroll(endObjectsWrapper)
             : null;
 
         firstChildKeyRef.current = firstChildKey;
-      } else {
-        cancelScroll = smoothScroll(localScrollTop);
+      } else if (typeof scrollTopLocal.value === "number") {
+        cancelScroll = smoothScroll(scrollTopLocal.value);
       }
 
       return () => {
@@ -980,13 +973,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
     }
   }, [
-    scrollElementRef.current,
-    localScrollTop,
     scrollTop?.updater,
     scrollTopLocal.value,
-    firstChildKey,
-    firstChildKeyRef.current,
     smoothScroll,
+    endObjectsWrapper,
   ]);
 
   React.useEffect(() => {
