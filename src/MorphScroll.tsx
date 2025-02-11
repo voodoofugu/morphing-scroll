@@ -91,7 +91,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     cursor: "pointer",
   };
 
-  const edgeGradientDefault = { color: "rgba(0,0,0,0.4)", size: 40 };
+  const edgeGradientDefault = { color: null, size: 40 };
 
   // variables
   // optimization validChildren
@@ -160,8 +160,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     width: "100%",
     pointerEvents: "none",
     transition: "opacity 0.1s ease-in-out",
-    background: `linear-gradient(${edgeGradientLocal.color}, transparent)`,
     height: `${edgeGradientLocal.size}px`,
+    ...(edgeGradientLocal.color && {
+      background: `linear-gradient(${edgeGradientLocal.color}, transparent)`,
+    }),
   };
 
   const [pT, pR, pB, pL] = numOrArrFormat(padding, direction === "x") || [

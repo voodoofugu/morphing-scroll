@@ -137,18 +137,24 @@ npm install morphing-scroll
   <details>
   <summary><strong><em>more</em></strong></summary>
   <br />
-  <strong>• Type:</strong>{<br />
-      value: number | "end" | null;<br />
+  <strong>• Type:</strong> {<br />
+      value: number | "end";<br />
       duration?: number;<br />
       updater?: boolean;<br />
-    }<br />
+   }<br />
   <br />
-  <strong>• Default:</strong> { value: 1; duration: 200 }<br />
+  <strong>• Default:</strong> { value: 0; duration: 200; updater: false }<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  This parameter will help you set your own scroll values.<br />
-  The default value for <code>value</code> is set to 1 to prevent sudden scrolling to the start of the list, especially when loading new elements at the top of the MorphScroll. The value parameter also accepts <code>null</code>, this is done so that after using <code>scrollTop</code> you can reset the passed value for later use of the same value. The value <code>"end"</code> scrolls to the end of the list upon loading and is useful when adding new items to the bottom of the list and will not work when adding new items to the top.<br />
-  The <code>duration</code> parameter specifies the scrolling speed for the <code>scrollTop</code> values. This parameter is optional and you can only use `value'.</em><br />
+  This parameter allows you to set custom scroll values.<br />
+  <br />
+  The <code>value</code> property accepts numerical pixel values.<br />
+  The <code>"end"</code> option scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
+  <br />
+  The <code>duration</code> property determines the animation speed for scrolling in ms.</em><br />
+  <br />
+  The <code>updater</code> property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
+  <code>setScroll((prev) => ({ ...prev, value: 0, updater: !prev.updater }))</code></em><br />
   <br />
   <strong>• Example:</strong>
 
@@ -358,9 +364,9 @@ npm install morphing-scroll
   <details>
   <summary><strong><em>more</em></strong></summary>
   <br />
-  <strong>• Type:</strong>[<br />
-    "start" | "center" | "end",<br />
-    "start" | "center" | "end"<br />
+  <strong>• Type:</strong> [<br />
+      "start" | "center" | "end",<br />
+      "start" | "center" | "end"<br />
   ]<br />
   <strong>• Description:</strong> <em><br />
   This parameter aligns the `objectsWrapper`, which contains all the provided elements, relative to the scroll or the `size`.<br />
@@ -390,13 +396,14 @@ npm install morphing-scroll
   <strong>• Type:</strong> "start" | "center" | "end"<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  This parameter aligns the provided custom objects within the `objectsWrapper`.</em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    elementsAlign="center"
+    // another props
   >
     {children}
   </MorphScroll>
@@ -411,16 +418,23 @@ npm install morphing-scroll
   <br />
   <strong>• Type:</strong> boolean | { color?: string; size?: number }<br />
   <br />
-  <strong>• Default:</strong> if true { color: "rgba(0,0,0,0.4)", size: 40 }<br />
+  <strong>• Default:</strong> { color: null; size: 40 }<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
+  <br />
+  The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
+  <br />
+  The size property, measured in pixels, adjusts the dimensions of the edge elements.</em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    // edgeGradient
+    edgeGradient={{ color: "rgba(0, 0, 0, 0.5)" }}
+    // edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 20 }}
+    // another props
   >
     {children}
   </MorphScroll>
