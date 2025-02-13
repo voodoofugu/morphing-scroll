@@ -418,7 +418,7 @@ npm install morphing-scroll
   <br />
   <strong>• Type:</strong> boolean | { color?: string; size?: number }<br />
   <br />
-  <strong>• Default:</strong> { color: null; size: 40 }<br />
+  <strong>• Default:</strong> { size: 40 }<br />
   <br />
   <strong>• Description:</strong> <em><br />
   This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
@@ -431,9 +431,9 @@ npm install morphing-scroll
 
   ```tsx
   <MorphScroll
-    // edgeGradient
     edgeGradient={{ color: "rgba(0, 0, 0, 0.5)" }}
     // edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 20 }}
+    // edgeGradient
     // another props
   >
     {children}
@@ -443,7 +443,7 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`progressReverse`:** _Reverse the progress bar direction._
+- **`progressReverse`:** _Reverse the progress bar position._
   <details>
   <summary><strong><em>more</em></strong></summary>
   <br />
@@ -452,13 +452,17 @@ npm install morphing-scroll
   <strong>• Default:</strong> false<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  This parameter changes the position of the progress bar based on the direction property.<br />
+  <br />
+  If direction="x", the progress bar will be positioned on the left by default or on the right when progressReverse is active.<br />
+  If direction="y", the progress bar will be positioned at the top by default or at the bottom when progressReverse is active.</em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    progressReverse
+    // another props
   >
     {children}
   </MorphScroll>
@@ -476,13 +480,14 @@ npm install morphing-scroll
   <strong>• Default:</strong> "visible"<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  This parameter controls the visibility of the progress bar regardless of the <code>type</code> value.</em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    progressVisibility="hover"
+    // another props
   >
     {children}
   </MorphScroll>
@@ -530,13 +535,22 @@ npm install morphing-scroll
   <strong>• Default:</strong> { wheel: true }<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  Это один из важнейших параметров. Он позволяет выбрать не только способ взаимодействия с прогресс-баром, но и управлять его внешним видом.<br />
+  <br />
+  Свойство <code>wheel</code> определяет, будет ли прогресс-бар управляться колесом мыши.<br />
+  Свойство <code>content</code> позволяет управлять прогресс-баром зажимая мышью на переданное вами содержимое скролла и перемещая его.<br />
+  Свойство <code>progressElement</code> определяет, будет ли прогресс-бар управляться переданным элементом. Если ваш кастомный элемент скролла ещё не готов то вы можете просто передать значение <code>true</code>, это покажет дефолтный бегунок браузера при дефольтном значении <code>type="scroll"</code>. Так же при значении <code>type="slider"</code> будет создан элемент с классом <code>sliderBar</code> в котором будут отображаться элементы с классом <code>sliderElem</code> обовляющие прогресс, в зависимости от положения один из них всегда будет иметь класс <code>active</code>.<br />
+  </em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    progressTrigger={{
+      wheel: true,
+      progressElement: <div className="your-scroll-thumb" />,
+    }}
+    // another props
   >
     {children}
   </MorphScroll>
