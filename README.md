@@ -535,11 +535,11 @@ npm install morphing-scroll
   <strong>• Default:</strong> { wheel: true }<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  Это один из важнейших параметров. Он позволяет выбрать не только способ взаимодействия с прогресс-баром, но и управлять его внешним видом.<br />
+   This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
   <br />
-  Свойство <code>wheel</code> определяет, будет ли прогресс-бар управляться колесом мыши.<br />
-  Свойство <code>content</code> позволяет управлять прогресс-баром зажимая мышью на переданное вами содержимое скролла и перемещая его.<br />
-  Свойство <code>progressElement</code> определяет, будет ли прогресс-бар управляться переданным элементом. Если ваш кастомный элемент скролла ещё не готов то вы можете просто передать значение <code>true</code>, это покажет дефолтный бегунок браузера при дефольтном значении <code>type="scroll"</code>. Так же при значении <code>type="slider"</code> будет создан элемент с классом <code>sliderBar</code> в котором будут отображаться элементы с классом <code>sliderElem</code> обовляющие прогресс, в зависимости от положения один из них всегда будет иметь класс <code>active</code>.<br />
+  The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
+  The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+  The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
   </em><br />
   <br />
   <strong>• Example:</strong>
