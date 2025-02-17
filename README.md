@@ -565,7 +565,7 @@ npm install morphing-scroll
   <br />
   <strong>• Type:</strong><br />
     | { type: "default" }<br />
-    | { type: "lazy"; rootMargin?: number }<br />
+    | { type: "lazy"; rootMargin?: number | number[] }<br />
     | { type: "virtual" }<br />
   <br />
   <strong>• Default:</strong> { type: "default" }<br />
