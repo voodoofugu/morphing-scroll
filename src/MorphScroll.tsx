@@ -608,10 +608,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           thumbSize + newScroll > xy ? xy - thumbSize : newScroll;
       }
 
-      // avoid jumping to the top when loading new items on top in the scroll
-      // if (scrollEl.scrollTop === 0 && clickedObject.current === "none") {
-      //   scrollEl.scrollTop = 1;
-      // }
       // onScrollValue
       if (onScrollValue) {
         onScrollValue(scrollEl.scrollTop);
@@ -912,6 +908,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
       .filter(Boolean)
       .join("/");
+
     if (!emptyElementKeysString.current) {
       emptyElementKeysString.current = emptyElementKays;
     } else if (

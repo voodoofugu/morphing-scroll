@@ -568,10 +568,13 @@ npm install morphing-scroll
     | { type: "lazy"; rootMargin?: number }<br />
     | { type: "virtual" }<br />
   <br />
-  <strong>• Default:</strong> false<br />
+  <strong>• Default:</strong> { type: "default" }<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  Этот параметр определяет тип рендеринга для оптимизации.<br />
+  Свойство <code>type</code> может принимать значения <code>default</code> при котором улучшений нет, <code>lazy</code> и <code>virtual</code>.<br />
+  <br />
+  При значении <code>lazy</code> создаются контейнеры которые не загружают контент до того момент как они окажутся в зоне видимости. При этом можно регулировать значение при котором контейнеры будут загружаться основанное на том на сколько объект виден в зоне видимости через свойство <code>rootMargin</code> задавая ему значения .</em><br />
   <br />
   <strong>• Example:</strong>
 

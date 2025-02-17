@@ -52,7 +52,7 @@ export type MorphScrollT = {
   };
   render?:
     | { type: "default" }
-    | { type: "lazy"; rootMargin?: number }
+    | { type: "lazy"; rootMargin?: number | number[] }
     | { type: "virtual" };
   emptyElements?:
     | { mode: "clear"; closeSelector?: string }
