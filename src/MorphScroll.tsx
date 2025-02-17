@@ -590,9 +590,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollTimeout.current = setTimeout(() => {
       shouldUpdateScroll && setScrollingStatus(false);
       isScrolling?.(false);
-      if (emptyElements && render.type !== "default") {
+      if (render.type !== "default") {
         updateEmptyElementKeys();
-        forceUpdate();
       }
     }, 200);
 
@@ -615,7 +614,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     edgeGradient && sliderAndArrowsCheck();
-    emptyElements && render.type !== "default" && updateEmptyElementKeys();
+    render.type !== "default" && updateEmptyElementKeys(false);
 
     forceUpdate();
   }, [
@@ -814,6 +813,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, scrollTopLocal.duration, scrollTopLocal.value]
   );
 
+  const IntersectionTrackerOnVisible = React.useCallback(() => {
+    if (render.type === "lazy" && render.onVisible) {
+      render.onVisible();
+      updateEmptyElementKeys();
+    } else {
+      updateEmptyElementKeys();
+    }
+  }, [render]);
+
   const scrollObjectWrapper = (
     elementTop?: number,
     left?: number,
@@ -858,6 +866,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 }),
             } as React.CSSProperties)
           : wrapStyle1,
+      onVisible: IntersectionTrackerOnVisible,
     };
 
     const innerContent = (
@@ -902,22 +911,28 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return elements;
   }, []);
 
-  const updateEmptyElementKeys = React.useCallback(() => {
-    const emptyElementKays = Array.from(getDataIdsFromAtr())
-      .filter((el) => el.children.length === 0)
-      .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
-      .filter(Boolean)
-      .join("/");
+  const updateEmptyElementKeys = React.useCallback(
+    (update = true) => {
+      if (!emptyElements) return;
+      const emptyElementKays = Array.from(getDataIdsFromAtr())
+        .filter((el) => el.children.length === 0)
+        .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
+        .filter(Boolean)
+        .join("/");
 
-    if (!emptyElementKeysString.current) {
-      emptyElementKeysString.current = emptyElementKays;
-    } else if (
-      emptyElementKays &&
-      !emptyElementKeysString.current.includes(emptyElementKays)
-    ) {
-      emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyElementKays}`;
-    }
-  }, [emptyElementKeysString.current]);
+      if (!emptyElementKeysString.current) {
+        emptyElementKeysString.current = emptyElementKays;
+      } else if (
+        emptyElementKays &&
+        !emptyElementKeysString.current.includes(emptyElementKays)
+      ) {
+        emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyElementKays}`;
+      }
+
+      update && forceUpdate();
+    },
+    [emptyElementKeysString.current]
+  );
 
   const updateEmptyKeysClick = React.useCallback(
     (event: React.MouseEvent) => {
@@ -929,7 +944,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (closeSelector) {
         scrollTimeout.current = setTimeout(() => {
           updateEmptyElementKeys();
-          forceUpdate();
         });
       }
     },
@@ -943,7 +957,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     sliderAndArrowsCheck();
-    emptyElements && updateEmptyElementKeys();
+    updateEmptyElementKeys();
   }, []);
 
   React.useEffect(() => {
