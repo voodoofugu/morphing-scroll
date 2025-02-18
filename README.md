@@ -340,7 +340,10 @@ npm install morphing-scroll
   <strong>• Description:</strong> <em><br />
   This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
   <br />
-  *For a two-number array, the values follow the <code>horizontal/vertical</code> rule, while a four-number array follows the <code>top/right/bottom/left</code> rule. All values are in pixels and apply regardless of the <code>direction</code>.<br />
+  *This parameter accepts either a single number or an array of numbers.<br />
+  If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
+  If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
+  All values are in pixels and apply regardless of the <code>direction</code>.<br />
   <br />
   *Important: this is not a CSS property, even though its name might suggest otherwise. It specifically refers to modifying the width and height of the scrollable wrapper, affecting the dimensions of the scrollable area.</em><br />
   <br />
@@ -418,7 +421,7 @@ npm install morphing-scroll
   <br />
   <strong>• Type:</strong> boolean | { color?: string; size?: number }<br />
   <br />
-  <strong>• Default:</strong> { size: 40 }<br />
+  <strong>• Default:</strong> When using true or color, the default size will be 40<br />
   <br />
   <strong>• Description:</strong> <em><br />
   This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
@@ -565,22 +568,32 @@ npm install morphing-scroll
   <br />
   <strong>• Type:</strong><br />
     | { type: "default" }<br />
-    | { type: "lazy"; rootMargin?: number | number[] }<br />
-    | { type: "virtual" }<br />
+    | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
+    | { type: "virtual"; rootMargin?: number | number[] }<br />
   <br />
   <strong>• Default:</strong> { type: "default" }<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  Этот параметр определяет тип рендеринга для оптимизации.<br />
-  Свойство <code>type</code> может принимать значения <code>default</code> при котором улучшений нет, <code>lazy</code> и <code>virtual</code>.<br />
+  This parameter defines the rendering type for optimization.<br />
+  The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
   <br />
-  При значении <code>lazy</code> создаются контейнеры которые не загружают контент до того момент как они окажутся в зоне видимости. При этом можно регулировать значение при котором контейнеры будут загружаться основанное на том на сколько объект виден в зоне видимости через свойство <code>rootMargin</code> задавая ему значения .</em><br />
+  With <code>default</code>, no optimizations are applied.<br />
+  With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code>callback function can be used to trigger actions when a container becomes visible for each scrollable object.<br />
+  <br />
+  With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
+  <br />
+  *The <code>rootMargin</code> property accepts either a single number or an array of numbers.<br />
+  If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
+  If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
+  All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    render={{ type: "virtual" }}
+    // render={{ type: "lazy", rootMargin: [0, 100], onVisible: () => console.log("visible")) }}
+    // another props
   >
     {children}
   </MorphScroll>
@@ -596,7 +609,7 @@ npm install morphing-scroll
   <strong>• Type:</strong><br />
     | {
         mode: "clear"
-        closeSelector?: string;
+        closeSelector?: string
       }<br />
     | {
         mode: "fallback";

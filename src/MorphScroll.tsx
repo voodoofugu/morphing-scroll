@@ -213,7 +213,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const mRootLocal = React.useMemo(() => {
     return numOrArrFormat(
-      render.type === "lazy" ? render.rootMargin || 0 : 0,
+      render.type !== "default" ? render.rootMargin || 0 : 0,
       direction === "x"
     );
   }, [render, direction]);

@@ -52,8 +52,8 @@ export type MorphScrollT = {
   };
   render?:
     | { type: "default" }
-    | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void } // onVisible
-    | { type: "virtual" };
+    | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }
+    | { type: "virtual"; rootMargin?: number | number[] };
   emptyElements?:
     | { mode: "clear"; closeSelector?: string }
     | {
