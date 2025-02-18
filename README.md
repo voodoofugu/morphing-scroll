@@ -458,6 +458,7 @@ npm install morphing-scroll
   This parameter changes the position of the progress bar based on the direction property.<br />
   <br />
   If direction="x", the progress bar will be positioned on the left by default or on the right when progressReverse is active.<br />
+  <br />
   If direction="y", the progress bar will be positioned at the top by default or at the bottom when progressReverse is active.</em><br />
   <br />
   <strong>• Example:</strong>
