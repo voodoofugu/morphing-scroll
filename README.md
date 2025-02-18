@@ -78,6 +78,8 @@ npm install morphing-scroll
 
   </details>
 
+<h2>
+
 ##### - SCROLL SETTINGS:
 
 - **`type`:** _Type of progress element._
@@ -246,6 +248,8 @@ npm install morphing-scroll
   ```
 
   </details>
+
+<h2>
 
 ##### - VISUAL SETTINGS:
 
@@ -522,6 +526,8 @@ npm install morphing-scroll
   ```
 
   </details>
+
+<h2>
 
 ##### - PROGRESS AND RENDERING:
 
