@@ -55,7 +55,7 @@ export type MorphScrollT = {
     | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }
     | { type: "virtual"; rootMargin?: number | number[] };
   emptyElements?:
-    | { mode: "clear"; closeSelector?: string }
+    | { mode: "clear"; closeSelector?: string } // delay for closeSelector?
     | {
         mode: "fallback";
         closeSelector?: string;
