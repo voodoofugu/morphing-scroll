@@ -952,12 +952,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // effects
   React.useEffect(() => {
+    updateEmptyElementKeys();
+  }, [validChildren.length]);
+
+  React.useEffect(() => {
     if (render.type === "virtual") {
       forceUpdate();
     }
 
     sliderAndArrowsCheck();
-    updateEmptyElementKeys();
   }, []);
 
   React.useEffect(() => {

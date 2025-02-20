@@ -256,8 +256,8 @@ export type MorphScrollT = {
       }
     | {
         mode: "fallback";
-        closeSelector?: string;
         element?: React.ReactNode;
+        closeSelector?: string;
       };
   /**---
    * ✨ *Adds React Suspense.*
