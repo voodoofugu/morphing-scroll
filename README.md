@@ -609,35 +609,45 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`emptyElements`:** _Processing of empty scroll elements._
+- **`emptyElements`:** _Handling of empty scroll elements._
   <details>
   <summary><strong><em>more</em></strong></summary>
   <br />
   <strong>• Type:</strong><br />
     | {
         mode: "clear";
-        closeSelector?: string;
+        clickTrigger?: { selector: string; delay?: number };
       }<br />
     | {
         mode: "fallback";
         element?: React.ReactNode;
-        closeSelector?: string;
+        clickTrigger?: { selector: string; delay?: number };
       }<br />
   <br />
-  <strong>• Default:</strong> false<br />
-  <br />
   <strong>• Description:</strong> <em><br />
-  Если так получилось что у вас есть компоненты которые в процессе рендеринга могут ничего не возвращать то этот параметр поможет вам обработать их. Так же сама проверка с последующей заменой на элемент заглушку или удалением происходит после рендеринга элементов скролла, поэтому при динамическом отображении элементов в разных режимах <code>render</code> может быть едва заметное мерцание при быстром скроллинге, так как пустой элемент удалится а следующие за ним перестроится.<br />
+  If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
   <br />
-  Свойство <code>mode: "clear"</code> будет удалять пустые элементы тем самым очищая пустое пространство скролла.<br />
+  <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
   <br />
-  Если вы удаляете элемент скролла по клику то так же нужно запустить функцию очистки и для этого есть свойство <code>closeSelector</code> которое принимает в себя строковое значение селектора куда вы можете передать например класс кнопки удаления вашего элемента. Так при клике будет так же запущена функция очистки.</em><br />
+  <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (a CSS selector, such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
+  <br />
+  <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> value, but you can also pass a separate placeholder element via the <code>element</code> property.</em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-    emptyElements={{ mode: "clear", closeSelector: ".close-button" }}
+    emptyElements={{
+      mode: "clear",
+      clickTrigger: { selector: ".close-button" },
+    }}
+    // emptyElements={{
+    //   mode: "fallback",
+    //   clickTrigger: {
+    //     selector: ".close-button",
+    //     delay: 100,
+    //   },
+    // }}
     // another props
   >
     {children}

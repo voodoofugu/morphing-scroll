@@ -55,12 +55,11 @@ export type MorphScrollT = {
     | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }
     | { type: "virtual"; rootMargin?: number | number[] };
   emptyElements?:
-    | { mode: "clear"; closeSelector?: string }
+    | { mode: "clear"; clickTrigger?: { selector: string; delay?: number } }
     | {
         mode: "fallback";
-        closeSelector?: string;
-        // onSelectorDelay?: number;
         element?: React.ReactNode;
+        clickTrigger?: { selector: string; delay?: number };
       };
   suspending?: boolean;
   fallback?: React.ReactNode;

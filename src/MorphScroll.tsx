@@ -936,15 +936,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const updateEmptyKeysClick = React.useCallback(
     (event: React.MouseEvent) => {
-      if (!emptyElements?.closeSelector) return;
+      if (!emptyElements?.clickTrigger?.selector) return;
 
       const target = event.target as HTMLElement;
-      const closeSelector = target.closest(emptyElements?.closeSelector);
+      const closeSelector = target.closest(
+        emptyElements?.clickTrigger.selector
+      );
 
       if (closeSelector) {
+        scrollTimeout.current && clearTimeout(scrollTimeout.current);
         scrollTimeout.current = setTimeout(() => {
           updateEmptyElementKeys();
-        });
+        }, emptyElements.clickTrigger.delay);
       }
     },
     [emptyElements]

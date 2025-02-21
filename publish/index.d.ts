@@ -247,17 +247,17 @@ export type MorphScrollT = {
     | { type: "lazy"; rootMargin?: number | number[] }
     | { type: "virtual" };
   /**---
-   * ✨ *Processing of empty scroll elements.*
+   * ✨ *Handling of empty scroll elements.*
    */
   emptyElements?:
     | {
         mode: "clear";
-        closeSelector?: string;
+        clickTrigger?: { selector: string; delay?: number };
       }
     | {
         mode: "fallback";
         element?: React.ReactNode;
-        closeSelector?: string;
+        clickTrigger?: { selector: string; delay?: number };
       };
   /**---
    * ✨ *Adds React Suspense.*
