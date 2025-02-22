@@ -679,7 +679,7 @@ npm install morphing-scroll
 
   </details>
 
-  #### ---
+  ##
 
   <details>
     <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
