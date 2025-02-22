@@ -529,86 +529,90 @@ npm install morphing-scroll
 
 - #### PROGRESS AND RENDERING:
 
-  - **`progressTrigger`:** _Triggers for the progress bar._
-    <details>
-    <summary><strong><em>more</em></strong></summary>
-    <br />
-    <strong>Type:</strong> {<br />
-      wheel?: boolean;<br />
-      content?: boolean;<br />
-      progressElement?: boolean | React.ReactNode;<br />
-      arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
-    }<br />
-    <br />
-    <strong>Default:</strong> { wheel: true }<br />
-    <br />
-    <strong>Description:</strong> <em><br />
-    This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
-    <br />
-    The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
-    The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-    The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
-    </em><br />
-    <br />
-    <strong>Example:</strong>
+  <details>
+    <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> {<br />
+        wheel?: boolean;<br />
+        content?: boolean;<br />
+        progressElement?: boolean | React.ReactNode;<br />
+        arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
+      }<br />
+      <br />
+      <strong>Default:</strong> { wheel: true }<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+      <br />
+      The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
+      The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+      The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
+      </em><br />
+      <br />
+      <strong>Example:</strong>
 
-    ```tsx
-    <MorphScroll
-      progressTrigger={{
-        wheel: true,
-        progressElement: <div className="your-scroll-thumb" />,
-      }}
-      // another props
-    >
-      {children}
-    </MorphScroll>
-    ```
+      ```tsx
+      <MorphScroll
+        progressTrigger={{
+          wheel: true,
+          progressElement: <div className="your-scroll-thumb" />,
+        }}
+        // another props
+      >
+        {children}
+      </MorphScroll>
+      ```
 
-    </details>
-    <h2>
+    </ul>
 
-  - **`render`:** _Types of rendering for optimization._
-    <details>
-    <summary><strong><em>more</em></strong></summary>
-    <br />
-    <strong>Type:</strong><br />
-      | { type: "default" }<br />
-      | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
-      | { type: "virtual"; rootMargin?: number | number[] }<br />
-    <br />
-    <strong>Default:</strong> { type: "default" }<br />
-    <br />
-    <strong>Description:</strong> <em><br />
-    This parameter defines the rendering type for optimization.<br />
-    The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
-    <br />
-    With <code>default</code>, no optimizations are applied.<br />
-    With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code>callback function can be used to trigger actions when a container becomes visible for each scrollable object.<br />
-    <br />
-    With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
-    <br />
-    *The <code>rootMargin</code> property accepts either a single number or an array of numbers.<br />
-    If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
-    If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
-    All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
-    <br />
-    <strong>Example:</strong>
+  </details>
 
-    ```tsx
-    <MorphScroll
-      render={{ type: "virtual" }}
-      // render={{ type: "lazy", rootMargin: [0, 100], onVisible: () => console.log("visible")) }}
-      // another props
-    >
-      {children}
-    </MorphScroll>
-    ```
-
-    </details>
-    <h2>
+  ##
 
   <details>
-    <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br /><br />
+    <summary><strong><code>render</code></strong> : <em>Types of rendering for optimization.</em></summary><br />
+    <ul>
+      <strong>Type:</strong><br />
+        | { type: "default" }<br />
+        | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
+        | { type: "virtual"; rootMargin?: number | number[] }<br />
+      <br />
+      <strong>Default:</strong> { type: "default" }<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      This parameter defines the rendering type for optimization.<br />
+      The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
+      <br />
+      With <code>default</code>, no optimizations are applied.<br />
+      With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code>callback function can be used to trigger actions when a container becomes visible for each scrollable object.<br />
+      <br />
+      With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
+      <br />
+      *The <code>rootMargin</code> property accepts either a single number or an array of numbers.<br />
+      If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
+      If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
+      All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
+      <br />
+      <strong>Example:</strong>
+
+      ```tsx
+      <MorphScroll
+        render={{ type: "virtual" }}
+        // render={{ type: "lazy", rootMargin: [0, 100], onVisible: () => console.log("visible")) }}
+        // another props
+      >
+        {children}
+      </MorphScroll>
+      ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br />
     <ul>
       <strong>Type:</strong><br />
         | {
