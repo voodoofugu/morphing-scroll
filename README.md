@@ -657,30 +657,27 @@ npm install morphing-scroll
     </details>
     <h2>
 
-  - **`suspending`:** _Adds React Suspense._
-    <details>
-    <summary><strong><em>more</em></strong></summary>
-    <br />
-    <strong>Type:</strong> boolean<br />
-    <br />
-    <strong>Default:</strong> false<br />
-    <br />
+  <details>
+  <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
+  <ul>
+    <strong>Type:</strong> boolean<br /><br />
+    <strong>Default:</strong> false<br /><br />
     <strong>Description:</strong> <em><br />
-    This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br />
-    <br />
+    This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
     <strong>Example:</strong>
 
-    ```tsx
-    <MorphScroll
-      suspending
-      // another props
-    >
-      {children}
-    </MorphScroll>
-    ```
+  ```tsx
+  <MorphScroll
+    suspending
+    // another props
+  >
+    {children}
+  </MorphScroll>
+  ```
 
-    </details>
-    <h2>
+  </ul>
+
+  </details><h2>
 
   <details>
     <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
