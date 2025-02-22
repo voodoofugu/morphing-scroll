@@ -34,12 +34,12 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> string<br />
+    <strong>Type:</strong> string<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.✨</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -57,14 +57,14 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> React.ReactNode<br />
+    <strong>Type:</strong> React.ReactNode<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This is where you can pass your list elements.<br />
     Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will use the same keys as your list items, allowing it to render the correct cells for the current list.<br />
     Additionally, <code>MorphScroll</code> handles a passed <code>null</code> value the same way as <code>undefined</code>, rendering nothing in both cases.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -84,16 +84,16 @@ npm install morphing-scroll
       <details>
       <summary><strong><em>more</em></strong></summary>
     <br />
-      <strong>• Type:</strong> "scroll" | "slider"<br />
+      <strong>Type:</strong> "scroll" | "slider"<br />
       <br />
-      <strong>• Default:</strong> "scroll"<br />
+      <strong>Default:</strong> "scroll"<br />
       <br />
-      <strong>• Description:</strong> <em><br />
+      <strong>Description:</strong> <em><br />
       This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
       With the default <code>type="scroll"</code>, it functions as a typical scrollbar. However, with <code>type="slider"</code>, it displays distinct elements indicating the number of full scroll steps within the list.<br />
       For More details, refer to <code>progressTrigger/progressElement</code>.</em><br />
       <br />
-      <strong>• Example:</strong>
+      <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -111,15 +111,15 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> "x" | "y"<br />
+    <strong>Type:</strong> "x" | "y"<br />
     <br />
-    <strong>• Default:</strong> "y"<br />
+    <strong>Default:</strong> "y"<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter changes the scroll or slider type direction based on the provided value.<br />
     You can set it to horizontal or vertical to customize the component according to your needs.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -137,15 +137,15 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> {<br />
+    <strong>Type:</strong> {<br />
         value: number | "end";<br />
         duration?: number;<br />
         updater?: boolean;<br />
     }<br />
     <br />
-    <strong>• Default:</strong> { value: 0; duration: 200; updater: false }<br />
+    <strong>Default:</strong> { value: 0; duration: 200; updater: false }<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter allows you to set custom scroll values.<br />
     <br />
     The <code>value</code> property accepts numerical pixel values.<br />
@@ -156,7 +156,7 @@ npm install morphing-scroll
     The <code>updater</code> property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
     <code>setScroll((prev) => ({ ...prev, value: 0, updater: !prev.updater }))</code></em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -174,14 +174,14 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> boolean<br />
+    <strong>Type:</strong> boolean<br />
     <br />
-    <strong>• Default:</strong> false<br />
+    <strong>Default:</strong> false<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter helps optimize list performance during scrolling. When set to <code>true</code>, new items will not load while the list is being scrolled and will only load after scrolling stops. This can be particularly useful for lists with a large number of items.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -199,12 +199,12 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> (scroll: number) => void<br />
+    <strong>Type:</strong> (scroll: number) => void<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -227,12 +227,12 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> (motion: boolean) => void<br />
+    <strong>Type:</strong> (motion: boolean) => void<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -255,16 +255,16 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> number[]<br />
+    <strong>Type:</strong> number[]<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter sets the width and height of the <code>MorphScroll</code> component as an array of two numbers. These values help define the visual container for the scrollable area.<br />
     *The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.<br />
     <br />
     If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.<br />
     *See the <code>ResizeTracker</code> section for more details.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -282,9 +282,9 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> (number | "none" | "firstChild")[]<br />
+    <strong>Type:</strong> (number | "none" | "firstChild")[]<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter is the only required one. It defines the size of cells for each of your objects. <code>ObjectsSize</code> use an array of values.<br />
     *The values are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.<br />
     <br />
@@ -292,7 +292,7 @@ npm install morphing-scroll
     <br />
     If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -312,13 +312,13 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> number[] | number<br />
+    <strong>Type:</strong> number[] | number<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
     *The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -337,9 +337,9 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> number[] | number<br />
+    <strong>Type:</strong> number[] | number<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
     <br />
     *This parameter accepts either a single number or an array of numbers.<br />
@@ -349,7 +349,7 @@ npm install morphing-scroll
     <br />
     *Important: this is not a CSS property, even though its name might suggest otherwise. It specifically refers to modifying the width and height of the scrollable wrapper, affecting the dimensions of the scrollable area.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -369,18 +369,18 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> [<br />
+    <strong>Type:</strong> [<br />
         "start" | "center" | "end",<br />
         "start" | "center" | "end"<br />
     ]<br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter aligns the `objectsWrapper`, which contains all the provided elements, relative to the scroll or the `size`.<br />
     <br />
     *Important: only takes effect when `objectsWrapper` is smaller than the scroll container.<br />
     <br />
     *The values are specified following the horizontal/vertical rule, regardless of the direction.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -398,12 +398,12 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> "start" | "center" | "end"<br />
+    <strong>Type:</strong> "start" | "center" | "end"<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter aligns the provided custom objects within the `objectsWrapper`.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -421,18 +421,18 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> boolean | { color?: string; size?: number }<br />
+    <strong>Type:</strong> boolean | { color?: string; size?: number }<br />
     <br />
-    <strong>• Default:</strong> When using true or color, the default size will be 40<br />
+    <strong>Default:</strong> When using true or color, the default size will be 40<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
     <br />
     The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
     <br />
     The size property, measured in pixels, adjusts the dimensions of the edge elements.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -452,18 +452,18 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> boolean<br />
+    <strong>Type:</strong> boolean<br />
     <br />
-    <strong>• Default:</strong> false<br />
+    <strong>Default:</strong> false<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter changes the position of the progress bar based on the direction property.<br />
     <br />
     If direction="x", the progress bar will be positioned on the left by default or on the right when progressReverse is active.<br />
     <br />
     If direction="y", the progress bar will be positioned at the top by default or at the bottom when progressReverse is active.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -481,14 +481,14 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> "visible" | "hover" | "hidden"<br />
+    <strong>Type:</strong> "visible" | "hover" | "hidden"<br />
     <br />
-    <strong>• Default:</strong> "visible"<br />
+    <strong>Default:</strong> "visible"<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter controls the visibility of the progress bar regardless of the <code>type</code> value.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -506,14 +506,14 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> boolean<br />
+    <strong>Type:</strong> boolean<br />
     <br />
-    <strong>• Default:</strong> false<br />
+    <strong>Default:</strong> false<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     .</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -533,16 +533,16 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> {<br />
+    <strong>Type:</strong> {<br />
       wheel?: boolean;<br />
       content?: boolean;<br />
       progressElement?: boolean | React.ReactNode;<br />
       arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
     }<br />
     <br />
-    <strong>• Default:</strong> { wheel: true }<br />
+    <strong>Default:</strong> { wheel: true }<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
     <br />
     The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
@@ -550,7 +550,7 @@ npm install morphing-scroll
     The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
     </em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -571,14 +571,14 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong><br />
+    <strong>Type:</strong><br />
       | { type: "default" }<br />
       | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
       | { type: "virtual"; rootMargin?: number | number[] }<br />
     <br />
-    <strong>• Default:</strong> { type: "default" }<br />
+    <strong>Default:</strong> { type: "default" }<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter defines the rendering type for optimization.<br />
     The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
     <br />
@@ -592,7 +592,7 @@ npm install morphing-scroll
     If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
     All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -611,7 +611,7 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong><br />
+    <strong>Type:</strong><br />
       | {
           mode: "clear";
           clickTrigger?: { selector: string; delay?: number };
@@ -622,7 +622,7 @@ npm install morphing-scroll
           clickTrigger?: { selector: string; delay?: number };
         }<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
     <br />
     <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
@@ -633,7 +633,7 @@ npm install morphing-scroll
     <br />
     *For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -661,14 +661,14 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    <strong>• Type:</strong> boolean<br />
+    <strong>Type:</strong> boolean<br />
     <br />
-    <strong>• Default:</strong> false<br />
+    <strong>Default:</strong> false<br />
     <br />
-    <strong>• Description:</strong> <em><br />
+    <strong>Description:</strong> <em><br />
     This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br />
     <br />
-    <strong>• Example:</strong>
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -686,12 +686,12 @@ npm install morphing-scroll
     <details>
     <summary><strong><em>more</em></strong></summary>
     <br />
-    \- <strong>• Type:</strong> React.ReactNode<br />
-      <br />
-      <strong>• Description:</strong> <em><br />
-      This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br />
-      <br />
-      <strong>• Example:</strong>
+    <strong>Type:</strong> React.ReactNode<br />
+    <br />
+    <strong>Description:</strong> <em><br />
+    This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br />
+    <br />
+    <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
