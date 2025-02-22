@@ -685,15 +685,19 @@ npm install morphing-scroll
   - **`fallback`:** _Fallback element._
     <details>
     <summary><strong><em>more</em></strong></summary>
-    <li>
-      <strong>Type:</strong> React.ReactNode<br />
-    </li>
-    <li>
-      <strong>Description:</strong> <em><br />
-      This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em>
-    </li>
-    <li>
-      <strong>Example:</strong>
+    <ul>
+      <br />
+      <li>
+        <strong>Type:</strong> React.ReactNode<br />
+      </li>
+      <br />
+      <li>
+        <strong>Description:</strong> <em><br />
+        This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em>
+      </li>
+      <br />
+      <li>
+        <strong>Example:</strong>
 
     ```tsx
     <MorphScroll
@@ -704,6 +708,7 @@ npm install morphing-scroll
     </MorphScroll>
     ```
 
-    </li>
+      </li>
+    </ul>
 
     </details>
