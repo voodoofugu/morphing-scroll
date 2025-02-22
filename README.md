@@ -675,9 +675,11 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-  </ul><h2>
+  </ul>
 
   </details>
+
+  <br /><h2><br />
 
   <details>
     <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
