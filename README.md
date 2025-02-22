@@ -1,6 +1,4 @@
-<div align="center" style="height: 282px;">
-  <img src="https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa" alt="logo"/>
-</div>
+![logo](https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa "logo")
 
 ## 〈♦ Table of contents 〉
 
@@ -78,7 +76,7 @@ npm install morphing-scroll
 
     </details>
 
-  <hr>
+  <h2>
 
 - #### SCROLL SETTINGS:
 
@@ -249,7 +247,7 @@ npm install morphing-scroll
 
     </details>
 
-  <hr>
+  <h2>
 
 - #### VISUAL SETTINGS:
 
@@ -527,7 +525,7 @@ npm install morphing-scroll
 
     </details>
 
-  <hr>
+  <h2>
 
 - #### PROGRESS AND RENDERING:
 
