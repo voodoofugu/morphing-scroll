@@ -657,37 +657,37 @@ npm install morphing-scroll
     </details>
     <h2>
 
-  <details>
-  <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
-  <ul>
-    <strong>Type:</strong> boolean<br /><br />
-    <strong>Default:</strong> false<br /><br />
-    <strong>Description:</strong> <em><br />
-    This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
-    <strong>Example:</strong>
-
-  ```tsx
-  <MorphScroll
-    suspending
-    // another props
-  >
-    {children}
-  </MorphScroll>
-  ```
-
-  </ul>
-
-  </details>
-
-  <br /><h2><br />
-
-  <details>
-    <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
+    <details>
+    <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
     <ul>
-      <strong>Type:</strong> React.ReactNode<br /><br />
+      <strong>Type:</strong> boolean<br /><br />
+      <strong>Default:</strong> false<br /><br />
       <strong>Description:</strong> <em><br />
-      This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br /><br />
+      This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
       <strong>Example:</strong>
+
+    ```tsx
+    <MorphScroll
+      suspending
+      // another props
+    >
+      {children}
+    </MorphScroll>
+    ```
+
+    </ul>
+
+    </details>
+
+  <h2>
+
+    <details>
+      <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> React.ReactNode<br /><br />
+        <strong>Description:</strong> <em><br />
+        This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br /><br />
+        <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -698,6 +698,6 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-    </ul>
+      </ul>
 
-  </details>
+    </details>
