@@ -631,7 +631,9 @@ npm install morphing-scroll
   <br />
   <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
   <br />
-  <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.</em><br />
+  <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
+  <br />
+  *For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
   <br />
   <strong>• Example:</strong>
 
@@ -666,13 +668,14 @@ npm install morphing-scroll
   <strong>• Default:</strong> false<br />
   <br />
   <strong>• Description:</strong> <em><br />
-  .</em><br />
+  This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br />
   <br />
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    suspending
+    // another props
   >
     {children}
   </MorphScroll>
@@ -681,20 +684,21 @@ npm install morphing-scroll
   </details>
   <h2>
 
-- **`fallback`:** _Fallback element for error handling._
+- **`fallback`:** _Fallback element._
   <details>
   <summary><strong><em>more</em></strong></summary>
-  <br />
-  <strong>• Type:</strong> React.ReactNode<br />
-  <br />
-  <strong>• Description:</strong> <em><br />
-  .</em><br />
-  <br />
+    
+  <strong>• Type:</strong> React.ReactNode  
+    
+  <strong>• Description:</strong><em>  
+  This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em>  
+    
   <strong>• Example:</strong>
 
   ```tsx
   <MorphScroll
-  // another props
+    fallback={<div>Loading...</div>}
+    // another props
   >
     {children}
   </MorphScroll>

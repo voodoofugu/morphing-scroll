@@ -264,7 +264,7 @@ export type MorphScrollT = {
    */
   suspending?: boolean;
   /**---
-   * ✨ *Fallback element for error handling.*
+   * ✨ *Fallback element.*
    */
   fallback?: React.ReactNode;
 };
