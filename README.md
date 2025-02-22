@@ -30,7 +30,7 @@ npm install morphing-scroll
 
 ### Props:
 
-##### - GENERAL SETTINGS:
+#### - GENERAL SETTINGS:
 
 - **`className`:** _Additional classes for the component._
   <details>
@@ -80,7 +80,7 @@ npm install morphing-scroll
 
 <h2>
 
-##### - SCROLL SETTINGS:
+#### - SCROLL SETTINGS:
 
 - **`type`:** _Type of progress element._
     <details>
@@ -251,7 +251,7 @@ npm install morphing-scroll
 
 <h2>
 
-##### - VISUAL SETTINGS:
+#### - VISUAL SETTINGS:
 
 - **`size`:** _MorphScroll width and height._
   <details>
@@ -529,7 +529,7 @@ npm install morphing-scroll
 
 <h2>
 
-##### - PROGRESS AND RENDERING:
+#### - PROGRESS AND RENDERING:
 
 - **`progressTrigger`:** _Triggers for the progress bar._
   <details>
