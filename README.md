@@ -607,64 +607,65 @@ npm install morphing-scroll
     </details>
     <h2>
 
-  - **`emptyElements`:** _Handling of empty scroll elements._
-    <details>
-    <summary><strong><em>more</em></strong></summary>
-    <br />
-    <strong>Type:</strong><br />
-      | {
-          mode: "clear";
-          clickTrigger?: { selector: string; delay?: number };
-        }<br />
-      | {
-          mode: "fallback";
-          element?: React.ReactNode;
-          clickTrigger?: { selector: string; delay?: number };
-        }<br />
-    <br />
-    <strong>Description:</strong> <em><br />
-    If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
-    <br />
-    <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
-    <br />
-    <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
-    <br />
-    <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
-    <br />
-    *For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
-    <br />
-    <strong>Example:</strong>
+  <details>
+    <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br /><br />
+    <ul>
+      <strong>Type:</strong><br />
+        | {
+            mode: "clear";
+            clickTrigger?: { selector: string; delay?: number };
+          }<br />
+        | {
+            mode: "fallback";
+            element?: React.ReactNode;
+            clickTrigger?: { selector: string; delay?: number };
+          }<br /><br />
+      <strong>Description:</strong> <em><br />
+      If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
+      <br />
+      <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
+      <br />
+      <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
+      <br />
+      <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
+      <br />
+      *For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
+      <br />
+      <strong>Example:</strong>
 
-    ```tsx
-    <MorphScroll
-      emptyElements={{
-        mode: "clear",
-        clickTrigger: { selector: ".close-button" },
-      }}
-      // emptyElements={{
-      //   mode: "fallback",
-      //   clickTrigger: {
-      //     selector: ".close-button",
-      //     delay: 100,
-      //   },
-      // }}
-      // another props
-    >
-      {children}
-    </MorphScroll>
-    ```
+      ```tsx
+      <MorphScroll
+        emptyElements={{
+          mode: "clear",
+          clickTrigger: { selector: ".close-button" },
+        }}
+        // emptyElements={{
+        //   mode: "fallback",
+        //   clickTrigger: {
+        //     selector: ".close-button",
+        //     delay: 100,
+        //   },
+        // }}
+        // another props
+      >
+        {children}
+      </MorphScroll>
+      ```
 
-    </details>
-    <h2>
+    </ul>
+
+  </details>
+
+  ##
 
   <details>
-  <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
-  <ul>
-    <strong>Type:</strong> boolean<br /><br />
-    <strong>Default:</strong> false<br /><br />
-    <strong>Description:</strong> <em><br />
-    This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
-    <strong>Example:</strong>
+    <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> boolean<br /><br />
+      <strong>Default:</strong> false<br /><br />
+      <strong>Description:</strong> <em><br />
+      This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
+      <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -675,7 +676,7 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-  </ul>
+    </ul>
 
   </details>
 
