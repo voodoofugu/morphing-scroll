@@ -28,7 +28,11 @@ npm install morphing-scroll
 
 ### Props:
 
+##
+
 - #### GENERAL SETTINGS:
+
+  ##
 
   <details>
     <summary><strong><code>className</code></strong> : <em>Additional classes for the component.</em></summary><br />
@@ -53,7 +57,7 @@ npm install morphing-scroll
 
   </details>
 
-  - ##
+  ##
 
   <details>
     <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
@@ -82,6 +86,8 @@ npm install morphing-scroll
   ##
 
 - #### SCROLL SETTINGS:
+
+  ##
 
   <details>
     <summary><strong><code>type</code></strong> : <em>Type of progress element.</em></summary><br />
