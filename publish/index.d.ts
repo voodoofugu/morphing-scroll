@@ -139,7 +139,7 @@ export type MorphScrollT = {
    */
   className?: string;
   /**---
-   * ✨ *Child elements.*
+   * ✨ *Custom user content.*
    */
   children?: React.ReactNode;
   /**---
