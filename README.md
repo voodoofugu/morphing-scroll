@@ -529,147 +529,151 @@ npm install morphing-scroll
 
 - #### PROGRESS AND RENDERING:
 
-  <details>
-    <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
-    <ul>
-      <strong>Type:</strong> {<br />
-        wheel?: boolean;<br />
-        content?: boolean;<br />
-        progressElement?: boolean | React.ReactNode;<br />
-        arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
-      }<br />
-      <br />
-      <strong>Default:</strong> { wheel: true }<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-      This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
-      <br />
-      The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
-      The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-      The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
-      </em><br />
-      <br />
-      <strong>Example:</strong>
+    <details>
+      <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> {<br />
+          wheel?: boolean;<br />
+          content?: boolean;<br />
+          progressElement?: boolean | React.ReactNode;<br />
+          arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
+        }<br />
+        <br />
+        <strong>Default:</strong> { wheel: true }<br />
+        <br />
+        <strong>Description:</strong> <em><br />
+        This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+        <br />
+        The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
+        The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+        The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
+        </em><br />
+        <br />
+        <strong>Example:</strong>
 
-      ```tsx
-      <MorphScroll
-        progressTrigger={{
-          wheel: true,
-          progressElement: <div className="your-scroll-thumb" />,
-        }}
-        // another props
-      >
-        {children}
-      </MorphScroll>
-      ```
+        ```tsx
+        <MorphScroll
+          progressTrigger={{
+            wheel: true,
+            progressElement: <div className="your-scroll-thumb" />,
+          }}
+          // another props
+        >
+          {children}
+        </MorphScroll>
+        ```
 
-    </ul>
+      </ul>
 
-  </details>
-
-  ##
-
-  <details>
-    <summary><strong><code>render</code></strong> : <em>Types of rendering for optimization.</em></summary><br />
-    <ul>
-      <strong>Type:</strong><br />
-        | { type: "default" }<br />
-        | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
-        | { type: "virtual"; rootMargin?: number | number[] }<br />
-      <br />
-      <strong>Default:</strong> { type: "default" }<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-      This parameter defines the rendering type for optimization.<br />
-      The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
-      <br />
-      With <code>default</code>, no optimizations are applied.<br />
-      With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code>callback function can be used to trigger actions when a container becomes visible for each scrollable object.<br />
-      <br />
-      With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
-      <br />
-      *The <code>rootMargin</code> property accepts either a single number or an array of numbers.<br />
-      If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
-      If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
-      All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
-      <br />
-      <strong>Example:</strong>
-
-      ```tsx
-      <MorphScroll
-        render={{ type: "virtual" }}
-        // render={{ type: "lazy", rootMargin: [0, 100], onVisible: () => console.log("visible")) }}
-        // another props
-      >
-        {children}
-      </MorphScroll>
-      ```
-
-    </ul>
-
-  </details>
+    </details>
 
   ##
 
-  <details>
-    <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br />
-    <ul>
-      <strong>Type:</strong><br />
-        | {
-            mode: "clear";
-            clickTrigger?: { selector: string; delay?: number };
-          }<br />
-        | {
-            mode: "fallback";
-            element?: React.ReactNode;
-            clickTrigger?: { selector: string; delay?: number };
-          }<br /><br />
-      <strong>Description:</strong> <em><br />
-      If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
-      <br />
-      <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
-      <br />
-      <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
-      <br />
-      <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
-      <br />
-      *For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
-      <br />
-      <strong>Example:</strong>
+    <details>
+      <summary><strong><code>render</code></strong> : <em>Types of rendering for optimization.</em></summary><br />
+      <ul>
+        <strong>Type:</strong><br />
+          | { type: "default" }<br />
+          | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
+          | { type: "virtual"; rootMargin?: number | number[] }<br />
+        <br />
+        <strong>Default:</strong> { type: "default" }<br />
+        <br />
+        <strong>Description:</strong> <em><br />
+        This parameter defines the rendering type for optimization.<br />
+        The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
+        <br />
+        With <code>default</code>, no optimizations are applied.<br />
+        With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code>callback function can be used to trigger actions when a container becomes visible for each scrollable object.<br />
+        <br />
+        With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
+        <br />
+        *The <code>rootMargin</code> property accepts either a single number or an array of numbers.<br />
+        If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
+        If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
+        All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
+        <br />
+        <strong>Example:</strong>
 
-      ```tsx
-      <MorphScroll
-        emptyElements={{
-          mode: "clear",
-          clickTrigger: { selector: ".close-button" },
-        }}
-        // emptyElements={{
-        //   mode: "fallback",
-        //   clickTrigger: {
-        //     selector: ".close-button",
-        //     delay: 100,
-        //   },
-        // }}
-        // another props
-      >
-        {children}
-      </MorphScroll>
-      ```
+        ```tsx
+        <MorphScroll
+          render={{ type: "virtual" }}
+          // render={{
+          //   type: "lazy",
+          //   rootMargin: [0, 100],
+          //   onVisible: () => console.log("visible"))
+          // }}
+          // another props
+        >
+          {children}
+        </MorphScroll>
+        ```
 
-    </ul>
+      </ul>
 
-  </details>
+    </details>
 
   ##
 
-  <details>
-    <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
-    <ul>
-      <strong>Type:</strong> boolean<br /><br />
-      <strong>Default:</strong> false<br /><br />
-      <strong>Description:</strong> <em><br />
-      This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
-      <strong>Example:</strong>
+    <details>
+      <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br />
+      <ul>
+        <strong>Type:</strong><br />
+          | {
+              mode: "clear";
+              clickTrigger?: { selector: string; delay?: number };
+            }<br />
+          | {
+              mode: "fallback";
+              element?: React.ReactNode;
+              clickTrigger?: { selector: string; delay?: number };
+            }<br /><br />
+        <strong>Description:</strong> <em><br />
+        If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
+        <br />
+        <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
+        <br />
+        <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
+        <br />
+        <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
+        <br />
+        *For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
+        <br />
+        <strong>Example:</strong>
+
+        ```tsx
+        <MorphScroll
+          emptyElements={{
+            mode: "clear",
+            clickTrigger: { selector: ".close-button" },
+          }}
+          // emptyElements={{
+          //   mode: "fallback",
+          //   clickTrigger: {
+          //     selector: ".close-button",
+          //     delay: 100,
+          //   },
+          // }}
+          // another props
+        >
+          {children}
+        </MorphScroll>
+        ```
+
+      </ul>
+
+    </details>
+
+  ##
+
+    <details>
+      <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> boolean<br /><br />
+        <strong>Default:</strong> false<br /><br />
+        <strong>Description:</strong> <em><br />
+        This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br /><br />
+        <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -680,19 +684,19 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-    </ul>
+      </ul>
 
-  </details>
+    </details>
 
   ##
 
-  <details>
-    <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
-    <ul>
-      <strong>Type:</strong> React.ReactNode<br /><br />
-      <strong>Description:</strong> <em><br />
-      This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br /><br />
-      <strong>Example:</strong>
+    <details>
+      <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> React.ReactNode<br /><br />
+        <strong>Description:</strong> <em><br />
+        This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br /><br />
+        <strong>Example:</strong>
 
   ```tsx
   <MorphScroll
@@ -703,6 +707,6 @@ npm install morphing-scroll
   </MorphScroll>
   ```
 
-    </ul>
+      </ul>
 
-  </details>
+    </details>
