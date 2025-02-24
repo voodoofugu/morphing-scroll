@@ -1,10 +1,10 @@
 import React from "react";
 
 export type ResizeTrackerT = {
-  children: (width: number, height: number) => React.ReactNode;
+  children: (rect: DOMRectReadOnly) => React.ReactNode;
   style?: React.CSSProperties;
   measure?: "inner" | "outer" | "all";
-  onResize?: (width: number, height: number) => void;
+  onResize?: (rect: Partial<DOMRectReadOnly>) => void;
 };
 
 export type IntersectionTrackerT = {

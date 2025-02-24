@@ -736,8 +736,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // functions
   const scrollResize = React.useCallback(
-    (width: number, height: number) => {
-      const newSize = { width: width, height: height - pLocalY };
+    (rect: Partial<DOMRectReadOnly>) => {
+      const newSize = { width: rect.width ?? 0, height: rect.height ?? 0 };
 
       if (
         receivedScrollSize.width === newSize.width &&
@@ -750,8 +750,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [pLocalY, receivedScrollSize]
   );
   const wrapResize = React.useCallback(
-    (width: number, height: number) => {
-      const newSize = { width: width - pLocalX, height: height - pLocalY };
+    (rect: Partial<DOMRectReadOnly>) => {
+      const newSize = {
+        width: (rect.width ?? 0) - pLocalX,
+        height: (rect.height ?? 0) - pLocalY,
+      };
 
       if (
         receivedWrapSize.width === newSize.width &&
@@ -765,14 +768,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [pLocalX, pLocalY, receivedWrapSize]
   );
   const childResize = React.useCallback(
-    (width: number, height: number) => {
-      const newSize = { width: width, height: height };
+    (rect: Partial<DOMRectReadOnly>) => {
+      const newSize = { width: rect.width ?? 0, height: rect.height ?? 0 };
 
       if (
         receivedChildSize.width === newSize.width &&
         receivedChildSize.height === newSize.height
-      )
+      ) {
         return;
+      }
 
       setReceivedChildSize(newSize);
     },

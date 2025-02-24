@@ -7,7 +7,6 @@
 - [MorphScroll](#-morph_scroll-)
 - [ResizeTracker](#-resizet_racker-)
 - [IntersectionTracker](#-intersection_tracker-)
-- [More](#-More-)
 - [API](#-api-)
 
 ## 〈♦ About 〉
@@ -176,6 +175,8 @@ npm install morphing-scroll
     </ul>
 
   </details>
+
+  ##
 
   <details>
     <summary><strong><code>stopLoadOnScroll</code></strong> : <em>Stop loading when scrolling.</em></summary><br />
@@ -745,3 +746,75 @@ npm install morphing-scroll
     </ul>
 
   </details>
+
+## 〈♦ ResizeTracker 〉
+
+`ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
+
+### Props:
+
+  <details>
+    <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+       Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+      ```tsx
+      <ResizeTracker
+        // another props
+      >
+        {( rect ) => (
+          <p>Width: {rect.width}, Height: {rect.height}</p>
+        )}
+      </ResizeTracker>
+      ```
+
+    </ul>
+
+  </details>
+
+##
+
+## 〈♦ IntersectionTracker 〉
+
+`IntersectionTracker` -.
+
+### Props:
+
+- #### GENERAL SETTINGS:
+
+  <details>
+    <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> !<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      !.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+      ```tsx
+      <IntersectionTracker
+        // another props
+      >
+        {children}
+      </IntersectionTracker>
+      ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+---
+
+# API
+
+- `MorphScroll`: .
+- `ResizeTracker`: -.
+- `IntersectionTracker`: -.
