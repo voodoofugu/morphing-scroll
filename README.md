@@ -1,6 +1,6 @@
 ![logo](https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa "logo")
 
-# 〈♦ Table of contents 〉
+## 〈♦ Table of contents 〉
 
 - [About](#-about-)
 - [Installation](#-installation-)
@@ -9,11 +9,11 @@
 - [IntersectionTracker](#-intersectiontracker-)
 - [API](#-api-)
 
-# 〈♦ About 〉
+## 〈♦ About 〉
 
 `morphing-scroll` is a `React` library designed to optimize the rendering of data lists. It leverages virtual rendering and lazy loading to handle large datasets efficiently, significantly enhancing performance. The library also resolves cross-browser inconsistencies in scroll element rendering by replacing them with custom ones. Additionally, it provides convenient horizontal scrolling with flexible content movement options.
 
-# 〈♦ Installation 〉
+## 〈♦ Installation 〉
 
 To install the library, use the following command:
 
@@ -21,7 +21,7 @@ To install the library, use the following command:
 npm install morphing-scroll
 ```
 
-# 〈♦ MorphScroll 〉
+## 〈♦ MorphScroll 〉
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
@@ -747,7 +747,7 @@ npm install morphing-scroll
 
   </details>
 
-# 〈♦ ResizeTracker 〉
+## 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
 
@@ -779,7 +779,7 @@ npm install morphing-scroll
   </details>
 </ul>
 
-# 〈♦ IntersectionTracker 〉
+## 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` -.
 
@@ -809,7 +809,7 @@ npm install morphing-scroll
   </details>
 </ul>
 
-# 〈♦ API 〉
+## 〈♦ API 〉
 
 - `MorphScroll`: .
 - `ResizeTracker`: -.
