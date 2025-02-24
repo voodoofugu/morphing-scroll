@@ -4,9 +4,9 @@
 
 - [About](#-about-)
 - [Installation](#-installation-)
-- [MorphScroll](#-morph_scroll-)
-- [ResizeTracker](#-resizet_racker-)
-- [IntersectionTracker](#-intersection_tracker-)
+- [MorphScroll](#-morphscroll-)
+- [ResizeTracker](#-resizetracker-)
+- [IntersectionTracker](#-intersectiontracker-)
 - [API](#-api-)
 
 ## 〈♦ About 〉
@@ -747,8 +747,6 @@ npm install morphing-scroll
 
   </details>
 
-##
-
 ## 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
@@ -781,8 +779,6 @@ npm install morphing-scroll
   </details>
 </ul>
 
-##
-
 ## 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` -.
@@ -813,9 +809,7 @@ npm install morphing-scroll
   </details>
 </ul>
 
-##
-
-# API
+# 〈♦ API 〉
 
 - `MorphScroll`: .
 - `ResizeTracker`: -.
