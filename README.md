@@ -25,9 +25,9 @@ npm install morphing-scroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-### ‹ Props:
+- ### Props:
 
-- #### GENERAL SETTINGS:
+  #### GENERAL SETTINGS:
 
   <details>
     <summary><strong><code>className</code></strong> : <em>Additional classes for the component.</em></summary><br />
@@ -49,7 +49,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -75,12 +74,11 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
 
-- #### SCROLL SETTINGS:
+  #### SCROLL SETTINGS:
 
   <details>
     <summary><strong><code>type</code></strong> : <em>Type of progress element.</em></summary><br />
@@ -106,7 +104,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -134,7 +131,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -173,7 +169,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -200,7 +195,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -230,7 +224,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
     
   ##
@@ -257,12 +250,11 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
 
-- #### VISUAL SETTINGS:
+  #### VISUAL SETTINGS:
 
   <details>
     <summary><strong><code>size</code></strong> : <em>MorphScroll width and height.</em></summary><br />
@@ -288,7 +280,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -320,7 +311,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -347,7 +337,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -381,7 +370,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -412,7 +400,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -437,7 +424,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -470,7 +456,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -501,7 +486,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -528,7 +512,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -553,12 +536,11 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
 
-- #### PROGRESS AND RENDERING:
+  #### PROGRESS AND RENDERING:
 
   <details>
     <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
@@ -595,7 +577,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -641,7 +622,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -692,7 +672,6 @@ npm install morphing-scroll
       ```
 
     </ul>
-
   </details>
 
   ##
@@ -719,7 +698,6 @@ npm install morphing-scroll
   ```
 
     </ul>
-
   </details>
 
   ##
@@ -744,72 +722,69 @@ npm install morphing-scroll
   ```
 
     </ul>
-
   </details>
 
 ## 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
 
-### ‹ Props:
+- ### Props:
 
-  <ul>
-    <details>
-      <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
-      <ul>
-        <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
-        <br />
-        <strong>Description:</strong> <em><br />
-        Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children.</em><br />
-        <br />
-        <strong>Example:</strong>
+<ul>
+  <details>
+    <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children.</em><br />
+      <br />
+      <strong>Example:</strong>
 
-        ```tsx
-        <ResizeTracker
-          // another props
-        >
-          {( rect ) => (
-            <p>Width: {rect.width}, Height: {rect.height}</p> // children
-          )}
-        </ResizeTracker>
-        ```
+      ```tsx
+      <ResizeTracker
+        // another props
+      >
+        {( rect ) => (
+          <p>Width: {rect.width}, Height: {rect.height}</p> // children
+        )}
+      </ResizeTracker>
+      ```
 
-      </ul>
+    </ul>
 
-    </details>
-
-  </ul>
+  </details>
+</ul>
 
 ## 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` -.
 
-### ‹ Props:
+- ### Props:
 
-  <ul>
-    <details>
-      <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
-      <ul>
-        <strong>Type:</strong> !<br />
-        <br />
-        <strong>Description:</strong> <em><br />
-        !.</em><br />
-        <br />
-        <strong>Example:</strong>
+<ul>
+  <details>
+    <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> !<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      !.</em><br />
+      <br />
+      <strong>Example:</strong>
 
-        ```tsx
-        <IntersectionTracker
-          // another props
-        >
-          {children}
-        </IntersectionTracker>
-        ```
+      ```tsx
+      <IntersectionTracker
+        // another props
+      >
+        {children}
+      </IntersectionTracker>
+      ```
 
-      </ul>
+    </ul>
 
-    </details>
-
-  </ul>
+  </details>
+</ul>
 
 ## 〈♦ API 〉
 
