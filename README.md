@@ -25,7 +25,7 @@ npm install morphing-scroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-- ### Props:
+### • Props:
 
 - #### GENERAL SETTINGS:
 
@@ -751,7 +751,7 @@ npm install morphing-scroll
 
 `ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
 
-- ### Props:
+### • Props:
 
   <ul>
     <details>
@@ -784,7 +784,7 @@ npm install morphing-scroll
 
 `IntersectionTracker` -.
 
-- ### Props:
+### • Props:
 
   <ul>
     <details>
