@@ -25,7 +25,7 @@ npm install morphing-scroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-### Props:
+- ### Props:
 
 - #### GENERAL SETTINGS:
 
@@ -751,63 +751,65 @@ npm install morphing-scroll
 
 `ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
 
-> ### Props:
+- ### Props:
 
-<ul>
-  <details>
-    <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
-    <ul>
-      <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-       Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children.</em><br />
-      <br />
-      <strong>Example:</strong>
+  <ul>
+    <details>
+      <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
+        <br />
+        <strong>Description:</strong> <em><br />
+        Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children.</em><br />
+        <br />
+        <strong>Example:</strong>
 
-      ```tsx
-      <ResizeTracker
-        // another props
-      >
-        {( rect ) => (
-          <p>Width: {rect.width}, Height: {rect.height}</p> // children
-        )}
-      </ResizeTracker>
-      ```
+        ```tsx
+        <ResizeTracker
+          // another props
+        >
+          {( rect ) => (
+            <p>Width: {rect.width}, Height: {rect.height}</p> // children
+          )}
+        </ResizeTracker>
+        ```
 
-    </ul>
+      </ul>
 
-  </details>
-</ul>
+    </details>
+
+  </ul>
 
 ## 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` -.
 
-### Props:
+- ### Props:
 
-<ul>
-  <details>
-    <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
-    <ul>
-      <strong>Type:</strong> !<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-      !.</em><br />
-      <br />
-      <strong>Example:</strong>
+  <ul>
+    <details>
+      <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> !<br />
+        <br />
+        <strong>Description:</strong> <em><br />
+        !.</em><br />
+        <br />
+        <strong>Example:</strong>
 
-      ```tsx
-      <IntersectionTracker
-        // another props
-      >
-        {children}
-      </IntersectionTracker>
-      ```
+        ```tsx
+        <IntersectionTracker
+          // another props
+        >
+          {children}
+        </IntersectionTracker>
+        ```
 
-    </ul>
+      </ul>
 
-  </details>
-</ul>
+    </details>
+
+  </ul>
 
 ## 〈♦ API 〉
 
