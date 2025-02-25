@@ -732,38 +732,38 @@ npm install morphing-scroll
 
 <ul>
   <details>
-    <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
+  <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
+  <ul>
+    <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
+    <br />
+    <strong>Description:</strong> <em><br />
+    Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children, and you can use it in the same way as the regular children prop inside the component tag.<br />
+    <br />
+    An object with the DOMRectReadOnly type has the following properties that you can get from the function and pass to the child elements:
     <ul>
-      <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-      Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children, and you can use it in the same way as the regular children prop inside the component tag.<br />
-      <br />
-      An object with the DOMRectReadOnly type has the following properties that you can get from the function and pass to the child elements:
-      <ul>
-        <li><code>x</code> - The X-coordinate of the top-left corner of the element.</li>
-        <li><code>y</code> - The Y-coordinate of the top-left corner of the element.</li>
-        <li><code>width</code> - The width of the observed element’s content box.</li>
-        <li><code>height</code> - The height of the observed element’s content box.</li>
-        <li><code>top</code> - The distance from the top of the element to its parent's top. Equal to <code>y</code>.</li>
-        <li><code>left</code> - The distance from the left of the element to its parent's left. Equal to <code>x</code>.</li>
-        <li><code>right</code> - The distance from the left of the parent to the right edge of the element (<code>left</code> + <code>width</code>).</li>
-        <li><code>bottom</code> - The distance from the top of the parent to the bottom edge of the element (<code>top</code> + <code>height</code>).</li>
-      </ul></em><br />
-      <br />
-      <strong>Example:</strong>
+      <li><code>x</code> - The X-coordinate of the top-left corner of the element.</li>
+      <li><code>y</code> - The Y-coordinate of the top-left corner of the element.</li>
+      <li><code>width</code> - The width of the observed element’s content box.</li>
+      <li><code>height</code> - The height of the observed element’s content box.</li>
+      <li><code>top</code> - The distance from the top of the element to its parent's top. Equal to <code>y</code>.</li>
+      <li><code>left</code> - The distance from the left of the element to its parent's left. Equal to <code>x</code>.</li>
+      <li><code>right</code> - The distance from the left of the parent to the right edge of the element (<code>left</code> + <code>width</code>).</li>
+      <li><code>bottom</code> - The distance from the top of the parent to the bottom edge of the element (<code>top</code> + <code>height</code>).</li>
+    </ul></em><br />
+    <br />
+    <strong>Example:</strong>
 
-      ```tsx
-      <ResizeTracker
-        // another props
-      >
-        {( rect ) => (
-          <p>Width: {rect.width}, Height: {rect.height}</p> // your child
-        )}
-      </ResizeTracker>
-      ```
+    ```tsx
+    <ResizeTracker
+      // another props
+    >
+      {( rect ) => (
+        <p>Width: {rect.width}, Height: {rect.height}</p> // your child
+      )}
+    </ResizeTracker>
+    ```
 
-    </ul>
+  </ul>
 
   </details>
 </ul>
@@ -776,24 +776,24 @@ npm install morphing-scroll
 
 <ul>
   <details>
-    <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
-    <ul>
-      <strong>Type:</strong> !<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-      !.</em><br />
-      <br />
-      <strong>Example:</strong>
+  <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
+  <ul>
+    <strong>Type:</strong> !<br />
+    <br />
+    <strong>Description:</strong> <em><br />
+    !.</em><br />
+    <br />
+    <strong>Example:</strong>
 
-      ```tsx
-      <IntersectionTracker
-        // another props
-      >
-        {children}
-      </IntersectionTracker>
-      ```
+    ```tsx
+    <IntersectionTracker
+      // another props
+    >
+      {children}
+    </IntersectionTracker>
+    ```
 
-    </ul>
+  </ul>
 
   </details>
 </ul>
