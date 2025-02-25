@@ -35,7 +35,7 @@ npm install morphing-scroll
       <strong>Type:</strong> string<br />
       <br />
       <strong>Description:</strong> <em><br />
-      This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.✨</em><br />
+      This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.</em><br />
       <br />
       <strong>Example:</strong>
 
