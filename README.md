@@ -751,7 +751,7 @@ npm install morphing-scroll
 
 `ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
 
-### Props:
+> ### Props:
 
 <ul>
   <details>
@@ -769,7 +769,7 @@ npm install morphing-scroll
         // another props
       >
         {( rect ) => (
-          <p>Width: {rect.width}, Height: {rect.height}</p>
+          <p>Width: {rect.width}, Height: {rect.height}</p> // children
         )}
       </ResizeTracker>
       ```
