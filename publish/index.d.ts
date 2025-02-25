@@ -1,26 +1,35 @@
 import React from "react";
 
-// RESIZE_TRACKER //////////////////////////////////
+// RESIZE_TRACKER
 type ResizeTrackerT = {
   /**---
-   * ✨ *Render-prop function receiving the container's size.*
+   * *Render-prop function receiving the container's size.*
    *
-   * @param width - Current width in pixels.
-   * @param height - Current height in pixels.
+   * @param rect - The current dimensions of the container
    * @example
    * ```tsx
    * <ResizeTracker>
-   *   {(width, height) => <div>{`${width}x${height}`}</div>}
+   *   {( rect ) => (
+   *      <p>Width: {rect.width}, Height: {rect.height}</p>
+   *   )}
    * </ResizeTracker>
    * ```
    * */
-  children: (width: number, height: number) => React.ReactNode;
+  children: (rect: DOMRectReadOnly) => React.ReactNode;
   /**---
-   * ✨ *Custom inline styles for the ResizeTracker.*
+   * *Custom inline styles for the ResizeTracker.*
+   * @example
+   * ```tsx
+   * <ResizeTracker
+   *   style={{ backgroundColor: "blue" }}
+   * >
+   *   // render-prop function
+   * </ResizeTracker>
+   * ```
    */
   style?: React.CSSProperties;
   /**---
-   * ✨ *Defines size measurement behavior*
+   * *Defines size measurement behavior*
    * #### Options:
    * - `"inner"`: Fits content.
    * - `"outer"`: Fills parent.
@@ -30,16 +39,21 @@ type ResizeTrackerT = {
    */
   measure?: "inner" | "outer" | "all";
   /**---
-   * ✨ *Callback on dimension change.*
+   * *Callback on dimension change.*
    *
-   * @param width - Updated width (in px).
-   * @param height - Updated height (in px).
+   * @param rect - The dimensions of the container
    * @example
-   * ```typescript
-   * onResize={(width, height) => console.log(`New size: ${width}x${height}`)}
+   * ```tsx
+   * <ResizeTracker
+   *  onResize={(rect) => console.log(rect)
+   * }
+   *   {( rect ) => (
+   *      <p>Width: {rect.width}, Height: {rect.height}</p>
+   *   )}
+   * </ResizeTracker>
    * ```
    */
-  onResize?: (width: number, height: number) => void;
+  onResize?: (rect: Partial<DOMRectReadOnly>) => void;
 };
 
 /**
@@ -59,48 +73,48 @@ type ResizeTrackerT = {
  *
  * ---
  * ## LINKS:
- * [ResizeTracker Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ * [ResizeTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-resizetracker-)
  *
  * [MDN Reference for Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  */
 declare const ResizeTracker: React.FC<ResizeTrackerT>;
 
-// INTERSECTION_TRACKER ////////////////////////////
+// INTERSECTION_TRACKER
 type IntersectionTrackerT = {
   /**---
-   * ✨ *Child elements to be rendered when visible.*
+   * *Child elements to be rendered when visible.*
    */
   children: React.ReactNode;
   /**---
-   * ✨ *Custom inline styles for the IntersectionTracker component.*
+   * *Custom inline styles for the IntersectionTracker component.*
    */
   style?: React.CSSProperties;
   /**---
-   * ✨ *The root element for IntersectionObserver.*
+   * *The root element for IntersectionObserver.*
    * @default-viewport
    */
   root?: Element | null;
   /**---
-   * ✨ *Margin around the root.
+   * *Margin around the root.
    * Can be a single number or an array of up to 4 numbers (top, right, bottom, left).*
    */
   rootMargin?: number[] | number;
   /**---
-   * ✨ Visibility threshold for triggering intersection events.
+   * Visibility threshold for triggering intersection events.
    * A value between 0.0 (out of view) and 1.0 (fully visible).
    */
   threshold?: number;
   /**---
-   * ✨ Renders children regardless of their visibility in the viewport.
+   * Renders children regardless of their visibility in the viewport.
    * @default-false
    */
   visibleContent?: boolean;
   /**---
-   * ✨ Callback function triggered when `children` become visible.
+   * Callback function triggered when `children` become visible.
    */
   onVisible?: () => void;
   /**---
-   * ✨ Delay (in ms) before invoking `onVisible`.
+   * Delay (in ms) before invoking `onVisible`.
    */
   intersectionDelay?: number;
 };
@@ -132,28 +146,28 @@ type IntersectionTrackerT = {
  */
 declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
-// MORPH_SCROLL ////////////////////////////////////
+// MORPH_SCROLL
 export type MorphScrollT = {
   /**---
-   * ✨ *Additional class for the component.*
+   * *Additional class for the component.*
    */
   className?: string;
   /**---
-   * ✨ *Custom user content.*
+   * *Custom user content.*
    */
   children?: React.ReactNode;
   /**---
-   * ✨ *Type of progress element.*
+   * *Type of progress element.*
    * @default-"scroll"
    */
   type?: "scroll" | "slider";
   /**---
-   * ✨ *Scrolling direction.*
+   * *Scrolling direction.*
    * @default-"y"
    */
   direction?: "x" | "y";
   /**---
-   * ✨ *Scroll position and animation duration.*
+   * *Scroll position and animation duration.*
    */
   scrollTop?: {
     value: number | "end" | null;
@@ -161,12 +175,12 @@ export type MorphScrollT = {
     updater?: boolean;
   };
   /**---
-   * ✨ *Stop loading when scrolling.*
+   * *Stop loading when scrolling.*
    * @default-false
    */
   stopLoadOnScroll?: boolean;
   /**---
-   * ✨ *Callback for scroll value.*
+   * *Callback for scroll value.*
    * @example
    * `onScrollValue={
    *   (scroll) => scroll > 200 && console.log("scroll > 200")
@@ -174,55 +188,55 @@ export type MorphScrollT = {
    */
   onScrollValue?: (scroll: number) => void;
   /**---
-   * ✨ *Callback for scroll status.*
+   * *Callback for scroll status.*
    * @example `isScrolling={(value) => console.log(value)}`
    */
   isScrolling?: (motion: boolean) => void;
   /**---
-   * ✨ *MorphScroll width and height.*
+   * *MorphScroll width and height.*
    */
   size?: number[];
   /**---
-   * ✨ *Required: Size of cells for each object.*
+   * *Required: Size of cells for each object.*
    */
   objectsSize: (number | "none" | "firstChild")[];
   /**---
-   * ✨ *Gap between cells.*
+   * *Gap between cells.*
    */
   gap?: number[] | number;
   /**---
-   * ✨ *Padding for the `objectsWrapper`.*
+   * *Padding for the `objectsWrapper`.*
    */
   padding?: number[] | number;
   /**---
-   * ✨ *Aligns the content when it is smaller than the MorphScroll `size`.*
+   * *Aligns the content when it is smaller than the MorphScroll `size`.*
    */
   contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
   /**---
-   * ✨ *Aligns the objects within the `objectsWrapper`.*
+   * *Aligns the objects within the `objectsWrapper`.*
    */
   elementsAlign?: "start" | "center" | "end";
   /**---
-   * ✨ *Edge gradient.*
+   * *Edge gradient.*
    * @default if true { color: "rgba(0,0,0,0.4)", size: 40 }
    */
   edgeGradient?: boolean | { color?: string; size?: number };
   /**---
-   * ✨ *Reverse the progress bar direction.*
+   * *Reverse the progress bar direction.*
    * @default false
    */
   progressReverse?: boolean;
   /**---
-   * ✨ *Visibility of the progress bar.*
+   * *Visibility of the progress bar.*
    * @default "visible"
    */
   progressVisibility?: "visible" | "hover" | "hidden";
   /**---
-   * ✨ *Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.*
+   * *Sets the `min-height` CSS property of the `objectsWrapper` to match the height of the MorphScroll.*
    */
   objectsWrapFullMinSize?: boolean;
   /**---
-   * ✨ *Triggers for the progress bar.*
+   * *Triggers for the progress bar.*
    * @default-{ wheel: true }
    * @example
    * `progressTrigger={
@@ -239,7 +253,7 @@ export type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   /**---
-   * ✨ *Types of rendering for optimization.*
+   * *Types of rendering for optimization.*
    * @default-{ type: "default" }
    */
   render?:
@@ -247,7 +261,7 @@ export type MorphScrollT = {
     | { type: "lazy"; rootMargin?: number | number[] }
     | { type: "virtual" };
   /**---
-   * ✨ *Handling of empty scroll elements.*
+   * *Handling of empty scroll elements.*
    */
   emptyElements?:
     | {
@@ -260,11 +274,11 @@ export type MorphScrollT = {
         clickTrigger?: { selector: string; delay?: number };
       };
   /**---
-   * ✨ *Adds React Suspense.*
+   * *Adds React Suspense.*
    */
   suspending?: boolean;
   /**---
-   * ✨ *Fallback element.*
+   * *Fallback element.*
    */
   fallback?: React.ReactNode;
 };

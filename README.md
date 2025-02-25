@@ -726,47 +726,47 @@ npm install morphing-scroll
 
 ## 〈♦ ResizeTracker 〉
 
-`ResizeTracker` is a React component that tracks and provides real-time width and height measurements of its child elements.
+`ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
 
 - ### Props:
 
-<ul>
   <details>
-  <summary><strong><code>children</code></strong> : <em>Render-prop function receiving the container's size.</em></summary><br />
-  <ul>
-    <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
-    <br />
-    <strong>Description:</strong> <em><br />
-    Instead of the usual children prop, this component uses a render-prop function to provide size updates to its children, and you can use it in the same way as the regular children prop inside the component tag.<br />
-    <br />
-    An object with the DOMRectReadOnly type has the following properties that you can get from the function and pass to the child elements:
+    <summary><strong><code>children</code></strong> : <em>This is a non-standard prop that you might be used to using this is render-prop function receiving the container's size.</em></summary><br />
     <ul>
-      <li><code>x</code> - The X-coordinate of the top-left corner of the element.</li>
-      <li><code>y</code> - The Y-coordinate of the top-left corner of the element.</li>
-      <li><code>width</code> - The width of the observed element’s content box.</li>
-      <li><code>height</code> - The height of the observed element’s content box.</li>
-      <li><code>top</code> - The distance from the top of the element to its parent's top. Equal to <code>y</code>.</li>
-      <li><code>left</code> - The distance from the left of the element to its parent's left. Equal to <code>x</code>.</li>
-      <li><code>right</code> - The distance from the left of the parent to the right edge of the element (<code>left</code> + <code>width</code>).</li>
-      <li><code>bottom</code> - The distance from the top of the parent to the bottom edge of the element (<code>top</code> + <code>height</code>).</li>
-    </ul></em><br />
-    <br />
-    <strong>Example:</strong>
+      <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      Instead of a standard <code>children</code> prop, this component uses a <strong>render-prop function</strong> to pass size updates to its children. You can use it similarly to a regular <code>children</code> prop inside the component.<br />
+      <br />
+      The function receives an object of type <code>DOMRectReadOnly</code> with the following properties:
+      <ul>
+        <li><code>x</code> - The X-coordinate of the top-left corner of the element.</li>
+        <li><code>y</code> - The Y-coordinate of the top-left corner of the element.</li>
+        <li><code>width</code> - The width of the observed element’s content box.</li>
+        <li><code>height</code> - The height of the observed element’s content box.</li>
+        <li><code>top</code> - The distance from the top of the element to its parent's top. Equal to <code>y</code>.</li>
+        <li><code>left</code> - The distance from the left of the element to its parent's left. Equal to <code>x</code>.</li>
+        <li><code>right</code> - The distance from the left of the parent to the right edge of the element (<code>left</code> + <code>width</code>).</li>
+        <li><code>bottom</code> - The distance from the top of the parent to the bottom edge of the element (<code>top</code> + <code>height</code>).</li>
+      </ul></em><br />
+      <br />
+      <strong>Example:</strong>
 
-    ```tsx
-    <ResizeTracker
-      // another props
-    >
-      {( rect ) => (
-        <p>Width: {rect.width}, Height: {rect.height}</p> // your child
-      )}
-    </ResizeTracker>
-    ```
+  ```tsx
+  <ResizeTracker
+  // another props
+  >
+    {(rect) => (
+      <p>
+        Width: {rect.width}, Height: {rect.height}
+      </p>
+    )}
+  </ResizeTracker>
+  ```
 
-  </ul>
+    </ul>
 
   </details>
-</ul>
 
 ## 〈♦ IntersectionTracker 〉
 
@@ -774,29 +774,27 @@ npm install morphing-scroll
 
 - ### Props:
 
-<ul>
   <details>
-  <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
-  <ul>
-    <strong>Type:</strong> !<br />
-    <br />
-    <strong>Description:</strong> <em><br />
-    !.</em><br />
-    <br />
-    <strong>Example:</strong>
+    <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> !<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      !.</em><br />
+      <br />
+      <strong>Example:</strong>
 
-    ```tsx
-    <IntersectionTracker
-      // another props
-    >
-      {children}
-    </IntersectionTracker>
-    ```
+  ```tsx
+  <IntersectionTracker
+  // another props
+  >
+    {children}
+  </IntersectionTracker>
+  ```
 
-  </ul>
+    </ul>
 
   </details>
-</ul>
 
 ## 〈♦ API 〉
 
