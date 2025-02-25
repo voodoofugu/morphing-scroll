@@ -9,9 +9,7 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
   children,
 }) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const [dimensions, setDimensions] = React.useState<DOMRectReadOnly | null>(
-    null
-  );
+  const [dimensions, setDimensions] = React.useState({} as DOMRectReadOnly);
 
   React.useEffect(() => {
     const element = containerRef.current;
@@ -53,7 +51,7 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
   return (
     <div
       ref={containerRef}
-      resize-tracker="〈—〉"
+      resize-tracker="〈♦〉"
       style={{
         ...measureStyles[measure],
         ...style,
