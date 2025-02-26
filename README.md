@@ -768,6 +768,53 @@ npm install morphing-scroll
 
   </details>
 
+  ##
+
+  <details>
+    <summary><strong><code>style</code></strong> : <em>Applies inline styles to the container.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> React.CSSProperties<br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <ResizeTracker style={{ backgroundColor: "blue" }}>
+    // render-prop function
+  </ResizeTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>measure</code></strong> : <em>Defines the measurement strategy.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> "inner" | "outer" | "all"<br />
+      <br />
+      <strong>Default:</strong> "inner"<br />
+      <br />
+      <strong>Description:</strong><br />
+      <em>This prop determines what is being measured by automatically applying inline styles that affect width and height.<br />
+      <br />
+      - The default value <code>"inner"</code> sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.<br />
+      - The <code>"outer"</code> value measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
+      - The <code>"all"</code> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
+      <br />
+      ⚠ <strong>Note:</strong> Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <ResizeTracker measure="all">// render-prop function</ResizeTracker>
+  ```
+
+    </ul>
+
+  </details>
+
 ## 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` -.
