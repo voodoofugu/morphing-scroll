@@ -17,7 +17,7 @@ type ResizeTrackerT = {
    * */
   children: (rect: DOMRectReadOnly) => React.ReactNode;
   /**---
-   * *Custom inline styles for the ResizeTracker.*
+   * *Applies inline styles to the container.*
    * @example
    * ```tsx
    * <ResizeTracker
@@ -29,7 +29,7 @@ type ResizeTrackerT = {
    */
   style?: React.CSSProperties;
   /**---
-   * *Defines size measurement behavior*
+   * *Defines the measurement strategy.*
    * #### Options:
    * - `"inner"`: Fits content.
    * - `"outer"`: Fills parent.
@@ -39,16 +39,16 @@ type ResizeTrackerT = {
    */
   measure?: "inner" | "outer" | "all";
   /**---
-   * *Callback on dimension change.*
+   * *Callback triggered on size changes.*
    *
    * @param rect - The dimensions of the container
    * @example
    * ```tsx
    * <ResizeTracker
-   *  onResize={(rect) => console.log(rect)
-   * }
+   *   onResize={(rect) => console.log("New size:", rect)}
+   * >
    *   {( rect ) => (
-   *      <p>Width: {rect.width}, Height: {rect.height}</p>
+   *      // content
    *   )}
    * </ResizeTracker>
    * ```

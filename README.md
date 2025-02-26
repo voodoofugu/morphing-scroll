@@ -731,7 +731,7 @@ npm install morphing-scroll
 - ### Props:
 
   <details>
-    <summary><strong><code>children</code></strong> : <em>This is a non-standard prop that you might be used to using this is render-prop function receiving the container's size.</em></summary><br />
+    <summary><strong><code>children</code></strong> : <em>⚠This is a non-standard prop that you might be used to using this is render-prop function receiving the container's size.</em></summary><br />
     <ul>
       <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
       <br />
@@ -779,7 +779,9 @@ npm install morphing-scroll
 
   ```tsx
   <ResizeTracker style={{ backgroundColor: "blue" }}>
-    // render-prop function
+    {(rect) => (
+      // content
+    )}
   </ResizeTracker>
   ```
 
@@ -803,12 +805,45 @@ npm install morphing-scroll
       - The <code>"outer"</code> value measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
       - The <code>"all"</code> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
       <br />
-      ⚠ <strong>Note:</strong> Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+      ⚠<strong>Note:</strong> Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
       <br />
       <strong>Example:</strong>
 
   ```tsx
-  <ResizeTracker measure="all">// render-prop function</ResizeTracker>
+  <ResizeTracker measure="all">
+    {(rect) => (
+      // content
+    )}
+  </ResizeTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>onResize</code></strong> : <em>Callback triggered on size changes.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> (rect: Partial<DOMRectReadOnly>) => void<br />
+      <br />
+      <strong>Description:</strong><br />
+      <em>A callback function that is triggered whenever the observed element's dimensions change.<br />
+      The function receives an object containing the updated size properties.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <ResizeTracker
+    onResize={(rect) => {
+      console.log("New size:", rect);
+    }}
+  >
+    {(rect) => (
+      // content
+    )}
+  </ResizeTracker>
   ```
 
     </ul>
