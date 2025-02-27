@@ -17,7 +17,7 @@ type ResizeTrackerT = {
    * */
   children: (rect: DOMRectReadOnly) => React.ReactNode;
   /**---
-   * *Applies inline styles to the container.*
+   * *Custom inline styles for the ResizeTracker.*
    * @example
    * ```tsx
    * <ResizeTracker
@@ -29,7 +29,7 @@ type ResizeTrackerT = {
    */
   style?: React.CSSProperties;
   /**---
-   * *Defines the measurement strategy.*
+   * *Defines size measurement behavior*
    * #### Options:
    * - `"inner"`: Fits content.
    * - `"outer"`: Fills parent.
@@ -39,16 +39,16 @@ type ResizeTrackerT = {
    */
   measure?: "inner" | "outer" | "all";
   /**---
-   * *Callback triggered on size changes.*
+   * *Callback on dimension change.*
    *
    * @param rect - The dimensions of the container
    * @example
    * ```tsx
    * <ResizeTracker
-   *   onResize={(rect) => console.log("New size:", rect)}
-   * >
+   *  onResize={(rect) => console.log(rect)
+   * }
    *   {( rect ) => (
-   *      // content
+   *      <p>Width: {rect.width}, Height: {rect.height}</p>
    *   )}
    * </ResizeTracker>
    * ```
@@ -61,7 +61,7 @@ type ResizeTrackerT = {
  *
  * ---
  * ## PROPS:
- * - `children` *◄ REQUIRED ►*
+ * - `children` ***REQUIRED***
  * - `style`
  * - `measure`
  * - `onResize`
@@ -124,7 +124,7 @@ type IntersectionTrackerT = {
  *
  * ---
  * ## PROPS:
- * - `children` *◄ REQUIRED ►*
+ * - `children` ***REQUIRED***
  * - `style`
  * - `root`
  * - `rootMargin`
@@ -302,7 +302,7 @@ export type MorphScrollT = {
  *
  * #### • VISUAL SETTINGS:
  * - `size`
- * - `objectsSize` *◄ REQUIRED ►*
+ * - `objectsSize` ***REQUIRED***
  * - `gap`
  * - `padding`
  * - `contentAlign`
