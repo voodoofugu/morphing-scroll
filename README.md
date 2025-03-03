@@ -1,6 +1,8 @@
 ![logo](https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa "logo")
 
-## 〈♦ Table of contents 〉
+##
+
+### 〈♦ Table of contents 〉
 
 - [About](#-about-)
 - [Installation](#-installation-)
@@ -9,11 +11,15 @@
 - [IntersectionTracker](#-intersectiontracker-)
 - [API](#-api-)
 
-## 〈♦ About 〉
+##
+
+### 〈♦ About 〉
 
 `morphing-scroll` is a `React` library designed to optimize the rendering of data lists. It leverages virtual rendering and lazy loading to handle large datasets efficiently, significantly enhancing performance. The library also resolves cross-browser inconsistencies in scroll element rendering by replacing them with custom ones. Additionally, it provides convenient horizontal scrolling with flexible content movement options.
 
-## 〈♦ Installation 〉
+##
+
+### 〈♦ Installation 〉
 
 To install the library, use the following command:
 
@@ -21,7 +27,9 @@ To install the library, use the following command:
 npm install morphing-scroll
 ```
 
-## 〈♦ MorphScroll 〉
+##
+
+### 〈♦ MorphScroll 〉
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
@@ -754,7 +762,7 @@ npm install morphing-scroll
 
 ##
 
-## 〈♦ ResizeTracker 〉
+### 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
 
@@ -882,7 +890,7 @@ npm install morphing-scroll
 
   </details>
 
-##
+  ##
 
 - ### Link:
 
@@ -890,7 +898,7 @@ npm install morphing-scroll
 
 ##
 
-## 〈♦ IntersectionTracker 〉
+### 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
 
@@ -1082,7 +1090,7 @@ npm install morphing-scroll
 
   </details>
 
-##
+  ##
 
 - ### Link:
 
@@ -1090,7 +1098,7 @@ npm install morphing-scroll
 
 ##
 
-## 〈♦ API 〉
+### 〈♦ API 〉
 
 - `MorphScroll`: React component that optimizes the rendering of data lists.
 - `ResizeTracker`: React component that monitors changes to an element’s size.
