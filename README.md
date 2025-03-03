@@ -752,6 +752,8 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  ##
+
 ## 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
@@ -880,9 +882,13 @@ npm install morphing-scroll
 
   </details>
 
+  ##
+
 - ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+
+  ##
 
 ## 〈♦ IntersectionTracker 〉
 
@@ -1076,9 +1082,13 @@ npm install morphing-scroll
 
   </details>
 
+  ##
+
 - ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+
+  ##
 
 ## 〈♦ API 〉
 
