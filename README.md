@@ -759,7 +759,7 @@ npm install morphing-scroll
 - ### Props:
 
   <details>
-    <summary><strong><code>children</code></strong> : <em>⚠This is a non-standard prop that you might be used to using this is render-prop function receiving the container's size.</em></summary><br />
+    <summary><strong><code>children</code></strong> : <em>Render-prop function for size updates and adding content.</em></summary><br />
     <ul>
       <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
       <br />
@@ -776,7 +776,9 @@ npm install morphing-scroll
         <li><code>left</code> - The distance from the left of the element to its parent's left. Equal to <code>x</code>.</li>
         <li><code>right</code> - The distance from the left of the parent to the right edge of the element (<code>left</code> + <code>width</code>).</li>
         <li><code>bottom</code> - The distance from the top of the parent to the bottom edge of the element (<code>top</code> + <code>height</code>).</li>
-      </ul></em><br />
+      </ul><br />
+      <br />
+      ⚠ This is a non-standard prop that you might be used to using this is render-prop function receiving the container's size.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -833,7 +835,7 @@ npm install morphing-scroll
       - The <code>"outer"</code> value measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
       - The <code>"all"</code> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
       <br />
-      ⚠Note: Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+      ⚠ Note: Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -877,6 +879,10 @@ npm install morphing-scroll
     </ul>
 
   </details>
+
+- ### Link:
+
+  [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
 ## 〈♦ IntersectionTracker 〉
 
@@ -925,13 +931,13 @@ npm install morphing-scroll
     <ul>
       <strong>Type:</strong> Element | null<br />
       <br />
-      <strong>Default:</strong> null (viewport)<br />
+      <strong>Default:</strong> null (window)<br />
       <br />
       <strong>Description:</strong> <em><br />
       Specifies the element that serves as the bounding box for the intersection observation. 
       If provided, it must be an ancestor of the observed element.<br />
       <br />
-      If set to <code>null</code> (default), the viewport is used as the observation area.</em><br />
+      If set to <code>null</code> (default), the window is used as the observation area.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -1069,6 +1075,10 @@ npm install morphing-scroll
     </ul>
 
   </details>
+
+- ### Link:
+
+  [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
 ## 〈♦ API 〉
 
