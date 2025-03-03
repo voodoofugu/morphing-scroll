@@ -130,6 +130,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [children, shouldTrackKeys, keys]);
 
   const firstChildKey = React.useMemo(() => {
+    // !!!
     if (scrollTopLocal.value !== "end") return null;
 
     if (validChildren.length > 0) {
@@ -817,14 +818,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, scrollTopLocal.duration, scrollTopLocal.value]
   );
 
-  const IntersectionTrackerOnVisible = React.useCallback(() => {
-    if (render.type === "lazy" && render.onVisible) {
-      render.onVisible();
-      updateEmptyElementKeys();
-    } else {
-      updateEmptyElementKeys();
-    }
-  }, [render]);
+  const IntersectionTrackerOnVisible = React.useCallback(
+    (key: string) => {
+      if (render.type === "lazy" && render.onVisible) {
+        render.onVisible(key);
+        updateEmptyElementKeys();
+      } else {
+        updateEmptyElementKeys();
+      }
+    },
+    [render]
+  );
 
   const scrollObjectWrapper = (
     elementTop?: number,
@@ -878,6 +882,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         {...(attribute ? { "wrap-id": attribute } : {})}
         onClick={updateEmptyKeysClick}
         style={wrapStyle2}
+        key={key}
       >
         {content}
       </div>

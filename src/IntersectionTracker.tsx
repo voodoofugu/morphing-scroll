@@ -35,6 +35,19 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     }
   };
 
+  const validChildren = React.useMemo(() => {
+    return React.Children.toArray(children).filter((child) =>
+      React.isValidElement(child)
+    );
+  }, [children]);
+
+  const firstChildKey = React.useMemo(() => {
+    if (validChildren.length > 0) {
+      return validChildren[0].key ?? null;
+    }
+    return null;
+  }, [validChildren]);
+
   React.useEffect(() => {
     const observer = new IntersectionObserver(callback, {
       root,
@@ -58,17 +71,17 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     if (intersectionDelay) {
       timeoutRef.current = setTimeout(() => {
         if (isVisible && onVisible) {
-          onVisible();
+          onVisible(firstChildKey || "");
         }
       }, intersectionDelay);
     } else {
       if (isVisible && onVisible) {
-        onVisible();
+        onVisible(firstChildKey || "");
       }
     }
 
     return () => clearTimeoutRef();
-  }, [isVisible, intersectionDelay, onVisible]);
+  }, [isVisible, intersectionDelay, onVisible, firstChildKey]);
 
   const content = visibleContent || isVisible ? children : null;
 

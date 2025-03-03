@@ -12,9 +12,9 @@ export type IntersectionTrackerT = {
   style?: React.CSSProperties;
   root?: Element | null;
   rootMargin?: number[] | number;
-  threshold?: number;
+  threshold?: number | number[];
   visibleContent?: boolean;
-  onVisible?: () => void;
+  onVisible?: (key: string) => void; // add kays
   intersectionDelay?: number;
 };
 
@@ -52,7 +52,11 @@ export type MorphScrollT = {
   };
   render?:
     | { type: "default" }
-    | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }
+    | {
+        type: "lazy";
+        rootMargin?: number | number[];
+        onVisible?: (key: string) => void;
+      }
     | { type: "virtual"; rootMargin?: number | number[] };
   emptyElements?:
     | { mode: "clear"; clickTrigger?: { selector: string; delay?: number } }

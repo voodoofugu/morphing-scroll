@@ -857,19 +857,173 @@ npm install morphing-scroll
 - ### Props:
 
   <details>
-    <summary><strong><code>!</code></strong> : <em>!.</em></summary><br />
+    <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
     <ul>
-      <strong>Type:</strong> !<br />
+      <strong>Type:</strong> React.ReactNode<br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <IntersectionTracker>{children}</IntersectionTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>style</code></strong> : <em>Applies inline styles to the container.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> React.CSSProperties<br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <IntersectionTracker style={{ backgroundColor: "blue" }}>
+    {children}
+  </IntersectionTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>root</code></strong> : <em>Defines the observation area.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> Element | null<br />
+      <br />
+      <strong>Default:</strong> null (viewport)<br />
       <br />
       <strong>Description:</strong> <em><br />
-      !.</em><br />
+      Specifies the element that serves as the bounding box for the intersection observation. 
+      If provided, it must be an ancestor of the observed element.<br />
+      <br />
+      If set to <code>null</code> (default), the viewport is used as the observation area.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <IntersectionTracker root={document.getElementById("root")}>
+    {children}
+  </IntersectionTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>rootMargin</code></strong> : <em>Sets the margin around the root element.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> number | number[]<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      Defines an offset around the root element, expanding or shrinking the observed area.<br />
+      <br />
+      Accepts a single number or an array for fine-tuned control:<br />
+      <ul>
+        <li>A <strong>single number</strong> sets the same margin on all sides.</li>
+        <li>A <strong>two-value array</strong> <code>[topBottom, leftRight]</code> applies margins vertically and horizontally.</li>
+        <li>A <strong>four-value array</strong> <code>[top, right, bottom, left]</code> allows full control over each side.</li>
+      </ul>
+      <br />
+      Margins are converted to <code>px</code> values internally.</em><br />
       <br />
       <strong>Example:</strong>
 
   ```tsx
   <IntersectionTracker
-  // another props
+    rootMargin={10}
+    // rootMargin={[10, 20]}
+    // rootMargin={[10, 20, 10, 20]}
   >
+    {children}
+  </IntersectionTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>threshold</code></strong> : <em>Defines when the callback is triggered.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> number | number[]<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      .Specifies at what percentage of the observed element’s visibility the callback should be executed.<br />
+      <br />
+      <ul>
+        <li>A <strong>single number</strong> (e.g., <code>0.5</code>) triggers when that fraction of the element is visible.</li>
+        <li>A <strong>array of numbers</strong> (e.g., <code>[0, 0.5, 1]</code>) triggers the callback multiple times at different visibility levels.</li>
+      </ul>
+      <br />
+      A value of <code>0</code> means the callback fires when any part of the element appears, while <code>1</code> means the element must be fully visible.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <IntersectionTracker
+    threshold={0.5}
+    // threshold={[0, 0.5, 1]}
+  >
+    {children}
+  </IntersectionTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>visibleContent</code></strong> : <em>Makes all elements always visible.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> boolean<br />
+      <br />
+      <strong>Default:</strong> false<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      If set to `true`, the tracked elements will always be visible, regardless of their actual intersection status.
+      <br />
+      This can be useful for testing purposes or when using the <code>onVisible</code> callback, ensuring it continues to trigger whenever the element enters the viewport.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <IntersectionTracker visibleContent>{children}</IntersectionTracker>
+  ```
+
+    </ul>
+
+  </details>
+
+  ##
+
+  <details>
+    <summary><strong><code>onVisible</code></strong> : <em>Callback function triggered when the element becomes visible.</em></summary><br />
+    <ul>
+      <strong>Type:</strong> () => void<br />
+      <br />
+      <strong>Description:</strong> <em><br />
+      A callback function that is invoked when the observed element enters the viewport or the defined observation area.<br />
+      <br />
+      This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.</em><br />
+      <br />
+      <strong>Example:</strong>
+
+  ```tsx
+  <IntersectionTracker onVisible={() => console.log("Element is visible")}>
     {children}
   </IntersectionTracker>
   ```
