@@ -752,7 +752,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+##
 
 ## 〈♦ ResizeTracker 〉
 
@@ -882,13 +882,13 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+##
 
 - ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
-  ##
+##
 
 ## 〈♦ IntersectionTracker 〉
 
@@ -1082,13 +1082,13 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+##
 
 - ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
-  ##
+##
 
 ## 〈♦ API 〉
 
