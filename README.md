@@ -266,7 +266,7 @@ npm install morphing-scroll
       <br />
       If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.<br />
       <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       <ul>
         <li>The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.</li>
         <li>See the <code>ResizeTracker</code> section for more details.</li>
@@ -300,7 +300,7 @@ npm install morphing-scroll
       <br />
       If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
       <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       The numbers are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.</em><br />
       <br />
       <strong>Example:</strong>
@@ -329,7 +329,7 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
       <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
       <br />
       <strong>Example:</strong>
@@ -357,7 +357,7 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
       <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       <ul>
         <li>
           This parameter accepts either a single number or an array of numbers
@@ -398,7 +398,7 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       This parameter aligns the `objectsWrapper`, which contains all the provided elements, relative to the scroll or the `size`.<br />
       <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       <ul>
         <li>Only takes effect when `objectsWrapper` is smaller than the scroll container.
         </li>
@@ -455,6 +455,7 @@ npm install morphing-scroll
       <br />
       The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
       <br />
+      ⚠ Note:<br />
       The size property, measured in pixels, adjusts the dimensions of the edge elements.</em><br />
       <br />
       <strong>Example:</strong>
@@ -484,10 +485,10 @@ npm install morphing-scroll
       <br />
       <strong>Description:</strong> <em><br />
       This parameter changes the position of the progress bar based on the direction property.<br />
-      <br />
-      If direction="x", the progress bar will be positioned on the left by default or on the right when progressReverse is active.<br />
-      <br />
-      If direction="y", the progress bar will be positioned at the top by default or at the bottom when progressReverse is active.</em><br />
+      <ul>
+        <li>If <code>direction="x"</code>, the progress bar is on the left by default and moves to the right when <code>progressReverse</code> is enabled.</li>
+        <li>If <code>direction="y"</code>, the progress bar is at the top by default and moves to the bottom when <code>progressReverse</code> is enabled.</li>
+      </ul></em><br />
       <br />
       <strong>Example:</strong>
 
@@ -537,7 +538,7 @@ npm install morphing-scroll
       <strong>Type:</strong> boolean<br /><br />
       <strong>Default:</strong> false<br /><br />
       <strong>Description:</strong> <em><br />
-      -</em><br />
+      In process of development</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -572,10 +573,12 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
       <br />
-      The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.<br />
-      The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-      The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.<br />
-      </em><br />
+      <ul>
+        <li>The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.</li>
+        <li>The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
+        <li>The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.</li>
+        <li>The <code>arrows</code> property allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom <code>element</code>.</li>
+      </ul></em><br />
       <br />
       <strong>Example:</strong>
 
@@ -608,15 +611,14 @@ npm install morphing-scroll
       <br />
       <strong>Description:</strong> <em><br />
       This parameter defines the rendering type for optimization.<br />
-      The <code>type</code> property can be set to <code>default</code>, <code>lazy</code> or <code>virtual</code>.<br />
       <br />
-      With <code>default</code>, no optimizations are applied.<br />
+      <ul>
+        <li>With <code>default</code>, no optimizations are applied.</li>
+        <li>With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code> callback function can be used to trigger actions when a container becomes visible for each scrollable object and provides the key of the first element in the container.</li>
+        <li>With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.</li>
+      </ul><br />
       <br />
-      With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code> callback function can be used to trigger actions when a container becomes visible for each scrollable object and provides the key of the first element in the container.<br />
-      <br />
-      With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
-      <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       <ul>
         <li>The <code>onVisible</code> property is the same as in <code>IntersectionTracker/onVisible</code>.</li>
         <li>
@@ -666,13 +668,14 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
       <br />
-      <code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.<br />
+      <ul>
+        <li><code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.</li>
+        <li><code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder to <code>element</code>.</li>
+      </ul><br />
       <br />
       <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
       <br />
-      <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
-      <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
       <br />
       <strong>Example:</strong>
@@ -830,7 +833,7 @@ npm install morphing-scroll
       - The <code>"outer"</code> value measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
       - The <code>"all"</code> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
       <br />
-      ⚠<strong>Note:</strong> Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+      ⚠Note: Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -877,7 +880,7 @@ npm install morphing-scroll
 
 ## 〈♦ IntersectionTracker 〉
 
-`IntersectionTracker` -.
+`IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
 
 - ### Props:
 
@@ -1046,7 +1049,7 @@ npm install morphing-scroll
       The callback receives the <code>key</code> of the first child element as a parameter.<br />
       This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.<br />
       <br />
-      ⚠ <strong>Note:</strong><br />
+      ⚠ Note:<br />
       Instead of checking if <code>key</code> equals the element’s key name, use <code>includes</code> for verification. React may modify key names by prefixing them with special characters like <code>.$</code>, making direct equality checks unreliable and more expensive 💵.</em><br />
       <br />
       <strong>Example:</strong>
@@ -1069,6 +1072,6 @@ npm install morphing-scroll
 
 ## 〈♦ API 〉
 
-- `MorphScroll`: .
-- `ResizeTracker`: -.
-- `IntersectionTracker`: -.
+- `MorphScroll`: React component that optimizes the rendering of data lists.
+- `ResizeTracker`: React component that monitors changes to an element’s size.
+- `IntersectionTracker`: React component for tracking element visibility in the viewport.
