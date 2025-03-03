@@ -263,10 +263,14 @@ npm install morphing-scroll
       <br />
       <strong>Description:</strong> <em><br />
       This parameter sets the width and height of the <code>MorphScroll</code> component as an array of two numbers. These values help define the visual container for the scrollable area.<br />
-      ⚠ <strong>Note:</strong> The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.<br />
       <br />
       If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.<br />
-      ⚠ <strong>Note:</strong> See the <code>ResizeTracker</code> section for more details.</em><br />
+      <br />
+      ⚠ <strong>Note:</strong><br />
+      <ul>
+        <li>The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.</li>
+        <li>See the <code>ResizeTracker</code> section for more details.</li>
+      </ul></em><br />
       <br />
       <strong>Example:</strong>
 
@@ -291,11 +295,13 @@ npm install morphing-scroll
       <br />
       <strong>Description:</strong> <em><br />
       This parameter is the only required one. It defines the size of cells for each of your objects. <code>ObjectsSize</code> use an array of values.<br />
-      ⚠ <strong>Note:</strong> The values are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.<br />
       <br />
       If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes for absolute positioning.. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
       <br />
-      If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.</em><br />
+      If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
+      <br />
+      ⚠ <strong>Note:</strong><br />
+      The numbers are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -322,7 +328,9 @@ npm install morphing-scroll
       <br />
       <strong>Description:</strong> <em><br />
       This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
-      ⚠ <strong>Note:</strong> The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
+      <br />
+      ⚠ <strong>Note:</strong><br />
+      The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -349,12 +357,18 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
       <br />
-      ⚠ <strong>Note:</strong> This parameter accepts either a single number or an array of numbers.<br />
-      If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
-      If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
-      All values are in pixels and apply regardless of the <code>direction</code>.<br />
-      <br />
-      ⚠ <strong>Note:</strong> This is not a CSS property, even though its name might suggest otherwise. It specifically refers to modifying the width and height of the scrollable wrapper, affecting the dimensions of the scrollable area.</em><br />
+      ⚠ <strong>Note:</strong><br />
+      <ul>
+        <li>
+          This parameter accepts either a single number or an array of numbers
+          <ul>
+            <li>If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.</li>
+            <li>If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.</li>
+          </ul>
+        </li>
+        <li>All values are in pixels and apply regardless of the <code>direction</code>.</li>
+        <li>This is not a CSS property, even though its name might suggest otherwise. It specifically refers to modifying the width and height of the scrollable wrapper, affecting the dimensions of the scrollable area.</li>
+      </ul></em><br />
       <br />
       <strong>Example:</strong>
 
@@ -384,7 +398,7 @@ npm install morphing-scroll
       <strong>Description:</strong> <em><br />
       This parameter aligns the `objectsWrapper`, which contains all the provided elements, relative to the scroll or the `size`.<br />
       <br />
-      ⚠ <strong>Note:</strong>
+      ⚠ <strong>Note:</strong><br />
       <ul>
         <li>Only takes effect when `objectsWrapper` is smaller than the scroll container.
         </li>
@@ -412,9 +426,6 @@ npm install morphing-scroll
     <summary><strong><code>elementsAlign</code></strong> : <em>Aligns the objects within the <code>objectsWrapper</code>.</em></summary><br />
     <ul>
       <strong>Type:</strong> "start" | "center" | "end"<br />
-      <br />
-      <strong>Description:</strong> <em><br />
-      This parameter aligns the provided custom objects within the `objectsWrapper`.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -602,14 +613,21 @@ npm install morphing-scroll
       With <code>default</code>, no optimizations are applied.<br />
       <br />
       With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code> callback function can be used to trigger actions when a container becomes visible for each scrollable object and provides the key of the first element in the container.<br />
-      ⚠ <strong>Note:</strong> The <code>onVisible</code> property is the same as in <code>IntersectionTracker/onVisible</code>.<br />
       <br />
       With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.<br />
       <br />
-      ⚠ <strong>Note:</strong> The <code>rootMargin</code> property accepts either a single number or an array of numbers.<br />
-      If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.<br />
-      If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.<br />
-      All values are in pixels and apply regardless of the <code>direction</code>.<br /></em><br />
+      ⚠ <strong>Note:</strong><br />
+      <ul>
+        <li>The <code>onVisible</code> property is the same as in <code>IntersectionTracker/onVisible</code>.</li>
+        <li>
+          The <code>rootMargin</code> property accepts either a single number or an array of numbers.
+          <ul>
+            <li>If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.</li>
+            <li>If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.</li>
+         </ul> 
+        </li>
+        <li>All values are in pixels and apply regardless of the <code>direction</code>.</li>
+      </ul></em><br />
       <br />
       <strong>Example:</strong>
 
@@ -654,7 +672,8 @@ npm install morphing-scroll
       <br />
       <code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder element via the <code>element</code> property.<br />
       <br />
-      ⚠ <strong>Note:</strong> For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
+      ⚠ <strong>Note:</strong><br />
+      For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
       <br />
       <strong>Example:</strong>
 
@@ -1027,7 +1046,8 @@ npm install morphing-scroll
       The callback receives the <code>key</code> of the first child element as a parameter.<br />
       This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.<br />
       <br />
-      ⚠ <strong>Note:</strong> Instead of checking if <code>key</code> equals the element’s key name, use <code>includes</code> for verification. React may modify key names by prefixing them with special characters like <code>.$</code>, making direct equality checks unreliable and more expensive 💵.</em><br />
+      ⚠ <strong>Note:</strong><br />
+      Instead of checking if <code>key</code> equals the element’s key name, use <code>includes</code> for verification. React may modify key names by prefixing them with special characters like <code>.$</code>, making direct equality checks unreliable and more expensive 💵.</em><br />
       <br />
       <strong>Example:</strong>
 
