@@ -586,8 +586,12 @@ npm install morphing-scroll
     <ul>
       <strong>Type:</strong><br />
         | { type: "default" }<br />
-        | { type: "lazy"; rootMargin?: number | number[]; onVisible?: () => void }<br />
-        | { type: "virtual"; rootMargin?: number | number[] }<br />
+        | {<br />
+          type: "lazy";<br />
+          rootMargin?: number | number[];<br />
+          onVisible?: (key: string) => void;<br />
+          }<br />
+        | { type: "virtual"; rootMargin?: number | number[]; }<br />
       <br />
       <strong>Default:</strong> { type: "default" }<br />
       <br />
@@ -1013,17 +1017,26 @@ npm install morphing-scroll
   <details>
     <summary><strong><code>onVisible</code></strong> : <em>Callback function triggered when the element becomes visible.</em></summary><br />
     <ul>
-      <strong>Type:</strong> () => void<br />
+      <strong>Type:</strong> (key: string) => void<br />
       <br />
       <strong>Description:</strong> <em><br />
       A callback function that is invoked when the observed element enters the viewport or the defined observation area.<br />
       <br />
-      This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.</em><br />
+      The callback receives the <code>key</code> of the first child element as a parameter.<br />
+      This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.<br />
+      <br />
+      ⚠ <strong>Note:</strong> Instead of checking if <code>key</code> equals the element’s key name, use <code>includes</code> for verification. React may modify key names by prefixing them with special characters like <code>.$</code>, making direct equality checks unreliable and more expensive 💵.</em><br />
       <br />
       <strong>Example:</strong>
 
   ```tsx
-  <IntersectionTracker onVisible={() => console.log("Element is visible")}>
+  <IntersectionTracker
+    onVisible={(key) => {
+      if (key.includes("elementId")) {
+        // do something
+      }
+    }}
+  >
     {children}
   </IntersectionTracker>
   ```

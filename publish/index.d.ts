@@ -111,12 +111,9 @@ type IntersectionTrackerT = {
   visibleContent?: boolean;
   /**---
    * Callback function triggered when `children` become visible.
+   * @param key - The key of the first child element
    */
-  onVisible?: () => void;
-  /**---
-   * Delay (in ms) before invoking `onVisible`.
-   */
-  intersectionDelay?: number;
+  onVisible?: (key: string) => void;
 };
 
 /**
@@ -131,7 +128,6 @@ type IntersectionTrackerT = {
  * - `threshold`
  * - `visibleContent`
  * - `onVisible`
- * - `intersectionDelay`
  * ##### ! MORE DETAILS IN PROPS OR LINKS !
  *
  * ---
@@ -258,8 +254,12 @@ export type MorphScrollT = {
    */
   render?:
     | { type: "default" }
-    | { type: "lazy"; rootMargin?: number | number[] }
-    | { type: "virtual" };
+    | {
+        type: "lazy";
+        rootMargin?: number | number[];
+        onVisible?: (key: string) => void;
+      }
+    | { type: "virtual"; rootMargin?: number | number[] };
   /**---
    * *Handling of empty scroll elements.*
    */

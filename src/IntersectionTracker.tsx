@@ -11,13 +11,9 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   rootMargin,
   visibleContent = false,
   onVisible,
-  intersectionDelay,
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
-  const timeoutRef = React.useRef<
-    number | ReturnType<typeof setTimeout> | null
-  >(null);
 
   const margin = numOrArrFormat(rootMargin);
   const rootMarginStr = margin
@@ -27,13 +23,6 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   const callback = React.useCallback(([entry]: IntersectionObserverEntry[]) => {
     setIsVisible(entry.isIntersecting);
   }, []);
-
-  const clearTimeoutRef = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
 
   const validChildren = React.useMemo(() => {
     return React.Children.toArray(children).filter((child) =>
@@ -66,22 +55,11 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
 
   React.useEffect(() => {
     if (!isVisible || !onVisible) return;
-    clearTimeoutRef();
 
-    if (intersectionDelay) {
-      timeoutRef.current = setTimeout(() => {
-        if (isVisible && onVisible) {
-          onVisible(firstChildKey || "");
-        }
-      }, intersectionDelay);
-    } else {
-      if (isVisible && onVisible) {
-        onVisible(firstChildKey || "");
-      }
+    if (isVisible && onVisible) {
+      onVisible(firstChildKey || "");
     }
-
-    return () => clearTimeoutRef();
-  }, [isVisible, intersectionDelay, onVisible, firstChildKey]);
+  }, [isVisible, onVisible, firstChildKey]);
 
   const content = visibleContent || isVisible ? children : null;
 

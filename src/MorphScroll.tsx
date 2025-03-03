@@ -4,6 +4,7 @@ import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import { MorphScrollT } from "./types";
 import numOrArrFormat from "./numOrArrFormat";
+import useIdent from "./useIdent";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
@@ -68,7 +69,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     height: 0,
   });
 
-  const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
+  // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
+  const id = useIdent();
 
   // default
   const scrollTopLocal = {
@@ -1221,7 +1223,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ></div>
         )}
         {progressTrigger.arrows && (
-          <>
+          <React.Fragment>
             <div
               className={`arrowBox${scrollTopFromRef > 1 ? " active" : ""}`}
               style={{
@@ -1247,13 +1249,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             >
               {arrowsLocal.element}
             </div>
-          </>
+          </React.Fragment>
         )}
 
         {progressVisibility !== "hidden" &&
           thumbSize < objectsWrapperHeight &&
           typeof progressTrigger.progressElement !== "boolean" && (
-            <>
+            <React.Fragment>
               {type !== "slider" ? (
                 <div
                   className="scrollBar"
@@ -1326,7 +1328,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   )}
                 </div>
               )}
-            </>
+            </React.Fragment>
           )}
       </div>
     </div>
