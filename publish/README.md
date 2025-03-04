@@ -38,7 +38,7 @@ npm install morphing-scroll
   #### GENERAL SETTINGS:
 
   <details>
-    <summary><strong><code>className</code></strong> : <em>Additional classes for the component.</em></summary><br />
+    <summary><strong><code>className</code></strong>: <em>Additional classes for the component.</em></summary><br />
     <ul>
       <strong>Type:</strong> string<br />
       <br />
@@ -57,10 +57,10 @@ npm install morphing-scroll
       ```
 
     </ul>
-  </details>
-
+  </details>&nbsp;
+  <h2></h2>&nbsp;
   <details>
-    <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
+    <summary><strong><code>children</code></strong>: <em>Custom user content.</em></summary><br />
     <ul>
       <strong>Type:</strong> React.ReactNode<br />
       <br />
@@ -82,10 +82,12 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   #### SCROLL SETTINGS:
 
   <details>
-    <summary><strong><code>type</code></strong> : <em>Type of progress element.</em></summary><br />
+    <summary><strong><code>type</code></strong>: <em>Type of progress element.</em></summary><br />
     <ul>
       <strong>Type:</strong> "scroll" | "slider"<br />
       <br />
@@ -110,8 +112,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>direction</code></strong> : <em>Scrolling direction.</em></summary><br />
+    <summary><strong><code>direction</code></strong>: <em>Scrolling direction.</em></summary><br />
     <ul>
       <strong>Type:</strong> "x" | "y"<br />
       <br />
@@ -135,8 +139,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>scrollTop</code></strong> : <em>Scroll position and animation duration.</em></summary><br />
+    <summary><strong><code>scrollTop</code></strong>: <em>Scroll position and animation duration.</em></summary><br />
     <ul>
       <strong>Type:</strong> {<br />
           value: number | "end";<br />
@@ -171,8 +177,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>stopLoadOnScroll</code></strong> : <em>Stop loading when scrolling.</em></summary><br />
+    <summary><strong><code>stopLoadOnScroll</code></strong>: <em>Stop loading when scrolling.</em></summary><br />
     <ul>
       <strong>Type:</strong> boolean<br />
       <br />
@@ -195,8 +203,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>onScrollValue</code></strong> : <em>Callback for scroll value.</em></summary><br />
+    <summary><strong><code>onScrollValue</code></strong>: <em>Callback for scroll value.</em></summary><br />
     <ul>
       <strong>Type:</strong> (scroll: number) => void<br />
       <br />
@@ -222,8 +232,10 @@ npm install morphing-scroll
     </ul>
   </details>
     
+  <h2></h2>
+
   <details>
-    <summary><strong><code>isScrolling</code></strong> : <em>Callback function for scroll status.</em></summary><br />
+    <summary><strong><code>isScrolling</code></strong>: <em>Callback function for scroll status.</em></summary><br />
     <ul>
       <strong>Type:</strong> (motion: boolean) => void<br />
       <br />
@@ -246,10 +258,12 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   #### VISUAL SETTINGS:
 
   <details>
-    <summary><strong><code>size</code></strong> : <em>MorphScroll width and height.</em></summary><br />
+    <summary><strong><code>size</code></strong>: <em>MorphScroll width and height.</em></summary><br />
     <ul>
       <strong>Type:</strong> number[]<br />
       <br />
@@ -278,8 +292,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>objectsSize</code> (required)</strong> : <em>Required: Size of cells for each object.</em></summary><br />
+    <summary><strong><code>objectsSize</code> (required)</strong>: <em>Required: Size of cells for each object.</em></summary><br />
     <ul>
       <strong>Type:</strong> (number | "none" | "firstChild")[]<br />
       <br />
@@ -309,8 +325,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>gap</code></strong> : <em>Gap between cells.</em></summary><br />
+    <summary><strong><code>gap</code></strong>: <em>Gap between cells.</em></summary><br />
     <ul>
       <strong>Type:</strong> number[] | number<br />
       <br />
@@ -335,8 +353,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>padding</code></strong> : <em>Padding for the <code>objectsWrapper</code>.</em></summary><br />
+    <summary><strong><code>padding</code></strong>: <em>Padding for the <code>objectsWrapper</code>.</em></summary><br />
     <ul>
       <strong>Type:</strong> number[] | number<br />
       <br />
@@ -372,8 +392,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>contentAlign</code></strong> : <em>Aligns the content when it is smaller than the MorphScroll <code>size</code>.</em></summary><br />
+    <summary><strong><code>contentAlign</code></strong>: <em>Aligns the content when it is smaller than the MorphScroll <code>size</code>.</em></summary><br />
     <ul>
       <strong>Type:</strong> [<br />
           "start" | "center" | "end",<br />
@@ -404,8 +426,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>elementsAlign</code></strong> : <em>Aligns the objects within the <code>objectsWrapper</code>.</em></summary><br />
+    <summary><strong><code>elementsAlign</code></strong>: <em>Aligns the objects within the <code>objectsWrapper</code>.</em></summary><br />
     <ul>
       <strong>Type:</strong> "start" | "center" | "end"<br />
       <br />
@@ -423,8 +447,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>edgeGradient</code></strong> : <em>Gradient when scrolling overflows.</em></summary><br />
+    <summary><strong><code>edgeGradient</code></strong>: <em>Gradient when scrolling overflows.</em></summary><br />
     <ul>
       <strong>Type:</strong> boolean | { color?: string; size?: number }<br />
       <br />
@@ -454,8 +480,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>progressReverse</code></strong> : <em>Reverse the progress bar position.</em></summary><br />
+    <summary><strong><code>progressReverse</code></strong>: <em>Reverse the progress bar position.</em></summary><br />
     <ul>
       <strong>Type:</strong> boolean<br />
       <br />
@@ -482,8 +510,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>progressVisibility</code></strong> : <em>Visibility of the progress bar.</em></summary><br />
+    <summary><strong><code>progressVisibility</code></strong>: <em>Visibility of the progress bar.</em></summary><br />
     <ul>
       <strong>Type:</strong> "visible" | "hover" | "hidden"<br />
       <br />
@@ -506,8 +536,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>objectsWrapFullMinSize</code></strong> : <em>Sets the <code>min-height</code> CSS property of the <code>objectsWrapper</code> to match the height of the MorphScroll.</em></summary><br />
+    <summary><strong><code>objectsWrapFullMinSize</code></strong>: <em>Sets the <code>min-height</code> CSS property of the <code>objectsWrapper</code> to match the height of the MorphScroll.</em></summary><br />
     <ul>
       <strong>Type:</strong> boolean<br /><br />
       <strong>Default:</strong> false<br /><br />
@@ -528,10 +560,12 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   #### PROGRESS AND RENDERING:
 
   <details>
-    <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
+    <summary><strong><code>progressTrigger</code></strong>: <em>Triggers for the progress bar.</em></summary><br />
     <ul>
       <strong>Type:</strong> {<br />
         wheel?: boolean;<br />
@@ -569,8 +603,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>render</code></strong> : <em>Types of rendering for optimization.</em></summary><br />
+    <summary><strong><code>render</code></strong>: <em>Types of rendering for optimization.</em></summary><br />
     <ul>
       <strong>Type:</strong><br />
         | { type: "default" }<br />
@@ -620,8 +656,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br />
+    <summary><strong><code>emptyElements</code></strong>: <em>Handling of empty scroll elements.</em></summary><br />
     <ul>
       <strong>Type:</strong><br />
         | {
@@ -670,8 +708,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
+    <summary><strong><code>suspending</code></strong>: <em>Adds React Suspense.</em></summary><br />
     <ul>
       <strong>Type:</strong> boolean<br />
       <br />
@@ -694,8 +734,10 @@ npm install morphing-scroll
     </ul>
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
+    <summary><strong><code>fallback</code></strong>: <em>Fallback element.</em></summary><br />
     <ul>
       <strong>Type:</strong> React.ReactNode<br />
       <br />
@@ -725,7 +767,7 @@ npm install morphing-scroll
 - ### Props:
 
   <details>
-    <summary><strong><code>children</code></strong> : <em>Render-prop function for size updates and adding content.</em></summary><br />
+    <summary><strong><code>children</code></strong>: <em>Render-prop function for size updates and adding content.</em></summary><br />
     <ul>
       <strong>Type:</strong> (rect: DOMRectReadOnly) => React.ReactNode<br />
       <br />
@@ -764,8 +806,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>style</code></strong> : <em>Applies inline styles to the container.</em></summary><br />
+    <summary><strong><code>style</code></strong>: <em>Applies inline styles to the container.</em></summary><br />
     <ul>
       <strong>Type:</strong> React.CSSProperties<br />
       <br />
@@ -783,8 +827,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>measure</code></strong> : <em>Defines the measurement strategy.</em></summary><br />
+    <summary><strong><code>measure</code></strong>: <em>Defines the measurement strategy.</em></summary><br />
     <ul>
       <strong>Type:</strong> "inner" | "outer" | "all"<br />
       <br />
@@ -813,8 +859,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>onResize</code></strong> : <em>Callback triggered on size changes.</em></summary><br />
+    <summary><strong><code>onResize</code></strong>: <em>Callback triggered on size changes.</em></summary><br />
     <ul>
       <strong>Type:</strong> (rect: Partial<DOMRectReadOnly>) => void<br />
       <br />
@@ -840,6 +888,8 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
 - ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
@@ -853,7 +903,7 @@ npm install morphing-scroll
 - ### Props:
 
   <details>
-    <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
+    <summary><strong><code>children</code></strong>: <em>Custom user content.</em></summary><br />
     <ul>
       <strong>Type:</strong> React.ReactNode<br />
       <br />
@@ -867,8 +917,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>style</code></strong> : <em>Applies inline styles to the container.</em></summary><br />
+    <summary><strong><code>style</code></strong>: <em>Applies inline styles to the container.</em></summary><br />
     <ul>
       <strong>Type:</strong> React.CSSProperties<br />
       <br />
@@ -884,8 +936,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>root</code></strong> : <em>Defines the observation area.</em></summary><br />
+    <summary><strong><code>root</code></strong>: <em>Defines the observation area.</em></summary><br />
     <ul>
       <strong>Type:</strong> Element | null<br />
       <br />
@@ -909,8 +963,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>rootMargin</code></strong> : <em>Sets the margin around the root element.</em></summary><br />
+    <summary><strong><code>rootMargin</code></strong>: <em>Sets the margin around the root element.</em></summary><br />
     <ul>
       <strong>Type:</strong> number | number[]<br />
       <br />
@@ -942,8 +998,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>threshold</code></strong> : <em>Defines when the callback is triggered.</em></summary><br />
+    <summary><strong><code>threshold</code></strong>: <em>Defines when the callback is triggered.</em></summary><br />
     <ul>
       <strong>Type:</strong> number | number[]<br />
       <br />
@@ -972,8 +1030,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>visibleContent</code></strong> : <em>Makes all elements always visible.</em></summary><br />
+    <summary><strong><code>visibleContent</code></strong>: <em>Makes all elements always visible.</em></summary><br />
     <ul>
       <strong>Type:</strong> boolean<br />
       <br />
@@ -994,8 +1054,10 @@ npm install morphing-scroll
 
   </details>
 
+  <h2></h2>
+
   <details>
-    <summary><strong><code>onVisible</code></strong> : <em>Callback function triggered when the element becomes visible.</em></summary><br />
+    <summary><strong><code>onVisible</code></strong>: <em>Callback function triggered when the element becomes visible.</em></summary><br />
     <ul>
       <strong>Type:</strong> (key: string) => void<br />
       <br />
@@ -1025,6 +1087,8 @@ npm install morphing-scroll
     </ul>
 
   </details>
+
+  <h2></h2>
 
 - ### Link:
 
