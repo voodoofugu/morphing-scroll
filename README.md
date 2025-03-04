@@ -1,8 +1,8 @@
 ![logo](https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa "logo")
 
-##
+<h2></h2>
 
-### 〈♦ Table of contents 〉
+<h2></h2># 〈♦ Table of contents 〉
 
 - [About](#-about-)
 - [Installation](#-installation-)
@@ -11,15 +11,15 @@
 - [IntersectionTracker](#-intersectiontracker-)
 - [API](#-api-)
 
-##
+<h2></h2>
 
-### 〈♦ About 〉
+<h2></h2># 〈♦ About 〉
 
 `morphing-scroll` is a `React` library designed to optimize the rendering of data lists. It leverages virtual rendering and lazy loading to handle large datasets efficiently, significantly enhancing performance. The library also resolves cross-browser inconsistencies in scroll element rendering by replacing them with custom ones. Additionally, it provides convenient horizontal scrolling with flexible content movement options.
 
-##
+<h2></h2>
 
-### 〈♦ Installation 〉
+<h2></h2># 〈♦ Installation 〉
 
 To install the library, use the following command:
 
@@ -27,15 +27,15 @@ To install the library, use the following command:
 npm install morphing-scroll
 ```
 
-##
+<h2></h2>
 
-### 〈♦ MorphScroll 〉
+<h2></h2># 〈♦ MorphScroll 〉
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-- ### Props:
+- <h2></h2># Props:
 
-  #### GENERAL SETTINGS:
+  <h2></h2><h2></h2> GENERAL SETTINGS:
 
   <details>
     <summary><strong><code>className</code></strong> : <em>Additional classes for the component.</em></summary><br />
@@ -59,7 +59,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
@@ -84,9 +84,9 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
-  #### SCROLL SETTINGS:
+  <h2></h2><h2></h2> SCROLL SETTINGS:
 
   <details>
     <summary><strong><code>type</code></strong> : <em>Type of progress element.</em></summary><br />
@@ -114,7 +114,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>direction</code></strong> : <em>Scrolling direction.</em></summary><br />
@@ -141,7 +141,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>scrollTop</code></strong> : <em>Scroll position and animation duration.</em></summary><br />
@@ -179,7 +179,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>stopLoadOnScroll</code></strong> : <em>Stop loading when scrolling.</em></summary><br />
@@ -205,7 +205,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>onScrollValue</code></strong> : <em>Callback for scroll value.</em></summary><br />
@@ -234,7 +234,7 @@ npm install morphing-scroll
     </ul>
   </details>
     
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>isScrolling</code></strong> : <em>Callback function for scroll status.</em></summary><br />
@@ -260,9 +260,9 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
-  #### VISUAL SETTINGS:
+  <h2></h2><h2></h2> VISUAL SETTINGS:
 
   <details>
     <summary><strong><code>size</code></strong> : <em>MorphScroll width and height.</em></summary><br />
@@ -294,7 +294,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>objectsSize</code> (required)</strong> : <em>Required: Size of cells for each object.</em></summary><br />
@@ -327,7 +327,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>gap</code></strong> : <em>Gap between cells.</em></summary><br />
@@ -355,7 +355,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>padding</code></strong> : <em>Padding for the <code>objectsWrapper</code>.</em></summary><br />
@@ -394,7 +394,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>contentAlign</code></strong> : <em>Aligns the content when it is smaller than the MorphScroll <code>size</code>.</em></summary><br />
@@ -428,7 +428,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>elementsAlign</code></strong> : <em>Aligns the objects within the <code>objectsWrapper</code>.</em></summary><br />
@@ -449,7 +449,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>edgeGradient</code></strong> : <em>Gradient when scrolling overflows.</em></summary><br />
@@ -482,7 +482,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>progressReverse</code></strong> : <em>Reverse the progress bar position.</em></summary><br />
@@ -512,7 +512,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>progressVisibility</code></strong> : <em>Visibility of the progress bar.</em></summary><br />
@@ -538,7 +538,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>objectsWrapFullMinSize</code></strong> : <em>Sets the <code>min-height</code> CSS property of the <code>objectsWrapper</code> to match the height of the MorphScroll.</em></summary><br />
@@ -562,9 +562,9 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
-  #### PROGRESS AND RENDERING:
+  <h2></h2><h2></h2> PROGRESS AND RENDERING:
 
   <details>
     <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
@@ -605,7 +605,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>render</code></strong> : <em>Types of rendering for optimization.</em></summary><br />
@@ -658,7 +658,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>emptyElements</code></strong> : <em>Handling of empty scroll elements.</em></summary><br />
@@ -710,7 +710,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>suspending</code></strong> : <em>Adds React Suspense.</em></summary><br />
@@ -736,7 +736,7 @@ npm install morphing-scroll
     </ul>
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>fallback</code></strong> : <em>Fallback element.</em></summary><br />
@@ -760,13 +760,13 @@ npm install morphing-scroll
     </ul>
   </details>
 
-##
+<h2></h2>
 
-### 〈♦ ResizeTracker 〉
+<h2></h2># 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
 
-- ### Props:
+- <h2></h2># Props:
 
   <details>
     <summary><strong><code>children</code></strong> : <em>Render-prop function for size updates and adding content.</em></summary><br />
@@ -808,7 +808,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>style</code></strong> : <em>Applies inline styles to the container.</em></summary><br />
@@ -829,7 +829,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>measure</code></strong> : <em>Defines the measurement strategy.</em></summary><br />
@@ -861,7 +861,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>onResize</code></strong> : <em>Callback triggered on size changes.</em></summary><br />
@@ -890,19 +890,19 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
-- ### Link:
+- <h2></h2># Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
-##
+<h2></h2>
 
-### 〈♦ IntersectionTracker 〉
+<h2></h2># 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
 
-- ### Props:
+- <h2></h2># Props:
 
   <details>
     <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
@@ -919,7 +919,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>style</code></strong> : <em>Applies inline styles to the container.</em></summary><br />
@@ -938,7 +938,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>root</code></strong> : <em>Defines the observation area.</em></summary><br />
@@ -965,7 +965,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>rootMargin</code></strong> : <em>Sets the margin around the root element.</em></summary><br />
@@ -1000,7 +1000,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>threshold</code></strong> : <em>Defines when the callback is triggered.</em></summary><br />
@@ -1032,7 +1032,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>visibleContent</code></strong> : <em>Makes all elements always visible.</em></summary><br />
@@ -1056,7 +1056,7 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
   <details>
     <summary><strong><code>onVisible</code></strong> : <em>Callback function triggered when the element becomes visible.</em></summary><br />
@@ -1090,15 +1090,15 @@ npm install morphing-scroll
 
   </details>
 
-  ##
+  <h2></h2>
 
-- ### Link:
+- <h2></h2># Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
-##
+<h2></h2>
 
-### 〈♦ API 〉
+<h2></h2># 〈♦ API 〉
 
 - `MorphScroll`: React component that optimizes the rendering of data lists.
 - `ResizeTracker`: React component that monitors changes to an element’s size.
