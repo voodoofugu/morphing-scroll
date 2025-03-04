@@ -58,9 +58,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -84,9 +82,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -115,9 +111,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -143,9 +137,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -182,9 +174,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -209,9 +199,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -239,9 +227,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
       
     <h2></h2>
 
@@ -266,9 +252,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -301,9 +285,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -335,9 +317,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -364,9 +344,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -404,9 +382,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -439,9 +415,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -461,9 +435,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -495,9 +467,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -526,9 +496,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -553,9 +521,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -578,9 +544,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -622,9 +586,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -676,9 +638,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -729,9 +689,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -756,9 +714,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -781,9 +737,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
     
   </div>
 
@@ -833,9 +787,7 @@ npm install morphing-scroll
         </ResizeTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -854,9 +806,7 @@ npm install morphing-scroll
         </ResizeTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -886,9 +836,7 @@ npm install morphing-scroll
         </ResizeTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -915,9 +863,7 @@ npm install morphing-scroll
         </ResizeTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -948,9 +894,7 @@ npm install morphing-scroll
         <IntersectionTracker>{children}</IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -967,9 +911,7 @@ npm install morphing-scroll
         </IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -994,9 +936,7 @@ npm install morphing-scroll
         </IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -1029,9 +969,7 @@ npm install morphing-scroll
         </IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -1061,9 +999,7 @@ npm install morphing-scroll
         </IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -1085,9 +1021,7 @@ npm install morphing-scroll
         <IntersectionTracker visibleContent>{children}</IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -1119,9 +1053,7 @@ npm install morphing-scroll
         </IntersectionTracker>
         ```
 
-      </ul>
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
