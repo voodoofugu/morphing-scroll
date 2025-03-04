@@ -2,7 +2,7 @@
 
 <h2></h2>
 
-<h2></h2># 〈♦ Table of contents 〉
+### 〈♦ Table of contents 〉
 
 - [About](#-about-)
 - [Installation](#-installation-)
@@ -13,13 +13,13 @@
 
 <h2></h2>
 
-<h2></h2># 〈♦ About 〉
+### 〈♦ About 〉
 
 `morphing-scroll` is a `React` library designed to optimize the rendering of data lists. It leverages virtual rendering and lazy loading to handle large datasets efficiently, significantly enhancing performance. The library also resolves cross-browser inconsistencies in scroll element rendering by replacing them with custom ones. Additionally, it provides convenient horizontal scrolling with flexible content movement options.
 
 <h2></h2>
 
-<h2></h2># 〈♦ Installation 〉
+### 〈♦ Installation 〉
 
 To install the library, use the following command:
 
@@ -29,13 +29,13 @@ npm install morphing-scroll
 
 <h2></h2>
 
-<h2></h2># 〈♦ MorphScroll 〉
+### 〈♦ MorphScroll 〉
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-- <h2></h2># Props:
+- ### Props:
 
-  <h2></h2><h2></h2> GENERAL SETTINGS:
+  #### GENERAL SETTINGS:
 
   <details>
     <summary><strong><code>className</code></strong> : <em>Additional classes for the component.</em></summary><br />
@@ -86,7 +86,7 @@ npm install morphing-scroll
 
   <h2></h2>
 
-  <h2></h2><h2></h2> SCROLL SETTINGS:
+  #### SCROLL SETTINGS:
 
   <details>
     <summary><strong><code>type</code></strong> : <em>Type of progress element.</em></summary><br />
@@ -262,7 +262,7 @@ npm install morphing-scroll
 
   <h2></h2>
 
-  <h2></h2><h2></h2> VISUAL SETTINGS:
+  #### VISUAL SETTINGS:
 
   <details>
     <summary><strong><code>size</code></strong> : <em>MorphScroll width and height.</em></summary><br />
@@ -564,7 +564,7 @@ npm install morphing-scroll
 
   <h2></h2>
 
-  <h2></h2><h2></h2> PROGRESS AND RENDERING:
+  #### PROGRESS AND RENDERING:
 
   <details>
     <summary><strong><code>progressTrigger</code></strong> : <em>Triggers for the progress bar.</em></summary><br />
@@ -762,11 +762,11 @@ npm install morphing-scroll
 
 <h2></h2>
 
-<h2></h2># 〈♦ ResizeTracker 〉
+### 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
 
-- <h2></h2># Props:
+- ### Props:
 
   <details>
     <summary><strong><code>children</code></strong> : <em>Render-prop function for size updates and adding content.</em></summary><br />
@@ -892,17 +892,17 @@ npm install morphing-scroll
 
   <h2></h2>
 
-- <h2></h2># Link:
+- ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
 <h2></h2>
 
-<h2></h2># 〈♦ IntersectionTracker 〉
+### 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
 
-- <h2></h2># Props:
+- ### Props:
 
   <details>
     <summary><strong><code>children</code></strong> : <em>Custom user content.</em></summary><br />
@@ -1092,13 +1092,13 @@ npm install morphing-scroll
 
   <h2></h2>
 
-- <h2></h2># Link:
+- ### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
 <h2></h2>
 
-<h2></h2># 〈♦ API 〉
+### 〈♦ API 〉
 
 - `MorphScroll`: React component that optimizes the rendering of data lists.
 - `ResizeTracker`: React component that monitors changes to an element’s size.
