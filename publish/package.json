@@ -1,6 +1,6 @@
 {
   "name": "morphing-scroll",
-  "version": "1.4.1",
+  "version": "1.5.16",
   "description": "Library for using various methods of scrolling objects〈♦〉",
   "author": "Georg Schilin",
   "license": "MIT",
@@ -9,12 +9,10 @@
   "types": "./index.d.ts",
   "keywords": [
     "react",
-    "react-component",
-    "scroll",
-    "scroller"
+    "scroll"
   ],
   "peerDependencies": {
-    "react": ">=18 <20"
+    "react": ">=16.8 <20"
   },
   "repository": {
     "type": "git",
