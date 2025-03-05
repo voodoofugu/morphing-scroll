@@ -322,7 +322,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const scrollTopFromRef = scrollElementRef.current?.scrollTop || 0;
   const isNotAtBottom =
-    Math.round(scrollTopFromRef + xy) !== objectsWrapperHeightFull;
+    Math.round(scrollTopFromRef + xy) < objectsWrapperHeightFull;
 
   const thumbSize = React.useMemo(() => {
     if (progressVisibility !== "hidden" || !objectsWrapperHeightFull) {
@@ -410,7 +410,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const elementBottom = (function () {
         return render.type === "virtual" && objectsSizeLocal[1]
           ? elementTop + objectsSizeLocal[1]
-          : 0;
+          : elementTop;
       })();
 
       const left =
@@ -567,9 +567,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
           elements &&
             elements.forEach((element, index) => {
+              const scroll = scrollEl?.scrollTop ?? 0;
               const isActive =
-                (scrollEl?.scrollTop ?? 0) >= xy * index &&
-                (scrollEl?.scrollTop ?? 0) < xy * (index + 1);
+                scroll >= xy * index && scroll < xy * (index + 1);
 
               element.classList.toggle("active", isActive);
             });
@@ -616,7 +616,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     }
 
-    edgeGradient && sliderAndArrowsCheck();
+    type === "slider" && sliderAndArrowsCheck();
     render.type !== "default" && updateEmptyElementKeys(false);
 
     forceUpdate();
@@ -850,6 +850,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       height: xyObject ? `${xyObject}px` : "",
       ...(direction === "x" && {
         display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }),
     };
 
@@ -858,6 +860,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ...(direction === "x" && {
         transform: "rotate(-90deg) scaleX(-1)",
       }),
+      height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : "",
     };
 
     const commonProps = {
@@ -1180,11 +1183,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             width: "100%",
             height: "100%",
             ...contentAlignLocal,
-            ...(progressTrigger.wheel
+            ...(progressTrigger.wheel && objectsWrapperHeightFull > xy
               ? {
                   overflow: "hidden scroll",
                 }
-              : { overflow: "hidden hidden" }),
+              : { overflow: "hidden" }),
             ...(typeof progressTrigger.progressElement !== "boolean" ||
             progressTrigger.progressElement === false
               ? {
