@@ -205,9 +205,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [x, y];
   }, [objectsSize, receivedChildSize]);
 
-  const xyObject = objectsSizeLocal[1];
-  const xyObjectReverse = objectsSizeLocal[0];
-
   const mRootLocal = React.useMemo(() => {
     return numOrArrFormat(
       render.type !== "default" ? render.rootMargin || 0 : 0,
@@ -230,19 +227,28 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScrollRef
   }, [size, arrowsLocal.size, receivedScrollSize]);
 
-  const xy = direction === "x" ? sizeLocal[0] : sizeLocal[1];
-  const xyReverse = direction === "x" ? sizeLocal[1] : sizeLocal[0];
-
   // calculations
   const objectsPerDirection = React.useMemo(() => {
-    const objectSize = xyObjectReverse ? xyObjectReverse + gapX : null;
+    const isHorizontal = direction === "x";
+    // const isVertical = direction === "y";
+
+    const objectSize = isHorizontal
+      ? objectsSizeLocal[1]
+        ? objectsSizeLocal[1] + gapX
+        : null
+      : objectsSizeLocal[0]
+      ? objectsSizeLocal[0] + gapX
+      : null;
+
+    const availableSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
+    const padding = isHorizontal ? pLocalY : pLocalX;
 
     const objects = objectSize
-      ? Math.floor((xyReverse - pLocalX) / objectSize)
+      ? Math.floor((availableSize - padding) / objectSize)
       : 1;
 
     return objects;
-  }, [xyObjectReverse, xyReverse, gapX, pLocalX]);
+  }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
 
   const splitIndices = React.useMemo(() => {
     if (render.type !== "virtual" || objectsPerDirection <= 1) {
@@ -265,21 +271,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return result;
   }, [children, objectsPerDirection, render.type]);
 
-  const childsPerDirection = React.useMemo(() => {
+  const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
       ? Math.ceil(validChildren.length / objectsPerDirection)
       : validChildren.length;
   }, [validChildren.length, objectsPerDirection]);
 
   const objectsWrapperWidth = React.useMemo(() => {
-    const objPerDirLocal = objectsPerDirection ?? 1;
-    return sizeLocal[0]
-      ? sizeLocal[0] * objPerDirLocal + (objPerDirLocal - 1) * gapY
+    const childsGap = objectsPerDirection <= 0 ? 0 : objectsPerDirection * gapY;
+    return objectsSizeLocal[0]
+      ? direction === "y"
+        ? objectsSizeLocal[0] * objectsPerDirection +
+          gapY * (objectsPerDirection - 1)
+        : objectsSizeLocal[0] * (childsLinePerDirection + 1) + childsGap
       : render.type !== "virtual"
       ? receivedWrapSize.width
-      : (receivedChildSize.width + gapY) * objPerDirLocal - gapY;
+      : receivedChildSize.width + childsGap;
   }, [
-    xyObjectReverse,
+    objectsSizeLocal[0],
     objectsPerDirection,
     gapY,
     receivedWrapSize,
@@ -288,16 +297,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const objectsWrapperHeight = React.useMemo(() => {
-    const childsQuantity = childsPerDirection - 1;
-    const childsGap = childsQuantity <= 0 ? 0 : childsQuantity * gapX;
-    return sizeLocal[1]
-      ? sizeLocal[1] * childsPerDirection + childsGap
+    const childsGap = objectsPerDirection < 1 ? 0 : objectsPerDirection * gapX;
+    return objectsSizeLocal[1]
+      ? direction === "x"
+        ? objectsSizeLocal[1] * objectsPerDirection +
+          gapX * (objectsPerDirection - 1)
+        : objectsSizeLocal[1] * (childsLinePerDirection + 1) + childsGap
       : render.type !== "virtual"
       ? receivedWrapSize.height
       : receivedChildSize.height + childsGap;
   }, [
-    xyObject,
-    childsPerDirection,
+    objectsSizeLocal[1],
+    childsLinePerDirection,
     gapX,
     receivedWrapSize,
     receivedChildSize,
@@ -312,26 +323,31 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return objectsWrapperWidth + pLocalX;
   }, [objectsWrapperWidth, pLocalX]);
 
-  const scrollTopFromRef = scrollElementRef.current?.scrollTop || 0;
+  const scrollTopLeftFromRef =
+    direction === "x"
+      ? scrollElementRef.current?.scrollLeft || 0
+      : scrollElementRef.current?.scrollTop || 0;
   const isNotAtBottom =
-    Math.round(scrollTopFromRef + xy) < objectsWrapperHeightFull;
+    Math.round(scrollTopLeftFromRef + sizeLocal[1]) < objectsWrapperHeightFull;
 
   const thumbSize = React.useMemo(() => {
     if (progressVisibility !== "hidden" || !objectsWrapperHeightFull) {
       if (objectsWrapperHeight === 0) return 0;
-      if (!xy) return 0;
-      return Math.round((xy / objectsWrapperHeightFull) * xy);
+      if (!sizeLocal[1]) return 0;
+      return Math.round(
+        (sizeLocal[1] / objectsWrapperHeightFull) * sizeLocal[1]
+      );
     } else {
       return 0;
     }
-  }, [xy, objectsWrapperHeightFull, progressVisibility]);
+  }, [sizeLocal[1], objectsWrapperHeightFull, progressVisibility]);
 
   const endObjectsWrapper = React.useMemo(() => {
-    if (!xy) return objectsWrapperHeightFull;
+    if (!sizeLocal[1]) return objectsWrapperHeightFull;
     return (
-      objectsWrapperHeightFull - xy // in scroll vindow
+      objectsWrapperHeightFull - sizeLocal[1] // in scroll vindow
     );
-  }, [objectsWrapperHeightFull, xy]);
+  }, [objectsWrapperHeightFull, sizeLocal[1]]);
 
   const translateProperty = React.useMemo(() => {
     if (!sizeLocal[0] || !sizeLocal[1]) return 0;
@@ -339,18 +355,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [sizeLocal]);
 
   const memoizedChildrenData = React.useMemo(() => {
+    if (render.type !== "virtual")
+      return [{ elementTop: 0, elementBottom: 0, left: 0, right: 0 }];
+
     let lastIndices: number[] = [];
     let alignSpace: number = 0;
 
-    if (render.type === "virtual" && elementsAlign) {
+    if (elementsAlign) {
       const indices = Array.from(
         { length: validChildren.length },
         (_, index) => index
       );
       const firstChildsInDirection = Math.abs(
-        Math.floor(validChildren.length / objectsPerDirection) *
-          objectsPerDirection -
-          validChildren.length
+        childsLinePerDirection * objectsPerDirection - validChildren.length
       );
       lastIndices = firstChildsInDirection
         ? indices.slice(-firstChildsInDirection)
@@ -358,12 +375,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (elementsAlign === "center") {
         alignSpace =
-          (((xyObjectReverse ?? 0) + gapY) *
+          (((objectsSizeLocal[0] ?? 0) + gapY) *
             (objectsPerDirection - firstChildsInDirection)) /
           2;
       } else if (elementsAlign === "end") {
         alignSpace =
-          ((xyObjectReverse ?? 0) + gapY) *
+          ((objectsSizeLocal[0] ?? 0) + gapY) *
           (objectsPerDirection - firstChildsInDirection);
       }
     }
@@ -390,24 +407,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       })(index, splitIndices);
 
       const elementTop = (function (index: number) {
-        return index !== 0 ? ((xyObject ?? 0) + gapX) * index + pT : pT;
-      })(
-        render.type === "virtual"
-          ? objectsPerDirection > 1
-            ? indexAndSubIndex[1]
-            : index
-          : 0
-      );
+        return index !== 0
+          ? direction === "y"
+            ? ((objectsSizeLocal[1] ?? 0) + gapX) * index + pT
+            : pT
+          : pT;
+      })(objectsPerDirection > 1 ? indexAndSubIndex[1] : index);
 
       const elementBottom = (function () {
-        return render.type === "virtual" && objectsSizeLocal[1]
+        return objectsSizeLocal[1]
           ? elementTop + objectsSizeLocal[1]
           : elementTop;
       })();
 
-      const left =
-        render.type === "virtual" && xyObjectReverse
-          ? xyObjectReverse * indexAndSubIndex[0] +
+      const left = objectsSizeLocal[0]
+        ? direction === "y"
+          ? objectsSizeLocal[0] * indexAndSubIndex[0] +
             gapY * indexAndSubIndex[0] +
             pL +
             (elementsAlign && lastIndices.length > 0
@@ -415,12 +430,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 ? alignSpace
                 : 0
               : 0)
-          : 0;
+          : ((objectsSizeLocal[0] ?? 0) + gapY) * index + pL
+        : 0;
+
+      const right = objectsSizeLocal[0] ? left + objectsSizeLocal[0] : 0;
 
       return {
         elementTop,
         elementBottom,
         left,
+        right,
       };
     });
   }, [
@@ -479,10 +498,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const sizeLocalToObjectsWrapperXY = React.useCallback(
     (max?: boolean) => {
       const calcFn = max ? Math.ceil : Math.floor;
+      const size = direction === "x" ? sizeLocal[0] : sizeLocal[1];
+      const fullHeightOrWidth =
+        direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
-      return calcFn(objectsWrapperHeightFull / xy);
+      return calcFn(fullHeightOrWidth / size);
     },
-    [xy, objectsWrapperHeightFull]
+    [sizeLocal, objectsWrapperHeightFull]
   );
 
   // events
@@ -526,14 +548,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const scrollTo = (position: number) => smoothScroll(position);
 
       if (arr === "first" && scrollEl.scrollTop > 0) {
-        scrollTo(scrollEl.scrollTop <= xy ? 0 : scrollEl.scrollTop - xy);
+        scrollTo(
+          scrollEl.scrollTop <= sizeLocal[1]
+            ? 0
+            : scrollEl.scrollTop - sizeLocal[1]
+        );
       }
 
-      if (arr === "last" && length && scrollEl.scrollTop + xy !== height) {
+      if (
+        arr === "last" &&
+        length &&
+        scrollEl.scrollTop + sizeLocal[1] !== height
+      ) {
         scrollTo(
-          scrollEl.scrollTop + xy >= xy * length
+          scrollEl.scrollTop + sizeLocal[1] >= sizeLocal[1] * length
             ? height
-            : scrollEl.scrollTop + xy
+            : scrollEl.scrollTop + sizeLocal[1]
         );
       }
     },
@@ -554,7 +584,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             elements.forEach((element, index) => {
               const scroll = scrollEl?.scrollTop ?? 0;
               const isActive =
-                scroll >= xy * index && scroll < xy * (index + 1);
+                scroll >= sizeLocal[1] * index &&
+                scroll < sizeLocal[1] * (index + 1);
 
               element.classList.toggle("active", isActive);
             });
@@ -563,7 +594,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         getActiveElem();
       }
     }
-  }, [xy, objectsWrapperHeightFull]);
+  }, [sizeLocal[1], objectsWrapperHeightFull]);
 
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
@@ -586,13 +617,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // newScroll
     if (thumbSize !== 0 && progressVisibility !== "hidden") {
       const newScroll = Math.abs(
-        Math.round((scrollEl.scrollTop / endObjectsWrapper) * (xy - thumbSize))
+        Math.round(
+          (scrollEl.scrollTop / endObjectsWrapper) * (sizeLocal[1] - thumbSize)
+        )
       );
       if (newScroll !== topThumb.current && type !== "slider") {
         // фиксим то что скролл срабатывает если один из детей последнего элемента больше чем родитель
         // не позволяя ползунку выходить за пределы
         topThumb.current =
-          thumbSize + newScroll > xy ? xy - thumbSize : newScroll;
+          thumbSize + newScroll > sizeLocal[1]
+            ? sizeLocal[1] - thumbSize
+            : newScroll;
       }
 
       // onScrollValue
@@ -606,7 +641,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     forceUpdate();
   }, [
-    xy,
+    sizeLocal[1],
     thumbSize,
     topThumb,
     progressVisibility,
@@ -648,10 +683,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           });
 
         const updateScroll = (delta: number) => {
-          const targetScrollTop = scrollEl.scrollTop + delta * xy;
+          const targetScrollTop = scrollEl.scrollTop + delta * sizeLocal[1];
 
           if (delta > 0) {
-            scrollTo(Math.min(targetScrollTop, height - xy));
+            scrollTo(Math.min(targetScrollTop, height - sizeLocal[1]));
           } else {
             scrollTo(Math.max(targetScrollTop, 0));
           }
@@ -661,7 +696,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           numForSlider.current += e.movementY;
           if (
             numForSlider.current >= pixelsForSwipe &&
-            scrollEl.scrollTop + xy != height
+            scrollEl.scrollTop + sizeLocal[1] != height
           )
             updateScroll(1);
         } else if (e.movementY < 0 && numForSlider.current > -pixelsForSwipe) {
@@ -835,8 +870,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     );
 
     const wrapStyle1 = {
-      width: xyObjectReverse ? `${xyObjectReverse}px` : "",
-      height: xyObject ? `${xyObject}px` : "",
+      width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
+      height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : "",
       // ...(direction === "x" && {
       //   display: "flex",
       //   justifyContent: "center",
@@ -862,7 +897,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               position: "absolute",
               top: `${elementTop}px`,
               ...(left && { left: `${left}px` }),
-              ...(!xyObjectReverse &&
+              ...(!objectsSizeLocal[0] &&
                 objectsPerDirection === 1 && {
                   transform: "translateX(-50%)",
                 }),
@@ -889,7 +924,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           position: "absolute",
           top: `${elementTop}px`,
           ...(left && { left: `${left}px` }),
-          ...(!xyObjectReverse &&
+          ...(!objectsSizeLocal[0] &&
             objectsPerDirection === 1 && {
               transform: "translateX(-50%)",
             }),
@@ -973,7 +1008,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (scrollElementRef.current && validChildren.length > 0) {
       let cancelScroll: (() => void) | null;
 
-      if (scrollTopLocal.value === "end" && objectsWrapperHeightFull > xy) {
+      if (
+        scrollTopLocal.value === "end" &&
+        objectsWrapperHeightFull > sizeLocal[1]
+      ) {
         if (!firstChildKeyRef.current) {
           firstChildKeyRef.current = firstChildKey;
         }
@@ -1024,8 +1062,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       style={{
         // padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
-          (render.type === "virtual" && objectsWrapperHeightFull) ||
-          objectsSize[1] !== "none"
+          render.type === "virtual" || objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
         width: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
@@ -1050,9 +1087,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             flexWrap: "wrap",
           }),
         ...(render.type !== "virtual" &&
-          objectsPerDirection <= 1 && {
-            flexDirection: "column",
-          }),
+        objectsPerDirection <= 1 &&
+        direction === "y"
+          ? {
+              flexDirection: "column",
+            }
+          : {
+              flexDirection: "row",
+            }),
         ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(elementsAlign &&
           render.type !== "virtual" && {
@@ -1064,7 +1106,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 : "flex-end",
           }),
         ...(objectsWrapFullMinSize && {
-          minHeight: `${xy - pLocalY}px`,
+          minHeight: `${sizeLocal[1] - pLocalY}px`,
         }),
       }}
     >
@@ -1096,11 +1138,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           );
 
         if (render.type === "virtual") {
-          const { elementTop, elementBottom, left } =
+          const { elementTop, elementBottom, left, right } =
             memoizedChildrenData[index];
+
+          const topOrLeft = direction === "x" ? left : elementTop;
+          const bottomOrRight = direction === "x" ? elementBottom : right;
+          const mRoot = direction === "x" ? mRootX : mRootY;
+          const mRootReverse = direction === "x" ? mRootY : mRootX;
+          const size = direction === "x" ? sizeLocal[0] : sizeLocal[1];
           const isElementVisible =
-            (sizeLocal[1] ?? 0) + mRootX > elementTop - scrollTopFromRef &&
-            elementBottom - scrollTopFromRef > 0 - mRootY;
+            size + mRootReverse > topOrLeft - scrollTopLeftFromRef &&
+            bottomOrRight - scrollTopLeftFromRef > 0 - mRoot;
 
           if (isElementVisible) {
             return scrollObjectWrapper(
@@ -1149,8 +1197,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }
         style={{
           position: "relative",
-          width: `${xyReverse}px`,
-          height: `${xy}px`,
+          width: `${sizeLocal[0]}px`,
+          height: `${sizeLocal[1]}px`,
           // ...(direction === "x" && {
           //   transform: `rotate(-90deg) translate(${translateProperty}px, ${translateProperty}px) scaleX(-1)`,
           // }),
@@ -1177,10 +1225,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               ? {
                   overflow: "hidden scroll",
                 }
-              : { overflow: "hidden" }),
-            ...(direction === "x" &&
-            progressTrigger.wheel &&
-            objectsWrapperWidthFull > sizeLocal[0]
+              : direction === "x" &&
+                progressTrigger.wheel &&
+                objectsWrapperWidthFull > sizeLocal[0]
               ? {
                   overflow: "scroll hidden",
                 }
@@ -1208,7 +1255,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             style={{
               ...edgeStyle,
               top: 0,
-              opacity: scrollTopFromRef > 1 ? 1 : 0,
+              opacity: scrollTopLeftFromRef > 1 ? 1 : 0,
             }}
           ></div>
         )}
@@ -1226,7 +1273,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         {progressTrigger.arrows && (
           <React.Fragment>
             <div
-              className={`arrowBox${scrollTopFromRef > 1 ? " active" : ""}`}
+              className={`arrowBox${scrollTopLeftFromRef > 1 ? " active" : ""}`}
               style={{
                 ...arrowsStyle,
                 top: 0,
