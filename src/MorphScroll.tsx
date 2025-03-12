@@ -159,14 +159,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const edgeStyle: React.CSSProperties = {
     position: "absolute",
-    left: 0,
-    width: "100%",
     pointerEvents: "none",
     transition: "opacity 0.1s ease-in-out",
-    height: `${edgeGradientLocal.size}px`,
     ...(edgeGradientLocal.color && {
       background: `linear-gradient(${edgeGradientLocal.color}, transparent)`,
     }),
+    ...(direction === "x"
+      ? {
+          height: "100%",
+          width: `${edgeGradientLocal.size}px`,
+          top: 0,
+        }
+      : {
+          width: "100%",
+          height: `${edgeGradientLocal.size}px`,
+          left: 0,
+        }),
   };
 
   const [pT, pR, pB, pL] = numOrArrFormat(padding) || [0, 0, 0, 0];
@@ -226,6 +234,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScrollRef
   }, [size, arrowsLocal.size, receivedScrollSize]);
+  const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
   // calculations
   const objectsPerDirection = React.useMemo(() => {
@@ -318,17 +327,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsWrapperHeightFull = React.useMemo(() => {
     return objectsWrapperHeight + pLocalY;
   }, [objectsWrapperHeight, pLocalY]);
-
   const objectsWrapperWidthFull = React.useMemo(() => {
     return objectsWrapperWidth + pLocalX;
   }, [objectsWrapperWidth, pLocalX]);
+  const fullHeightOrWidth =
+    direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
   const scrollTopLeftFromRef =
     direction === "x"
       ? scrollElementRef.current?.scrollLeft || 0
       : scrollElementRef.current?.scrollTop || 0;
   const isNotAtBottom =
-    Math.round(scrollTopLeftFromRef + sizeLocal[1]) < objectsWrapperHeightFull;
+    Math.round(scrollTopLeftFromRef + xySize) < fullHeightOrWidth;
 
   const thumbSize = React.useMemo(() => {
     if (progressVisibility !== "hidden" || !objectsWrapperHeightFull) {
@@ -1142,12 +1152,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             memoizedChildrenData[index];
 
           const topOrLeft = direction === "x" ? left : elementTop;
-          const bottomOrRight = direction === "x" ? elementBottom : right;
+          const bottomOrRight = direction === "x" ? right : elementBottom;
           const mRoot = direction === "x" ? mRootX : mRootY;
           const mRootReverse = direction === "x" ? mRootY : mRootX;
-          const size = direction === "x" ? sizeLocal[0] : sizeLocal[1];
           const isElementVisible =
-            size + mRootReverse > topOrLeft - scrollTopLeftFromRef &&
+            xySize + mRoot > topOrLeft - scrollTopLeftFromRef &&
             bottomOrRight - scrollTopLeftFromRef > 0 - mRoot;
 
           if (isElementVisible) {
@@ -1254,7 +1263,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             className="edge"
             style={{
               ...edgeStyle,
-              top: 0,
+              ...(direction === "x"
+                ? {
+                    left: 0,
+                  }
+                : { top: 0 }),
               opacity: scrollTopLeftFromRef > 1 ? 1 : 0,
             }}
           ></div>
@@ -1264,7 +1277,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             className="edge"
             style={{
               ...edgeStyle,
-              bottom: 0,
+              ...(direction === "x"
+                ? {
+                    right: 0,
+                  }
+                : { bottom: 0 }),
               opacity: isNotAtBottom ? 1 : 0,
               transform: "scaleY(-1)",
             }}
