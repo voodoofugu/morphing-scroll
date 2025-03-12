@@ -292,7 +292,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? direction === "y"
         ? objectsSizeLocal[0] * objectsPerDirection +
           gapY * (objectsPerDirection - 1)
-        : objectsSizeLocal[0] * (childsLinePerDirection + 1) + childsGap
+        : objectsSizeLocal[0] * childsLinePerDirection + childsGap
       : render.type !== "virtual"
       ? receivedWrapSize.width
       : receivedChildSize.width + childsGap;
@@ -311,7 +311,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? direction === "x"
         ? objectsSizeLocal[1] * objectsPerDirection +
           gapX * (objectsPerDirection - 1)
-        : objectsSizeLocal[1] * (childsLinePerDirection + 1) + childsGap
+        : objectsSizeLocal[1] * childsLinePerDirection + childsGap
       : render.type !== "virtual"
       ? receivedWrapSize.height
       : receivedChildSize.height + childsGap;
@@ -341,16 +341,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     Math.round(scrollTopLeftFromRef + xySize) < fullHeightOrWidth;
 
   const thumbSize = React.useMemo(() => {
-    if (progressVisibility !== "hidden" || !objectsWrapperHeightFull) {
-      if (objectsWrapperHeight === 0) return 0;
+    if (progressVisibility !== "hidden") {
+      if (fullHeightOrWidth === 0) return 0;
       if (!sizeLocal[1]) return 0;
-      return Math.round(
-        (sizeLocal[1] / objectsWrapperHeightFull) * sizeLocal[1]
-      );
+      return Math.round((xySize / fullHeightOrWidth) * xySize);
     } else {
       return 0;
     }
-  }, [sizeLocal[1], objectsWrapperHeightFull, progressVisibility]);
+  }, [xySize, fullHeightOrWidth, progressVisibility]);
 
   const endObjectsWrapper = React.useMemo(() => {
     if (!sizeLocal[1]) return objectsWrapperHeightFull;
@@ -1071,11 +1069,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }}
       style={{
         // padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
-        height:
+        minHeight:
           render.type === "virtual" || objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
-        width: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
+        minWidth: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
 
         // ...(objectsSize[1] === "none" && {
         //   padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
@@ -1318,7 +1316,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         )}
 
         {progressVisibility !== "hidden" &&
-          thumbSize < objectsWrapperHeight &&
+          thumbSize < fullHeightOrWidth &&
           typeof progressTrigger.progressElement !== "boolean" && (
             <React.Fragment>
               {type !== "slider" ? (
@@ -1326,10 +1324,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   className="scrollBar"
                   style={{
                     position: "absolute",
-                    top: 0,
+                    ...(direction === "x"
+                      ? { bottom: 0, width: "100%", height: "fit-content" }
+                      : { top: 0, width: "fit-content", height: "100%" }),
                     ...(progressReverse ? { left: 0 } : { right: 0 }),
-                    width: "fit-content",
-                    height: "100%",
                     ...(!progressTrigger.progressElement !== false && {
                       pointerEvents: "none",
                     }),
@@ -1349,15 +1347,39 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                       }
                     }}
                     style={{
-                      height: `${thumbSize}px`,
+                      ...(direction === "x"
+                        ? {
+                            width: `${thumbSize}px`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            position: "relative",
+                          }
+                        : { height: `${thumbSize}px` }),
                       willChange: "transform", // свойство убирает артефакты во время анимации
-                      transform: `translateY(${topThumb.current}px)`, // translateZ для улучшения производительности и сглаживания
+                      ...(direction === "x"
+                        ? {
+                            transform: `translateX(${topThumb.current}px)`,
+                          }
+                        : {
+                            transform: `translateY(${topThumb.current}px)`,
+                          }),
                       ...(progressTrigger.progressElement && {
                         cursor: "grab",
                       }),
                     }}
                   >
-                    {progressTrigger.progressElement}
+                    <div
+                      style={{
+                        ...(direction === "x" && {
+                          transform: "rotate(-90deg)",
+                          height: `${thumbSize}px`,
+                          position: "absolute",
+                        }),
+                      }}
+                    >
+                      {progressTrigger.progressElement}
+                    </div>
                   </div>
                 </div>
               ) : (
