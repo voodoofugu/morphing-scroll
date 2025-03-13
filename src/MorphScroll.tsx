@@ -351,16 +351,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [xySize, fullHeightOrWidth, progressVisibility]);
 
   const endObjectsWrapper = React.useMemo(() => {
-    if (!sizeLocal[1]) return objectsWrapperHeightFull;
+    if (!xySize) return fullHeightOrWidth;
     return (
-      objectsWrapperHeightFull - sizeLocal[1] // in scroll vindow
+      fullHeightOrWidth - xySize // in scroll vindow
     );
-  }, [objectsWrapperHeightFull, sizeLocal[1]]);
-
-  const translateProperty = React.useMemo(() => {
-    if (!sizeLocal[0] || !sizeLocal[1]) return 0;
-    return sizeLocal[0] / 2 - sizeLocal[1] / 2;
-  }, [sizeLocal]);
+  }, [fullHeightOrWidth, xySize]);
 
   const memoizedChildrenData = React.useMemo(() => {
     if (render.type !== "virtual")
@@ -607,6 +602,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
+    const scrollLeftOrTop =
+      direction === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
 
     // scroll status
     const shouldUpdateScroll = stopLoadOnScroll || isScrolling;
@@ -625,22 +622,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // newScroll
     if (thumbSize !== 0 && progressVisibility !== "hidden") {
       const newScroll = Math.abs(
-        Math.round(
-          (scrollEl.scrollTop / endObjectsWrapper) * (sizeLocal[1] - thumbSize)
-        )
+        Math.round((scrollLeftOrTop / endObjectsWrapper) * (xySize - thumbSize))
       );
       if (newScroll !== topThumb.current && type !== "slider") {
         // фиксим то что скролл срабатывает если один из детей последнего элемента больше чем родитель
         // не позволяя ползунку выходить за пределы
         topThumb.current =
-          thumbSize + newScroll > sizeLocal[1]
-            ? sizeLocal[1] - thumbSize
-            : newScroll;
+          thumbSize + newScroll > xySize ? xySize - thumbSize : newScroll;
       }
 
       // onScrollValue
       if (onScrollValue) {
-        onScrollValue(scrollEl.scrollTop);
+        onScrollValue(scrollLeftOrTop);
       }
     }
 
@@ -649,7 +642,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     forceUpdate();
   }, [
-    sizeLocal[1],
+    xySize,
     thumbSize,
     topThumb,
     progressVisibility,
@@ -880,20 +873,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const wrapStyle1 = {
       width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
       height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : "",
-      // ...(direction === "x" && {
-      //   display: "flex",
-      //   justifyContent: "center",
-      //   alignItems: "center",
-      // }),
     };
-
-    // const wrapStyle2 = {
-    //   width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
-    //   ...(direction === "x" && {
-    //     transform: "rotate(-90deg) scaleX(-1)",
-    //   }),
-    //   height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : "",
-    // };
 
     const commonProps = {
       root: scrollElementRef.current,
@@ -913,17 +893,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : wrapStyle1,
       onVisible: IntersectionTrackerOnVisible,
     };
-
-    // const innerContent = (
-    //   <div
-    //     {...(attribute ? { "wrap-id": attribute } : {})}
-    //     onClick={updateEmptyKeysClick}
-    //     style={wrapStyle2}
-    //     key={key}
-    //   >
-    //     {content}
-    //   </div>
-    // );
 
     return render.type === "virtual" ? (
       <div
@@ -1324,9 +1293,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   className="scrollBar"
                   style={{
                     position: "absolute",
+                    top: 0,
+                    width: "fit-content",
+                    height: "100%",
                     ...(direction === "x"
-                      ? { bottom: 0, width: "100%", height: "fit-content" }
-                      : { top: 0, width: "fit-content", height: "100%" }),
+                      ? { transform: "rotate(-90deg)" }
+                      : {}),
                     ...(progressReverse ? { left: 0 } : { right: 0 }),
                     ...(!progressTrigger.progressElement !== false && {
                       pointerEvents: "none",
@@ -1347,39 +1319,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                       }
                     }}
                     style={{
-                      ...(direction === "x"
-                        ? {
-                            width: `${thumbSize}px`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            position: "relative",
-                          }
-                        : { height: `${thumbSize}px` }),
+                      height: `${thumbSize}px`,
                       willChange: "transform", // свойство убирает артефакты во время анимации
-                      ...(direction === "x"
-                        ? {
-                            transform: `translateX(${topThumb.current}px)`,
-                          }
-                        : {
-                            transform: `translateY(${topThumb.current}px)`,
-                          }),
+                      transform: `translateY(${topThumb.current}px)`,
                       ...(progressTrigger.progressElement && {
                         cursor: "grab",
                       }),
                     }}
                   >
-                    <div
-                      style={{
-                        ...(direction === "x" && {
-                          transform: "rotate(-90deg)",
-                          height: `${thumbSize}px`,
-                          position: "absolute",
-                        }),
-                      }}
-                    >
-                      {progressTrigger.progressElement}
-                    </div>
+                    {progressTrigger.progressElement}
                   </div>
                 </div>
               ) : (
