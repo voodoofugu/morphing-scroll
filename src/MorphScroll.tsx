@@ -34,7 +34,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   render = { type: "default" },
   emptyElements,
 }) => {
-  const forceUpdate = React.useReducer(() => ({}), {})[1]; // для принудительного обновления
+  const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
+
+  const triggerUpdate = () => {
+    forceUpdate((n) => (n === 1 ? 0 : 1));
+  };
 
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
@@ -54,6 +58,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     null
   );
   const emptyElementKeysString = React.useRef<string>("");
+  const scrollStateRef = React.useRef({
+    targetScroll: 0,
+    animating: false,
+    lastEventTime: 0,
+    animationFrameId: 0,
+  });
 
   const [scrollingStatus, setScrollingStatus] = React.useState(false);
   const [receivedScrollSize, setReceivedScrollSize] = React.useState({
@@ -169,11 +179,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           height: "100%",
           width: `${edgeGradientLocal.size}px`,
           top: 0,
+          ...(edgeGradientLocal.color && {
+            background: `linear-gradient(90deg, ${edgeGradientLocal.color}, transparent)`,
+          }),
         }
       : {
           width: "100%",
           height: `${edgeGradientLocal.size}px`,
           left: 0,
+          ...(edgeGradientLocal.color && {
+            background: `linear-gradient(${edgeGradientLocal.color}, transparent)`,
+          }),
         }),
   };
 
@@ -640,7 +656,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type === "slider" && sliderAndArrowsCheck();
     render.type !== "default" && updateEmptyElementKeys(false);
 
-    forceUpdate();
+    triggerUpdate();
   }, [
     xySize,
     thumbSize,
@@ -654,6 +670,60 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     emptyElements,
     render,
   ]);
+
+  const handleWheel = React.useCallback(
+    (
+      e: WheelEvent,
+      scrollEl: HTMLDivElement,
+      stateRef: typeof scrollStateRef
+    ) => {
+      e.preventDefault();
+
+      const now = performance.now();
+      const state = stateRef.current;
+      state.lastEventTime = now;
+
+      if (!state.animating) {
+        state.targetScroll = scrollEl.scrollLeft;
+      }
+
+      // Вычисляем новое целевое значение прокрутки
+      const newTarget = state.targetScroll + e.deltaY;
+
+      // Ограничиваем targetScroll так, чтобы оно не выходило за допустимые границы
+      const firstChild = scrollEl.children[0] as HTMLDivElement;
+      const maxScroll = firstChild.offsetWidth - scrollEl.offsetWidth;
+      const boundedTarget = Math.max(0, Math.min(newTarget, maxScroll));
+
+      state.targetScroll = boundedTarget;
+      state.lastEventTime = now;
+
+      // Запускаем анимацию, если она ещё не запущена
+      if (!state.animating) {
+        state.animating = true;
+        state.animationFrameId = requestAnimationFrame(animateScroll);
+      }
+
+      function animateScroll() {
+        const timeSinceLastEvent = performance.now() - state.lastEventTime;
+
+        // Улучшаем плавность: если событие было недавно, увеличиваем чувствительность
+        const smoothFactor = Math.min(timeSinceLastEvent / 300, 1);
+
+        // Обновляем scrollLeft с учётом плавности
+        scrollEl.scrollLeft +=
+          (state.targetScroll - scrollEl.scrollLeft) * smoothFactor;
+
+        // Если разница меньше 0.5 пикселя, останавливаем анимацию
+        if (Math.abs(scrollEl.scrollLeft - state.targetScroll) > 0.5) {
+          state.animationFrameId = requestAnimationFrame(animateScroll);
+        } else {
+          state.animating = false;
+        }
+      }
+    },
+    []
+  );
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
@@ -680,7 +750,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const scrollTo = (position: number) =>
           smoothScroll(position, () => {
             numForSlider.current = 0;
-            forceUpdate();
+            triggerUpdate();
           });
 
         const updateScroll = (delta: number) => {
@@ -745,7 +815,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }
       }
 
-      forceUpdate(); // for update ref only
+      triggerUpdate(); // for update ref only
     },
     [handleMouseMove, customScrollRef, progressVisibility, type]
   );
@@ -753,7 +823,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const handleMouseDown = React.useCallback(
     (clicked: "thumb" | "wrapp" | "slider") => {
       clickedObject.current = clicked;
-      forceUpdate(); // for update ref only
+      triggerUpdate(); // for update ref only
 
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
@@ -944,7 +1014,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyElementKays}`;
       }
 
-      update && forceUpdate();
+      update && triggerUpdate();
     },
     [emptyElementKeysString.current]
   );
@@ -975,11 +1045,33 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   React.useEffect(() => {
     if (render.type === "virtual") {
-      forceUpdate();
+      triggerUpdate();
     }
 
     sliderAndArrowsCheck();
   }, []);
+
+  React.useEffect(() => {
+    const scrollEl = scrollElementRef.current;
+    if (!scrollEl) return;
+
+    const wheelHandler = (e: WheelEvent) =>
+      handleWheel(e, scrollEl, scrollStateRef);
+
+    if (direction !== "x") {
+      scrollEl.removeEventListener("wheel", wheelHandler);
+      return;
+    }
+
+    scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
+
+    return () => {
+      scrollEl.removeEventListener("wheel", wheelHandler);
+      if (scrollStateRef.current.animationFrameId) {
+        cancelAnimationFrame(scrollStateRef.current.animationFrameId);
+      }
+    };
+  }, [direction, handleWheel]);
 
   React.useEffect(() => {
     if (scrollElementRef.current && validChildren.length > 0) {
@@ -1250,7 +1342,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   }
                 : { bottom: 0 }),
               opacity: isNotAtBottom ? 1 : 0,
-              transform: "scaleY(-1)",
+              ...(direction === "x"
+                ? {
+                    transform: "scaleX(-1)",
+                  }
+                : { transform: "scaleY(-1)" }),
             }}
           ></div>
         )}
@@ -1293,13 +1389,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   className="scrollBar"
                   style={{
                     position: "absolute",
-                    top: 0,
                     width: "fit-content",
-                    height: "100%",
                     ...(direction === "x"
-                      ? { transform: "rotate(-90deg)" }
-                      : {}),
-                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                      ? {
+                          transformOrigin: "left top",
+                          height: `${sizeLocal[0]}px`,
+                          ...(progressReverse
+                            ? {
+                                top: 0,
+                                transform: "rotate(-90deg) translateX(-100%)",
+                              }
+                            : { transform: "rotate(-90deg)" }),
+                        }
+                      : {
+                          top: 0,
+                          height: "100%",
+                          ...(progressReverse ? { left: 0 } : { right: 0 }),
+                        }),
                     ...(!progressTrigger.progressElement !== false && {
                       pointerEvents: "none",
                     }),
