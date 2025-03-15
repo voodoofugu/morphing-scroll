@@ -59,9 +59,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
   const emptyElementKeysString = React.useRef<string>("");
   const scrollStateRef = React.useRef({
-    targetScroll: 0,
+    targetScrollY: 0,
+    targetScrollX: 0,
     animating: false,
-    lastEventTime: 0,
     animationFrameId: 0,
   });
 
@@ -349,12 +349,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const fullHeightOrWidth =
     direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
-  const scrollTopLeftFromRef =
+  const scrollSpaceFromRef =
     direction === "x"
       ? scrollElementRef.current?.scrollLeft || 0
       : scrollElementRef.current?.scrollTop || 0;
   const isNotAtBottom =
-    Math.round(scrollTopLeftFromRef + xySize) < fullHeightOrWidth;
+    Math.round(scrollSpaceFromRef + xySize) < fullHeightOrWidth;
 
   const thumbSize = React.useMemo(() => {
     if (progressVisibility !== "hidden") {
@@ -618,6 +618,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
+
     const scrollLeftOrTop =
       direction === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
 
@@ -678,25 +679,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       stateRef: typeof scrollStateRef
     ) => {
       e.preventDefault();
-
-      const now = performance.now();
       const state = stateRef.current;
-      state.lastEventTime = now;
 
       if (!state.animating) {
-        state.targetScroll = scrollEl.scrollLeft;
+        state.targetScrollX = scrollEl.scrollLeft;
       }
 
       // Вычисляем новое целевое значение прокрутки
-      const newTarget = state.targetScroll + e.deltaY;
+      const newTarget = state.targetScrollX + e.deltaY;
 
       // Ограничиваем targetScroll так, чтобы оно не выходило за допустимые границы
       const firstChild = scrollEl.children[0] as HTMLDivElement;
       const maxScroll = firstChild.offsetWidth - scrollEl.offsetWidth;
       const boundedTarget = Math.max(0, Math.min(newTarget, maxScroll));
 
-      state.targetScroll = boundedTarget;
-      state.lastEventTime = now;
+      state.targetScrollX = boundedTarget;
 
       // Запускаем анимацию, если она ещё не запущена
       if (!state.animating) {
@@ -705,17 +702,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
 
       function animateScroll() {
-        const timeSinceLastEvent = performance.now() - state.lastEventTime;
-
-        // Улучшаем плавность: если событие было недавно, увеличиваем чувствительность
-        const smoothFactor = Math.min(timeSinceLastEvent / 300, 1);
+        const lerpFactor = 0.4;
 
         // Обновляем scrollLeft с учётом плавности
         scrollEl.scrollLeft +=
-          (state.targetScroll - scrollEl.scrollLeft) * smoothFactor;
+          (state.targetScrollX - scrollEl.scrollLeft) * lerpFactor;
 
-        // Если разница меньше 0.5 пикселя, останавливаем анимацию
-        if (Math.abs(scrollEl.scrollLeft - state.targetScroll) > 0.5) {
+        // Если разница меньше 1.5 пикселя, останавливаем анимацию
+        if (Math.abs(scrollEl.scrollLeft - state.targetScrollX) > 1.5) {
           state.animationFrameId = requestAnimationFrame(animateScroll);
         } else {
           state.animating = false;
@@ -731,14 +725,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const length = sizeLocalToObjectsWrapperXY();
       if (!scrollEl || !length) return;
 
+      const state = scrollStateRef.current;
+
       if (["thumb", "wrapp"].includes(clickedObject.current)) {
         const plusMinus = clickedObject.current === "thumb" ? 1 : -1;
+        const addBoost = clickedObject.current === "thumb" ? length : 1;
 
         if (direction === "x") {
-          scrollEl.scrollLeft += e.movementX * length * plusMinus;
+          scrollEl.scrollLeft += e.movementX * addBoost * plusMinus;
+          state.targetScrollX = scrollEl.scrollLeft; // обновляем target
         }
         if (direction === "y") {
-          scrollEl.scrollTop += e.movementY * length * plusMinus;
+          scrollEl.scrollTop += e.movementY * addBoost * plusMinus;
+          // state.targetScrollY = scrollEl.scrollTop;
         }
       }
 
@@ -784,9 +783,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const handleMouseUp = React.useCallback(
-    (mouseUpEvent: MouseEvent) => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+    (mouseUpEvent: MouseEvent, controller?: AbortController) => {
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl) return;
+
+      // Отменяем все слушатели событий
+      controller?.abort();
 
       document.body.style.removeProperty("cursor");
       mouseOnRefUp(objectsWrapperRef.current);
@@ -794,11 +796,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       clickedObject.current = "none";
 
-      // обрабатываем progressVisibility "hover" для элемента прогресса
       if (progressVisibility === "hover") {
         let target = mouseUpEvent.target as HTMLElement | null;
         let isChildOfScrollContent = false;
-        // Проверяем, находится ли target внутри scrollContentlRef.current
+
         while (target && target !== document.body) {
           if (target === scrollContentlRef.current) {
             isChildOfScrollContent = true;
@@ -817,19 +818,27 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       triggerUpdate(); // for update ref only
     },
-    [handleMouseMove, customScrollRef, progressVisibility, type]
+    [progressVisibility, type]
   );
 
   const handleMouseDown = React.useCallback(
     (clicked: "thumb" | "wrapp" | "slider") => {
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl) return;
+
+      const controller = new AbortController();
+      const { signal } = controller;
+
       clickedObject.current = clicked;
       triggerUpdate(); // for update ref only
 
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove, { signal });
+      window.addEventListener("mouseup", (e) => handleMouseUp(e, controller), {
+        signal,
+      });
       document.body.style.cursor = "grabbing";
     },
-    [handleMouseMove, handleMouseUp, customScrollRef]
+    [handleMouseMove, handleMouseUp]
   );
 
   // functions
@@ -1215,8 +1224,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const mRoot = direction === "x" ? mRootX : mRootY;
           const mRootReverse = direction === "x" ? mRootY : mRootX;
           const isElementVisible =
-            xySize + mRoot > topOrLeft - scrollTopLeftFromRef &&
-            bottomOrRight - scrollTopLeftFromRef > 0 - mRoot;
+            xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
+            bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
 
           if (isElementVisible) {
             return scrollObjectWrapper(
@@ -1327,7 +1336,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                     left: 0,
                   }
                 : { top: 0 }),
-              opacity: scrollTopLeftFromRef > 1 ? 1 : 0,
+              opacity: scrollSpaceFromRef > 1 ? 1 : 0,
             }}
           ></div>
         )}
@@ -1353,7 +1362,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         {progressTrigger.arrows && (
           <React.Fragment>
             <div
-              className={`arrowBox${scrollTopLeftFromRef > 1 ? " active" : ""}`}
+              className={`arrowBox${scrollSpaceFromRef > 1 ? " active" : ""}`}
               style={{
                 ...arrowsStyle,
                 top: 0,
