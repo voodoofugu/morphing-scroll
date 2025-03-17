@@ -1,7 +1,7 @@
 import React from "react";
 
 export type ResizeTrackerT = {
-  children: (rect: DOMRectReadOnly) => React.ReactNode;
+  children: (rect: DOMRectReadOnly) => React.ReactNode; // change!
   style?: React.CSSProperties;
   measure?: "inner" | "outer" | "all";
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
@@ -24,7 +24,7 @@ export type MorphScrollT = {
 
   // Scroll Settings
   type?: "scroll" | "slider";
-  direction?: "x" | "y";
+  direction?: "x" | "y" | "hybrid";
   scrollTop?: { value: number | "end"; duration?: number; updater?: boolean };
   stopLoadOnScroll?: boolean;
   onScrollValue?: (scroll: number) => void;

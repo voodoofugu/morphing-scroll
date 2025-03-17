@@ -1,10 +1,12 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
-import IntersectionTracker from "./IntersectionTracker";
-import ResizeTracker from "./ResizeTracker";
 import { MorphScrollT } from "./types";
 import numOrArrFormat from "./numOrArrFormat";
 import useIdent from "./useIdent";
+
+import IntersectionTracker from "./IntersectionTracker";
+import ResizeTracker from "./ResizeTracker";
+import ScrollBar from "./ScrollBar";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
@@ -44,8 +46,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
-  const scrollBarThumbRef = React.useRef<HTMLDivElement | null>(null);
-  const sliderBarRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
 
   const firstChildKeyRef = React.useRef<string | null>(null);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
@@ -322,7 +323,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const objectsWrapperHeight = React.useMemo(() => {
-    const childsGap = objectsPerDirection < 1 ? 0 : objectsPerDirection * gapX;
+    const childsGap =
+      childsLinePerDirection < 1 ? 0 : childsLinePerDirection * gapX;
     return objectsSizeLocal[1]
       ? direction === "x"
         ? objectsSizeLocal[1] * objectsPerDirection +
@@ -527,16 +529,36 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   // events
-  const mouseOnRefDown = (el: HTMLDivElement | null) => {
-    if (el) {
-      el.style.cursor = "grabbing";
+  const mouseOnEl = React.useCallback(
+    (el: HTMLDivElement | null, type: "down" | "up") => {
+      if (el) {
+        if (type === "down") {
+          el.style.cursor = "grabbing";
+        } else {
+          if (el && el.style.cursor === "grabbing") {
+            el.style.cursor = "grab";
+          }
+        }
+      }
+    },
+    []
+  );
+  const onMouseDownScrollBar = React.useCallback(() => {
+    if (progressTrigger?.progressElement) {
+      if (type === "scroll") {
+        handleMouseDown("thumb");
+        mouseOnEl(scrollBarsRef.current[0] as HTMLDivElement, "down");
+      } else {
+        handleMouseDown("slider");
+      }
     }
-  };
-  const mouseOnRefUp = (el: HTMLDivElement | null) => {
-    if (el && el.style.cursor === "grabbing") {
-      el.style.cursor = "grab";
+  }, [progressTrigger?.progressElement, scrollBarsRef.current]);
+  const onMouseDownScrollWrap = React.useCallback(() => {
+    if (progressTrigger.content) {
+      handleMouseDown("wrapp");
+      mouseOnEl(objectsWrapperRef.current, "down");
     }
-  };
+  }, [progressTrigger.content]);
 
   const mouseOnRefEnter = (el: HTMLDivElement | null, childClass: string) => {
     if (el) {
@@ -594,10 +616,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!scrollEl) return;
 
     if (scrollContentlRef.current) {
-      if (sliderBarRef.current) {
+      if (scrollBarsRef.current.length > 0) {
         function getActiveElem() {
           const elements =
-            sliderBarRef.current?.querySelectorAll(".sliderElem");
+            scrollBarsRef.current[0]?.querySelectorAll(".sliderElem");
 
           elements &&
             elements.forEach((element, index) => {
@@ -791,8 +813,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       controller?.abort();
 
       document.body.style.removeProperty("cursor");
-      mouseOnRefUp(objectsWrapperRef.current);
-      mouseOnRefUp(scrollBarThumbRef.current);
+      mouseOnEl(objectsWrapperRef.current, "up");
+      mouseOnEl(scrollBarsRef.current[0] as HTMLDivElement, "up");
 
       clickedObject.current = "none";
 
@@ -818,7 +840,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       triggerUpdate(); // for update ref only
     },
-    [progressVisibility, type]
+    [progressVisibility, type, scrollBarsRef.current]
   );
 
   const handleMouseDown = React.useCallback(
@@ -1053,6 +1075,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [validChildren.length]);
 
   React.useEffect(() => {
+    if (progressTrigger.progressElement !== true) {
+      // рекурсия?
+      const bars = document.querySelectorAll(
+        `.${type === "scroll" ? "scrollBarThumb" : "sliderBar"}.${id}`
+      );
+      if (bars.length > 0) {
+        scrollBarsRef.current = bars;
+      }
+    }
+
     if (render.type === "virtual") {
       triggerUpdate();
     }
@@ -1131,12 +1163,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     <div
       className="objectsWrapper"
       ref={objectsWrapperRef}
-      onMouseDown={() => {
-        if (progressTrigger.content) {
-          handleMouseDown("wrapp");
-          mouseOnRefDown(objectsWrapperRef.current);
-        }
-      }}
+      onMouseDown={onMouseDownScrollWrap}
       style={{
         // padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         minHeight:
@@ -1392,93 +1419,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         {progressVisibility !== "hidden" &&
           thumbSize < fullHeightOrWidth &&
           typeof progressTrigger.progressElement !== "boolean" && (
-            <React.Fragment>
-              {type !== "slider" ? (
-                <div
-                  className="scrollBar"
-                  style={{
-                    position: "absolute",
-                    width: "fit-content",
-                    ...(direction === "x"
-                      ? {
-                          transformOrigin: "left top",
-                          height: `${sizeLocal[0]}px`,
-                          ...(progressReverse
-                            ? {
-                                top: 0,
-                                transform: "rotate(-90deg) translateX(-100%)",
-                              }
-                            : { transform: "rotate(-90deg)" }),
-                        }
-                      : {
-                          top: 0,
-                          height: "100%",
-                          ...(progressReverse ? { left: 0 } : { right: 0 }),
-                        }),
-                    ...(!progressTrigger.progressElement !== false && {
-                      pointerEvents: "none",
-                    }),
-                    ...(progressVisibility === "hover" && {
-                      opacity: 0,
-                      transition: "opacity 0.1s ease-in-out",
-                    }),
-                  }}
-                >
-                  <div
-                    ref={scrollBarThumbRef}
-                    className="scrollBarThumb"
-                    onMouseDown={() => {
-                      if (progressTrigger.progressElement) {
-                        handleMouseDown("thumb");
-                        mouseOnRefDown(scrollBarThumbRef.current);
-                      }
-                    }}
-                    style={{
-                      height: `${thumbSize}px`,
-                      willChange: "transform", // свойство убирает артефакты во время анимации
-                      transform: `translateY(${topThumb.current}px)`,
-                      ...(progressTrigger.progressElement && {
-                        cursor: "grab",
-                      }),
-                    }}
-                  >
-                    {progressTrigger.progressElement}
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="sliderBar"
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    ...(progressReverse ? { left: 0 } : { right: 0 }),
-                    ...(!progressTrigger.progressElement && {
-                      pointerEvents: "none",
-                    }),
-                    ...(progressVisibility === "hover" && {
-                      opacity: 0,
-                      transition: "opacity 0.1s ease-in-out",
-                    }),
-                  }}
-                  ref={sliderBarRef}
-                  onMouseDown={() => handleMouseDown("slider")}
-                >
-                  {Array.from(
-                    { length: sizeLocalToObjectsWrapperXY() || 0 },
-                    (_, index) => (
-                      <div
-                        key={index}
-                        className="sliderElem"
-                        style={{ width: "fit-content" }}
-                      >
-                        {progressTrigger.progressElement}
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </React.Fragment>
+            <ScrollBar
+              type={type}
+              direction={direction}
+              progressReverse={progressReverse}
+              sizeHeight={sizeLocal[0]}
+              progressTrigger={progressTrigger}
+              progressVisibility={progressVisibility}
+              onMouseDown={onMouseDownScrollBar}
+              thumbSize={thumbSize}
+              topThumb={topThumb.current}
+              sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperXY}
+              id={id}
+            />
           )}
       </div>
     </div>
