@@ -8,6 +8,8 @@ import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import ScrollBar from "./ScrollBar";
 
+import handleWheel, { ScrollStateRefT } from "./handleWheel";
+
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
   className = "",
@@ -59,7 +61,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     null
   );
   const emptyElementKeysString = React.useRef<string>("");
-  const scrollStateRef = React.useRef({
+  const scrollStateRef = React.useRef<ScrollStateRefT>({
     targetScrollY: 0,
     targetScrollX: 0,
     animating: false,
@@ -694,53 +696,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     render,
   ]);
 
-  const handleWheel = React.useCallback(
-    (
-      e: WheelEvent,
-      scrollEl: HTMLDivElement,
-      stateRef: typeof scrollStateRef
-    ) => {
-      e.preventDefault();
-      const state = stateRef.current;
-
-      if (!state.animating) {
-        state.targetScrollX = scrollEl.scrollLeft;
-      }
-
-      // Вычисляем новое целевое значение прокрутки
-      const newTarget = state.targetScrollX + e.deltaY;
-
-      // Ограничиваем targetScroll так, чтобы оно не выходило за допустимые границы
-      const firstChild = scrollEl.children[0] as HTMLDivElement;
-      const maxScroll = firstChild.offsetWidth - scrollEl.offsetWidth;
-      const boundedTarget = Math.max(0, Math.min(newTarget, maxScroll));
-
-      state.targetScrollX = boundedTarget;
-
-      // Запускаем анимацию, если она ещё не запущена
-      if (!state.animating) {
-        state.animating = true;
-        state.animationFrameId = requestAnimationFrame(animateScroll);
-      }
-
-      function animateScroll() {
-        const lerpFactor = 0.4;
-
-        // Обновляем scrollLeft с учётом плавности
-        scrollEl.scrollLeft +=
-          (state.targetScrollX - scrollEl.scrollLeft) * lerpFactor;
-
-        // Если разница меньше 1.5 пикселя, останавливаем анимацию
-        if (Math.abs(scrollEl.scrollLeft - state.targetScrollX) > 1.5) {
-          state.animationFrameId = requestAnimationFrame(animateScroll);
-        } else {
-          state.animating = false;
-        }
-      }
-    },
-    []
-  );
-
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
       const scrollEl = scrollElementRef.current;
@@ -997,6 +952,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return render.type === "virtual" ? (
       <div
+        // {...(attribute ? { "wrap-id": attribute } : {})}
+        // onClick={updateEmptyKeysClick}
         key={key}
         style={{
           position: "absolute",
@@ -1016,7 +973,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         {content}
       </IntersectionTracker>
     ) : (
-      <div key={key} style={wrapStyle1}>
+      <div
+        // {...(attribute ? { "wrap-id": attribute } : {})}
+        // onClick={updateEmptyKeysClick}
+        key={key}
+        style={wrapStyle1}
+      >
         {content}
       </div>
     );
@@ -1097,7 +1059,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!scrollEl) return;
 
     const wheelHandler = (e: WheelEvent) =>
-      handleWheel(e, scrollEl, scrollStateRef);
+      handleWheel(e, scrollEl, scrollStateRef.current);
 
     if (direction !== "x") {
       scrollEl.removeEventListener("wheel", wheelHandler);
@@ -1112,7 +1074,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         cancelAnimationFrame(scrollStateRef.current.animationFrameId);
       }
     };
-  }, [direction, handleWheel]);
+  }, [direction]);
 
   React.useEffect(() => {
     if (scrollElementRef.current && validChildren.length > 0) {
