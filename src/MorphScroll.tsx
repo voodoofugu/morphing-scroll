@@ -761,9 +761,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const handleMouseUp = React.useCallback(
     (mouseUpEvent: MouseEvent, controller?: AbortController) => {
-      const scrollEl = scrollElementRef.current;
-      if (!scrollEl) return;
-
       // Отменяем все слушатели событий
       controller?.abort();
 
