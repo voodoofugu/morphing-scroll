@@ -2,14 +2,13 @@ import { MorphScrollT } from "./types";
 import { ScrollStateRefT } from "./handleWheel";
 
 type HandleMouseT = {
-  scrollEl: HTMLDivElement;
-  mouseUpEvent: MouseEvent;
-  controller: AbortController;
-  objectsWrapperRef: HTMLDivElement;
+  scrollElementRef: HTMLDivElement | null;
+  mouseEvent: MouseEvent;
+  objectsWrapperRef: HTMLDivElement | null;
   scrollBarsRef: HTMLDivElement;
   clickedObject: "none" | "slider" | "thumb" | "wrapp";
   progressVisibility: "hover" | "visible" | "hidden";
-  scrollContentlRef: HTMLDivElement;
+  scrollContentlRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
   direction: MorphScrollT["direction"];
   scrollStateRef: ScrollStateRefT;
@@ -44,176 +43,127 @@ type HandleMouseMoveT = Omit<
 
 type HandleMouseUpT = Omit<
   HandleMouseT,
-  | "scrollEl"
+  | "scrollElementRef"
   | "sizeLocalToObjectsWrapperXY"
   | "scrollStateRef"
   | "direction"
   | "smoothScroll"
   | "numForSlider"
   | "sizeLocal"
->;
+> & { controller: AbortController };
 
-export function handleMouseDown({
-  scrollEl,
-  clicked,
-  objectsWrapperRef,
-  scrollBarsRef,
-  clickedObject,
-  progressVisibility,
-  scrollContentlRef,
-  type,
-  mouseOnEl,
-  mouseOnRefLeave,
-  triggerUpdate,
-  sizeLocalToObjectsWrapperXY,
-  scrollStateRef,
-  direction,
-  smoothScroll,
-  numForSlider,
-  sizeLocal,
-}: HandleMouseDownT) {
+function handleMouseDown(args: HandleMouseDownT) {
+  console.log("args", args);
+  if (
+    !args.scrollElementRef ||
+    !args.objectsWrapperRef ||
+    !args.scrollContentlRef
+  )
+    return;
+
   const controller = new AbortController();
   const { signal } = controller;
 
-  clickedObject = clicked;
-  triggerUpdate(); // for update ref only
+  args.clickedObject = args.clicked;
+  args.triggerUpdate(); // for update ref only
 
   window.addEventListener(
     "mousemove",
-    (mouseUpEvent) =>
-      handleMouseMove({
-        scrollEl,
-        mouseUpEvent,
-        objectsWrapperRef,
-        clickedObject,
-        triggerUpdate,
-        sizeLocalToObjectsWrapperXY,
-        scrollStateRef,
-        direction,
-        smoothScroll,
-        numForSlider,
-        sizeLocal,
-      }),
+    (mouseEvent) => handleMouseMove({ ...args, mouseEvent }),
     { signal }
   );
+
   window.addEventListener(
     "mouseup",
-    (mouseUpEvent) =>
-      handleMouseUp({
-        mouseUpEvent,
-        controller,
-        objectsWrapperRef,
-        scrollBarsRef,
-        clickedObject,
-        progressVisibility,
-        scrollContentlRef,
-        type,
-        mouseOnEl,
-        mouseOnRefLeave,
-        triggerUpdate,
-      }),
-    {
-      signal,
-    }
+    (mouseEvent) => handleMouseUp({ ...args, mouseEvent, controller }),
+    { signal }
   );
+
   document.body.style.cursor = "grabbing";
 }
 
-export function handleMouseMove({
-  scrollEl,
-  mouseUpEvent,
-  objectsWrapperRef,
-  clickedObject,
-  triggerUpdate,
-  sizeLocalToObjectsWrapperXY,
-  scrollStateRef,
-  direction,
-  smoothScroll,
-  numForSlider,
-  sizeLocal,
-}: HandleMouseMoveT) {
+function handleMouseMove(args: HandleMouseMoveT) {
   const pixelsForSwipe = 1;
-  const length = sizeLocalToObjectsWrapperXY();
-  if (!scrollEl || !length) return;
+  const length = args.sizeLocalToObjectsWrapperXY();
+  if (!args.scrollElementRef || !length) return;
 
-  if (["thumb", "wrapp"].includes(clickedObject)) {
-    const plusMinus = clickedObject === "thumb" ? 1 : -1;
-    const addBoost = clickedObject === "thumb" ? length : 1;
+  if (["thumb", "wrapp"].includes(args.clickedObject)) {
+    const plusMinus = args.clickedObject === "thumb" ? 1 : -1;
+    const addBoost = args.clickedObject === "thumb" ? length : 1;
 
-    if (direction === "x") {
-      scrollEl.scrollLeft += mouseUpEvent.movementX * addBoost * plusMinus;
-      scrollStateRef.targetScrollX = scrollEl.scrollLeft; // обновляем target
+    if (args.direction === "x") {
+      args.scrollElementRef.scrollLeft +=
+        args.mouseEvent.movementX * addBoost * plusMinus;
+      args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft; // обновляем target
     }
-    if (direction === "y") {
-      scrollEl.scrollTop += mouseUpEvent.movementY * addBoost * plusMinus;
-      // scrollStateRef.targetScrollY = scrollEl.scrollTop;
+    if (args.direction === "y") {
+      args.scrollElementRef.scrollTop +=
+        args.mouseEvent.movementY * addBoost * plusMinus;
+      // scrollStateRef.targetScrollY = scrollElementRef.scrollTop;
     }
   }
 
-  if (clickedObject === "slider") {
-    const wrapEl = objectsWrapperRef;
+  if (args.clickedObject === "slider") {
+    const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
 
     const height = wrapEl.clientHeight;
     const scrollTo = (position: number) =>
-      smoothScroll(position, () => {
-        numForSlider = 0;
-        triggerUpdate();
+      args.smoothScroll(position, () => {
+        args.numForSlider = 0;
+        args.triggerUpdate();
       });
 
     const updateScroll = (delta: number) => {
-      const targetScrollTop = scrollEl.scrollTop + delta * sizeLocal[1];
+      if (!args.scrollElementRef) return;
+
+      const targetScrollTop =
+        args.scrollElementRef.scrollTop + delta * args.sizeLocal[1];
 
       if (delta > 0) {
-        scrollTo(Math.min(targetScrollTop, height - sizeLocal[1]));
+        scrollTo(Math.min(targetScrollTop, height - args.sizeLocal[1]));
       } else {
         scrollTo(Math.max(targetScrollTop, 0));
       }
     };
 
-    if (mouseUpEvent.movementY > 0 && numForSlider < pixelsForSwipe) {
-      numForSlider += mouseUpEvent.movementY;
+    if (args.mouseEvent.movementY > 0 && args.numForSlider < pixelsForSwipe) {
+      args.numForSlider += args.mouseEvent.movementY;
       if (
-        numForSlider >= pixelsForSwipe &&
-        scrollEl.scrollTop + sizeLocal[1] != height
+        args.numForSlider >= pixelsForSwipe &&
+        args.scrollElementRef.scrollTop + args.sizeLocal[1] != height
       )
         updateScroll(1);
-    } else if (mouseUpEvent.movementY < 0 && numForSlider > -pixelsForSwipe) {
-      numForSlider -= Math.abs(mouseUpEvent.movementY);
-      if (numForSlider <= -pixelsForSwipe && scrollEl.scrollTop != 0)
+    } else if (
+      args.mouseEvent.movementY < 0 &&
+      args.numForSlider > -pixelsForSwipe
+    ) {
+      args.numForSlider -= Math.abs(args.mouseEvent.movementY);
+      if (
+        args.numForSlider <= -pixelsForSwipe &&
+        args.scrollElementRef.scrollTop != 0
+      )
         updateScroll(-1);
     }
   }
 }
 
-export function handleMouseUp({
-  mouseUpEvent,
-  controller,
-  objectsWrapperRef,
-  scrollBarsRef,
-  clickedObject,
-  progressVisibility,
-  scrollContentlRef,
-  type,
-  mouseOnEl,
-  mouseOnRefLeave,
-  triggerUpdate,
-}: HandleMouseUpT) {
+function handleMouseUp(args: HandleMouseUpT) {
   // Отменяем все слушатели событий
-  controller.abort();
+  args.controller.abort();
 
   document.body.style.removeProperty("cursor");
-  mouseOnEl(objectsWrapperRef, "up");
-  mouseOnEl(scrollBarsRef, "up");
+  args.mouseOnEl(args.objectsWrapperRef, "up");
+  args.mouseOnEl(args.scrollBarsRef, "up");
 
-  clickedObject = "none";
+  args.clickedObject = "none";
 
-  if (progressVisibility === "hover") {
-    let target = mouseUpEvent.target as HTMLElement | null;
+  if (args.progressVisibility === "hover") {
+    let target = args.mouseEvent.target as HTMLElement | null;
     let isChildOfScrollContent = false;
 
     while (target && target !== document.body) {
-      if (target === scrollContentlRef) {
+      if (target === args.scrollContentlRef) {
         isChildOfScrollContent = true;
         break;
       }
@@ -221,12 +171,14 @@ export function handleMouseUp({
     }
 
     if (!isChildOfScrollContent) {
-      mouseOnRefLeave(
-        scrollContentlRef,
-        type === "scroll" ? "scrollBar" : "sliderBar"
+      args.mouseOnRefLeave(
+        args.scrollContentlRef,
+        args.type === "scroll" ? "scrollBar" : "sliderBar"
       );
     }
   }
 
-  triggerUpdate(); // for update ref only
+  args.triggerUpdate(); // for update ref only
 }
+
+export default handleMouseDown;
