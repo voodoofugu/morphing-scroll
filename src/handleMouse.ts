@@ -3,7 +3,6 @@ import { ScrollStateRefT } from "./handleWheel";
 
 type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
-  mouseEvent: MouseEvent;
   objectsWrapperRef: HTMLDivElement | null;
   scrollBarsRef: HTMLDivElement;
   clickedObject: "none" | "slider" | "thumb" | "wrapp";
@@ -20,7 +19,7 @@ type HandleMouseT = {
   ) => (() => void) | null;
   sizeLocalToObjectsWrapperXY: (max?: boolean) => number;
   mouseOnEl: (el: HTMLDivElement | null, type: "down" | "up") => void;
-  mouseOnRefLeave: (el: HTMLDivElement | null, childClass: string) => void;
+  mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;
 };
 
@@ -37,9 +36,8 @@ type HandleMouseMoveT = Omit<
   | "scrollContentlRef"
   | "type"
   | "mouseOnEl"
-  | "mouseOnRefLeave"
-  | ""
->;
+  | "mouseOnRefHandle"
+> & { mouseEvent: MouseEvent };
 
 type HandleMouseUpT = Omit<
   HandleMouseT,
@@ -50,10 +48,9 @@ type HandleMouseUpT = Omit<
   | "smoothScroll"
   | "numForSlider"
   | "sizeLocal"
-> & { controller: AbortController };
+> & { mouseEvent: MouseEvent; controller: AbortController };
 
 function handleMouseDown(args: HandleMouseDownT) {
-  console.log("args", args);
   if (
     !args.scrollElementRef ||
     !args.objectsWrapperRef ||
@@ -61,11 +58,19 @@ function handleMouseDown(args: HandleMouseDownT) {
   )
     return;
 
+  // меняем курсор
+  if (args.type === "scroll") {
+    args.mouseOnEl(args.scrollBarsRef, "down");
+  }
+  if (args.clicked === "wrapp") {
+    args.mouseOnEl(args.objectsWrapperRef, "down");
+  }
+
   const controller = new AbortController();
   const { signal } = controller;
 
   args.clickedObject = args.clicked;
-  args.triggerUpdate(); // for update ref only
+  args.triggerUpdate();
 
   window.addEventListener(
     "mousemove",
@@ -171,10 +176,7 @@ function handleMouseUp(args: HandleMouseUpT) {
     }
 
     if (!isChildOfScrollContent) {
-      args.mouseOnRefLeave(
-        args.scrollContentlRef,
-        args.type === "scroll" ? "scrollBar" : "sliderBar"
-      );
+      args.mouseOnRefHandle(args.mouseEvent);
     }
   }
 
