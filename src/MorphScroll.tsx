@@ -532,6 +532,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   // events
+  // вынести эту функцию !!!
   const mouseOnEl = React.useCallback(
     (el: HTMLDivElement | null, type: "down" | "up") => {
       if (el) {
@@ -557,7 +558,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const child = el.querySelector(`.${childClass}`) as HTMLDivElement;
     if (child) {
-      child.style.opacity = event.type === "mouseleave" ? "0" : "1";
+      child.style.opacity =
+        event.type === "mouseleave" || event.type === "mouseup" ? "0" : "1";
     }
   };
   const mouseOnRefHandle = React.useCallback(
@@ -792,7 +794,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollElementRef: scrollElementRef.current,
         objectsWrapperRef: objectsWrapperRef.current,
         scrollBarsRef: scrollBarsRef.current[0] as HTMLDivElement,
-        clickedObject: clickedObject.current,
+        clickedObject: clickedObject,
         scrollContentlRef: scrollContentlRef.current,
         scrollStateRef: scrollStateRef.current,
         numForSlider: numForSlider.current,
@@ -1163,6 +1165,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         className="scrollContent"
         ref={scrollContentlRef}
         onMouseEnter={mouseOnRefHandle}
+        onMouseLeave={mouseOnRefHandle}
         style={{
           position: "relative",
           width: `${sizeLocal[0]}px`,

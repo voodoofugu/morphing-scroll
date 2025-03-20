@@ -5,7 +5,7 @@ type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
   scrollBarsRef: HTMLDivElement;
-  clickedObject: "none" | "slider" | "thumb" | "wrapp";
+  clickedObject: React.RefObject<"thumb" | "slider" | "wrapp" | "none">;
   progressVisibility: "hover" | "visible" | "hidden";
   scrollContentlRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
@@ -24,7 +24,7 @@ type HandleMouseT = {
 };
 
 type HandleMouseDownT = HandleMouseT & {
-  clicked: HandleMouseT["clickedObject"];
+  clicked: "thumb" | "slider" | "wrapp" | "none";
 };
 
 type HandleMouseMoveT = Omit<
@@ -69,7 +69,7 @@ function handleMouseDown(args: HandleMouseDownT) {
   const controller = new AbortController();
   const { signal } = controller;
 
-  args.clickedObject = args.clicked;
+  args.clickedObject.current = args.clicked;
   args.triggerUpdate();
 
   window.addEventListener(
@@ -92,9 +92,9 @@ function handleMouseMove(args: HandleMouseMoveT) {
   const length = args.sizeLocalToObjectsWrapperXY();
   if (!args.scrollElementRef || !length) return;
 
-  if (["thumb", "wrapp"].includes(args.clickedObject)) {
-    const plusMinus = args.clickedObject === "thumb" ? 1 : -1;
-    const addBoost = args.clickedObject === "thumb" ? length : 1;
+  if (["thumb", "wrapp"].includes(args.clickedObject.current)) {
+    const plusMinus = args.clickedObject.current === "thumb" ? 1 : -1;
+    const addBoost = args.clickedObject.current === "thumb" ? length : 1;
 
     if (args.direction === "x") {
       args.scrollElementRef.scrollLeft +=
@@ -108,7 +108,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
     }
   }
 
-  if (args.clickedObject === "slider") {
+  if (args.clickedObject.current === "slider") {
     const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
 
@@ -161,7 +161,7 @@ function handleMouseUp(args: HandleMouseUpT) {
   args.mouseOnEl(args.objectsWrapperRef, "up");
   args.mouseOnEl(args.scrollBarsRef, "up");
 
-  args.clickedObject = "none";
+  args.clickedObject.current = "none";
 
   if (args.progressVisibility === "hover") {
     let target = args.mouseEvent.target as HTMLElement | null;
