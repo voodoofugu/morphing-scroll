@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
 import { MorphScrollT } from "./types";
-import numOrArrFormat from "./numOrArrFormat";
+import numOrArrFormat from "./numOrArrFormater";
 import useIdent from "./useIdent";
 
 import IntersectionTracker from "./IntersectionTracker";
@@ -10,6 +10,7 @@ import ScrollBar from "./ScrollBar";
 
 import handleWheel, { ScrollStateRefT } from "./handleWheel";
 import handleMouseDown from "./handleMouse";
+import { mouseOnEl, mouseOnRef } from "./mouseHelpers";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
@@ -49,7 +50,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
-  const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
+  const scrollBarsRef = React.useRef<NodeListOf<Element> | null>(null);
 
   const firstChildKeyRef = React.useRef<string | null>(null);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
@@ -532,36 +533,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   // events
-  // вынести эту функцию !!!
-  const mouseOnEl = React.useCallback(
-    (el: HTMLDivElement | null, type: "down" | "up") => {
-      if (el) {
-        if (type === "down") {
-          el.style.cursor = "grabbing";
-        } else {
-          if (el && el.style.cursor === "grabbing") {
-            el.style.cursor = "grab";
-          }
-        }
-      }
-    },
-    []
-  );
-
-  // вынести эту функцию !!!
-  const mouseOnRef = (
-    el: HTMLDivElement | null,
-    childClass: string,
-    event: MouseEvent | React.MouseEvent
-  ) => {
-    if (!el) return;
-
-    const child = el.querySelector(`.${childClass}`) as HTMLDivElement;
-    if (child) {
-      child.style.opacity =
-        event.type === "mouseleave" || event.type === "mouseup" ? "0" : "1";
-    }
-  };
   const mouseOnRefHandle = React.useCallback(
     (event: MouseEvent | React.MouseEvent) => {
       if (progressVisibility !== "hover") return;
@@ -615,15 +586,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, objectsWrapperRef, sizeLocalToObjectsWrapperXY]
   );
 
+  // !!!
   const sliderAndArrowsCheck = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
     if (scrollContentlRef.current) {
-      if (scrollBarsRef.current.length > 0) {
+      if (scrollBarsRef.current && scrollBarsRef.current.length > 0) {
         function getActiveElem() {
           const elements =
-            scrollBarsRef.current[0]?.querySelectorAll(".sliderElem");
+            scrollBarsRef.current &&
+            scrollBarsRef.current[0].querySelectorAll(".sliderElem");
 
           elements &&
             elements.forEach((element, index) => {
@@ -793,7 +766,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       handleMouseDown({
         scrollElementRef: scrollElementRef.current,
         objectsWrapperRef: objectsWrapperRef.current,
-        scrollBarsRef: scrollBarsRef.current[0] as HTMLDivElement,
+        scrollBarsRef: scrollBarsRef.current,
         clickedObject: clickedObject,
         scrollContentlRef: scrollContentlRef.current,
         scrollStateRef: scrollStateRef.current,
@@ -1046,24 +1019,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={{
-        // padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         minHeight:
           render.type === "virtual" || objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
         minWidth: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
 
-        // ...(objectsSize[1] === "none" && {
-        //   padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
-        // }),
         ...(progressTrigger.content && { cursor: "grab" }),
-        ...(render.type === "virtual" && {
-          position: "relative",
-        }),
-        ...(render.type !== "virtual" && {
-          display: "flex",
-          alignContent: "center",
-        }),
+        ...(render.type === "virtual"
+          ? {
+              position: "relative",
+            }
+          : {
+              display: "flex",
+              alignContent: "center",
+            }),
         ...(render.type !== "virtual" &&
           direction === "y" && {
             alignItems: "center",
@@ -1078,7 +1048,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? {
               flexDirection: "column",
             }
-          : {
+          : direction === "x" && {
               flexDirection: "row",
             }),
         ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
@@ -1190,6 +1160,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             height: "100%",
             ...contentAlignLocal,
 
+            // !!!
             ...(direction === "y" &&
             progressTrigger.wheel &&
             objectsWrapperHeightFull > sizeLocal[1]
@@ -1202,6 +1173,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               ? {
                   overflow: "scroll hidden",
                 }
+              : direction === "hybrid" &&
+                progressTrigger.wheel &&
+                objectsWrapperWidthFull > sizeLocal[0] &&
+                objectsWrapperWidthFull > sizeLocal[1]
+              ? { overflow: "scroll" }
               : { overflow: "hidden" }),
 
             ...(typeof progressTrigger.progressElement !== "boolean" ||
@@ -1289,6 +1265,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             <ScrollBar
               type={type}
               direction={direction}
+              progressReverse={progressReverse}
+              sizeHeight={sizeLocal[0]}
+              progressTrigger={progressTrigger}
+              progressVisibility={progressVisibility}
+              onMouseDown={onMouseDownScrollThumb}
+              thumbSize={thumbSize}
+              topThumb={topThumb.current}
+              sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperXY}
+              id={id}
+            />
+          )}
+        {progressVisibility !== "hidden" &&
+          thumbSize < fullHeightOrWidth &&
+          typeof progressTrigger.progressElement !== "boolean" &&
+          direction === "hybrid" && (
+            <ScrollBar
+              type={type}
+              direction="x"
               progressReverse={progressReverse}
               sizeHeight={sizeLocal[0]}
               progressTrigger={progressTrigger}

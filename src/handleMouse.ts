@@ -4,7 +4,7 @@ import { ScrollStateRefT } from "./handleWheel";
 type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
-  scrollBarsRef: HTMLDivElement;
+  scrollBarsRef: NodeListOf<Element> | null;
   clickedObject: React.RefObject<"thumb" | "slider" | "wrapp" | "none">;
   progressVisibility: "hover" | "visible" | "hidden";
   scrollContentlRef: HTMLDivElement | null;
@@ -18,7 +18,10 @@ type HandleMouseT = {
     callback?: () => void
   ) => (() => void) | null;
   sizeLocalToObjectsWrapperXY: (max?: boolean) => number;
-  mouseOnEl: (el: HTMLDivElement | null, type: "down" | "up") => void;
+  mouseOnEl: (
+    elOrEls: HTMLDivElement | NodeListOf<Element> | null,
+    type: "down" | "up"
+  ) => void;
   mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;
 };
