@@ -5,7 +5,7 @@ type ModifiedProps = Partial<MorphScrollT> & {
   sizeHeight: number;
   onMouseDown: React.MouseEventHandler<HTMLDivElement>;
   thumbSize: number;
-  topThumb: number;
+  thumbSpace: number;
   sizeLocalToObjectsWrapperXY: (max?: boolean) => number;
   id: string;
 };
@@ -19,7 +19,7 @@ const ScrollBar = ({
   progressVisibility,
   onMouseDown,
   thumbSize,
-  topThumb,
+  thumbSpace,
   sizeLocalToObjectsWrapperXY,
   id,
 }: ModifiedProps) => {
@@ -62,7 +62,7 @@ const ScrollBar = ({
             style={{
               height: `${thumbSize}px`,
               willChange: "transform", // свойство убирает артефакты во время анимации
-              transform: `translateY(${topThumb}px)`,
+              transform: `translateY(${thumbSpace}px)`,
               ...(progressTrigger?.progressElement && {
                 cursor: "grab",
               }),
@@ -74,6 +74,7 @@ const ScrollBar = ({
       ) : (
         <div
           className={`sliderBar ${id}`}
+          onMouseDown={onMouseDown}
           style={{
             position: "absolute",
             top: "50%",
@@ -87,7 +88,6 @@ const ScrollBar = ({
               transition: "opacity 0.1s ease-in-out",
             }),
           }}
-          onMouseDown={onMouseDown}
         >
           {Array.from(
             { length: sizeLocalToObjectsWrapperXY() || 0 },
@@ -107,4 +107,4 @@ const ScrollBar = ({
   );
 };
 
-export default ScrollBar;
+export default React.memo(ScrollBar);

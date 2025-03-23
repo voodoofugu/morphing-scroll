@@ -18,12 +18,10 @@ type HandleMouseT = {
     callback?: () => void
   ) => (() => void) | null;
   sizeLocalToObjectsWrapperXY: (max?: boolean) => number;
-  mouseOnEl: (
-    elOrEls: HTMLDivElement | NodeListOf<Element> | null,
-    type: "down" | "up"
-  ) => void;
+  mouseOnEl: (el: HTMLDivElement | null) => void;
   mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;
+  scrollElemIndex?: number;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -34,7 +32,6 @@ type HandleMouseMoveT = Omit<
   HandleMouseT,
   | "clicked"
   | "controller"
-  | "scrollBarsRef"
   | "progressVisibility"
   | "scrollContentlRef"
   | "type"
@@ -51,7 +48,7 @@ type HandleMouseUpT = Omit<
   | "smoothScroll"
   | "numForSlider"
   | "sizeLocal"
-> & { mouseEvent: MouseEvent; controller: AbortController };
+> & { mouseEvent: MouseEvent; controller: AbortController; clicked: string };
 
 function handleMouseDown(args: HandleMouseDownT) {
   if (
@@ -62,11 +59,13 @@ function handleMouseDown(args: HandleMouseDownT) {
     return;
 
   // меняем курсор
-  if (args.type === "scroll") {
-    args.mouseOnEl(args.scrollBarsRef, "down");
+  if (args.clicked === "thumb") {
+    args.mouseOnEl(
+      args.scrollBarsRef?.[args.scrollElemIndex ?? 0] as HTMLDivElement
+    );
   }
   if (args.clicked === "wrapp") {
-    args.mouseOnEl(args.objectsWrapperRef, "down");
+    args.mouseOnEl(args.objectsWrapperRef);
   }
 
   const controller = new AbortController();
@@ -91,26 +90,48 @@ function handleMouseDown(args: HandleMouseDownT) {
 }
 
 function handleMouseMove(args: HandleMouseMoveT) {
-  const pixelsForSwipe = 1;
   const length = args.sizeLocalToObjectsWrapperXY();
   if (!args.scrollElementRef || !length) return;
 
   if (["thumb", "wrapp"].includes(args.clickedObject.current)) {
-    const plusMinus = args.clickedObject.current === "thumb" ? 1 : -1;
-    const addBoost = args.clickedObject.current === "thumb" ? length : 1;
+    const isThumb = args.clickedObject.current === "thumb";
+    const applyScroll = (axis: "x" | "y") => {
+      if (!args.scrollElementRef) return;
 
-    if (args.direction === "x") {
-      args.scrollElementRef.scrollLeft +=
-        args.mouseEvent.movementX * addBoost * plusMinus;
-      args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft; // обновляем target
-    }
-    if (args.direction === "y") {
-      args.scrollElementRef.scrollTop +=
-        args.mouseEvent.movementY * addBoost * plusMinus;
-      // scrollStateRef.targetScrollY = scrollElementRef.scrollTop;
+      const moveDirection =
+        axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
+      const plusMinus = isThumb ? 1 : -1;
+      const addBoost = isThumb ? length : 1;
+      const movement = moveDirection * addBoost * plusMinus;
+
+      if (axis === "x") {
+        args.scrollElementRef.scrollLeft += movement;
+        args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft;
+      } else {
+        args.scrollElementRef.scrollTop += movement;
+        args.scrollStateRef.targetScrollY = args.scrollElementRef.scrollTop;
+      }
+    };
+
+    if (args.direction !== "hybrid") {
+      applyScroll(args.direction || "y");
+      return;
+    } else {
+      if (!isThumb) {
+        applyScroll("x");
+        applyScroll("y");
+      }
+
+      const scrollBars = Array.from(
+        args.scrollBarsRef || []
+      ) as HTMLDivElement[];
+      if (scrollBars[0]?.style.cursor === "grabbing") applyScroll("y");
+      if (scrollBars[1]?.style.cursor === "grabbing") applyScroll("x");
+      return;
     }
   }
 
+  const pixelsForSwipe = 1;
   if (args.clickedObject.current === "slider") {
     const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
@@ -161,8 +182,14 @@ function handleMouseUp(args: HandleMouseUpT) {
   args.controller.abort();
 
   document.body.style.removeProperty("cursor");
-  args.mouseOnEl(args.objectsWrapperRef, "up");
-  args.mouseOnEl(args.scrollBarsRef, "up");
+  if (args.clicked === "thumb") {
+    args.mouseOnEl(
+      args.scrollBarsRef?.[args.scrollElemIndex ?? 0] as HTMLDivElement
+    );
+  }
+  if (args.clicked === "wrapp") {
+    args.mouseOnEl(args.objectsWrapperRef);
+  }
 
   args.clickedObject.current = "none";
 

@@ -1,29 +1,43 @@
+import { MorphScrollT } from "./types";
+
 export type ScrollStateRefT = {
   targetScrollY: number;
   targetScrollX: number;
   animating: boolean;
-  animationFrameId: number;
+  animationFrameId: number | null;
 };
 
 export default function handleWheel(
   e: WheelEvent,
   scrollEl: HTMLDivElement,
-  stateRef: ScrollStateRefT
+  stateRef: ScrollStateRefT,
+  direction: MorphScrollT["direction"]
 ) {
   e.preventDefault();
+
   if (!stateRef.animating) {
     stateRef.targetScrollX = scrollEl.scrollLeft;
+    stateRef.targetScrollY = scrollEl.scrollTop;
   }
 
   // Вычисляем новое целевое значение прокрутки
-  const newTarget = stateRef.targetScrollX + e.deltaY;
-
-  // Ограничиваем targetScroll так, чтобы оно не выходило за допустимые границы
-  const firstChild = scrollEl.children[0] as HTMLDivElement;
-  const maxScroll = firstChild.offsetWidth - scrollEl.offsetWidth;
-  const boundedTarget = Math.max(0, Math.min(newTarget, maxScroll));
-
-  stateRef.targetScrollX = boundedTarget;
+  if (direction === "x") {
+    stateRef.targetScrollX = Math.max(
+      0,
+      Math.min(
+        stateRef.targetScrollX + e.deltaY, // используем вместо deltaX, так как на него не срабатывает onScroll
+        scrollEl.scrollWidth - scrollEl.clientWidth
+      )
+    );
+  } else {
+    stateRef.targetScrollY = Math.max(
+      0,
+      Math.min(
+        stateRef.targetScrollY + e.deltaY,
+        scrollEl.scrollHeight - scrollEl.clientHeight
+      )
+    );
+  }
 
   // Запускаем анимацию, если она ещё не запущена
   if (!stateRef.animating) {
@@ -33,16 +47,29 @@ export default function handleWheel(
 
   function animateScroll() {
     const lerpFactor = 0.4;
+    const diffX = Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX);
+    const diffY = Math.abs(scrollEl.scrollTop - stateRef.targetScrollY);
 
-    // Обновляем scrollLeft с учётом плавности
-    scrollEl.scrollLeft +=
-      (stateRef.targetScrollX - scrollEl.scrollLeft) * lerpFactor;
+    if (direction === "x") {
+      scrollEl.scrollLeft +=
+        (stateRef.targetScrollX - scrollEl.scrollLeft) * lerpFactor;
+    } else {
+      scrollEl.scrollTop +=
+        (stateRef.targetScrollY - scrollEl.scrollTop) * lerpFactor;
+    }
 
-    // Если разница меньше 1.5 пикселя, останавливаем анимацию
-    if (Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX) > 1.5) {
+    // Остановка анимации, если разница в позициях мала
+    if (
+      (direction === "x" && diffX > 1.5) ||
+      (direction === "y" && diffY > 1.5)
+    ) {
       stateRef.animationFrameId = requestAnimationFrame(animateScroll);
     } else {
       stateRef.animating = false;
+      if (stateRef.animationFrameId !== null) {
+        cancelAnimationFrame(stateRef.animationFrameId);
+        stateRef.animationFrameId = null;
+      }
     }
   }
 }

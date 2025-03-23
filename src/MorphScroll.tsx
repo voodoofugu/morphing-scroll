@@ -58,7 +58,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
   const numForSlider = React.useRef<number>(0);
   const loadedObjects = React.useRef<(string | null)[]>([]);
-  const topThumb = React.useRef<number>(0);
   const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -363,14 +362,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     Math.round(scrollSpaceFromRef + xySize) < fullHeightOrWidth;
 
   const thumbSize = React.useMemo(() => {
-    if (progressVisibility !== "hidden") {
-      if (fullHeightOrWidth === 0) return 0;
-      if (!sizeLocal[1]) return 0;
-      return Math.round((xySize / fullHeightOrWidth) * xySize);
-    } else {
-      return 0;
-    }
+    if (progressVisibility === "hidden") return 0;
+    return Math.round((xySize / fullHeightOrWidth) * xySize);
   }, [xySize, fullHeightOrWidth, progressVisibility]);
+  const thumbSizeX = React.useMemo(() => {
+    if (progressVisibility === "hidden") return 0;
+    return Math.round((sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]);
+  }, [sizeLocal[0], objectsWrapperWidthFull]);
 
   const endObjectsWrapper = React.useMemo(() => {
     if (!xySize) return fullHeightOrWidth;
@@ -529,8 +527,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       return calcFn(fullHeightOrWidth / size);
     },
-    [sizeLocal, objectsWrapperHeightFull]
+    [sizeLocal, objectsWrapperHeightFull, objectsWrapperWidthFull, direction]
   );
+  const sizeLocalToObjectsWrapperX = React.useCallback(() => {
+    return Math.floor(objectsWrapperWidthFull / sizeLocal[0]);
+  }, [sizeLocal, objectsWrapperWidthFull]);
 
   // events
   const mouseOnRefHandle = React.useCallback(
@@ -586,7 +587,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, objectsWrapperRef, sizeLocalToObjectsWrapperXY]
   );
 
-  // !!!
+  // !!! вынести функцию
   const sliderAndArrowsCheck = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
@@ -614,12 +615,27 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
   }, [sizeLocal[1], objectsWrapperHeightFull]);
 
+  const thumbSpace = Math.abs(
+    Math.round((scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize))
+  );
+  const thumbSpaceX = Math.abs(
+    Math.round(
+      ((scrollElementRef.current?.scrollLeft || 0) /
+        (objectsWrapperWidthFull - sizeLocal[0])) *
+        (sizeLocal[0] -
+          Math.round((sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]))
+    )
+  );
+
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
     const scrollLeftOrTop =
       direction === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+    if (onScrollValue) {
+      onScrollValue(scrollLeftOrTop);
+    }
 
     // scroll status
     const shouldUpdateScroll = stopLoadOnScroll || isScrolling;
@@ -636,22 +652,28 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }, 200);
 
     // newScroll
-    if (thumbSize !== 0 && progressVisibility !== "hidden") {
-      const newScroll = Math.abs(
-        Math.round((scrollLeftOrTop / endObjectsWrapper) * (xySize - thumbSize))
-      );
-      if (newScroll !== topThumb.current && type !== "slider") {
-        // фиксим то что скролл срабатывает если один из детей последнего элемента больше чем родитель
-        // не позволяя ползунку выходить за пределы
-        topThumb.current =
-          thumbSize + newScroll > xySize ? xySize - thumbSize : newScroll;
-      }
+    // if (thumbSize !== 0 && progressVisibility !== "hidden") {
+    //   const newScroll = Math.abs(
+    //     Math.round((scrollLeftOrTop / endObjectsWrapper) * (xySize - thumbSize))
+    //   );
+    //   const targetScrollYX =
+    //     direction === "x"
+    //       ? scrollStateRef.current.targetScrollX
+    //       : scrollStateRef.current.targetScrollY;
+    //   if (newScroll !== targetScrollYX && type !== "slider") {
+    //     // фиксим то что скролл срабатывает если один из детей последнего элемента больше чем родитель
+    //     // не позволяя ползунку выходить за пределы
+    //     if (direction === "x") {
+    //       // scrollStateRef.current.targetScrollX =
+    //       //   thumbSize + newScroll > xySize ? xySize - thumbSizeX : newScroll;
+    //     } else {
+    //       // scrollStateRef.current.targetScrollY =
+    //       //   thumbSize + newScroll > xySize ? xySize - thumbSize : newScroll;
+    //     }
+    //   }
 
-      // onScrollValue
-      if (onScrollValue) {
-        onScrollValue(scrollLeftOrTop);
-      }
-    }
+    //   // onScrollValue
+    // }
 
     type === "slider" && sliderAndArrowsCheck();
     render.type !== "default" && updateEmptyElementKeys(false);
@@ -660,7 +682,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [
     xySize,
     thumbSize,
-    topThumb,
+    scrollStateRef.current.targetScrollX,
+    scrollStateRef.current.targetScrollY,
     progressVisibility,
     onScrollValue,
     sliderAndArrowsCheck,
@@ -755,11 +778,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const onMouseDown = React.useCallback(
-    (clicked: "thumb" | "slider" | "wrapp") => {
-      if (clicked === "wrapp" && !progressTrigger.content) return;
+    (
+      clicked: "thumb" | "slider" | "wrapp" | null,
+      scrollElemIndex?: number
+    ) => {
+      const clickedLocal = clicked
+        ? clicked
+        : type === "scroll"
+        ? "thumb"
+        : "slider";
       if (
-        ["thumb", "slider"].includes(clicked) &&
-        !progressTrigger.progressElement
+        (clicked === "wrapp" && !progressTrigger.content) ||
+        (["thumb", "slider"].includes(clickedLocal) &&
+          !progressTrigger.progressElement)
       )
         return;
 
@@ -780,13 +811,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         direction,
         smoothScroll,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
-        clicked: clicked,
+        clicked: clickedLocal,
+        scrollElemIndex,
       });
     },
     [progressTrigger.content, progressTrigger.progressElement]
   );
   const onMouseDownScrollThumb = React.useCallback(() => {
-    onMouseDown(type === "scroll" ? "thumb" : "slider");
+    onMouseDown(null);
+  }, [type]);
+  const onMouseDownScrollThumbTwo = React.useCallback(() => {
+    onMouseDown(null, 1);
   }, [type]);
   const onMouseDownWrap = React.useCallback(() => {
     onMouseDown("wrapp");
@@ -843,7 +878,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return render.type === "virtual" ? (
       <div
-        // !!!
+        // !!! наладить updateEmptyElementKeys
         // {...(attribute ? { "wrap-id": attribute } : {})}
         // onClick={updateEmptyKeysClick}
         key={key}
@@ -951,13 +986,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!scrollEl) return;
 
     const wheelHandler = (e: WheelEvent) =>
-      handleWheel(e, scrollEl, scrollStateRef.current);
-
-    if (direction !== "x") {
-      scrollEl.removeEventListener("wheel", wheelHandler);
-      return;
-    }
-
+      handleWheel(e, scrollEl, scrollStateRef.current, direction);
     scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
 
     return () => {
@@ -1271,7 +1300,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               progressVisibility={progressVisibility}
               onMouseDown={onMouseDownScrollThumb}
               thumbSize={thumbSize}
-              topThumb={topThumb.current}
+              thumbSpace={thumbSpace}
               sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperXY}
               id={id}
             />
@@ -1287,10 +1316,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               sizeHeight={sizeLocal[0]}
               progressTrigger={progressTrigger}
               progressVisibility={progressVisibility}
-              onMouseDown={onMouseDownScrollThumb}
-              thumbSize={thumbSize}
-              topThumb={topThumb.current}
-              sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperXY}
+              onMouseDown={onMouseDownScrollThumbTwo}
+              thumbSize={thumbSizeX}
+              thumbSpace={thumbSpaceX}
+              sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperX}
               id={id}
             />
           )}

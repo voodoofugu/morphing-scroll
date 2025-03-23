@@ -1,24 +1,12 @@
 // функция смены курсора
-const mouseOnEl = (
-  elOrEls: HTMLDivElement | NodeListOf<Element> | null,
-  type: "down" | "up"
-) => {
-  if (!elOrEls) return;
-
-  const elements: HTMLElement[] =
-    elOrEls instanceof NodeList
-      ? Array.from(elOrEls).filter(
-          (el): el is HTMLElement => el instanceof HTMLElement
-        )
-      : [elOrEls];
-
-  elements.forEach((el) => {
-    if (type === "down") {
+const mouseOnEl = (el: HTMLDivElement | null) => {
+  if (el) {
+    if (el.style.cursor === "grab") {
       el.style.cursor = "grabbing";
     } else if (el.style.cursor === "grabbing") {
       el.style.cursor = "grab";
     }
-  });
+  }
 };
 
 // функция видимости для бегунка при hover
@@ -28,12 +16,13 @@ const mouseOnRef = (
   event: MouseEvent | React.MouseEvent
 ) => {
   if (!el) return;
+  const childs = el.querySelectorAll(`.${childClass}`);
 
-  const child = el.querySelector(`.${childClass}`) as HTMLDivElement;
-  if (child) {
-    child.style.opacity =
+  childs.forEach((child) => {
+    const target = child as HTMLElement;
+    target.style.opacity =
       event.type === "mouseleave" || event.type === "mouseup" ? "0" : "1";
-  }
+  });
 };
 
 export { mouseOnEl, mouseOnRef };
