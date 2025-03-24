@@ -307,12 +307,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [validChildren.length, objectsPerDirection]);
 
   const objectsWrapperWidth = React.useMemo(() => {
-    const childsGap = objectsPerDirection <= 0 ? 0 : objectsPerDirection * gapY;
+    const childsGap = !objectsPerDirection
+      ? 0
+      : objectsPerDirection * gapY - gapY;
     return objectsSizeLocal[0]
       ? direction === "y"
-        ? objectsSizeLocal[0] * objectsPerDirection +
-          gapY * (objectsPerDirection - 1)
-        : objectsSizeLocal[0] * childsLinePerDirection + childsGap
+        ? (objectsSizeLocal[0] + gapY) * objectsPerDirection - gapY
+        : (objectsSizeLocal[0] + gapY) * childsLinePerDirection - gapY
       : render.type !== "virtual"
       ? receivedWrapSize.width
       : receivedChildSize.width + childsGap;
@@ -327,12 +328,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const objectsWrapperHeight = React.useMemo(() => {
     const childsGap =
-      childsLinePerDirection < 1 ? 0 : childsLinePerDirection * gapX;
+      childsLinePerDirection < 1 ? 0 : objectsPerDirection * gapX - gapX;
     return objectsSizeLocal[1]
       ? direction === "x"
-        ? objectsSizeLocal[1] * objectsPerDirection +
-          gapX * (objectsPerDirection - 1)
-        : objectsSizeLocal[1] * childsLinePerDirection + childsGap
+        ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
+        : (objectsSizeLocal[1] + gapX) * childsLinePerDirection - gapX
       : render.type !== "virtual"
       ? receivedWrapSize.height
       : receivedChildSize.height + childsGap;
@@ -430,7 +430,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       })(index, splitIndices);
 
       const elementTop = (function (index: number) {
-        return index !== 0
+        return index > 0
           ? direction === "y"
             ? ((objectsSizeLocal[1] ?? 0) + gapX) * index + pT
             : pT
@@ -615,15 +615,32 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
   }, [sizeLocal[1], objectsWrapperHeightFull]);
 
-  const thumbSpace = Math.abs(
-    Math.round((scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize))
+  // высчитываем сдвиг скролла и ограничиваем его
+  const thumbSpace = Math.max(
+    0,
+    Math.min(
+      Math.abs(
+        Math.round(
+          (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize)
+        )
+      ),
+      xySize - thumbSize
+    )
   );
-  const thumbSpaceX = Math.abs(
-    Math.round(
-      ((scrollElementRef.current?.scrollLeft || 0) /
-        (objectsWrapperWidthFull - sizeLocal[0])) *
-        (sizeLocal[0] -
-          Math.round((sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]))
+  const thumbSpaceX = Math.max(
+    0,
+    Math.min(
+      Math.abs(
+        Math.round(
+          ((scrollElementRef.current?.scrollLeft || 0) /
+            (objectsWrapperWidthFull - sizeLocal[0])) *
+            (sizeLocal[0] -
+              Math.round(
+                (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]
+              ))
+        )
+      ),
+      sizeLocal[0] - thumbSizeX
     )
   );
 
@@ -651,46 +668,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     }, 200);
 
-    // newScroll
-    // if (thumbSize !== 0 && progressVisibility !== "hidden") {
-    //   const newScroll = Math.abs(
-    //     Math.round((scrollLeftOrTop / endObjectsWrapper) * (xySize - thumbSize))
-    //   );
-    //   const targetScrollYX =
-    //     direction === "x"
-    //       ? scrollStateRef.current.targetScrollX
-    //       : scrollStateRef.current.targetScrollY;
-    //   if (newScroll !== targetScrollYX && type !== "slider") {
-    //     // фиксим то что скролл срабатывает если один из детей последнего элемента больше чем родитель
-    //     // не позволяя ползунку выходить за пределы
-    //     if (direction === "x") {
-    //       // scrollStateRef.current.targetScrollX =
-    //       //   thumbSize + newScroll > xySize ? xySize - thumbSizeX : newScroll;
-    //     } else {
-    //       // scrollStateRef.current.targetScrollY =
-    //       //   thumbSize + newScroll > xySize ? xySize - thumbSize : newScroll;
-    //     }
-    //   }
-
-    //   // onScrollValue
-    // }
-
     type === "slider" && sliderAndArrowsCheck();
     render.type !== "default" && updateEmptyElementKeys(false);
 
     triggerUpdate();
   }, [
-    xySize,
-    thumbSize,
-    scrollStateRef.current.targetScrollX,
-    scrollStateRef.current.targetScrollY,
-    progressVisibility,
     onScrollValue,
     sliderAndArrowsCheck,
-    edgeGradient,
     isScrolling,
     stopLoadOnScroll,
-    emptyElements,
     render,
   ]);
 
@@ -1169,9 +1155,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           position: "relative",
           width: `${sizeLocal[0]}px`,
           height: `${sizeLocal[1]}px`,
-          // ...(direction === "x" && {
-          //   transform: `rotate(-90deg) translate(${translateProperty}px, ${translateProperty}px) scaleX(-1)`,
-          // }),
           ...(progressTrigger.arrows &&
             arrowsLocal.size &&
             (direction === "x"
@@ -1289,8 +1272,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         )}
 
         {progressVisibility !== "hidden" &&
-          thumbSize < fullHeightOrWidth &&
-          typeof progressTrigger.progressElement !== "boolean" && (
+          typeof progressTrigger.progressElement !== "boolean" &&
+          thumbSize < fullHeightOrWidth && (
             <ScrollBar
               type={type}
               direction={direction}
@@ -1306,8 +1289,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             />
           )}
         {progressVisibility !== "hidden" &&
-          thumbSize < fullHeightOrWidth &&
           typeof progressTrigger.progressElement !== "boolean" &&
+          thumbSize < objectsWrapperWidthFull &&
           direction === "hybrid" && (
             <ScrollBar
               type={type}

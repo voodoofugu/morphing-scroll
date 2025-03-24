@@ -25,7 +25,7 @@ export default function handleWheel(
     stateRef.targetScrollX = Math.max(
       0,
       Math.min(
-        stateRef.targetScrollX + e.deltaY, // используем вместо deltaX, так как на него не срабатывает onScroll
+        stateRef.targetScrollX + e.deltaY, // используем вместо deltaX, так как на deltaX него не срабатывает onScroll
         scrollEl.scrollWidth - scrollEl.clientWidth
       )
     );
