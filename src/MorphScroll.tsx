@@ -284,9 +284,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return [];
     }
 
-    const indices = validChildren.map((_, index) => index);
-
-    if (!indices) return [];
+    const indices = Array.from({ length: validChildren.length }, (_, i) => i);
 
     const result: number[][] = Array.from(
       { length: objectsPerDirection },
@@ -298,7 +296,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     });
 
     return result;
-  }, [children, objectsPerDirection, render.type]);
+  }, [validChildren.length, objectsPerDirection, render.type]);
 
   const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -413,9 +411,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         index: number,
         splitIndices: number[][]
       ) {
-        if (!splitIndices) {
-          return [0, index];
-        }
         for (
           let arrayIndex = 0;
           arrayIndex < splitIndices.length;
@@ -429,13 +424,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return [0, 0];
       })(index, splitIndices);
 
-      const elementTop = (function (index: number) {
-        return index > 0
+      const elementTop = (function (indexTop: number) {
+        return indexTop > 0
           ? direction === "y"
-            ? ((objectsSizeLocal[1] ?? 0) + gapX) * index + pT
-            : pT
+            ? ((objectsSizeLocal[1] ?? 0) + gapX) * indexTop + pT
+            : ((objectsSizeLocal[1] ?? 0) + gapX) * indexTop + pT
           : pT;
       })(objectsPerDirection > 1 ? indexAndSubIndex[1] : index);
+      // if (className === "btlpass_scroll") {!!!!
+      //   // console.log("splitIndices", splitIndices);
+      //   console.log("indexAndSubIndex", indexAndSubIndex);
+      // }
 
       const elementBottom = (function () {
         return objectsSizeLocal[1]
@@ -1117,8 +1116,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const mRoot = direction === "x" ? mRootX : mRootY;
           const mRootReverse = direction === "x" ? mRootY : mRootX;
           const isElementVisible =
-            xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
-            bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
+            // xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
+            // bottomOrRight - scrollSpaceFromRef > 0 - mRoot
+            true;
 
           if (isElementVisible) {
             return scrollObjectWrapper(
