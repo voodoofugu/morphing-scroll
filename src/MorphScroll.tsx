@@ -279,24 +279,39 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return objects;
   }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
 
-  const splitIndices = React.useMemo(() => {
-    if (render.type !== "virtual" || objectsPerDirection <= 1) {
+  // делим на группы
+  const splitIndices = React.useCallback(
+    (splitMethod?: "mod" | "sequential") => {
+      if (render.type !== "virtual" || objectsPerDirection <= 1) {
+        return [];
+      }
+
+      const indices = Array.from({ length: validChildren.length }, (_, i) => i);
+
+      if (splitMethod === "sequential") {
+        // Группировка последовательно (как в моём предложении)
+        const chunkSize = Math.ceil(indices.length / objectsPerDirection);
+        return Array.from({ length: objectsPerDirection }, (_, i) =>
+          indices.slice(i * chunkSize, (i + 1) * chunkSize)
+        );
+      } else {
+        // Группировка по модулю
+        const result: number[][] = Array.from(
+          { length: objectsPerDirection },
+          () => []
+        );
+
+        indices.forEach((index) => {
+          result[index % objectsPerDirection].push(index);
+        });
+
+        return result;
+      }
+
       return [];
-    }
-
-    const indices = Array.from({ length: validChildren.length }, (_, i) => i);
-
-    const result: number[][] = Array.from(
-      { length: objectsPerDirection },
-      () => []
-    );
-
-    indices.forEach((index) => {
-      result[index % objectsPerDirection].push(index);
-    });
-
-    return result;
-  }, [validChildren.length, objectsPerDirection, render.type]);
+    },
+    [validChildren.length, objectsPerDirection, render.type]
+  );
 
   const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -407,6 +422,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     return validChildren.map((_, index) => {
+      const indicesArray =
+        direction === "x" ? splitIndices("sequential") : splitIndices();
+
       const indexAndSubIndex = (function (
         index: number,
         splitIndices: number[][]
@@ -418,11 +436,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ) {
           const indexInArray = splitIndices[arrayIndex].indexOf(index);
           if (indexInArray !== -1) {
-            return [arrayIndex, indexInArray];
+            const neededIndex = direction === "y" ? indexInArray : arrayIndex;
+            return [arrayIndex, neededIndex];
           }
         }
         return [0, 0];
-      })(index, splitIndices);
+      })(index, indicesArray);
 
       const elementTop = (function (indexTop: number) {
         return indexTop > 0
@@ -431,10 +450,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             : ((objectsSizeLocal[1] ?? 0) + gapX) * indexTop + pT
           : pT;
       })(objectsPerDirection > 1 ? indexAndSubIndex[1] : index);
-      // if (className === "btlpass_scroll") {!!!!
-      //   // console.log("splitIndices", splitIndices);
-      //   console.log("indexAndSubIndex", indexAndSubIndex);
-      // }
+      if (className === "btlpass_scroll") {
+        // console.log("splitIndices", splitIndices("sequential")); !!!!
+        console.log("indexAndSubIndex[0]", indexAndSubIndex[0]);
+      }
 
       const elementBottom = (function () {
         return objectsSizeLocal[1]
