@@ -402,6 +402,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? indices.slice(-firstChildsInDirection)
         : [];
 
+      // !!!!
       const objectsSize = objectsSizeLocal[0] ?? 0;
       if (elementsAlign === "center") {
         alignSpace =
