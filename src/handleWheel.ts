@@ -22,19 +22,21 @@ export default function handleWheel(
 
   // Вычисляем новое целевое значение прокрутки
   if (direction === "x") {
+    // ограничиваем значение
     stateRef.targetScrollX = Math.max(
       0,
       Math.min(
         stateRef.targetScrollX + e.deltaY, // используем вместо deltaX, так как на deltaX него не срабатывает onScroll
-        scrollEl.scrollWidth - scrollEl.clientWidth
+        scrollEl.scrollWidth - scrollEl.clientWidth + 2 // почему-то нужно прибавить 2
       )
     );
   } else {
+    // ограничиваем значение
     stateRef.targetScrollY = Math.max(
       0,
       Math.min(
         stateRef.targetScrollY + e.deltaY,
-        scrollEl.scrollHeight - scrollEl.clientHeight
+        scrollEl.scrollHeight - scrollEl.clientHeight + 2 // почему-то нужно прибавить 2
       )
     );
   }
