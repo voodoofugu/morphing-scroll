@@ -217,18 +217,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       typeof objectsSize[0] === "number"
         ? objectsSize[0]
         : objectsSize[0] === "none"
-        ? null
+        ? 0
         : objectsSize[0] === "firstChild"
         ? receivedChildSize.width
-        : null;
+        : 0;
     const y =
       typeof objectsSize[1] === "number"
         ? objectsSize[1]
         : objectsSize[1] === "none"
-        ? null
+        ? 0
         : objectsSize[1] === "firstChild"
         ? receivedChildSize.height
-        : null;
+        : 0;
 
     return [x, y];
   }, [objectsSize, receivedChildSize]);
@@ -261,12 +261,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const isHorizontal = direction === "x";
 
     const objectSize = isHorizontal
-      ? objectsSizeLocal[1]
-        ? objectsSizeLocal[1] + gapX
-        : null
-      : objectsSizeLocal[0]
-      ? objectsSizeLocal[0] + gapX
-      : null;
+      ? objectsSizeLocal[1] + gapX
+      : objectsSizeLocal[0] + gapX;
 
     const availableSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const padding = isHorizontal ? pLocalY : pLocalX;
@@ -277,6 +273,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return objects;
   }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
+
+  const childsLinePerDirection = React.useMemo(() => {
+    return objectsPerDirection > 1
+      ? Math.ceil(validChildren.length / objectsPerDirection)
+      : validChildren.length;
+  }, [validChildren.length, objectsPerDirection]);
 
   // делим на группы
   const splitIndices = React.useCallback(() => {
@@ -305,12 +307,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return result;
   }, [validChildren.length, objectsPerDirection, render.type]);
-
-  const childsLinePerDirection = React.useMemo(() => {
-    return objectsPerDirection > 1
-      ? Math.ceil(validChildren.length / objectsPerDirection)
-      : validChildren.length;
-  }, [validChildren.length, objectsPerDirection]);
 
   const objectsWrapperWidth = React.useMemo(() => {
     const childsGap = !objectsPerDirection
@@ -388,30 +384,34 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return [{ elementTop: 0, elementBottom: 0, left: 0, right: 0 }];
 
     let lastIndices: number[] = [];
-    let alignSpace: number = 0;
+    let alignSpaceLeft: number = 0;
 
     if (elementsAlign) {
       const indices = Array.from(
         { length: validChildren.length },
         (_, index) => index
       );
-      const firstChildsInDirection = Math.abs(
-        childsLinePerDirection * objectsPerDirection - validChildren.length
-      );
-      lastIndices = firstChildsInDirection
-        ? indices.slice(-firstChildsInDirection)
-        : [];
 
-      // !!!!
-      const objectsSize = objectsSizeLocal[0] ?? 0;
+      // находим индексы последних элементов
+      const lastChildsInDirection = Math.abs(
+        Math.floor(validChildren.length / objectsPerDirection) *
+          objectsPerDirection -
+          validChildren.length
+      );
+      // находим индексы и отсекаем лишние
+      lastIndices = !lastChildsInDirection
+        ? []
+        : indices.slice(-lastChildsInDirection);
+
       if (elementsAlign === "center") {
-        alignSpace =
-          ((objectsSize + gapY) *
-            (objectsPerDirection - firstChildsInDirection)) /
+        alignSpaceLeft =
+          ((objectsSizeLocal[0] + gapY) *
+            (objectsPerDirection - lastChildsInDirection)) /
           2;
       } else if (elementsAlign === "end") {
-        alignSpace =
-          (objectsSize + gapY) * (objectsPerDirection - firstChildsInDirection);
+        alignSpaceLeft =
+          (objectsSizeLocal[0] + gapY) *
+          (objectsPerDirection - lastChildsInDirection);
       }
     }
 
@@ -439,11 +439,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return [0, 0];
       })(index, splitIndices());
 
-      // !!!!
+      const align =
+        lastIndices.length > 0 && lastIndices.includes(index)
+          ? alignSpaceLeft
+          : 0;
+
+      // !!! придумать как обрабатывать отступы для hybrid
       const elementTop = (function (indexTop: number) {
-        return indexTop > 0 && objectsSizeLocal[1]
-          ? (objectsSizeLocal[1] + gapX) * indexTop + pT
-          : pT;
+        const alignLocal = direction === "x" ? align : 0;
+        return indexTop > 0
+          ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop + pT
+          : alignLocal + pT;
       })(
         objectsPerDirection > 1 || direction === "x"
           ? indexAndSubIndex[1]
@@ -456,24 +462,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : elementTop;
       })();
 
-      const align =
-        elementsAlign && lastIndices.length > 0
-          ? lastIndices.includes(index)
-            ? alignSpace
-            : 0
-          : 0;
-
       const left = (function (indexLeft: number) {
-        return indexLeft > 0 && objectsSizeLocal[0]
-          ? align + (objectsSizeLocal[0] + gapY) * indexLeft + pL
-          : pL;
+        const alignLocal = direction === "x" ? 0 : align;
+        return indexLeft > 0
+          ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft + pL
+          : alignLocal + pL;
       })(
         objectsPerDirection === 1 && direction === "x"
           ? index
           : indexAndSubIndex[0]
       );
 
-      const right = objectsSizeLocal[0] ? left + objectsSizeLocal[0] : 0;
+      const right = left + objectsSizeLocal[0];
 
       return {
         elementTop,
@@ -1053,7 +1053,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={{
-        minHeight:
+        height:
           render.type === "virtual" || objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
@@ -1072,19 +1072,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           direction === "y" && {
             alignItems: "center",
           }),
-        ...(render.type !== "virtual" &&
-          objectsPerDirection > 1 && {
-            flexWrap: "wrap",
-          }),
-        ...(render.type !== "virtual" &&
-        objectsPerDirection <= 1 &&
-        direction === "y"
-          ? {
-              flexDirection: "column",
-            }
-          : direction === "x" && {
-              flexDirection: "row",
-            }),
+        ...(render.type !== "virtual" && {
+          flexWrap: "wrap",
+        }),
+        ...(render.type !== "virtual" && {
+          flexDirection: "column",
+        }),
         ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(elementsAlign &&
           render.type !== "virtual" && {
