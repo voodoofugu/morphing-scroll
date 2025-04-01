@@ -146,7 +146,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [children, shouldTrackKeys, keys]);
 
   const firstChildKey = React.useMemo(() => {
-    // !!!
     if (scrollTopLocal.value !== "end") return null;
 
     if (validChildren.length > 0) {
@@ -447,6 +446,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       // !!! придумать как обрабатывать отступы для hybrid
       const elementTop = (function (indexTop: number) {
         const alignLocal = direction === "x" ? align : 0;
+
         return indexTop > 0
           ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop + pT
           : alignLocal + pT;
@@ -464,6 +464,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       const left = (function (indexLeft: number) {
         const alignLocal = direction === "x" ? 0 : align;
+
         return indexLeft > 0
           ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft + pL
           : alignLocal + pL;
@@ -1182,24 +1183,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             height: "100%",
             ...contentAlignLocal,
 
-            // !!!
-            ...(direction === "y" &&
-            progressTrigger.wheel &&
-            objectsWrapperHeightFull > sizeLocal[1]
+            // интересное решение overflow
+            ...(progressTrigger.wheel
               ? {
-                  overflow: "hidden scroll",
+                  overflow: {
+                    y:
+                      objectsWrapperHeightFull > sizeLocal[1]
+                        ? "hidden scroll"
+                        : "hidden",
+                    x:
+                      objectsWrapperWidthFull > sizeLocal[0]
+                        ? "scroll hidden"
+                        : "hidden",
+                    hybrid:
+                      objectsWrapperWidthFull > sizeLocal[0] &&
+                      objectsWrapperHeightFull > sizeLocal[1]
+                        ? "scroll"
+                        : "hidden",
+                  }[direction],
                 }
-              : direction === "x" &&
-                progressTrigger.wheel &&
-                objectsWrapperWidthFull > sizeLocal[0]
-              ? {
-                  overflow: "scroll hidden",
-                }
-              : direction === "hybrid" &&
-                progressTrigger.wheel &&
-                objectsWrapperWidthFull > sizeLocal[0] &&
-                objectsWrapperWidthFull > sizeLocal[1]
-              ? { overflow: "scroll" }
               : { overflow: "hidden" }),
 
             ...(typeof progressTrigger.progressElement !== "boolean" ||
