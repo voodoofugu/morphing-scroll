@@ -7,10 +7,12 @@ import useIdent from "./useIdent";
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import ScrollBar from "./ScrollBar";
+import Edge from "./Edge";
 
 import handleWheel, { ScrollStateRefT } from "./handleWheel";
 import handleMouseDown from "./handleMouse";
 import { mouseOnEl, mouseOnRef } from "./mouseHelpers";
+import { objectsPerSize, clampValue } from "./calcFunctions";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
@@ -107,8 +109,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     cursor: "pointer",
   };
 
-  const edgeGradientDefault = { color: null, size: 40 };
-
   // variables
   // optimization validChildren
   const filterValidChildren = React.useCallback(
@@ -163,37 +163,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     ...(typeof progressTrigger.arrows === "object"
       ? progressTrigger.arrows
       : {}),
-  };
-
-  const edgeGradientLocal =
-    typeof edgeGradient === "object"
-      ? { ...edgeGradientDefault, ...edgeGradient }
-      : edgeGradientDefault;
-
-  const edgeStyle: React.CSSProperties = {
-    position: "absolute",
-    pointerEvents: "none",
-    transition: "opacity 0.1s ease-in-out",
-    ...(edgeGradientLocal.color && {
-      background: `linear-gradient(${edgeGradientLocal.color}, transparent)`,
-    }),
-    ...(direction === "x"
-      ? {
-          height: "100%",
-          width: `${edgeGradientLocal.size}px`,
-          top: 0,
-          ...(edgeGradientLocal.color && {
-            background: `linear-gradient(90deg, ${edgeGradientLocal.color}, transparent)`,
-          }),
-        }
-      : {
-          width: "100%",
-          height: `${edgeGradientLocal.size}px`,
-          left: 0,
-          ...(edgeGradientLocal.color && {
-            background: `linear-gradient(${edgeGradientLocal.color}, transparent)`,
-          }),
-        }),
   };
 
   const [pT, pR, pB, pL] = numOrArrFormat(padding) || [0, 0, 0, 0];
@@ -330,10 +299,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsWrapperHeight = React.useMemo(() => {
     const childsGap =
       childsLinePerDirection < 1 ? 0 : objectsPerDirection * gapX - gapX;
+    const choldsCount =
+      direction === "hybrid" ? objectsPerDirection : childsLinePerDirection;
+
     return objectsSizeLocal[1]
       ? direction === "x"
         ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
-        : (objectsSizeLocal[1] + gapX) * childsLinePerDirection - gapX
+        : (objectsSizeLocal[1] + gapX) * choldsCount - gapX
       : render.type !== "virtual"
       ? receivedWrapSize.height
       : receivedChildSize.height + childsGap;
@@ -538,20 +510,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsWrapperWidthFull,
   ]);
 
-  const sizeLocalToObjectsWrapperXY = React.useCallback(
-    (max?: boolean) => {
-      const calcFn = max ? Math.ceil : Math.floor;
-      const size = direction === "x" ? sizeLocal[0] : sizeLocal[1];
-      const fullHeightOrWidth =
-        direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
+  const objLengthPerSize = React.useMemo(() => {
+    const x = objectsPerSize(objectsWrapperWidthFull, sizeLocal[0]);
+    const y = objectsPerSize(objectsWrapperHeightFull, sizeLocal[1]);
 
-      return calcFn(fullHeightOrWidth / size);
-    },
-    [sizeLocal, objectsWrapperHeightFull, objectsWrapperWidthFull, direction]
-  );
-  const sizeLocalToObjectsWrapperX = React.useCallback(() => {
-    return Math.floor(objectsWrapperWidthFull / sizeLocal[0]);
-  }, [sizeLocal, objectsWrapperWidthFull]);
+    return [x, y];
+  }, [
+    objectsWrapperWidthFull,
+    objectsWrapperHeightFull,
+    sizeLocal[0],
+    sizeLocal[1],
+  ]);
+  const objLengthPerSizeXY = React.useMemo(() => {
+    return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
+  }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
 
   // events
   const mouseOnRefHandle = React.useCallback(
@@ -580,7 +552,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (!scrollEl || !wrapEl) return;
 
       const height = wrapEl.clientHeight;
-      const length = sizeLocalToObjectsWrapperXY();
+      const length = objLengthPerSizeXY;
 
       const scrollTo = (position: number) => smoothScroll(position);
 
@@ -604,7 +576,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         );
       }
     },
-    [scrollElementRef, objectsWrapperRef, sizeLocalToObjectsWrapperXY]
+    [scrollElementRef, objectsWrapperRef, objLengthPerSizeXY, sizeLocal[1]]
   );
 
   // !!! вынести функцию
@@ -636,32 +608,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [sizeLocal[1], objectsWrapperHeightFull]);
 
   // высчитываем сдвиг скролла и ограничиваем его
-  const thumbSpace = Math.max(
+  const thumbSpace = clampValue(
+    (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize),
     0,
-    Math.min(
-      Math.abs(
-        Math.round(
-          (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize)
-        )
-      ),
-      xySize - thumbSize
-    )
+    xySize - thumbSize
   );
-  const thumbSpaceX = Math.max(
+
+  const thumbSpaceX = clampValue(
+    ((scrollElementRef.current?.scrollLeft || 0) /
+      (objectsWrapperWidthFull - sizeLocal[0])) *
+      (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
     0,
-    Math.min(
-      Math.abs(
-        Math.round(
-          ((scrollElementRef.current?.scrollLeft || 0) /
-            (objectsWrapperWidthFull - sizeLocal[0])) *
-            (sizeLocal[0] -
-              Math.round(
-                (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]
-              ))
-        )
-      ),
-      sizeLocal[0] - thumbSizeX
-    )
+    sizeLocal[0] - thumbSizeX
   );
 
   const handleScroll = React.useCallback(() => {
@@ -813,7 +771,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         mouseOnEl,
         mouseOnRefHandle,
         triggerUpdate,
-        sizeLocalToObjectsWrapperXY,
+        objLengthPerSize: objLengthPerSize,
         direction,
         smoothScroll,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
@@ -1055,7 +1013,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       onMouseDown={onMouseDownWrap}
       style={{
         height:
-          render.type === "virtual" || objectsSize[1] !== "none"
+          objectsSize[1] !== "none"
             ? `${objectsWrapperHeightFull}px`
             : "fit-content",
         minWidth: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
@@ -1073,12 +1031,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           direction === "y" && {
             alignItems: "center",
           }),
-        ...(render.type !== "virtual" && {
-          flexWrap: "wrap",
-        }),
-        ...(render.type !== "virtual" && {
-          flexDirection: "column",
-        }),
+        ...(render.type !== "virtual" &&
+          objectsSize[1] !== "none" && {
+            flexWrap: "wrap",
+          }),
+        ...(render.type !== "virtual" &&
+          direction !== "hybrid" && {
+            flexDirection: "column",
+          }),
         ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(elementsAlign &&
           render.type !== "virtual" && {
@@ -1128,6 +1088,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const topOrLeft = direction === "x" ? left : elementTop;
           const bottomOrRight = direction === "x" ? right : elementBottom;
           const mRoot = direction === "x" ? mRootX : mRootY;
+          // !!!
           const mRootReverse = direction === "x" ? mRootY : mRootX;
           const isElementVisible =
             xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
@@ -1220,39 +1181,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             </ResizeTracker>
           )}
         </div>
-        {edgeGradient && (
-          <div
-            className="edge"
-            style={{
-              ...edgeStyle,
-              ...(direction === "x"
-                ? {
-                    left: 0,
-                  }
-                : { top: 0 }),
-              opacity: scrollSpaceFromRef > 1 ? 1 : 0,
-            }}
-          ></div>
-        )}
-        {edgeGradient && (
-          <div
-            className="edge"
-            style={{
-              ...edgeStyle,
-              ...(direction === "x"
-                ? {
-                    right: 0,
-                  }
-                : { bottom: 0 }),
-              opacity: isNotAtBottom ? 1 : 0,
-              ...(direction === "x"
-                ? {
-                    transform: "scaleX(-1)",
-                  }
-                : { transform: "scaleY(-1)" }),
-            }}
-          ></div>
-        )}
+
+        <Edge
+          direction={direction}
+          edgeGradient={edgeGradient}
+          visibility={scrollSpaceFromRef > 1 && true}
+          edgeType={direction === "x" ? "left" : "top"}
+        />
+        <Edge
+          direction={direction}
+          edgeGradient={edgeGradient}
+          visibility={isNotAtBottom}
+          edgeType={direction === "x" ? "right" : "bottom"}
+        />
+
         {progressTrigger.arrows && (
           <React.Fragment>
             <div
@@ -1296,13 +1238,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               onMouseDown={onMouseDownScrollThumb}
               thumbSize={thumbSize}
               thumbSpace={thumbSpace}
-              sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperXY}
+              objLengthPerSize={objLengthPerSizeXY}
               id={id}
             />
           )}
         {progressVisibility !== "hidden" &&
           typeof progressTrigger.progressElement !== "boolean" &&
-          thumbSize < objectsWrapperWidthFull &&
+          thumbSizeX < objectsWrapperWidthFull &&
           direction === "hybrid" && (
             <ScrollBar
               type={type}
@@ -1314,7 +1256,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               onMouseDown={onMouseDownScrollThumbTwo}
               thumbSize={thumbSizeX}
               thumbSpace={thumbSpaceX}
-              sizeLocalToObjectsWrapperXY={sizeLocalToObjectsWrapperX}
+              objLengthPerSize={objLengthPerSize[0]}
               id={id}
             />
           )}

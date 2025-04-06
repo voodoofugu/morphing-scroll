@@ -13,11 +13,11 @@ type HandleMouseT = {
   scrollStateRef: ScrollStateRefT;
   numForSlider: number;
   sizeLocal: number[];
+  objLengthPerSize: number[];
   smoothScroll: (
     targetScrollTop: number,
     callback?: () => void
   ) => (() => void) | null;
-  sizeLocalToObjectsWrapperXY: (max?: boolean) => number;
   mouseOnEl: (el: HTMLDivElement | null) => void;
   mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;
@@ -42,7 +42,7 @@ type HandleMouseMoveT = Omit<
 type HandleMouseUpT = Omit<
   HandleMouseT,
   | "scrollElementRef"
-  | "sizeLocalToObjectsWrapperXY"
+  | "objLengthPerSize"
   | "scrollStateRef"
   | "direction"
   | "smoothScroll"
@@ -60,8 +60,10 @@ function handleMouseDown(args: HandleMouseDownT) {
 
   // меняем курсор
   if (args.clicked === "thumb") {
+    // если первого бегунка нет (из-за размеров) а нужен второй то ставим индекс || 0
     args.mouseOnEl(
-      args.scrollBarsRef?.[args.scrollElemIndex ?? 0] as HTMLDivElement
+      (args.scrollBarsRef?.[args.scrollElemIndex ?? 0] ||
+        args.scrollBarsRef?.[0]) as HTMLDivElement
     );
   }
   if (args.clicked === "wrapp") {
@@ -90,13 +92,15 @@ function handleMouseDown(args: HandleMouseDownT) {
 }
 
 function handleMouseMove(args: HandleMouseMoveT) {
-  const length = args.sizeLocalToObjectsWrapperXY();
-  if (!args.scrollElementRef || !length) return;
+  if (!args.scrollElementRef) return;
 
   if (["thumb", "wrapp"].includes(args.clickedObject.current)) {
     const isThumb = args.clickedObject.current === "thumb";
     const applyScroll = (axis: "x" | "y") => {
       if (!args.scrollElementRef) return;
+
+      const length =
+        axis === "x" ? args.objLengthPerSize[0] : args.objLengthPerSize[1];
 
       const moveDirection =
         axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
@@ -113,22 +117,32 @@ function handleMouseMove(args: HandleMouseMoveT) {
       }
     };
 
-    if (args.direction !== "hybrid") {
-      applyScroll(args.direction || "y");
-      return;
-    } else {
-      if (!isThumb) {
+    if (args.direction === "hybrid") {
+      if (args.clickedObject.current === "wrapp") {
         applyScroll("x");
         applyScroll("y");
+
+        return;
       }
 
       const scrollBars = Array.from(
         args.scrollBarsRef || []
       ) as HTMLDivElement[];
-      if (scrollBars[0]?.style.cursor === "grabbing") applyScroll("y");
-      if (scrollBars[1]?.style.cursor === "grabbing") applyScroll("x");
-      return;
+
+      for (const scrollBar of scrollBars) {
+        const directionType =
+          scrollBar.attributes.getNamedItem("direction-type")?.value;
+
+        if (scrollBar.style.cursor === "grabbing") {
+          applyScroll(directionType as "x" | "y");
+          break;
+        }
+      }
+    } else {
+      applyScroll(args.direction || "y");
     }
+
+    return;
   }
 
   const pixelsForSwipe = 1;
@@ -184,7 +198,8 @@ function handleMouseUp(args: HandleMouseUpT) {
   document.body.style.removeProperty("cursor");
   if (args.clicked === "thumb") {
     args.mouseOnEl(
-      args.scrollBarsRef?.[args.scrollElemIndex ?? 0] as HTMLDivElement
+      (args.scrollBarsRef?.[args.scrollElemIndex ?? 0] ||
+        args.scrollBarsRef?.[0]) as HTMLDivElement
     );
   }
   if (args.clicked === "wrapp") {

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import React from "react";
 import { MorphScrollT } from "./types";
 
@@ -6,7 +7,7 @@ type ModifiedProps = Partial<MorphScrollT> & {
   onMouseDown: React.MouseEventHandler<HTMLDivElement>;
   thumbSize: number;
   thumbSpace: number;
-  sizeLocalToObjectsWrapperXY: (max?: boolean) => number;
+  objLengthPerSize: number;
   id: string;
 };
 
@@ -20,7 +21,7 @@ const ScrollBar = ({
   onMouseDown,
   thumbSize,
   thumbSpace,
-  sizeLocalToObjectsWrapperXY,
+  objLengthPerSize,
   id,
 }: ModifiedProps) => {
   return (
@@ -58,6 +59,7 @@ const ScrollBar = ({
         >
           <div
             className={`scrollBarThumb ${id}`}
+            direction-type={direction === "hybrid" ? "y" : direction}
             onMouseDown={onMouseDown}
             style={{
               height: `${thumbSize}px`,
@@ -89,18 +91,15 @@ const ScrollBar = ({
             }),
           }}
         >
-          {Array.from(
-            { length: sizeLocalToObjectsWrapperXY() || 0 },
-            (_, index) => (
-              <div
-                key={index}
-                className="sliderElem"
-                style={{ width: "fit-content" }}
-              >
-                {progressTrigger?.progressElement}
-              </div>
-            )
-          )}
+          {Array.from({ length: objLengthPerSize }, (_, index) => (
+            <div
+              key={index}
+              className="sliderElem"
+              style={{ width: "fit-content" }}
+            >
+              {progressTrigger?.progressElement}
+            </div>
+          ))}
         </div>
       )}
     </React.Fragment>
