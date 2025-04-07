@@ -41,6 +41,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   render = { type: "default" },
   emptyElements,
+  sizeLimiter,
 }) => {
   const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
 
@@ -232,15 +233,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? objectsSizeLocal[1] + gapX
       : objectsSizeLocal[0] + gapX;
 
-    const availableSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
+    const neededObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
+    const maxSize = sizeLimiter
+      ? sizeLimiter
+      : objectSize * validChildren.length;
+    const neededMaxSize = direction === "hybrid" ? maxSize : neededObjSize;
+
     const padding = isHorizontal ? pLocalY : pLocalX;
 
     const objects = objectSize
-      ? Math.floor((availableSize - padding) / objectSize)
+      ? Math.floor((neededMaxSize - padding) / objectSize)
       : 1;
 
-    return objects;
+    return objects ? objects : 1;
   }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
+  // !!!
+  // if (className === "scrollAvatars") {
+  //   console.log("objectsPerDirection", objectsPerDirection);
+  // }
 
   const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -280,10 +290,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const childsGap = !objectsPerDirection
       ? 0
       : objectsPerDirection * gapY - gapY;
+    const neededObj =
+      direction === "y"
+        ? objectsPerDirection
+        : direction === "x"
+        ? childsLinePerDirection
+        : objectsPerDirection; /// !!!
+
     return objectsSizeLocal[0]
-      ? direction === "y"
-        ? (objectsSizeLocal[0] + gapY) * objectsPerDirection - gapY
-        : (objectsSizeLocal[0] + gapY) * childsLinePerDirection - gapY
+      ? (objectsSizeLocal[0] + gapY) * neededObj - gapY
       : render.type !== "virtual"
       ? receivedWrapSize.width
       : receivedChildSize.width + childsGap;
@@ -298,14 +313,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const objectsWrapperHeight = React.useMemo(() => {
     const childsGap =
-      childsLinePerDirection < 1 ? 0 : objectsPerDirection * gapX - gapX;
-    const choldsCount =
+      childsLinePerDirection < 1 ? 1 : objectsPerDirection * gapX - gapX;
+    const childsCount =
       direction === "hybrid" ? objectsPerDirection : childsLinePerDirection;
 
     return objectsSizeLocal[1]
       ? direction === "x"
         ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
-        : (objectsSizeLocal[1] + gapX) * choldsCount - gapX
+        : (objectsSizeLocal[1] + gapX) * childsCount - gapX
       : render.type !== "virtual"
       ? receivedWrapSize.height
       : receivedChildSize.height + childsGap;
@@ -423,7 +438,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop + pT
           : alignLocal + pT;
       })(
-        objectsPerDirection > 1 || direction === "x"
+        objectsPerDirection > 1 || direction === "x" || direction === "hybrid"
           ? indexAndSubIndex[1]
           : index
       );
@@ -441,7 +456,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft + pL
           : alignLocal + pL;
       })(
-        objectsPerDirection === 1 && direction === "x"
+        (objectsPerDirection === 1 && direction === "x") ||
+          direction === "hybrid"
           ? index
           : indexAndSubIndex[0]
       );
@@ -537,12 +553,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         );
 
       if (event.type === "mouseleave") {
-        !["thumb", "slider"].includes(clickedObject.current) && func();
+        !["thumb", "slider", "wrapp"].includes(clickedObject.current) && func();
       } else {
         func();
       }
     },
-    [progressVisibility, type, clickedObject.current]
+    [progressVisibility, type, clickedObject.current, scrollContentlRef.current]
   );
 
   const handleArrows = React.useCallback(
@@ -1012,43 +1028,58 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={{
+        padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
           objectsSize[1] !== "none"
-            ? `${objectsWrapperHeightFull}px`
+            ? `${objectsWrapperHeight}px`
             : "fit-content",
-        minWidth: objectsWrapperWidthFull ? `${objectsWrapperWidthFull}px` : "",
+        minWidth: objectsWrapperWidth ? `${objectsWrapperWidth}px` : "",
 
         ...(progressTrigger.content && { cursor: "grab" }),
+        ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(render.type === "virtual"
           ? {
               position: "relative",
             }
           : {
               display: "flex",
-              alignContent: "center",
             }),
+
         ...(render.type !== "virtual" &&
-          direction === "y" && {
-            alignItems: "center",
+        (direction === "y" || direction === "hybrid") &&
+        objectsPerDirection > 1
+          ? {
+              flexDirection: "row",
+            }
+          : {
+              flexDirection: "column",
+            }),
+
+        ...(render.type !== "virtual" &&
+          direction === "x" && {
+            flexDirection: "column",
           }),
+
         ...(render.type !== "virtual" &&
           objectsSize[1] !== "none" && {
             flexWrap: "wrap",
           }),
-        ...(render.type !== "virtual" &&
-          direction !== "hybrid" && {
-            flexDirection: "column",
-          }),
-        ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
+
         ...(elementsAlign &&
-          render.type !== "virtual" && {
-            justifyContent:
-              elementsAlign === "start"
-                ? "flex-start"
-                : elementsAlign === "center"
-                ? "center"
-                : "flex-end",
-          }),
+        render.type !== "virtual" &&
+        objectsPerDirection > 1
+          ? {
+              justifyContent:
+                elementsAlign === "start"
+                  ? "flex-start"
+                  : elementsAlign === "center"
+                  ? "center"
+                  : "flex-end",
+            }
+          : {
+              alignItems: "center",
+            }),
+
         ...(objectsWrapFullMinSize && {
           minHeight: `${sizeLocal[1] - pLocalY}px`,
         }),
@@ -1090,10 +1121,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const mRoot = direction === "x" ? mRootX : mRootY;
           // !!!
           const mRootReverse = direction === "x" ? mRootY : mRootX;
+
           const isElementVisible =
             xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
             bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
-          if (isElementVisible) {
+
+          const isElementVisibleHybrid = (function () {
+            if (direction !== "hybrid") return true;
+
+            return (
+              (sizeLocal[0] + mRootX >
+                left - (scrollElementRef.current?.scrollLeft || 0) &&
+                right - (scrollElementRef.current?.scrollLeft || 0) >
+                  0 - mRootX) ||
+              false
+            );
+          })();
+
+          if (isElementVisible && isElementVisibleHybrid) {
             return scrollObjectWrapper(
               elementTop,
               left,

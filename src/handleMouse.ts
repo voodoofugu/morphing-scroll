@@ -60,7 +60,7 @@ function handleMouseDown(args: HandleMouseDownT) {
 
   // меняем курсор
   if (args.clicked === "thumb") {
-    // если первого бегунка нет (из-за размеров) а нужен второй то ставим индекс || 0
+    // если первого бегунка нет (из-за размеров) а нужен второй то ставим индекс 0
     args.mouseOnEl(
       (args.scrollBarsRef?.[args.scrollElemIndex ?? 0] ||
         args.scrollBarsRef?.[0]) as HTMLDivElement

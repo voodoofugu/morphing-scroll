@@ -33,6 +33,7 @@ export type MorphScrollT = {
   // Visual Settings
   size?: number[];
   wrapperSize: (number | "full")[]; // !!!
+  sizeLimiter: number; // !!!
   objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
   padding?: number[] | number;
@@ -41,7 +42,7 @@ export type MorphScrollT = {
   edgeGradient?: boolean | { color?: string; size?: number };
   progressReverse?: boolean;
   progressVisibility?: "visible" | "hover" | "hidden";
-  objectsWrapFullMinSize?: boolean;
+  objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full"
 
   // Progress & Rendering
   progressTrigger?: {
