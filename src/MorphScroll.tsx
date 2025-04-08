@@ -41,7 +41,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   render = { type: "default" },
   emptyElements,
-  sizeLimiter,
+  crossCount,
 }) => {
   const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
 
@@ -229,28 +229,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsPerDirection = React.useMemo(() => {
     const isHorizontal = direction === "x";
 
+    const padding = isHorizontal ? pLocalY : pLocalX;
+    const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const objectSize = isHorizontal
       ? objectsSizeLocal[1] + gapX
       : objectsSizeLocal[0] + gapX;
 
-    const neededObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
-    const maxSize = sizeLimiter
-      ? sizeLimiter
-      : objectSize * validChildren.length;
-    const neededMaxSize = direction === "hybrid" ? maxSize : neededObjSize;
-
-    const padding = isHorizontal ? pLocalY : pLocalX;
+    const hybridSize = objectSize * (validChildren.length + 1) - objectSize;
+    const neededMaxSize = direction === "hybrid" ? hybridSize : localObjSize;
 
     const objects = objectSize
       ? Math.floor((neededMaxSize - padding) / objectSize)
       : 1;
 
-    return objects ? objects : 1;
+    return crossCount ? crossCount : objects;
   }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
-  // !!!
-  // if (className === "scrollAvatars") {
-  //   console.log("objectsPerDirection", objectsPerDirection);
-  // }
 
   const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -291,11 +284,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? 0
       : objectsPerDirection * gapY - gapY;
     const neededObj =
-      direction === "y"
-        ? objectsPerDirection
-        : direction === "x"
-        ? childsLinePerDirection
-        : objectsPerDirection; /// !!!
+      direction === "x" ? childsLinePerDirection : objectsPerDirection;
 
     return objectsSizeLocal[0]
       ? (objectsSizeLocal[0] + gapY) * neededObj - gapY
@@ -314,13 +303,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsWrapperHeight = React.useMemo(() => {
     const childsGap =
       childsLinePerDirection < 1 ? 1 : objectsPerDirection * gapX - gapX;
-    const childsCount =
-      direction === "hybrid" ? objectsPerDirection : childsLinePerDirection;
 
     return objectsSizeLocal[1]
       ? direction === "x"
         ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
-        : (objectsSizeLocal[1] + gapX) * childsCount - gapX
+        : (objectsSizeLocal[1] + gapX) * childsLinePerDirection - gapX
       : render.type !== "virtual"
       ? receivedWrapSize.height
       : receivedChildSize.height + childsGap;
@@ -415,7 +402,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const indexInArray = splitIndices[arrayIndex].indexOf(index);
           if (indexInArray !== -1) {
             const neededTopIndex =
-              direction === "y" ? indexInArray : arrayIndex;
+              direction === "y" || direction === "hybrid"
+                ? indexInArray
+                : arrayIndex;
             const neededLeftIndex =
               direction === "x" ? indexInArray : arrayIndex;
 
@@ -430,7 +419,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignSpaceLeft
           : 0;
 
-      // !!! придумать как обрабатывать отступы для hybrid
+      // !!! придумать как обрабатывать позиционирование для hybrid
       const elementTop = (function (indexTop: number) {
         const alignLocal = direction === "x" ? align : 0;
 
@@ -456,8 +445,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft + pL
           : alignLocal + pL;
       })(
-        (objectsPerDirection === 1 && direction === "x") ||
-          direction === "hybrid"
+        objectsPerDirection === 1 && direction === "x"
           ? index
           : indexAndSubIndex[0]
       );
@@ -1119,13 +1107,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const topOrLeft = direction === "x" ? left : elementTop;
           const bottomOrRight = direction === "x" ? right : elementBottom;
           const mRoot = direction === "x" ? mRootX : mRootY;
-          // !!!
           const mRootReverse = direction === "x" ? mRootY : mRootX;
 
           const isElementVisible =
             xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
             bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
-
           const isElementVisibleHybrid = (function () {
             if (direction !== "hybrid") return true;
 
