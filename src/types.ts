@@ -32,14 +32,14 @@ export type MorphScrollT = {
 
   // Visual Settings
   size?: number[];
-  crossCount: number;
+  crossCount: number; // !
   objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
   padding?: number[] | number;
   contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number };
-  progressReverse?: boolean;
+  progressReverse?: boolean | boolean[];
   progressVisibility?: "visible" | "hover" | "hidden";
   objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full"
 

@@ -1262,7 +1262,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             <ScrollBar
               type={type}
               direction={direction}
-              progressReverse={progressReverse}
+              progressReverse={
+                typeof progressReverse === "boolean"
+                  ? progressReverse
+                  : progressReverse[0]
+              }
               sizeHeight={sizeLocal[0]}
               progressTrigger={progressTrigger}
               progressVisibility={progressVisibility}
@@ -1280,7 +1284,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             <ScrollBar
               type={type}
               direction="x"
-              progressReverse={progressReverse}
+              progressReverse={
+                typeof progressReverse === "boolean"
+                  ? progressReverse
+                  : progressReverse[1]
+              }
               sizeHeight={sizeLocal[0]}
               progressTrigger={progressTrigger}
               progressVisibility={progressVisibility}
