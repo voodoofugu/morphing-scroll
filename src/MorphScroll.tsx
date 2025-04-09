@@ -333,8 +333,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction === "x"
       ? scrollElementRef.current?.scrollLeft || 0
       : scrollElementRef.current?.scrollTop || 0;
-  const isNotAtBottom =
+
+  const isNotAtStart = scrollSpaceFromRef > 1 && true;
+  const isNotAtEnd =
     Math.round(scrollSpaceFromRef + xySize) < fullHeightOrWidth;
+
+  let isNotAtStartX = false;
+  let isNotAtEndX = false;
+  if (direction === "hybrid") {
+    isNotAtStartX = (scrollElementRef.current?.scrollLeft || 0) > 1 && true;
+    isNotAtEndX =
+      Math.round((scrollElementRef.current?.scrollLeft || 0) + sizeLocal[0]) <
+      objectsWrapperWidthFull;
+  }
 
   const thumbSize = React.useMemo(() => {
     if (progressVisibility === "hidden") return 0;
@@ -1107,6 +1118,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           const topOrLeft = direction === "x" ? left : elementTop;
           const bottomOrRight = direction === "x" ? right : elementBottom;
           const mRoot = direction === "x" ? mRootX : mRootY;
+          // !!!
           const mRootReverse = direction === "x" ? mRootY : mRootX;
 
           const isElementVisible =
@@ -1213,18 +1225,30 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           )}
         </div>
 
-        <Edge
-          direction={direction}
-          edgeGradient={edgeGradient}
-          visibility={scrollSpaceFromRef > 1 && true}
-          edgeType={direction === "x" ? "left" : "top"}
-        />
-        <Edge
-          direction={direction}
-          edgeGradient={edgeGradient}
-          visibility={isNotAtBottom}
-          edgeType={direction === "x" ? "right" : "bottom"}
-        />
+        {[
+          {
+            edgeType: direction === "x" ? "left" : "top",
+            visibility: isNotAtStart,
+          },
+          {
+            edgeType: direction === "x" ? "right" : "bottom",
+            visibility: isNotAtEnd,
+          },
+          ...(direction === "hybrid"
+            ? [
+                { edgeType: "left", visibility: isNotAtStartX },
+                { edgeType: "right", visibility: isNotAtEndX },
+              ]
+            : []),
+        ].map(({ edgeType, visibility }) => (
+          <Edge
+            key={edgeType}
+            direction={direction}
+            edgeGradient={edgeGradient}
+            visibility={visibility}
+            edgeType={edgeType as "left" | "right" | "top" | "bottom"}
+          />
+        ))}
 
         {progressTrigger.arrows && (
           <React.Fragment>
@@ -1242,7 +1266,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             </div>
 
             <div
-              className={`arrowBox${isNotAtBottom ? " active" : ""}`}
+              className={`arrowBox${isNotAtEnd ? " active" : ""}`}
               style={{
                 ...arrowsStyle,
                 bottom: 0,
@@ -1258,47 +1282,48 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
         {progressVisibility !== "hidden" &&
           typeof progressTrigger.progressElement !== "boolean" &&
-          thumbSize < fullHeightOrWidth && (
-            <ScrollBar
-              type={type}
-              direction={direction}
-              progressReverse={
-                typeof progressReverse === "boolean"
-                  ? progressReverse
-                  : progressReverse[0]
-              }
-              sizeHeight={sizeLocal[0]}
-              progressTrigger={progressTrigger}
-              progressVisibility={progressVisibility}
-              onMouseDown={onMouseDownScrollThumb}
-              thumbSize={thumbSize}
-              thumbSpace={thumbSpace}
-              objLengthPerSize={objLengthPerSizeXY}
-              id={id}
-            />
-          )}
-        {progressVisibility !== "hidden" &&
-          typeof progressTrigger.progressElement !== "boolean" &&
-          thumbSizeX < objectsWrapperWidthFull &&
-          direction === "hybrid" && (
-            <ScrollBar
-              type={type}
-              direction="x"
-              progressReverse={
-                typeof progressReverse === "boolean"
-                  ? progressReverse
-                  : progressReverse[1]
-              }
-              sizeHeight={sizeLocal[0]}
-              progressTrigger={progressTrigger}
-              progressVisibility={progressVisibility}
-              onMouseDown={onMouseDownScrollThumbTwo}
-              thumbSize={thumbSizeX}
-              thumbSpace={thumbSpaceX}
-              objLengthPerSize={objLengthPerSize[0]}
-              id={id}
-            />
-          )}
+          [
+            {
+              shouldRender: thumbSize < fullHeightOrWidth,
+              direction: direction,
+              thumbSize,
+              thumbSpace,
+              objLengthPerSize: objLengthPerSizeXY,
+              onMouseDown: onMouseDownScrollThumb,
+              progressReverseIndex: 0,
+            },
+            {
+              shouldRender:
+                direction === "hybrid" && thumbSizeX < objectsWrapperWidthFull,
+              direction: "x" as const,
+              thumbSize: thumbSizeX,
+              thumbSpace: thumbSpaceX,
+              objLengthPerSize: objLengthPerSize[0],
+              onMouseDown: onMouseDownScrollThumbTwo,
+              progressReverseIndex: 1,
+            },
+          ]
+            .filter(({ shouldRender }) => shouldRender)
+            .map((args) => (
+              <ScrollBar
+                key={args.direction}
+                type={type}
+                direction={args.direction}
+                progressReverse={
+                  typeof progressReverse === "boolean"
+                    ? progressReverse
+                    : progressReverse[args.progressReverseIndex]
+                }
+                sizeHeight={sizeLocal[0]}
+                progressTrigger={progressTrigger}
+                progressVisibility={progressVisibility}
+                onMouseDown={args.onMouseDown}
+                thumbSize={args.thumbSize}
+                thumbSpace={args.thumbSpace}
+                objLengthPerSize={args.objLengthPerSize}
+                id={id}
+              />
+            ))}
       </div>
     </div>
   );

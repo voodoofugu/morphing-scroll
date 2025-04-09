@@ -5,7 +5,7 @@ type EdgeT = {
   direction: MorphScrollT["direction"];
   edgeGradient: MorphScrollT["edgeGradient"];
   visibility: boolean;
-  edgeType?: "left" | "right" | "top" | "bottom";
+  edgeType: "left" | "right" | "top" | "bottom";
 };
 
 const Edge = ({ direction, edgeGradient, visibility, edgeType }: EdgeT) => {
@@ -25,12 +25,12 @@ const Edge = ({ direction, edgeGradient, visibility, edgeType }: EdgeT) => {
     ...(edgeGradientLocal.color && {
       background:
         edgeGradientLocal.color &&
-        `linear-gradient(${direction === "x" ? "90deg, " : ""}${
-          edgeGradientLocal.color
-        }, transparent)`,
+        `linear-gradient(${
+          edgeType === "right" || edgeType === "left" ? "90deg, " : ""
+        }${edgeGradientLocal.color}, transparent)`,
     }),
 
-    ...(direction === "x"
+    ...(edgeType === "right" || edgeType === "left"
       ? {
           height: "100%",
           width: `${edgeGradientLocal.size}px`,
@@ -56,7 +56,7 @@ const Edge = ({ direction, edgeGradient, visibility, edgeType }: EdgeT) => {
 
   return (
     <div
-      className="edge"
+      className={`edge${edgeType ? ` ${edgeType}` : ""}`}
       style={{
         ...edgeStyle,
         opacity: visibility ? 1 : 0,
