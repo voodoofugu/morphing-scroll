@@ -38,8 +38,8 @@ export type MorphScrollT = {
   padding?: number[] | number;
   contentAlign?: ["start" | "center" | "end", "start" | "center" | "end"];
   elementsAlign?: "start" | "center" | "end";
-  edgeGradient?: boolean | { color?: string; size?: number };
-  progressReverse?: boolean | boolean[];
+  edgeGradient?: boolean | { color?: string; size?: number }; // !
+  progressReverse?: boolean | boolean[]; // !
   progressVisibility?: "visible" | "hover" | "hidden";
   objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full"
 

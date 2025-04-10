@@ -14,10 +14,7 @@ type HandleMouseT = {
   numForSlider: number;
   sizeLocal: number[];
   objLengthPerSize: number[];
-  smoothScroll: (
-    targetScrollTop: number,
-    callback?: () => void
-  ) => (() => void) | null;
+  smoothScroll: (targetScrollTop: number, callback?: () => void) => void;
   mouseOnEl: (el: HTMLDivElement | null) => void;
   mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;

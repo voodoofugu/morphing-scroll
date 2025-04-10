@@ -8,11 +8,13 @@ import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import ScrollBar from "./ScrollBar";
 import Edge from "./Edge";
+import Arrow from "./Arrow";
 
 import handleWheel, { ScrollStateRefT } from "./handleWheel";
 import handleMouseDown from "./handleMouse";
 import { mouseOnEl, mouseOnRef } from "./mouseHelpers";
-import { objectsPerSize, clampValue } from "./calcFunctions";
+import { objectsPerSize, clampValue, smoothScroll } from "./addFunctions";
+import handleArrow, { handleArrowT } from "./handleArrow";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
@@ -101,16 +103,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     size: 40,
   };
 
-  const arrowsStyle: React.CSSProperties = {
-    position: "absolute",
-    width: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    cursor: "pointer",
-  };
-
   // variables
+  const arrowsLocal = React.useMemo(() => {
+    return {
+      ...arrowsDefault,
+      ...(typeof progressTrigger.arrows === "object"
+        ? progressTrigger.arrows
+        : {}),
+    };
+  }, [progressTrigger.arrows]);
+
   // optimization validChildren
   const filterValidChildren = React.useCallback(
     (child: React.ReactNode): React.ReactNode[] => {
@@ -158,13 +160,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
     return null;
   }, [validChildren, scrollTopLocal.value]);
-
-  const arrowsLocal = {
-    ...arrowsDefault,
-    ...(typeof progressTrigger.arrows === "object"
-      ? progressTrigger.arrows
-      : {}),
-  };
 
   const [pT, pR, pB, pL] = numOrArrFormat(padding) || [0, 0, 0, 0];
 
@@ -242,7 +237,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? Math.floor((neededMaxSize - padding) / objectSize)
       : 1;
 
-    return crossCount ? crossCount : objects;
+    // устанавливаем crossCount если он есть и если он меньше objects
+    return crossCount && crossCount < objects ? crossCount : objects;
   }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
 
   const childsLinePerDirection = React.useMemo(() => {
@@ -430,7 +426,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignSpaceLeft
           : 0;
 
-      // !!! придумать как обрабатывать позиционирование для hybrid
       const elementTop = (function (indexTop: number) {
         const alignLocal = direction === "x" ? align : 0;
 
@@ -560,36 +555,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [progressVisibility, type, clickedObject.current, scrollContentlRef.current]
   );
 
-  const handleArrows = React.useCallback(
-    (arr: string) => {
-      const scrollEl = scrollElementRef.current;
-      const wrapEl = objectsWrapperRef.current;
-      if (!scrollEl || !wrapEl) return;
-
-      const height = wrapEl.clientHeight;
-      const length = objLengthPerSizeXY;
-
-      const scrollTo = (position: number) => smoothScroll(position);
-
-      if (arr === "first" && scrollEl.scrollTop > 0) {
-        scrollTo(
-          scrollEl.scrollTop <= sizeLocal[1]
-            ? 0
-            : scrollEl.scrollTop - sizeLocal[1]
-        );
-      }
-
-      if (
-        arr === "last" &&
-        length &&
-        scrollEl.scrollTop + sizeLocal[1] !== height
-      ) {
-        scrollTo(
-          scrollEl.scrollTop + sizeLocal[1] >= sizeLocal[1] * length
-            ? height
-            : scrollEl.scrollTop + sizeLocal[1]
-        );
-      }
+  const handleArrowLocal = React.useCallback(
+    (arrowType: handleArrowT["arrowType"]) => {
+      handleArrow({
+        arrowType: arrowType,
+        scrollElement: scrollElementRef.current,
+        wrapElement: objectsWrapperRef.current,
+        scrollSize: sizeLocal,
+        objectsLength: objLengthPerSizeXY,
+        smoothScroll: smoothScrollLocal,
+      });
     },
     [scrollElementRef, objectsWrapperRef, objLengthPerSizeXY, sizeLocal[1]]
   );
@@ -722,36 +697,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [receivedChildSize]
   );
 
-  let frameId: number;
-  const smoothScroll = React.useCallback(
+  const smoothScrollLocal = React.useCallback(
     (targetScrollTop: number, callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
-      const startScrollTop = scrollEl.scrollTop;
-      let startTime: number | null = null;
-
-      const scrollStep = (currentTime: number) => {
-        if (startTime === null) startTime = currentTime; // Фиксируем начальное время в первом кадре
-
-        const timeElapsed = Math.round(currentTime - startTime);
-        const progress =
-          Math.min(timeElapsed / scrollTopLocal.duration, 1) || 0;
-
-        scrollEl.scrollTop =
-          startScrollTop + (targetScrollTop - startScrollTop) * progress;
-
-        if (timeElapsed <= scrollTopLocal.duration) {
-          frameId = requestAnimationFrame(scrollStep);
-        } else {
-          callback?.();
-        }
-      };
-
-      frameId = requestAnimationFrame(scrollStep); // Первый кадр фиксирует startTime
-
-      // Возвращаем функцию для отмены анимации
-      return () => cancelAnimationFrame(frameId);
+      return smoothScroll(
+        scrollEl,
+        scrollTopLocal.duration,
+        targetScrollTop,
+        callback
+      );
     },
     [scrollElementRef, scrollTopLocal.duration, scrollTopLocal.value]
   );
@@ -788,7 +744,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         triggerUpdate,
         objLengthPerSize: objLengthPerSize,
         direction,
-        smoothScroll,
+        smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
         clicked: clickedLocal,
         scrollElemIndex,
@@ -990,12 +946,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
         cancelScroll =
           firstChildKeyRef.current === firstChildKey
-            ? smoothScroll(endObjectsWrapper)
+            ? smoothScrollLocal(endObjectsWrapper)
             : null;
 
         firstChildKeyRef.current = firstChildKey;
       } else if (typeof scrollTopLocal.value === "number") {
-        cancelScroll = smoothScroll(scrollTopLocal.value);
+        cancelScroll = smoothScrollLocal(scrollTopLocal.value);
       }
 
       return () => {
@@ -1007,7 +963,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [
     scrollTop?.updater,
     scrollTopLocal.value,
-    smoothScroll,
+    smoothScrollLocal,
     endObjectsWrapper,
   ]);
 
@@ -1225,60 +1181,31 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           )}
         </div>
 
-        {[
-          {
-            edgeType: direction === "x" ? "left" : "top",
-            visibility: isNotAtStart,
-          },
-          {
-            edgeType: direction === "x" ? "right" : "bottom",
-            visibility: isNotAtEnd,
-          },
-          ...(direction === "hybrid"
-            ? [
-                { edgeType: "left", visibility: isNotAtStartX },
-                { edgeType: "right", visibility: isNotAtEndX },
-              ]
-            : []),
-        ].map(({ edgeType, visibility }) => (
-          <Edge
-            key={edgeType}
-            direction={direction}
-            edgeGradient={edgeGradient}
-            visibility={visibility}
-            edgeType={edgeType as "left" | "right" | "top" | "bottom"}
-          />
-        ))}
-
-        {progressTrigger.arrows && (
-          <React.Fragment>
-            <div
-              className={`arrowBox${scrollSpaceFromRef > 1 ? " active" : ""}`}
-              style={{
-                ...arrowsStyle,
-                top: 0,
-                transform: "translateY(-100%)",
-                height: `${arrowsLocal.size}px`,
-              }}
-              onClick={() => handleArrows("first")}
-            >
-              {arrowsLocal.element}
-            </div>
-
-            <div
-              className={`arrowBox${isNotAtEnd ? " active" : ""}`}
-              style={{
-                ...arrowsStyle,
-                bottom: 0,
-                transform: "translateY(100%) scaleY(-1)",
-                height: `${arrowsLocal.size}px`,
-              }}
-              onClick={() => handleArrows("last")}
-            >
-              {arrowsLocal.element}
-            </div>
-          </React.Fragment>
-        )}
+        {edgeGradient &&
+          [
+            {
+              edgeType: direction === "x" ? "left" : "top",
+              visibility: isNotAtStart,
+            },
+            {
+              edgeType: direction === "x" ? "right" : "bottom",
+              visibility: isNotAtEnd,
+            },
+            ...(direction === "hybrid"
+              ? [
+                  { edgeType: "left", visibility: isNotAtStartX },
+                  { edgeType: "right", visibility: isNotAtEndX },
+                ]
+              : []),
+          ].map(({ edgeType, visibility }) => (
+            <Edge
+              key={edgeType}
+              direction={direction}
+              edgeGradient={edgeGradient}
+              visibility={visibility}
+              edgeType={edgeType as "left" | "right" | "top" | "bottom"}
+            />
+          ))}
 
         {progressVisibility !== "hidden" &&
           typeof progressTrigger.progressElement !== "boolean" &&
@@ -1325,6 +1252,32 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               />
             ))}
       </div>
+
+      {progressTrigger.arrows &&
+        [
+          {
+            arrowType: direction === "x" ? "left" : "top",
+            activity: isNotAtStart,
+          },
+          {
+            arrowType: direction === "x" ? "right" : "bottom",
+            activity: isNotAtEnd,
+          },
+          ...(direction === "hybrid"
+            ? [
+                { arrowType: "left", activity: isNotAtStartX },
+                { arrowType: "right", activity: isNotAtEndX },
+              ]
+            : []),
+        ].map(({ arrowType, activity }) => (
+          <Arrow
+            key={arrowType}
+            activity={activity}
+            arrows={arrowsLocal}
+            arrowType={arrowType as handleArrowT["arrowType"]}
+            handleArrow={handleArrowLocal}
+          />
+        ))}
     </div>
   );
 
