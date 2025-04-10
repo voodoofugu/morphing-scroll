@@ -1,44 +1,39 @@
 import React from "react";
-import { MorphScrollT } from "./types";
 
 type EdgeT = {
-  direction: MorphScrollT["direction"];
-  edgeGradient: MorphScrollT["edgeGradient"];
+  edgeGradient: {
+    color: string | null;
+    size: number;
+  };
   visibility: boolean;
   edgeType: "left" | "right" | "top" | "bottom";
 };
 
-const Edge = ({ direction, edgeGradient, visibility, edgeType }: EdgeT) => {
+const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
   if (!edgeGradient) return null;
-
-  const edgeGradientDefault = { color: null, size: 40 };
-  const edgeGradientLocal =
-    typeof edgeGradient === "object"
-      ? { ...edgeGradientDefault, ...edgeGradient }
-      : edgeGradientDefault;
 
   const edgeStyle: React.CSSProperties = {
     position: "absolute",
     pointerEvents: "none",
     transition: "opacity 0.1s ease-in-out",
 
-    ...(edgeGradientLocal.color && {
+    ...(edgeGradient.color && {
       background:
-        edgeGradientLocal.color &&
+        edgeGradient.color &&
         `linear-gradient(${
           edgeType === "right" || edgeType === "left" ? "90deg, " : ""
-        }${edgeGradientLocal.color}, transparent)`,
+        }${edgeGradient.color}, transparent)`,
     }),
 
     ...(edgeType === "right" || edgeType === "left"
       ? {
           height: "100%",
-          width: `${edgeGradientLocal.size}px`,
+          width: `${edgeGradient.size}px`,
           top: 0,
         }
       : {
           width: "100%",
-          height: `${edgeGradientLocal.size}px`,
+          height: `${edgeGradient.size}px`,
           left: 0,
         }),
 

@@ -99,14 +99,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const pixelsForSwipe = 1;
 
-  const arrowsDefault = {
-    size: 40,
-  };
-
   // variables
+  const edgeGradientDefault = { color: null, size: 40 };
+  const edgeGradientLocal = React.useMemo(() => {
+    return typeof edgeGradient === "object"
+      ? { ...edgeGradientDefault, ...edgeGradient }
+      : edgeGradientDefault;
+  }, []);
+
   const arrowsLocal = React.useMemo(() => {
     return {
-      ...arrowsDefault,
+      ...edgeGradientDefault,
       ...(typeof progressTrigger.arrows === "object"
         ? progressTrigger.arrows
         : {}),
@@ -216,7 +219,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return [x, y, x, y];
     }
 
-    return [x, y ? y - arrowsLocal.size * 2 : y, x, y]; // [2] & [3] is only for customScrollRef
+    const arrowFullSize = arrowsLocal.size * 2;
+    let recountX = x;
+    let recountY = y;
+
+    if (direction === "x") {
+      recountX = x - arrowFullSize;
+    } else if (direction === "y") {
+      recountY = y - arrowFullSize;
+    } else if (direction === "hybrid") {
+      recountX = x - arrowFullSize;
+      recountY = y - arrowFullSize;
+    }
+
+    return [recountX, recountY, x, y]; // [2] & [3] is only for customScrollRef
   }, [size, arrowsLocal.size, receivedScrollSize]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
@@ -1108,6 +1124,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     </div>
   );
 
+  const getEdgeOrArrowData = [
+    {
+      positionType: direction === "x" ? "left" : "top",
+      visibility: isNotAtStart,
+    },
+    {
+      positionType: direction === "x" ? "right" : "bottom",
+      visibility: isNotAtEnd,
+    },
+    ...(direction === "hybrid"
+      ? [
+          { positionType: "left", visibility: isNotAtStartX },
+          { positionType: "right", visibility: isNotAtEndX },
+        ]
+      : []),
+  ];
+
   const content = (
     <div
       morph-scroll="〈♦〉"
@@ -1131,7 +1164,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             arrowsLocal.size &&
             (direction === "x"
               ? { left: `${arrowsLocal.size}px` }
-              : { top: `${arrowsLocal.size}px` })),
+              : direction === "y"
+              ? { top: `${arrowsLocal.size}px` }
+              : {
+                  top: `${arrowsLocal.size}px`,
+                  left: `${arrowsLocal.size}px`,
+                })),
         }}
       >
         <div
@@ -1182,28 +1220,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         </div>
 
         {edgeGradient &&
-          [
-            {
-              edgeType: direction === "x" ? "left" : "top",
-              visibility: isNotAtStart,
-            },
-            {
-              edgeType: direction === "x" ? "right" : "bottom",
-              visibility: isNotAtEnd,
-            },
-            ...(direction === "hybrid"
-              ? [
-                  { edgeType: "left", visibility: isNotAtStartX },
-                  { edgeType: "right", visibility: isNotAtEndX },
-                ]
-              : []),
-          ].map(({ edgeType, visibility }) => (
+          getEdgeOrArrowData.map(({ positionType, visibility }) => (
             <Edge
-              key={edgeType}
-              direction={direction}
-              edgeGradient={edgeGradient}
+              key={`edge-${positionType}`}
+              edgeGradient={edgeGradientLocal}
               visibility={visibility}
-              edgeType={edgeType as "left" | "right" | "top" | "bottom"}
+              edgeType={positionType as "left" | "right" | "top" | "bottom"}
             />
           ))}
 
@@ -1254,27 +1276,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       </div>
 
       {progressTrigger.arrows &&
-        [
-          {
-            arrowType: direction === "x" ? "left" : "top",
-            activity: isNotAtStart,
-          },
-          {
-            arrowType: direction === "x" ? "right" : "bottom",
-            activity: isNotAtEnd,
-          },
-          ...(direction === "hybrid"
-            ? [
-                { arrowType: "left", activity: isNotAtStartX },
-                { arrowType: "right", activity: isNotAtEndX },
-              ]
-            : []),
-        ].map(({ arrowType, activity }) => (
+        getEdgeOrArrowData.map(({ positionType, visibility }) => (
           <Arrow
-            key={arrowType}
-            activity={activity}
+            key={`arrow-${positionType}`}
+            activity={visibility}
             arrows={arrowsLocal}
-            arrowType={arrowType as handleArrowT["arrowType"]}
+            arrowType={positionType as handleArrowT["arrowType"]}
             handleArrow={handleArrowLocal}
           />
         ))}
