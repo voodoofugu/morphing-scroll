@@ -13,7 +13,12 @@ import Arrow from "./Arrow";
 import handleWheel, { ScrollStateRefT } from "./handleWheel";
 import handleMouseDown from "./handleMouse";
 import { mouseOnEl, mouseOnRef } from "./mouseHelpers";
-import { objectsPerSize, clampValue, smoothScroll } from "./addFunctions";
+import {
+  objectsPerSize,
+  clampValue,
+  smoothScroll,
+  getAllScrollBars,
+} from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
@@ -595,6 +600,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const sliderAndArrowsCheck = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
+    // getAllScrollBars(type, id, scrollBarsRef);
 
     if (scrollContentlRef.current) {
       if (scrollBarsRef.current.length > 0) {
@@ -744,13 +750,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : type === "scroll"
         ? "thumb"
         : "slider";
+
       if (
         (clicked === "wrapp" && !progressTrigger.content) ||
         (["thumb", "slider"].includes(clickedLocal) &&
           !progressTrigger.progressElement)
       )
         return;
-      console.log("objLengthPerSize", objLengthPerSize);
+
+      getAllScrollBars(type, id, scrollBarsRef);
 
       handleMouseDown({
         scrollElementRef: scrollElementRef.current,
@@ -774,6 +782,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       });
     },
     [
+      type,
       progressTrigger.content,
       progressTrigger.progressElement,
       objLengthPerSize[0],
@@ -782,13 +791,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
   const onMouseDownScrollThumb = React.useCallback(() => {
     onMouseDown(null);
-  }, [type]);
+  }, [onMouseDown]);
   const onMouseDownScrollThumbTwo = React.useCallback(() => {
     onMouseDown(null, 1);
-  }, [type]);
+  }, [onMouseDown]);
   const onMouseDownWrap = React.useCallback(() => {
     onMouseDown("wrapp");
-  }, []);
+  }, [onMouseDown]);
 
   const IntersectionTrackerOnVisible = React.useCallback(
     (key: string) => {
@@ -927,16 +936,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [validChildren.length]);
 
   React.useEffect(() => {
-    if (progressTrigger.progressElement !== true) {
-      // рекурсия? !!!
-      const bars = document.querySelectorAll(
-        `.${type === "scroll" ? "scrollBarThumb" : "sliderBar"}.${id}`
-      );
-      if (bars.length > 0) {
-        scrollBarsRef.current = bars;
-      }
-    }
-
     if (render.type === "virtual") {
       triggerUpdate();
     }
@@ -1028,7 +1027,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     fullHeightOrWidth,
     objectsWrapperWidthFull,
     objectsWrapperHeightFull,
-    firstChildKey,
     sizeLocal,
     validChildren.length,
   ]);

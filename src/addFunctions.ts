@@ -48,4 +48,18 @@ function smoothScroll(
   return () => cancelAnimationFrame(frameId);
 }
 
-export { objectsPerSize, clampValue, smoothScroll };
+const getAllScrollBars = (
+  type: "scroll" | "slider",
+  id: string,
+  scrollBarsRef: React.RefObject<[] | NodeListOf<Element>>
+) => {
+  const bars = document.querySelectorAll(
+    `.${type === "scroll" ? "scrollBarThumb" : "sliderBar"}.${id}`
+  );
+
+  if (bars.length > 0) {
+    scrollBarsRef.current = bars;
+  }
+};
+
+export { objectsPerSize, clampValue, smoothScroll, getAllScrollBars };
