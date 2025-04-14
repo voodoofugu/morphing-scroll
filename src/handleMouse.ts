@@ -1,5 +1,6 @@
 import { MorphScrollT } from "./types";
 import { ScrollStateRefT } from "./handleWheel";
+import { clampValue } from "./addFunctions";
 
 type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
@@ -14,7 +15,11 @@ type HandleMouseT = {
   numForSlider: number;
   sizeLocal: number[];
   objLengthPerSize: number[];
-  smoothScroll: (targetScrollTop: number, callback?: () => void) => void;
+  smoothScroll: (
+    targetScrollTop: number,
+    direction: "y" | "x",
+    callback?: () => void
+  ) => void;
   mouseOnEl: (el: HTMLDivElement | null) => void;
   mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;
@@ -149,7 +154,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
 
     const height = wrapEl.clientHeight;
     const scrollTo = (position: number) =>
-      args.smoothScroll(position, () => {
+      args.smoothScroll(position, "y", () => {
         args.numForSlider = 0;
         args.triggerUpdate();
       });
@@ -157,14 +162,13 @@ function handleMouseMove(args: HandleMouseMoveT) {
     const updateScroll = (delta: number) => {
       if (!args.scrollElementRef) return;
 
-      const targetScrollTop =
-        args.scrollElementRef.scrollTop + delta * args.sizeLocal[1];
-
-      if (delta > 0) {
-        scrollTo(Math.min(targetScrollTop, height - args.sizeLocal[1]));
-      } else {
-        scrollTo(Math.max(targetScrollTop, 0));
-      }
+      scrollTo(
+        clampValue(
+          args.scrollElementRef.scrollTop + delta * args.sizeLocal[1],
+          0,
+          height - args.sizeLocal[1]
+        )
+      );
     };
 
     if (args.mouseEvent.movementY > 0 && args.numForSlider < pixelsForSwipe) {

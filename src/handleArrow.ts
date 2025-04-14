@@ -1,10 +1,11 @@
+import { clampValue } from "./addFunctions";
+
 export type handleArrowT = {
   arrowType: "left" | "right" | "top" | "bottom";
   scrollElement: Element | null;
   wrapElement: Element | null;
   scrollSize: number[];
-  objectsLength: number;
-  smoothScroll: (targetScrollTop: number) => void;
+  smoothScroll: (targetScroll: number, direction: "y" | "x") => void;
 };
 
 const handleArrow = ({
@@ -12,33 +13,29 @@ const handleArrow = ({
   scrollElement,
   wrapElement,
   scrollSize,
-  objectsLength,
   smoothScroll,
 }: handleArrowT) => {
   if (!scrollElement || !wrapElement) return;
 
   const height = wrapElement.clientHeight;
+  const width = wrapElement.clientWidth;
+  const top = scrollElement.scrollTop;
+  const left = scrollElement.scrollLeft;
+  const maxValue = ["top", "bottom"].includes(arrowType) ? height : width;
 
-  const scrollTo = (position: number) => smoothScroll(position);
+  const scrollTo = (position: number, direction: "y" | "x") =>
+    smoothScroll(clampValue(position, 0, maxValue), direction);
 
-  if (arrowType === "top" && scrollElement.scrollTop > 0) {
-    scrollTo(
-      scrollElement.scrollTop <= scrollSize[1]
-        ? 0
-        : scrollElement.scrollTop - scrollSize[1]
-    );
+  if (arrowType === "top" && top > 0) {
+    scrollTo(top - scrollSize[1], "y");
+  } else if (arrowType === "left" && left > 0) {
+    scrollTo(left - scrollSize[0], "x");
   }
 
-  if (
-    arrowType === "bottom" &&
-    objectsLength &&
-    scrollElement.scrollTop + scrollSize[1] !== height
-  ) {
-    scrollTo(
-      scrollElement.scrollTop + scrollSize[1] >= scrollSize[1] * objectsLength
-        ? height
-        : scrollElement.scrollTop + scrollSize[1]
-    );
+  if (arrowType === "bottom" && top + scrollSize[1] !== height) {
+    scrollTo(top + scrollSize[1], "y");
+  } else if (arrowType === "right" && left + scrollSize[0] !== width) {
+    scrollTo(left + scrollSize[0], "x");
   }
 };
 

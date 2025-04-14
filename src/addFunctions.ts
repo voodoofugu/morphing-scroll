@@ -6,40 +6,45 @@ function objectsPerSize(availableSize: number, objectSize: number): number {
 }
 
 function clampValue(value: number, min = 0, max = Infinity): number {
-  return Math.max(min, Math.min(Math.abs(Math.round(value)), max));
+  return Math.max(min, Math.min(Math.round(value), max));
 }
 
 function smoothScroll(
+  direction: "x" | "y" | undefined,
   scrollElement: Element,
   duration: number = 200,
-  targetScrollTop: number,
+  targetScroll: number,
   callback?: () => void
 ) {
   let frameId: number;
   if (!scrollElement) return null;
 
+  const startTime = performance.now();
+
   const startScrollTop = scrollElement.scrollTop;
-  let startTime: number | null = null;
+  const startScrollLeft = scrollElement.scrollLeft;
 
-  const scrollStep = (currentTime: number) => {
-    if (startTime === null) startTime = currentTime; // Фиксируем начальное время в первом кадре
+  const animate = (currentTime: number) => {
+    const timeElapsed = currentTime - startTime;
+    const progress = Math.min(timeElapsed / duration, 1);
 
-    const timeElapsed = Math.round(currentTime - startTime);
-    const progress = Math.min(timeElapsed / duration, 1) || 0;
+    if (direction === "y") {
+      scrollElement.scrollTop =
+        startScrollTop + (targetScroll - startScrollTop) * progress;
+    } else if (direction === "x") {
+      scrollElement.scrollLeft =
+        startScrollLeft + (targetScroll - startScrollLeft) * progress;
+    }
 
-    scrollElement.scrollTop =
-      startScrollTop + (targetScrollTop - startScrollTop) * progress;
-
-    if (timeElapsed <= duration) {
-      frameId = requestAnimationFrame(scrollStep);
+    if (progress < 1) {
+      frameId = requestAnimationFrame(animate);
     } else {
       callback?.();
     }
   };
 
-  frameId = requestAnimationFrame(scrollStep); // Первый кадр фиксирует startTime
+  frameId = requestAnimationFrame(animate);
 
-  // Возвращаем функцию для отмены анимации
   return () => cancelAnimationFrame(frameId);
 }
 

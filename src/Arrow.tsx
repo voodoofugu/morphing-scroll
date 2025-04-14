@@ -1,5 +1,4 @@
 import React from "react";
-import { MorphScrollT } from "./types";
 import { handleArrowT } from "./handleArrow";
 
 type ArrowT = {

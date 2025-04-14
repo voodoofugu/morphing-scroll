@@ -92,12 +92,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const id = useIdent();
 
   // default
-  const scrollTopLocal = {
-    value: scrollTop?.value ?? null,
-    duration: scrollTop?.duration ?? 200,
-  };
-
-  const pixelsForSwipe = 1;
+  const scrollTopLocal = React.useMemo(() => {
+    return {
+      value:
+        typeof scrollTop?.value === "number" ||
+        typeof scrollTop?.value === "string"
+          ? [scrollTop.value, scrollTop.value]
+          : scrollTop?.value ?? [0, 0],
+      duration: scrollTop?.duration ?? 200,
+    };
+  }, [scrollTop]);
 
   // variables
   const edgeGradientDefault = { color: null, size: 40 };
@@ -152,7 +156,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [children, shouldTrackKeys, keys]);
 
   const firstChildKey = React.useMemo(() => {
-    if (scrollTopLocal.value !== "end") return null;
+    // !!!
+    if (scrollTopLocal.value[1] !== "end") return null;
 
     if (validChildren.length > 0) {
       const firstChild = validChildren[0];
@@ -374,6 +379,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       fullHeightOrWidth - xySize // in scroll vindow
     );
   }, [fullHeightOrWidth, xySize]);
+  const endObjectsWrapperX = React.useMemo(() => {
+    if (!sizeLocal[0]) return objectsWrapperWidthFull;
+    return (
+      objectsWrapperWidthFull - sizeLocal[0] // in scroll vindow
+    );
+  }, [objectsWrapperWidthFull, sizeLocal[0]]);
 
   const memoizedChildrenData = React.useMemo(() => {
     if (render.type !== "virtual")
@@ -578,7 +589,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollElement: scrollElementRef.current,
         wrapElement: objectsWrapperRef.current,
         scrollSize: sizeLocal,
-        objectsLength: objLengthPerSizeXY,
         smoothScroll: smoothScrollLocal,
       });
     },
@@ -621,8 +631,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const thumbSpaceX = clampValue(
-    ((scrollElementRef.current?.scrollLeft || 0) /
-      (objectsWrapperWidthFull - sizeLocal[0])) *
+    ((scrollElementRef.current?.scrollLeft || 0) / endObjectsWrapperX) *
       (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
     0,
     sizeLocal[0] - thumbSizeX
@@ -714,18 +723,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const smoothScrollLocal = React.useCallback(
-    (targetScrollTop: number, callback?: () => void) => {
+    (targetScrollTop: number, direction: "y" | "x", callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
       return smoothScroll(
+        direction,
         scrollEl,
         scrollTopLocal.duration,
         targetScrollTop,
         callback
       );
     },
-    [scrollElementRef, scrollTopLocal.duration, scrollTopLocal.value]
+    [scrollElementRef, scrollTopLocal.duration]
   );
 
   const onMouseDown = React.useCallback(
@@ -949,38 +959,76 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [direction]);
 
   React.useEffect(() => {
-    if (scrollElementRef.current && validChildren.length > 0) {
-      let cancelScroll: (() => void) | null;
+    if (!scrollElementRef.current || validChildren.length === 0) return;
 
-      if (
-        scrollTopLocal.value === "end" &&
-        objectsWrapperHeightFull > sizeLocal[1]
-      ) {
-        if (!firstChildKeyRef.current) {
-          firstChildKeyRef.current = firstChildKey;
-        }
+    const cancelScrolls: (() => void)[] = [];
 
-        cancelScroll =
-          firstChildKeyRef.current === firstChildKey
-            ? smoothScrollLocal(endObjectsWrapper)
-            : null;
-
-        firstChildKeyRef.current = firstChildKey;
-      } else if (typeof scrollTopLocal.value === "number") {
-        cancelScroll = smoothScrollLocal(scrollTopLocal.value);
-      }
-
-      return () => {
-        if (cancelScroll) cancelScroll(); // cancelAnimationFrame for smoothScroll
-        scrollTimeout.current && clearTimeout(scrollTimeout.current);
-        loadedObjects.current = [];
-      };
+    if (!firstChildKeyRef.current) {
+      firstChildKeyRef.current = firstChildKey;
     }
+
+    const tryScroll = (
+      dir: "x" | "y",
+      value: number | "end",
+      full: number,
+      size: number,
+      endValue: number
+    ) => {
+      if (value === "end" && full > size) {
+        if (firstChildKeyRef.current === firstChildKey) {
+          const cancel = smoothScrollLocal(endValue, dir);
+          if (cancel) cancelScrolls.push(cancel);
+        }
+      } else if (typeof value === "number") {
+        const cancel = smoothScrollLocal(value, dir);
+        if (cancel) cancelScrolls.push(cancel);
+      }
+    };
+
+    if (direction === "x" || direction === "y") {
+      const dir = direction;
+      const value = scrollTopLocal.value[dir === "x" ? 0 : 1];
+      tryScroll(dir, value, fullHeightOrWidth, xySize, endObjectsWrapper);
+    }
+
+    if (direction === "hybrid") {
+      tryScroll(
+        "x",
+        scrollTopLocal.value[0],
+        objectsWrapperWidthFull,
+        sizeLocal[0],
+        objectsWrapperWidthFull
+      );
+      tryScroll(
+        "y",
+        scrollTopLocal.value[1],
+        objectsWrapperHeightFull,
+        sizeLocal[1],
+        objectsWrapperHeightFull
+      );
+    }
+
+    firstChildKeyRef.current = firstChildKey;
+
+    return () => {
+      cancelScrolls.forEach((fn) => fn());
+      clearTimeout(scrollTimeout.current!);
+      loadedObjects.current = [];
+    };
   }, [
     scrollTop?.updater,
-    scrollTopLocal.value,
+    scrollTopLocal.value[0],
+    scrollTopLocal.value[1],
     smoothScrollLocal,
     endObjectsWrapper,
+    direction,
+    xySize,
+    fullHeightOrWidth,
+    objectsWrapperWidthFull,
+    objectsWrapperHeightFull,
+    firstChildKey,
+    sizeLocal,
+    validChildren.length,
   ]);
 
   React.useEffect(() => {

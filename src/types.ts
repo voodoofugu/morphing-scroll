@@ -25,7 +25,11 @@ export type MorphScrollT = {
   // Scroll Settings
   type?: "scroll" | "slider";
   direction?: "x" | "y" | "hybrid";
-  scrollTop?: { value: number | "end"; duration?: number; updater?: boolean };
+  scrollTop?: {
+    value: number | "end" | (number | "end")[]; // !
+    duration?: number;
+    updater?: boolean;
+  };
   stopLoadOnScroll?: boolean;
   onScrollValue?: (scroll: number) => void;
   isScrolling?: (motion: boolean) => boolean;
@@ -41,7 +45,7 @@ export type MorphScrollT = {
   edgeGradient?: boolean | { color?: string; size?: number }; // !
   progressReverse?: boolean | boolean[]; // !
   progressVisibility?: "visible" | "hover" | "hidden";
-  objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full"
+  objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full" | [number | "full", number | "full"];
 
   // Progress & Rendering
   progressTrigger?: {
