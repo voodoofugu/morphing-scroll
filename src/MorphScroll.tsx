@@ -55,7 +55,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
-  const scrollBarsRef = React.useRef<NodeListOf<Element> | null>(null);
+  const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
 
   const firstChildKeyRef = React.useRef<string | null>(null);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
@@ -156,15 +156,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [children, shouldTrackKeys, keys]);
 
   const firstChildKey = React.useMemo(() => {
-    // !!!
-    if (scrollTopLocal.value[1] !== "end") return null;
+    if (!scrollTopLocal.value.includes("end")) return null;
 
     if (validChildren.length > 0) {
       const firstChild = validChildren[0];
-
-      if (React.isValidElement(firstChild)) {
-        return firstChild.key;
-      }
+      if (React.isValidElement(firstChild)) return firstChild.key;
     }
     return null;
   }, [validChildren, scrollTopLocal.value]);
@@ -312,7 +308,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsSizeLocal[0],
     objectsPerDirection,
     gapY,
-    receivedWrapSize,
+    receivedWrapSize.width,
     receivedChildSize,
     render.type,
   ]);
@@ -332,7 +328,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsSizeLocal[1],
     childsLinePerDirection,
     gapX,
-    receivedWrapSize,
+    receivedWrapSize.height,
     receivedChildSize,
     render.type,
   ]);
@@ -601,10 +597,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!scrollEl) return;
 
     if (scrollContentlRef.current) {
-      if (scrollBarsRef.current && scrollBarsRef.current.length > 0) {
+      if (scrollBarsRef.current.length > 0) {
         function getActiveElem() {
           const elements =
-            scrollBarsRef.current &&
             scrollBarsRef.current[0].querySelectorAll(".sliderElem");
 
           elements &&
@@ -738,6 +733,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, scrollTopLocal.duration]
   );
 
+  // !!! objLengthPerSize
   const onMouseDown = React.useCallback(
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
@@ -754,6 +750,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           !progressTrigger.progressElement)
       )
         return;
+      console.log("objLengthPerSize", objLengthPerSize);
 
       handleMouseDown({
         scrollElementRef: scrollElementRef.current,
@@ -776,7 +773,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollElemIndex,
       });
     },
-    [progressTrigger.content, progressTrigger.progressElement]
+    [
+      progressTrigger.content,
+      progressTrigger.progressElement,
+      objLengthPerSize[0],
+      objLengthPerSize[1],
+    ]
   );
   const onMouseDownScrollThumb = React.useCallback(() => {
     onMouseDown(null);
@@ -1050,18 +1052,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
         height:
           objectsSize[1] !== "none"
-            ? `${objectsWrapperHeight}px`
+            ? `${
+                render.type === "virtual"
+                  ? objectsWrapperHeightFull
+                  : objectsWrapperHeight
+              }px`
             : "fit-content",
-        minWidth: objectsWrapperWidth ? `${objectsWrapperWidth}px` : "",
 
         ...(progressTrigger.content && { cursor: "grab" }),
         ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(render.type === "virtual"
           ? {
               position: "relative",
+              minWidth: `${objectsWrapperWidthFull}px`,
             }
           : {
               display: "flex",
+              minWidth: `${objectsWrapperWidth}px`,
             }),
 
         ...(render.type !== "virtual" &&
@@ -1261,7 +1268,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           {objectsSize[0] !== "none" && objectsSize[1] !== "none" ? (
             objectsWrapper
           ) : (
-            <ResizeTracker onResize={wrapResize}>
+            <ResizeTracker measure={"all"} onResize={wrapResize}>
               {() => objectsWrapper}
             </ResizeTracker>
           )}

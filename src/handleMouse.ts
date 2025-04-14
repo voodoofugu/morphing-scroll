@@ -2,11 +2,13 @@ import { MorphScrollT } from "./types";
 import { ScrollStateRefT } from "./handleWheel";
 import { clampValue } from "./addFunctions";
 
+type ClickedT = "thumb" | "slider" | "wrapp" | "none";
+
 type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
-  scrollBarsRef: NodeListOf<Element> | null;
-  clickedObject: React.RefObject<"thumb" | "slider" | "wrapp" | "none">;
+  scrollBarsRef: NodeListOf<Element> | [];
+  clickedObject: React.RefObject<ClickedT>;
   progressVisibility: "hover" | "visible" | "hidden";
   scrollContentlRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
@@ -27,19 +29,18 @@ type HandleMouseT = {
 };
 
 type HandleMouseDownT = HandleMouseT & {
-  clicked: "thumb" | "slider" | "wrapp" | "none";
+  clicked: ClickedT;
 };
 
 type HandleMouseMoveT = Omit<
   HandleMouseT,
-  | "clicked"
   | "controller"
   | "progressVisibility"
   | "scrollContentlRef"
   | "type"
   | "mouseOnEl"
   | "mouseOnRefHandle"
-> & { mouseEvent: MouseEvent };
+> & { mouseEvent: MouseEvent; clicked: ClickedT };
 
 type HandleMouseUpT = Omit<
   HandleMouseT,
@@ -50,7 +51,7 @@ type HandleMouseUpT = Omit<
   | "smoothScroll"
   | "numForSlider"
   | "sizeLocal"
-> & { mouseEvent: MouseEvent; controller: AbortController; clicked: string };
+> & { mouseEvent: MouseEvent; controller: AbortController; clicked: ClickedT };
 
 function handleMouseDown(args: HandleMouseDownT) {
   if (
@@ -96,8 +97,8 @@ function handleMouseDown(args: HandleMouseDownT) {
 function handleMouseMove(args: HandleMouseMoveT) {
   if (!args.scrollElementRef) return;
 
-  if (["thumb", "wrapp"].includes(args.clickedObject.current)) {
-    const isThumb = args.clickedObject.current === "thumb";
+  if (["thumb", "wrapp"].includes(args.clicked)) {
+    const isThumb = args.clicked === "thumb";
     const applyScroll = (axis: "x" | "y") => {
       if (!args.scrollElementRef) return;
 
@@ -120,16 +121,14 @@ function handleMouseMove(args: HandleMouseMoveT) {
     };
 
     if (args.direction === "hybrid") {
-      if (args.clickedObject.current === "wrapp") {
+      if (args.clicked === "wrapp") {
         applyScroll("x");
         applyScroll("y");
 
         return;
       }
 
-      const scrollBars = Array.from(
-        args.scrollBarsRef || []
-      ) as HTMLDivElement[];
+      const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
       for (const scrollBar of scrollBars) {
         const directionType =
@@ -148,7 +147,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
   }
 
   const pixelsForSwipe = 1;
-  if (args.clickedObject.current === "slider") {
+  if (args.clicked === "slider") {
     const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
 
@@ -199,8 +198,8 @@ function handleMouseUp(args: HandleMouseUpT) {
   document.body.style.removeProperty("cursor");
   if (args.clicked === "thumb") {
     args.mouseOnEl(
-      (args.scrollBarsRef?.[args.scrollElemIndex ?? 0] ||
-        args.scrollBarsRef?.[0]) as HTMLDivElement
+      (args.scrollBarsRef[args.scrollElemIndex ?? 0] ||
+        args.scrollBarsRef[0]) as HTMLDivElement
     );
   }
   if (args.clicked === "wrapp") {
