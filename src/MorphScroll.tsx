@@ -1109,7 +1109,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       onMouseDown={onMouseDownWrap}
       style={{
         margin: padding ? `${pT}px ${pR}px ${pB}px ${pL}px` : "",
-        // !!! в Dating почему-то не сходится высота
         height:
           objectsSize[1] !== "none"
             ? `${objectsWrapperHeight}px`
