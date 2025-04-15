@@ -34,7 +34,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   progressVisibility = "visible",
   suspending = false,
   fallback = null,
-  scrollTop,
+  scrollPosition,
   edgeGradient,
   objectsWrapFullMinSize = false,
   children,
@@ -100,13 +100,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollTopLocal = React.useMemo(() => {
     return {
       value:
-        typeof scrollTop?.value === "number" ||
-        typeof scrollTop?.value === "string"
-          ? [scrollTop.value, scrollTop.value]
-          : scrollTop?.value ?? [0, 0],
-      duration: scrollTop?.duration ?? 200,
+        typeof scrollPosition?.value === "number" ||
+        typeof scrollPosition?.value === "string"
+          ? [scrollPosition.value, scrollPosition.value]
+          : scrollPosition?.value ?? [0, 0],
+      duration: scrollPosition?.duration ?? 200,
     };
-  }, [scrollTop]);
+  }, [scrollPosition]);
 
   // variables
   const edgeGradientDefault = { color: null, size: 40 };
@@ -249,7 +249,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const padding = isHorizontal ? pLocalY : pLocalX;
     const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const objectSize = isHorizontal
-      ? objectsSizeLocal[1] + gapX
+      ? objectsSizeLocal[1] + gapY
       : objectsSizeLocal[0] + gapX;
 
     const hybridSize = objectSize * (validChildren.length + 1) - objectSize;
@@ -341,6 +341,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsWrapperHeightFull = React.useMemo(() => {
     return objectsWrapperHeight + pLocalY;
   }, [objectsWrapperHeight, pLocalY]);
+  console.log("childsLinePerDirection", childsLinePerDirection);
+  // console.log("objectsWrapperHeightFull", objectsWrapperHeightFull);
   const objectsWrapperWidthFull = React.useMemo(() => {
     return objectsWrapperWidth + pLocalX;
   }, [objectsWrapperWidth, pLocalX]);
@@ -458,8 +460,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const alignLocal = direction === "x" ? align : 0;
 
         return indexTop > 0
-          ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop + pT
-          : alignLocal + pT;
+          ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop
+          : alignLocal;
       })(
         objectsPerDirection > 1 || direction === "x" || direction === "hybrid"
           ? indexAndSubIndex[1]
@@ -476,8 +478,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const alignLocal = direction === "x" ? 0 : align;
 
         return indexLeft > 0
-          ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft + pL
-          : alignLocal + pL;
+          ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft
+          : alignLocal;
       })(
         objectsPerDirection === 1 && direction === "x"
           ? index
@@ -505,7 +507,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const contentAlignLocal = React.useMemo(() => {
     if (!contentAlign) return {};
 
-    const [verticalAlign, horizontalAlign = "start"] = contentAlign;
+    const [verticalAlign, horizontalAlign = "start"] =
+      typeof contentAlign === "string"
+        ? [contentAlign, contentAlign]
+        : contentAlign;
 
     const vAlign =
       verticalAlign === "start"
@@ -739,7 +744,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, scrollTopLocal.duration]
   );
 
-  // !!! objLengthPerSize
   const onMouseDown = React.useCallback(
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
@@ -838,13 +842,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               ...wrapStyle1,
               position: "absolute",
               top: `${elementTop}px`,
-              ...(left && { left: `${left}px` }),
+              left: `${left}px`,
               ...(!objectsSizeLocal[0] &&
                 objectsPerDirection === 1 && {
                   transform: "translateX(-50%)",
                 }),
             } as React.CSSProperties)
-          : wrapStyle1,
+          : {
+              ...wrapStyle1,
+            },
       onVisible: IntersectionTrackerOnVisible,
     };
 
@@ -855,20 +861,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         // onClick={updateEmptyKeysClick}
         key={key}
         style={{
-          position: "absolute",
-          top: `${elementTop}px`,
-          ...(left && { left: `${left}px` }),
-          ...(!objectsSizeLocal[0] &&
-            objectsPerDirection === 1 && {
-              transform: "translateX(-50%)",
-            }),
-          ...wrapStyle1,
+          ...commonProps.style,
         }}
       >
         {content}
       </div>
     ) : render.type === "lazy" ? (
-      <IntersectionTracker key={key} {...commonProps}>
+      <IntersectionTracker key={key} {...commonProps.style}>
         {content}
       </IntersectionTracker>
     ) : (
@@ -876,7 +875,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         // {...(attribute ? { "wrap-id": attribute } : {})}
         // onClick={updateEmptyKeysClick}
         key={key}
-        style={wrapStyle1}
+        style={commonProps.style}
       >
         {content}
       </div>
@@ -975,14 +974,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       size: number,
       endValue: number
     ) => {
-      if (value === "end" && full > size) {
-        if (firstChildKeyRef.current === firstChildKey) {
+      if (firstChildKeyRef.current === firstChildKey) {
+        if (value === "end" && full > size) {
           const cancel = smoothScrollLocal(endValue, dir);
           if (cancel) cancelScrolls.push(cancel);
+        } else if (typeof value === "number") {
+          const cancel = smoothScrollLocal(value, dir);
+          if (cancel) cancelScrolls.push(cancel);
         }
-      } else if (typeof value === "number") {
-        const cancel = smoothScrollLocal(value, dir);
-        if (cancel) cancelScrolls.push(cancel);
+
+        firstChildKeyRef.current = firstChildKey;
       }
     };
 
@@ -1009,15 +1010,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
     }
 
-    firstChildKeyRef.current = firstChildKey;
-
     return () => {
       cancelScrolls.forEach((fn) => fn());
       clearTimeout(scrollTimeout.current!);
       loadedObjects.current = [];
     };
   }, [
-    scrollTop?.updater,
+    scrollPosition?.updater,
     scrollTopLocal.value[0],
     scrollTopLocal.value[1],
     smoothScrollLocal,
@@ -1041,32 +1040,91 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [stopLoadOnScroll]);
 
   // contents
+  const renderChild = (child: React.ReactNode, index: number) => {
+    const key = (child as React.ReactElement).key || "";
+
+    const childRenderOnScroll =
+      stopLoadOnScroll &&
+      !loadedObjects.current.includes(`${id}-${key}`) &&
+      scrollingStatus
+        ? fallback
+        : emptyElements?.mode === "fallback" &&
+          emptyElementKeysString.current.includes(key)
+        ? emptyElements.element ?? fallback
+        : child;
+
+    const childLocal =
+      typeof objectsSize[0] === "number" &&
+      typeof objectsSize[1] === "number" ? (
+        childRenderOnScroll
+      ) : (objectsSize[0] === "firstChild" ||
+          objectsSize[1] === "firstChild") &&
+        index === 0 ? (
+        <ResizeTracker onResize={childResize}>
+          {() => childRenderOnScroll}
+        </ResizeTracker>
+      ) : (
+        childRenderOnScroll
+      );
+
+    if (render.type === "virtual") {
+      const { elementTop, elementBottom, left, right } =
+        memoizedChildrenData[index];
+
+      const topOrLeft = direction === "x" ? left : elementTop;
+      const bottomOrRight = direction === "x" ? right : elementBottom;
+      const mRoot = direction === "x" ? mRootX : mRootY;
+      // !!!
+      const mRootReverse = direction === "x" ? mRootY : mRootX;
+
+      const isElementVisible =
+        xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
+        bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
+
+      const isElementVisibleHybrid =
+        direction !== "hybrid"
+          ? true
+          : sizeLocal[0] + mRootX >
+              left - (scrollElementRef.current?.scrollLeft || 0) &&
+            right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
+
+      if (isElementVisible && isElementVisibleHybrid) {
+        return scrollObjectWrapper(
+          elementTop,
+          left,
+          `${id}-${key}`,
+          childLocal,
+          key
+        );
+      }
+    } else {
+      return scrollObjectWrapper(0, 0, `${id}-${key}`, childLocal, key);
+    }
+  };
+
   const objectsWrapper = (
     <div
       className="objectsWrapper"
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={{
-        padding: `${pT}px ${pR}px ${pB}px ${pL}px`,
+        margin: padding ? `${pT}px ${pR}px ${pB}px ${pL}px` : "",
+        // !!! в Dating почему-то не сходится высота
         height:
           objectsSize[1] !== "none"
-            ? `${
-                render.type === "virtual"
-                  ? objectsWrapperHeightFull
-                  : objectsWrapperHeight
-              }px`
+            ? `${objectsWrapperHeight}px`
             : "fit-content",
+        width: `${objectsWrapperWidth}px`,
 
         ...(progressTrigger.content && { cursor: "grab" }),
+
         ...(gap && render.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
         ...(render.type === "virtual"
           ? {
               position: "relative",
-              minWidth: `${objectsWrapperWidthFull}px`,
             }
           : {
               display: "flex",
-              minWidth: `${objectsWrapperWidth}px`,
             }),
 
         ...(render.type !== "virtual" &&
@@ -1075,7 +1133,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? {
               flexDirection: "row",
             }
-          : {
+          : render.type !== "virtual" && {
               flexDirection: "column",
             }),
 
@@ -1100,7 +1158,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   ? "center"
                   : "flex-end",
             }
-          : {
+          : render.type !== "virtual" && {
               alignItems: "center",
             }),
 
@@ -1109,71 +1167,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }),
       }}
     >
-      {validChildren.map((child, index) => {
-        const key = (child as React.ReactElement).key || "";
-
-        const childRenderOnScroll =
-          stopLoadOnScroll &&
-          !loadedObjects.current.includes(`${id}-${key}`) &&
-          scrollingStatus
-            ? fallback
-            : emptyElements?.mode === "fallback" &&
-              emptyElementKeysString.current.includes(key)
-            ? emptyElements.element ?? fallback
-            : child;
-
-        const childLocal =
-          typeof objectsSize[0] === "number" &&
-          typeof objectsSize[1] === "number" ? (
-            childRenderOnScroll
-          ) : (objectsSize[0] === "firstChild" ||
-              objectsSize[1] === "firstChild") &&
-            index === 0 ? (
-            <ResizeTracker onResize={childResize}>
-              {() => childRenderOnScroll}
-            </ResizeTracker>
-          ) : (
-            childRenderOnScroll
-          );
-
-        if (render.type === "virtual") {
-          const { elementTop, elementBottom, left, right } =
-            memoizedChildrenData[index];
-
-          const topOrLeft = direction === "x" ? left : elementTop;
-          const bottomOrRight = direction === "x" ? right : elementBottom;
-          const mRoot = direction === "x" ? mRootX : mRootY;
-          // !!!
-          const mRootReverse = direction === "x" ? mRootY : mRootX;
-
-          const isElementVisible =
-            xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
-            bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
-          const isElementVisibleHybrid = (function () {
-            if (direction !== "hybrid") return true;
-
-            return (
-              (sizeLocal[0] + mRootX >
-                left - (scrollElementRef.current?.scrollLeft || 0) &&
-                right - (scrollElementRef.current?.scrollLeft || 0) >
-                  0 - mRootX) ||
-              false
-            );
-          })();
-
-          if (isElementVisible && isElementVisibleHybrid) {
-            return scrollObjectWrapper(
-              elementTop,
-              left,
-              `${id}-${key}`,
-              childLocal,
-              key
-            );
-          }
-        } else {
-          return scrollObjectWrapper(0, 0, `${id}-${key}`, childLocal, key);
-        }
-      })}
+      {validChildren.map(renderChild)}
     </div>
   );
 
