@@ -41,7 +41,7 @@ export type MorphScrollT = {
   objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
   padding?: number[] | number; // wrapperMargin
-  objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full" | [number | "full", number | "full"];
+  objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full" | (number | "full")[];
   contentAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number }; // !
