@@ -168,7 +168,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
 
       if (refValue !== value) {
         args.smoothScroll(
-          clampValue(scrollPosition + movement * size, 0, measure - size),
+          value,
           axis
           // () => { // !!!
           //   args.triggerUpdate();
