@@ -76,9 +76,11 @@ const ScrollBar = ({
       ) : (
         <div
           className={`sliderBar ${id}`}
+          direction-type={direction === "hybrid" ? "y" : direction}
           onMouseDown={onMouseDown}
           style={{
             position: "absolute",
+            cursor: "grab",
             ...(!progressTrigger?.progressElement && {
               pointerEvents: "none",
             }),

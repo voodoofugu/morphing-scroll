@@ -60,7 +60,7 @@ function handleMouseDown(args: HandleMouseDownT) {
     return;
 
   // меняем курсор
-  if (args.clicked === "thumb") {
+  if (["thumb", "slider"].includes(args.clicked)) {
     // если первого бегунка нет (из-за размеров) а нужен второй то ставим индекс 0
     args.mouseOnEl(
       (args.scrollBarsRef?.[args.scrollElemIndex ?? 0] ||
@@ -94,6 +94,7 @@ function handleMouseDown(args: HandleMouseDownT) {
 
 function handleMouseMove(args: HandleMouseMoveT) {
   if (!args.scrollElementRef) return;
+  const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
   if (["thumb", "wrapp"].includes(args.clicked)) {
     const isThumb = args.clicked === "thumb";
@@ -126,8 +127,6 @@ function handleMouseMove(args: HandleMouseMoveT) {
         return;
       }
 
-      const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
-
       for (const scrollBar of scrollBars) {
         const directionType =
           scrollBar.attributes.getNamedItem("direction-type")?.value;
@@ -144,32 +143,50 @@ function handleMouseMove(args: HandleMouseMoveT) {
     return;
   }
 
-  // !!!
   if (args.clicked === "slider") {
     const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
 
     const pixelsForSwipe = 1;
-    const height = wrapEl.clientHeight;
-    const scrollTo = (position: number) =>
-      args.smoothScroll(position, "y", () => {
-        args.triggerUpdate();
-      });
 
-    const updateScroll = () => {
+    const applyScroll = (axis: "x" | "y") => {
       if (!args.scrollElementRef) return;
-
-      scrollTo(
-        clampValue(
-          args.scrollElementRef.scrollTop +
-            args.mouseEvent.movementY * args.sizeLocal[1],
-          0,
-          height - args.sizeLocal[1]
-        )
+      const scrollPosition =
+        axis === "x"
+          ? args.scrollElementRef.scrollLeft
+          : args.scrollElementRef.scrollTop;
+      const movement =
+        axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
+      const measure = axis === "x" ? wrapEl.clientWidth : wrapEl.clientHeight;
+      const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
+      let refValue;
+      const value = clampValue(
+        scrollPosition + movement * size,
+        0,
+        measure - size
       );
+
+      if (refValue !== value) {
+        args.smoothScroll(
+          clampValue(scrollPosition + movement * size, 0, measure - size),
+          axis
+          // () => { // !!!
+          //   args.triggerUpdate();
+          // }
+        );
+        refValue = value;
+      }
     };
 
-    updateScroll();
+    for (const scrollBar of scrollBars) {
+      const directionType =
+        scrollBar.attributes.getNamedItem("direction-type")?.value;
+
+      if (scrollBar.style.cursor === "grabbing") {
+        applyScroll(directionType as "x" | "y");
+        break;
+      }
+    }
   }
 }
 
@@ -178,7 +195,7 @@ function handleMouseUp(args: HandleMouseUpT) {
   args.controller.abort();
 
   document.body.style.removeProperty("cursor");
-  if (args.clicked === "thumb") {
+  if (["thumb", "slider"].includes(args.clicked)) {
     args.mouseOnEl(
       (args.scrollBarsRef[args.scrollElemIndex ?? 0] ||
         args.scrollBarsRef[0]) as HTMLDivElement
