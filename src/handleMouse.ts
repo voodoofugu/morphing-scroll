@@ -10,11 +10,10 @@ type HandleMouseT = {
   scrollBarsRef: NodeListOf<Element> | [];
   clickedObject: React.RefObject<ClickedT>;
   progressVisibility: "hover" | "visible" | "hidden";
-  scrollContentlRef: HTMLDivElement | null;
+  scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
   direction: MorphScrollT["direction"];
   scrollStateRef: ScrollStateRefT;
-  numForSlider: number;
   sizeLocal: number[];
   objLengthPerSize: number[];
   smoothScroll: (
@@ -36,7 +35,7 @@ type HandleMouseMoveT = Omit<
   HandleMouseT,
   | "controller"
   | "progressVisibility"
-  | "scrollContentlRef"
+  | "scrollContentRef"
   | "type"
   | "mouseOnEl"
   | "mouseOnRefHandle"
@@ -49,7 +48,6 @@ type HandleMouseUpT = Omit<
   | "scrollStateRef"
   | "direction"
   | "smoothScroll"
-  | "numForSlider"
   | "sizeLocal"
 > & { mouseEvent: MouseEvent; controller: AbortController; clicked: ClickedT };
 
@@ -57,7 +55,7 @@ function handleMouseDown(args: HandleMouseDownT) {
   if (
     !args.scrollElementRef ||
     !args.objectsWrapperRef ||
-    !args.scrollContentlRef
+    !args.scrollContentRef
   )
     return;
 
@@ -146,48 +144,32 @@ function handleMouseMove(args: HandleMouseMoveT) {
     return;
   }
 
-  const pixelsForSwipe = 1;
+  // !!!
   if (args.clicked === "slider") {
     const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
 
+    const pixelsForSwipe = 1;
     const height = wrapEl.clientHeight;
     const scrollTo = (position: number) =>
       args.smoothScroll(position, "y", () => {
-        args.numForSlider = 0;
         args.triggerUpdate();
       });
 
-    const updateScroll = (delta: number) => {
+    const updateScroll = () => {
       if (!args.scrollElementRef) return;
 
       scrollTo(
         clampValue(
-          args.scrollElementRef.scrollTop + delta * args.sizeLocal[1],
+          args.scrollElementRef.scrollTop +
+            args.mouseEvent.movementY * args.sizeLocal[1],
           0,
           height - args.sizeLocal[1]
         )
       );
     };
 
-    if (args.mouseEvent.movementY > 0 && args.numForSlider < pixelsForSwipe) {
-      args.numForSlider += args.mouseEvent.movementY;
-      if (
-        args.numForSlider >= pixelsForSwipe &&
-        args.scrollElementRef.scrollTop + args.sizeLocal[1] != height
-      )
-        updateScroll(1);
-    } else if (
-      args.mouseEvent.movementY < 0 &&
-      args.numForSlider > -pixelsForSwipe
-    ) {
-      args.numForSlider -= Math.abs(args.mouseEvent.movementY);
-      if (
-        args.numForSlider <= -pixelsForSwipe &&
-        args.scrollElementRef.scrollTop != 0
-      )
-        updateScroll(-1);
-    }
+    updateScroll();
   }
 }
 
@@ -213,7 +195,7 @@ function handleMouseUp(args: HandleMouseUpT) {
     let isChildOfScrollContent = false;
 
     while (target && target !== document.body) {
-      if (target === args.scrollContentlRef) {
+      if (target === args.scrollContentRef) {
         isChildOfScrollContent = true;
         break;
       }

@@ -57,7 +57,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   };
 
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
-  const scrollContentlRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollContentRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
   const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
@@ -66,7 +66,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
     "none"
   );
-  const numForSlider = React.useRef<number>(0);
   const loadedObjects = React.useRef<(string | null)[]>([]);
   const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -341,8 +340,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsWrapperHeightFull = React.useMemo(() => {
     return objectsWrapperHeight + pLocalY;
   }, [objectsWrapperHeight, pLocalY]);
-  console.log("childsLinePerDirection", childsLinePerDirection);
-  // console.log("objectsWrapperHeightFull", objectsWrapperHeightFull);
   const objectsWrapperWidthFull = React.useMemo(() => {
     return objectsWrapperWidth + pLocalX;
   }, [objectsWrapperWidth, pLocalX]);
@@ -574,7 +571,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (progressVisibility !== "hover") return;
       const func = () =>
         mouseOnRef(
-          scrollContentlRef.current,
+          scrollContentRef.current,
           type === "scroll" ? "scrollBar" : "sliderBar",
           event
         );
@@ -585,7 +582,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         func();
       }
     },
-    [progressVisibility, type, clickedObject.current, scrollContentlRef.current]
+    [progressVisibility, type, clickedObject.current, scrollContentRef.current]
   );
 
   const handleArrowLocal = React.useCallback(
@@ -604,30 +601,45 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // !!! вынести функцию
   const sliderAndArrowsCheck = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
-    if (!scrollEl) return;
-    // getAllScrollBars(type, id, scrollBarsRef);
+    getAllScrollBars(type, id, scrollBarsRef);
 
-    if (scrollContentlRef.current) {
-      if (scrollBarsRef.current.length > 0) {
-        function getActiveElem() {
-          const elements =
-            scrollBarsRef.current[0].querySelectorAll(".sliderElem");
+    if (!scrollContentRef.current || scrollBarsRef.current.length === 0) return;
 
-          elements &&
-            elements.forEach((element, index) => {
-              const scroll = scrollEl?.scrollTop ?? 0;
-              const isActive =
-                scroll >= sizeLocal[1] * index &&
-                scroll < sizeLocal[1] * (index + 1);
+    function getActiveElem() {
+      const elementsFirst =
+        scrollBarsRef.current[0]?.querySelectorAll(".sliderElem") ?? [];
+      const elementsSecond =
+        scrollBarsRef.current[1]?.querySelectorAll(".sliderElem") ?? [];
 
-              element.classList.toggle("active", isActive);
-            });
-        }
+      function checkActive(
+        elementsArray: NodeListOf<Element>,
+        size: number,
+        scroll: HTMLDivElement | null,
+        direction: "x" | "y" | "hybrid"
+      ) {
+        if (!scroll) return;
+        const scrollPosition =
+          direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
 
-        getActiveElem();
+        elementsArray.forEach((element, index) => {
+          const isActive =
+            scrollPosition >= size * index &&
+            scrollPosition < size * (index + 1);
+          element.classList.toggle("active", isActive);
+        });
+      }
+
+      if (elementsFirst.length > 0) {
+        checkActive(elementsFirst, sizeLocal[1], scrollEl, direction);
+      }
+
+      if (elementsSecond.length > 0) {
+        checkActive(elementsSecond, sizeLocal[0], scrollEl, "x");
       }
     }
-  }, [sizeLocal[1], objectsWrapperHeightFull]);
+
+    getActiveElem();
+  }, [sizeLocal[0], sizeLocal[1], direction]);
 
   // высчитываем сдвиг скролла и ограничиваем его
   const thumbSpace = clampValue(
@@ -769,9 +781,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         objectsWrapperRef: objectsWrapperRef.current,
         scrollBarsRef: scrollBarsRef.current,
         clickedObject: clickedObject,
-        scrollContentlRef: scrollContentlRef.current,
+        scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
-        numForSlider: numForSlider.current,
         type,
         progressVisibility,
         mouseOnEl,
@@ -1113,7 +1124,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           objectsSize[1] !== "none"
             ? `${objectsWrapperHeight}px`
             : "fit-content",
-        width: `${objectsWrapperWidth}px`,
+        minWidth: `${objectsWrapperWidth}px`,
 
         ...(progressTrigger.content && { cursor: "grab" }),
 
@@ -1138,7 +1149,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
         ...(render.type !== "virtual" &&
           direction === "x" && {
-            flexDirection: "column",
+            flexDirection: "row",
           }),
 
         ...(render.type !== "virtual" &&
@@ -1199,7 +1210,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     >
       <div
         className="scrollContent"
-        ref={scrollContentlRef}
+        ref={scrollContentRef}
         onMouseEnter={mouseOnRefHandle}
         onMouseLeave={mouseOnRefHandle}
         style={{

@@ -79,9 +79,6 @@ const ScrollBar = ({
           onMouseDown={onMouseDown}
           style={{
             position: "absolute",
-            top: "50%",
-            transform: "translateY(-50%)",
-            ...(progressReverse ? { left: 0 } : { right: 0 }),
             ...(!progressTrigger?.progressElement && {
               pointerEvents: "none",
             }),
@@ -89,6 +86,24 @@ const ScrollBar = ({
               opacity: 0,
               transition: "opacity 0.1s ease-in-out",
             }),
+            ...(direction === "x"
+              ? {
+                  transformOrigin: "left top",
+                  left: "50%",
+                  ...(progressReverse
+                    ? {
+                        transform: "rotate(-90deg) translate(-100%, -50%)",
+                        ...(progressReverse ? { top: 0 } : { bottom: 0 }),
+                      }
+                    : {
+                        transform: "rotate(-90deg) translateY(-50%)",
+                      }),
+                }
+              : {
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  ...(progressReverse ? { left: 0 } : { right: 0 }),
+                }),
           }}
         >
           {Array.from({ length: objLengthPerSize }, (_, index) => (
