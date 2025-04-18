@@ -77,8 +77,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     animating: false,
     animationFrameId: 0,
   });
+  const isScrollingRef = React.useRef<boolean>(false);
 
-  const [scrollingStatus, setScrollingStatus] = React.useState(false);
   const [receivedScrollSize, setReceivedScrollSize] = React.useState({
     width: 0,
     height: 0,
@@ -96,7 +96,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const id = useIdent();
 
   // default
-  const scrollTopLocal = React.useMemo(() => {
+  const scrollPositionLocal = React.useMemo(() => {
     return {
       value:
         typeof scrollPosition?.value === "number" ||
@@ -158,16 +158,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : true
       );
   }, [children, shouldTrackKeys, keys]);
-
-  const firstChildKey = React.useMemo(() => {
-    if (!scrollTopLocal.value.includes("end")) return null;
-
-    if (validChildren.length > 0) {
-      const firstChild = validChildren[0];
-      if (React.isValidElement(firstChild)) return firstChild.key;
-    }
-    return null;
-  }, [validChildren, scrollTopLocal.value]);
 
   const [pT, pR, pB, pL] = numOrArrFormat(padding) || [0, 0, 0, 0];
 
@@ -661,34 +651,33 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const scrollLeftOrTop =
       direction === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
-    if (onScrollValue) {
-      onScrollValue(scrollLeftOrTop);
-    }
+    onScrollValue?.(scrollLeftOrTop);
 
     // scroll status
-    const shouldUpdateScroll = stopLoadOnScroll || isScrolling;
-    !scrollingStatus && isScrolling?.(true);
-    shouldUpdateScroll && setScrollingStatus(true);
+    isScrollingRef.current = true;
+    isScrolling?.(true);
 
-    scrollTimeout.current && clearTimeout(scrollTimeout.current);
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+
     scrollTimeout.current = setTimeout(() => {
-      shouldUpdateScroll && setScrollingStatus(false);
+      isScrollingRef.current = false;
       isScrolling?.(false);
-      if (render.type !== "default") {
-        updateEmptyElementKeys();
-      }
+      if (render.type !== "default") updateEmptyElementKeys(false);
+
+      triggerUpdate();
     }, 200);
 
-    type === "slider" && sliderAndArrowsCheck();
-    render.type !== "default" && updateEmptyElementKeys(false);
+    if (type === "slider") sliderAndArrowsCheck();
+    if (render.type !== "default") updateEmptyElementKeys(false);
 
     triggerUpdate();
   }, [
+    direction,
     onScrollValue,
-    sliderAndArrowsCheck,
     isScrolling,
-    stopLoadOnScroll,
     render,
+    type,
+    sliderAndArrowsCheck,
   ]);
 
   // functions
@@ -741,19 +730,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const smoothScrollLocal = React.useCallback(
-    (targetScrollTop: number, direction: "y" | "x", callback?: () => void) => {
+    (targetScroll: number, direction: "y" | "x", callback?: () => void) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
       return smoothScroll(
         direction,
         scrollEl,
-        scrollTopLocal.duration,
-        targetScrollTop,
+        scrollPositionLocal.duration,
+        targetScroll,
         callback
       );
     },
-    [scrollElementRef, scrollTopLocal.duration]
+    [scrollElementRef, scrollPositionLocal.duration]
   );
 
   const onMouseDown = React.useCallback(
@@ -970,7 +959,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [direction]);
 
   React.useEffect(() => {
-    if (!scrollElementRef.current || validChildren.length === 0) return;
+    if (!scrollPositionLocal.value || validChildren.length === 0) return;
+
+    const firstChildKey = React.isValidElement(validChildren[0])
+      ? validChildren[0].key
+      : null;
 
     const cancelScrolls: (() => void)[] = [];
 
@@ -985,41 +978,31 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       size: number,
       endValue: number
     ) => {
-      if (firstChildKeyRef.current === firstChildKey) {
-        if (value === "end" && full > size) {
-          const cancel = smoothScrollLocal(endValue, dir);
-          if (cancel) cancelScrolls.push(cancel);
-        } else if (typeof value === "number") {
-          const cancel = smoothScrollLocal(value, dir);
-          if (cancel) cancelScrolls.push(cancel);
-        }
+      if (firstChildKeyRef.current !== firstChildKey) return;
 
-        firstChildKeyRef.current = firstChildKey;
+      if (value === "end" && full > size) {
+        const cancel = smoothScrollLocal(endValue, dir);
+        if (cancel) cancelScrolls.push(cancel);
+      } else if (typeof value === "number") {
+        const cancel = smoothScrollLocal(value, dir);
+        if (cancel) cancelScrolls.push(cancel);
       }
     };
 
-    if (direction === "x" || direction === "y") {
-      const dir = direction;
-      const value = scrollTopLocal.value[dir === "x" ? 0 : 1];
-      tryScroll(dir, value, fullHeightOrWidth, xySize, endObjectsWrapper);
-    }
+    const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
-    if (direction === "hybrid") {
+    directions.forEach((dir) => {
+      const index = dir === "x" ? 0 : 1;
       tryScroll(
-        "x",
-        scrollTopLocal.value[0],
-        objectsWrapperWidthFull,
-        sizeLocal[0],
-        objectsWrapperWidthFull
+        dir as "x" | "y",
+        scrollPositionLocal.value[index],
+        dir === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull,
+        sizeLocal[index],
+        dir === "x" ? endObjectsWrapperX : endObjectsWrapper
       );
-      tryScroll(
-        "y",
-        scrollTopLocal.value[1],
-        objectsWrapperHeightFull,
-        sizeLocal[1],
-        objectsWrapperHeightFull
-      );
-    }
+    });
+
+    if (!isScrollingRef.current) firstChildKeyRef.current = firstChildKey;
 
     return () => {
       cancelScrolls.forEach((fn) => fn());
@@ -1028,17 +1011,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, [
     scrollPosition?.updater,
-    scrollTopLocal.value[0],
-    scrollTopLocal.value[1],
+    scrollPositionLocal.value[0],
+    scrollPositionLocal.value[1],
     smoothScrollLocal,
     endObjectsWrapper,
     direction,
     xySize,
-    fullHeightOrWidth,
     objectsWrapperWidthFull,
     objectsWrapperHeightFull,
     sizeLocal,
-    validChildren.length,
   ]);
 
   React.useEffect(() => {
@@ -1057,7 +1038,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const childRenderOnScroll =
       stopLoadOnScroll &&
       !loadedObjects.current.includes(`${id}-${key}`) &&
-      scrollingStatus
+      isScrollingRef.current
         ? fallback
         : emptyElements?.mode === "fallback" &&
           emptyElementKeysString.current.includes(key)

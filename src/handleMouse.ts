@@ -151,22 +151,16 @@ function handleMouseMove(args: HandleMouseMoveT) {
 
     const applyScroll = (axis: "x" | "y") => {
       if (!args.scrollElementRef) return;
-      const scrollPosition =
-        axis === "x"
-          ? args.scrollElementRef.scrollLeft
-          : args.scrollElementRef.scrollTop;
-      const movement =
-        axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
+
+      const movement = Math.abs(
+        axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY
+      );
       const measure = axis === "x" ? wrapEl.clientWidth : wrapEl.clientHeight;
       const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
-      let refValue;
-      const value = clampValue(
-        scrollPosition + movement * size,
-        0,
-        measure - size
-      );
+      const value = clampValue(movement * size, 0, measure - size);
+      let refValue = value;
 
-      if (refValue !== value) {
+      if (refValue) {
         args.smoothScroll(
           value,
           axis
@@ -174,7 +168,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
           //   args.triggerUpdate();
           // }
         );
-        refValue = value;
+        refValue = 0;
       }
     };
 

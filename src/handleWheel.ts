@@ -1,4 +1,5 @@
 import { MorphScrollT } from "./types";
+import { clampValue } from "./addFunctions";
 
 export type ScrollStateRefT = {
   targetScrollY: number;
@@ -15,6 +16,7 @@ export default function handleWheel(
 ) {
   e.preventDefault();
 
+  // Устанавливаем начальные значения
   if (!stateRef.animating) {
     stateRef.targetScrollX = scrollEl.scrollLeft;
     stateRef.targetScrollY = scrollEl.scrollTop;
@@ -23,21 +25,17 @@ export default function handleWheel(
   // Вычисляем новое целевое значение прокрутки
   if (direction === "x") {
     // ограничиваем значение
-    stateRef.targetScrollX = Math.max(
+    stateRef.targetScrollX = clampValue(
+      stateRef.targetScrollX + e.deltaY, // используем deltaY вместо deltaX, так как на deltaX не срабатывает onScroll
       0,
-      Math.min(
-        stateRef.targetScrollX + e.deltaY, // используем вместо deltaX, так как на deltaX него не срабатывает onScroll
-        scrollEl.scrollWidth - scrollEl.clientWidth + 2 // почему-то нужно прибавить 2
-      )
+      scrollEl.scrollWidth - scrollEl.clientWidth + 2 // почему-то нужно прибавить 2
     );
   } else {
     // ограничиваем значение
-    stateRef.targetScrollY = Math.max(
+    stateRef.targetScrollY = clampValue(
+      stateRef.targetScrollY + e.deltaY,
       0,
-      Math.min(
-        stateRef.targetScrollY + e.deltaY,
-        scrollEl.scrollHeight - scrollEl.clientHeight + 2 // почему-то нужно прибавить 2
-      )
+      scrollEl.scrollHeight - scrollEl.clientHeight + 2 // почему-то нужно прибавить 2
     );
   }
 
@@ -49,22 +47,23 @@ export default function handleWheel(
 
   function animateScroll() {
     const lerpFactor = 0.4;
-    const diffX = Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX);
-    const diffY = Math.abs(scrollEl.scrollTop - stateRef.targetScrollY);
+    let diff = 0;
 
     if (direction === "x") {
       scrollEl.scrollLeft +=
         (stateRef.targetScrollX - scrollEl.scrollLeft) * lerpFactor;
+
+      diff = Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX);
     } else {
       scrollEl.scrollTop +=
         (stateRef.targetScrollY - scrollEl.scrollTop) * lerpFactor;
+
+      diff = Math.abs(scrollEl.scrollTop - stateRef.targetScrollY);
     }
 
     // Остановка анимации, если разница в позициях мала
-    if (
-      (direction === "x" && diffX > 1.5) ||
-      (direction === "y" && diffY > 1.5)
-    ) {
+    // осторожнее с diff иначе будет зацикливаться
+    if (diff > 2.5) {
       stateRef.animationFrameId = requestAnimationFrame(animateScroll);
     } else {
       stateRef.animating = false;
