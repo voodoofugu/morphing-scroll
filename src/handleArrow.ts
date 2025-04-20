@@ -2,8 +2,8 @@ import { clampValue } from "./addFunctions";
 
 export type handleArrowT = {
   arrowType: "left" | "right" | "top" | "bottom";
-  scrollElement: Element | null;
-  wrapElement: Element | null;
+  scrollElement: Element;
+  wrapSize: number[];
   scrollSize: number[];
   smoothScroll: (targetScroll: number, direction: "y" | "x") => void;
 };
@@ -11,14 +11,13 @@ export type handleArrowT = {
 const handleArrow = ({
   arrowType,
   scrollElement,
-  wrapElement,
+  wrapSize,
   scrollSize,
   smoothScroll,
 }: handleArrowT) => {
-  if (!scrollElement || !wrapElement) return;
+  const width = wrapSize[0];
+  const height = wrapSize[1];
 
-  const height = wrapElement.clientHeight;
-  const width = wrapElement.clientWidth;
   const top = scrollElement.scrollTop;
   const left = scrollElement.scrollLeft;
   const maxValue = ["top", "bottom"].includes(arrowType) ? height : width;

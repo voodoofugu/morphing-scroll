@@ -62,4 +62,48 @@ const getAllScrollBars = (
   }
 };
 
-export { objectsPerSize, clampValue, smoothScroll, getAllScrollBars };
+const sliderCheck = (
+  scrollEl: HTMLDivElement,
+  scrollBars: NodeListOf<Element>,
+  sizeLocal: number[],
+  direction: "x" | "y" | "hybrid"
+) => {
+  function getActiveElem() {
+    const elementsFirst = scrollBars[0]?.querySelectorAll(".sliderElem") ?? [];
+    const elementsSecond = scrollBars[1]?.querySelectorAll(".sliderElem") ?? [];
+
+    function checkActive(
+      elementsArray: NodeListOf<Element>,
+      size: number,
+      scroll: HTMLDivElement,
+      direction: "x" | "y" | "hybrid"
+    ) {
+      const scrollPosition =
+        direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
+
+      elementsArray.forEach((element, index) => {
+        const isActive =
+          scrollPosition >= size * index && scrollPosition < size * (index + 1);
+        element.classList.toggle("active", isActive);
+      });
+    }
+
+    if (elementsFirst.length > 0) {
+      checkActive(elementsFirst, sizeLocal[1], scrollEl, direction);
+    }
+
+    if (elementsSecond.length > 0) {
+      checkActive(elementsSecond, sizeLocal[0], scrollEl, "x");
+    }
+  }
+
+  getActiveElem();
+};
+
+export {
+  objectsPerSize,
+  clampValue,
+  smoothScroll,
+  getAllScrollBars,
+  sliderCheck,
+};

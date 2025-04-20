@@ -32,7 +32,7 @@ export type MorphScrollT = {
     updater?: boolean;
   };
   stopLoadOnScroll?: boolean;
-  onScrollValue?: (scroll: number) => void;
+  onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => boolean;
 
   // Visual Settings
@@ -40,8 +40,10 @@ export type MorphScrollT = {
   crossCount: number; // !
   objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
-  padding?: number[] | number; // wrapperMargin
-  objectsWrapFullMinSize?: boolean; // wrapperMinSize?: number | "full" | (number | "full")[];
+  wrapper?: {
+    margin: number[] | number;
+    minSize: number | "full" | (number | "full")[];
+  };
   contentAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number }; // !

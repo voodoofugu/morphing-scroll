@@ -18,6 +18,7 @@ import {
   clampValue,
   smoothScroll,
   getAllScrollBars,
+  sliderCheck,
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
@@ -28,7 +29,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   objectsSize,
   direction = "y",
   gap,
-  padding,
+  wrapper,
   progressReverse = false,
   progressTrigger = { wheel: true },
   progressVisibility = "visible",
@@ -36,7 +37,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   fallback = null,
   scrollPosition,
   edgeGradient,
-  objectsWrapFullMinSize = false,
   children,
   onScrollValue,
 
@@ -78,6 +78,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     animationFrameId: 0,
   });
   const isScrollingRef = React.useRef<boolean>(false);
+  const numForSliderRef = React.useRef<number>(0);
 
   const [receivedScrollSize, setReceivedScrollSize] = React.useState({
     width: 0,
@@ -159,10 +160,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
   }, [children, shouldTrackKeys, keys]);
 
-  const [pT, pR, pB, pL] = numOrArrFormat(padding) || [0, 0, 0, 0];
-
-  const pLocalY = pT + pB;
-  const pLocalX = pL + pR;
+  const { margin = 0, minSize = false } = wrapper || {};
+  const [mT, mR, mB, mL] = numOrArrFormat(margin) || [0, 0, 0, 0];
+  const mLocalY = mT + mB;
+  const mLocalX = mL + mR;
 
   const [gapX, gapY] = React.useMemo(() => {
     if (typeof gap === "number") {
@@ -235,7 +236,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsPerDirection = React.useMemo(() => {
     const isHorizontal = direction === "x";
 
-    const padding = isHorizontal ? pLocalY : pLocalX;
+    const marginPerDirection = isHorizontal ? mLocalY : mLocalX;
     const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const objectSize = isHorizontal
       ? objectsSizeLocal[1] + gapY
@@ -245,12 +246,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const neededMaxSize = direction === "hybrid" ? hybridSize : localObjSize;
 
     const objects = objectSize
-      ? Math.floor((neededMaxSize - padding) / objectSize)
+      ? Math.floor((neededMaxSize - marginPerDirection) / objectSize)
       : 1;
 
     // устанавливаем crossCount если он есть и если он меньше objects
     return crossCount && crossCount < objects ? crossCount : objects;
-  }, [direction, objectsSizeLocal, sizeLocal, gapX, pLocalX, pLocalY]);
+  }, [direction, objectsSizeLocal, sizeLocal, gapX, mLocalX, mLocalY]);
 
   const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -328,11 +329,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const objectsWrapperHeightFull = React.useMemo(() => {
-    return objectsWrapperHeight + pLocalY;
-  }, [objectsWrapperHeight, pLocalY]);
+    return objectsWrapperHeight + mLocalY;
+  }, [objectsWrapperHeight, mLocalY]);
   const objectsWrapperWidthFull = React.useMemo(() => {
-    return objectsWrapperWidth + pLocalX;
-  }, [objectsWrapperWidth, pLocalX]);
+    return objectsWrapperWidth + mLocalX;
+  }, [objectsWrapperWidth, mLocalX]);
   const fullHeightOrWidth =
     direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
@@ -577,59 +578,50 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const handleArrowLocal = React.useCallback(
     (arrowType: handleArrowT["arrowType"]) => {
+      if (!scrollElementRef.current) return;
+
       handleArrow({
         arrowType: arrowType,
         scrollElement: scrollElementRef.current,
-        wrapElement: objectsWrapperRef.current,
+        wrapSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
         scrollSize: sizeLocal,
         smoothScroll: smoothScrollLocal,
       });
     },
-    [scrollElementRef, objectsWrapperRef, objLengthPerSizeXY, sizeLocal[1]]
+    [
+      scrollElementRef.current,
+      sizeLocal[0],
+      sizeLocal[1],
+      objectsWrapperWidthFull,
+      objectsWrapperHeightFull,
+    ]
   );
 
-  // !!! вынести функцию
-  const sliderAndArrowsCheck = React.useCallback(() => {
+  const sliderCheckLocal = React.useCallback(() => {
+    getAllScrollBars(type, id, scrollBarsRef);
+
     const scrollEl = scrollElementRef.current;
+    if (!scrollEl || scrollBarsRef.current.length === 0) return;
+
     getAllScrollBars(type, id, scrollBarsRef);
 
     if (!scrollContentRef.current || scrollBarsRef.current.length === 0) return;
 
-    function getActiveElem() {
-      const elementsFirst =
-        scrollBarsRef.current[0]?.querySelectorAll(".sliderElem") ?? [];
-      const elementsSecond =
-        scrollBarsRef.current[1]?.querySelectorAll(".sliderElem") ?? [];
-
-      function checkActive(
-        elementsArray: NodeListOf<Element>,
-        size: number,
-        scroll: HTMLDivElement | null,
-        direction: "x" | "y" | "hybrid"
-      ) {
-        if (!scroll) return;
-        const scrollPosition =
-          direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
-
-        elementsArray.forEach((element, index) => {
-          const isActive =
-            scrollPosition >= size * index &&
-            scrollPosition < size * (index + 1);
-          element.classList.toggle("active", isActive);
-        });
-      }
-
-      if (elementsFirst.length > 0) {
-        checkActive(elementsFirst, sizeLocal[1], scrollEl, direction);
-      }
-
-      if (elementsSecond.length > 0) {
-        checkActive(elementsSecond, sizeLocal[0], scrollEl, "x");
-      }
-    }
-
-    getActiveElem();
-  }, [sizeLocal[0], sizeLocal[1], direction]);
+    sliderCheck(
+      scrollEl,
+      scrollBarsRef.current as NodeListOf<Element>,
+      sizeLocal,
+      direction
+    );
+  }, [
+    sizeLocal,
+    direction,
+    scrollElementRef,
+    scrollContentRef,
+    scrollBarsRef,
+    type,
+    id,
+  ]);
 
   // высчитываем сдвиг скролла и ограничиваем его
   const thumbSpace = clampValue(
@@ -649,9 +641,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
-    const scrollLeftOrTop =
-      direction === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
-    onScrollValue?.(scrollLeftOrTop);
+    onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
     // scroll status
     isScrollingRef.current = true;
@@ -667,18 +657,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       triggerUpdate();
     }, 200);
 
-    if (type === "slider") sliderAndArrowsCheck();
+    if (type === "slider") sliderCheckLocal();
     if (render.type !== "default") updateEmptyElementKeys(false);
 
     triggerUpdate();
-  }, [
-    direction,
-    onScrollValue,
-    isScrolling,
-    render,
-    type,
-    sliderAndArrowsCheck,
-  ]);
+  }, [direction, onScrollValue, isScrolling, render, type, sliderCheckLocal]);
 
   // functions
   const scrollResize = React.useCallback(
@@ -693,13 +676,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       setReceivedScrollSize(newSize);
     },
-    [pLocalY, receivedScrollSize]
+    [mLocalY, receivedScrollSize]
   );
   const wrapResize = React.useCallback(
     (rect: Partial<DOMRectReadOnly>) => {
       const newSize = {
-        width: (rect.width ?? 0) - pLocalX,
-        height: (rect.height ?? 0) - pLocalY,
+        width: (rect.width ?? 0) - mLocalX,
+        height: (rect.height ?? 0) - mLocalY,
       };
 
       if (
@@ -711,7 +694,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       setReceivedWrapSize(newSize);
     },
-    [pLocalX, pLocalY, receivedWrapSize]
+    [mLocalX, mLocalY, receivedWrapSize]
   );
   const childResize = React.useCallback(
     (rect: Partial<DOMRectReadOnly>) => {
@@ -783,6 +766,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
         clicked: clickedLocal,
         scrollElemIndex,
+        numForSliderRef,
+        isScrollingRef,
       });
     },
     [
@@ -939,7 +924,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       triggerUpdate();
     }
 
-    sliderAndArrowsCheck();
+    sliderCheckLocal();
   }, []);
 
   React.useEffect(() => {
@@ -948,6 +933,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const wheelHandler = (e: WheelEvent) =>
       handleWheel(e, scrollEl, scrollStateRef.current, direction);
+
     scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
 
     return () => {
@@ -1100,7 +1086,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={{
-        margin: padding ? `${pT}px ${pR}px ${pB}px ${pL}px` : "",
+        margin: margin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
         height:
           objectsSize[1] !== "none"
             ? `${objectsWrapperHeight}px`
@@ -1153,8 +1139,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               alignItems: "center",
             }),
 
-        ...(objectsWrapFullMinSize && {
-          minHeight: `${sizeLocal[1] - pLocalY}px`,
+        ...(minSize === "full" && {
+          minHeight: `${sizeLocal[1] - mLocalY}px`,
         }),
       }}
     >

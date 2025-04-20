@@ -1,6 +1,5 @@
 import { MorphScrollT } from "./types";
 import { ScrollStateRefT } from "./handleWheel";
-import { clampValue } from "./addFunctions";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | "none";
 
@@ -25,6 +24,8 @@ type HandleMouseT = {
   mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
   triggerUpdate: () => void;
   scrollElemIndex?: number;
+  numForSliderRef: React.RefObject<number>;
+  isScrollingRef: React.RefObject<boolean>;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -36,7 +37,6 @@ type HandleMouseMoveT = Omit<
   | "controller"
   | "progressVisibility"
   | "scrollContentRef"
-  | "type"
   | "mouseOnEl"
   | "mouseOnRefHandle"
 > & { mouseEvent: MouseEvent; clicked: ClickedT };
@@ -77,13 +77,13 @@ function handleMouseDown(args: HandleMouseDownT) {
   args.clickedObject.current = args.clicked;
   args.triggerUpdate();
 
-  window.addEventListener(
+  document.addEventListener(
     "mousemove",
     (mouseEvent) => handleMouseMove({ ...args, mouseEvent }),
     { signal }
   );
 
-  window.addEventListener(
+  document.addEventListener(
     "mouseup",
     (mouseEvent) => handleMouseUp({ ...args, mouseEvent, controller }),
     { signal }
@@ -93,94 +93,92 @@ function handleMouseDown(args: HandleMouseDownT) {
 }
 
 function handleMouseMove(args: HandleMouseMoveT) {
-  if (!args.scrollElementRef) return;
   const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
-  if (["thumb", "wrapp"].includes(args.clicked)) {
+  const getMove = (axis: "x" | "y") =>
+    axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
+
+  const applyThumbOrWrap = (axis: "x" | "y") => {
+    if (!args.scrollElementRef) return;
+
+    const move = getMove(axis);
     const isThumb = args.clicked === "thumb";
-    const applyScroll = (axis: "x" | "y") => {
-      if (!args.scrollElementRef) return;
+    const length =
+      axis === "x" ? args.objLengthPerSize[0] : args.objLengthPerSize[1];
+    const delta = move * (isThumb ? length : -1);
 
-      const length =
-        axis === "x" ? args.objLengthPerSize[0] : args.objLengthPerSize[1];
-
-      const moveDirection =
-        axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
-      const plusMinus = isThumb ? 1 : -1;
-      const addBoost = isThumb ? length : 1;
-      const movement = moveDirection * addBoost * plusMinus;
-
-      if (axis === "x") {
-        args.scrollElementRef.scrollLeft += movement;
-        args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft;
-      } else {
-        args.scrollElementRef.scrollTop += movement;
-        args.scrollStateRef.targetScrollY = args.scrollElementRef.scrollTop;
-      }
-    };
-
-    if (args.direction === "hybrid") {
-      if (args.clicked === "wrapp") {
-        applyScroll("x");
-        applyScroll("y");
-
-        return;
-      }
-
-      for (const scrollBar of scrollBars) {
-        const directionType =
-          scrollBar.attributes.getNamedItem("direction-type")?.value;
-
-        if (scrollBar.style.cursor === "grabbing") {
-          applyScroll(directionType as "x" | "y");
-          break;
-        }
-      }
+    if (axis === "x") {
+      args.scrollElementRef!.scrollLeft += delta;
+      args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft;
     } else {
-      applyScroll(args.direction || "y");
+      args.scrollElementRef!.scrollTop += delta;
+      args.scrollStateRef.targetScrollY = args.scrollElementRef.scrollTop;
     }
+  };
 
-    return;
-  }
-
-  if (args.clicked === "slider") {
+  const applySlider = (axis: "x" | "y") => {
     const wrapEl = args.objectsWrapperRef;
     if (!wrapEl) return;
 
-    const pixelsForSwipe = 1;
+    const reverce = args.type === "slider" && args.clicked === "wrapp" ? -1 : 1;
+    const move = getMove(axis) * reverce;
+    const pixelsForSwipe = 6;
+    const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
+    const extent = axis === "x" ? wrapEl.offsetWidth : wrapEl.offsetHeight;
+    const scroll =
+      axis === "x"
+        ? args.scrollElementRef!.scrollLeft
+        : args.scrollElementRef!.scrollTop;
 
-    const applyScroll = (axis: "x" | "y") => {
-      if (!args.scrollElementRef) return;
+    args.numForSliderRef.current += Math.abs(move);
 
-      const movement = Math.abs(
-        axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY
-      );
-      const measure = axis === "x" ? wrapEl.clientWidth : wrapEl.clientHeight;
-      const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
-      const value = clampValue(movement * size, 0, measure - size);
-      let refValue = value;
-
-      if (refValue) {
-        args.smoothScroll(
-          value,
-          axis
-          // () => { // !!!
-          //   args.triggerUpdate();
-          // }
-        );
-        refValue = 0;
+    if (
+      args.numForSliderRef.current > pixelsForSwipe &&
+      !args.isScrollingRef.current
+    ) {
+      if (move > 0 && scroll + size < extent) {
+        args.smoothScroll(scroll + size, axis);
+      } else if (move < 0 && scroll > 0) {
+        args.smoothScroll(scroll - size, axis);
       }
-    };
 
-    for (const scrollBar of scrollBars) {
-      const directionType =
-        scrollBar.attributes.getNamedItem("direction-type")?.value;
+      args.numForSliderRef.current = 0;
+    }
+  };
 
-      if (scrollBar.style.cursor === "grabbing") {
-        applyScroll(directionType as "x" | "y");
-        break;
+  const handleAxis = (axis: "x" | "y") => {
+    if (args.clicked === "thumb") {
+      applyThumbOrWrap(axis);
+    } else if (args.clicked === "wrapp") {
+      if (args.type === "slider") {
+        applySlider(axis);
+      } else {
+        applyThumbOrWrap(axis);
+      }
+    } else if (args.clicked === "slider") {
+      applySlider(axis);
+    }
+  };
+
+  const getDirectionTypeFromScrollBars = (): ("x" | "y") | null => {
+    for (const bar of scrollBars) {
+      if (bar.style.cursor === "grabbing") {
+        return bar.getAttribute("direction-type") as "x" | "y";
       }
     }
+    return null;
+  };
+
+  if (args.direction === "hybrid") {
+    if (args.clicked === "wrapp") {
+      handleAxis("x");
+      handleAxis("y");
+    } else {
+      const dir = getDirectionTypeFromScrollBars();
+      if (dir) handleAxis(dir);
+    }
+  } else {
+    handleAxis((args.direction || "y") as "x" | "y");
   }
 }
 
