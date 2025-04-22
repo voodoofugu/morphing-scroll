@@ -31,7 +31,6 @@ export type MorphScrollT = {
     duration?: number;
     updater?: boolean;
   };
-  stopLoadOnScroll?: boolean;
   onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => boolean;
 
@@ -41,24 +40,27 @@ export type MorphScrollT = {
   objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
   wrapper?: {
+    // лучше одиночные
     margin: number[] | number;
     minSize: number | "full" | (number | "full")[];
   };
-  contentAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
+  contentAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // ! wrapperAlign
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number }; // !
-  progressReverse?: boolean | boolean[]; // !
-  progressVisibility?: "visible" | "hover" | "hidden";
 
-  // Progress & Rendering
+  // ProgressBar & Rendering
   progressTrigger?: {
-    wheel?: boolean;
+    wheel?: boolean; // default ?
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
+  progressReverse?: boolean | boolean[]; // !
+  progressVisibility?: "visible" | "hover" | "hidden";
+
+  // optimization
   render?:
-    | { type: "default" }
+    | { type: "default" } // ?
     | {
         type: "lazy";
         rootMargin?: number | number[];
@@ -74,6 +76,7 @@ export type MorphScrollT = {
       };
   suspending?: boolean;
   fallback?: React.ReactNode;
+  stopLoadOnScroll?: boolean;
 };
 
 // progressTrigger contentSlider & arrows looped
