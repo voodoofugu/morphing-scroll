@@ -19,6 +19,8 @@ import {
   smoothScroll,
   getAllScrollBars,
   sliderCheck,
+  getWrapperMinSizeStyle,
+  getWrapperAlignStyle,
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
@@ -29,7 +31,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   objectsSize,
   direction = "y",
   gap,
-  wrapper,
+  wrapperMargin,
+  wrapperMinSize,
   progressReverse = false,
   progressTrigger = { wheel: true },
   progressVisibility = "visible",
@@ -41,7 +44,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   onScrollValue,
 
   elementsAlign = false,
-  contentAlign,
+  wrapperAlign,
 
   isScrolling,
   stopLoadOnScroll = false,
@@ -88,6 +91,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     width: 0,
     height: 0,
   });
+  console.log("receivedWrapSize", receivedWrapSize);
   const [receivedChildSize, setReceivedChildSize] = React.useState({
     width: 0,
     height: 0,
@@ -160,8 +164,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
   }, [children, shouldTrackKeys, keys]);
 
-  const { margin = 0, minSize = false } = wrapper || {};
-  const [mT, mR, mB, mL] = numOrArrFormat(margin) || [0, 0, 0, 0];
+  const [mT, mR, mB, mL] = numOrArrFormat(wrapperMargin) || [0, 0, 0, 0];
   const mLocalY = mT + mB;
   const mLocalX = mL + mR;
 
@@ -317,7 +320,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
         : (objectsSizeLocal[1] + gapX) * childsLinePerDirection - gapX
       : render.type !== "virtual"
-      ? receivedWrapSize.height
+      ? receivedWrapSize.height // on "fit-content"
       : receivedChildSize.height + childsGap;
   }, [
     objectsSizeLocal[1],
@@ -492,54 +495,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsPerDirection,
   ]);
 
-  const contentAlignLocal = React.useMemo(() => {
-    if (!contentAlign) return {};
-
-    const [verticalAlign, horizontalAlign = "start"] =
-      typeof contentAlign === "string"
-        ? [contentAlign, contentAlign]
-        : contentAlign;
-
-    const vAlign =
-      verticalAlign === "start"
-        ? "flex-start"
-        : verticalAlign === "center"
-        ? "center"
-        : "flex-end";
-
-    const hAlign =
-      horizontalAlign === "start"
-        ? "flex-start"
-        : horizontalAlign === "center"
-        ? "center"
-        : "flex-end";
-
-    const scrollX = sizeLocal[0] ?? 0;
-    const scrollY = sizeLocal[1] ?? 0;
-
-    const shouldAlignHeight = scrollY > objectsWrapperHeightFull;
-
-    const shouldAlignWidth = scrollX > objectsWrapperWidthFull;
-
-    const alignStyles: Record<string, string> = {};
-
-    if (shouldAlignWidth) {
-      alignStyles.display = "flex";
-      alignStyles.justifyContent = vAlign;
-    }
-
-    if (shouldAlignHeight) {
-      alignStyles.display = "flex";
-      alignStyles.alignItems = hAlign;
-    }
-
-    return alignStyles;
-  }, [
-    contentAlign,
-    sizeLocal,
-    objectsWrapperHeightFull,
-    objectsWrapperWidthFull,
-  ]);
+  const wrapperAlignLocal = React.useMemo(
+    () =>
+      getWrapperAlignStyle(
+        wrapperAlign,
+        sizeLocal,
+        objectsWrapperWidthFull,
+        objectsWrapperHeightFull
+      ),
+    [wrapperAlign, sizeLocal, objectsWrapperHeightFull, objectsWrapperWidthFull]
+  );
 
   const objLengthPerSize = React.useMemo(() => {
     const x = objectsPerSize(objectsWrapperWidthFull, sizeLocal[0]);
@@ -1086,12 +1051,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={{
-        margin: margin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
+        margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
         height:
           objectsSize[1] !== "none"
             ? `${objectsWrapperHeight}px`
             : "fit-content",
-        minWidth: `${objectsWrapperWidth}px`,
+        width: `${objectsWrapperWidth}px`,
 
         ...(progressTrigger.content && { cursor: "grab" }),
 
@@ -1139,9 +1104,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               alignItems: "center",
             }),
 
-        ...(minSize === "full" && {
-          minHeight: `${sizeLocal[1] - mLocalY}px`,
-        }),
+        ...(wrapperMinSize &&
+          getWrapperMinSizeStyle(
+            wrapperMinSize,
+            direction,
+            sizeLocal,
+            mLocalX,
+            mLocalY
+          )),
       }}
     >
       {validChildren.map(renderChild)}
@@ -1203,7 +1173,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           style={{
             width: "100%",
             height: "100%",
-            ...contentAlignLocal,
+            ...wrapperAlignLocal,
 
             // интересное решение overflow
             ...(progressTrigger.wheel
@@ -1237,7 +1207,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           {objectsSize[0] !== "none" && objectsSize[1] !== "none" ? (
             objectsWrapper
           ) : (
-            <ResizeTracker measure={"all"} onResize={wrapResize}>
+            <ResizeTracker
+              measure={"all"}
+              onResize={wrapResize}
+              style={{
+                ...wrapperAlignLocal,
+              }}
+            >
               {() => objectsWrapper}
             </ResizeTracker>
           )}

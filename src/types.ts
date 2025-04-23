@@ -36,15 +36,12 @@ export type MorphScrollT = {
 
   // Visual Settings
   size?: number[];
-  crossCount: number; // !
+  crossCount?: number; // !
   objectsSize: (number | "none" | "firstChild")[];
   gap?: number[] | number;
-  wrapper?: {
-    // лучше одиночные
-    margin: number[] | number;
-    minSize: number | "full" | (number | "full")[];
-  };
-  contentAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // ! wrapperAlign
+  wrapperMargin?: number[] | number;
+  wrapperMinSize?: number | "full" | (number | "full")[];
+  wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number }; // !
 

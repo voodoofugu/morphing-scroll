@@ -1,3 +1,5 @@
+import { MorphScrollT } from "./types";
+
 function objectsPerSize(availableSize: number, objectSize: number): number {
   if (availableSize <= objectSize) return 1;
   const objects = Math.floor(availableSize / objectSize);
@@ -100,10 +102,74 @@ const sliderCheck = (
   getActiveElem();
 };
 
+function getWrapperMinSizeStyle(
+  wrapperMinSize: number | "full" | (number | "full")[],
+  direction: "x" | "y" | "hybrid",
+  sizeLocal: number[],
+  mLocalX: number,
+  mLocalY: number
+): React.CSSProperties {
+  const resolveSize = (value: number | "full", axis: "x" | "y"): number =>
+    value === "full"
+      ? (axis === "x" ? sizeLocal[0] : sizeLocal[1]) -
+        (axis === "x" ? mLocalX : mLocalY)
+      : value;
+
+  if (direction !== "hybrid" && !Array.isArray(wrapperMinSize)) {
+    const minSize = `${resolveSize(wrapperMinSize, direction)}px`;
+    return direction === "x" ? { minWidth: minSize } : { minHeight: minSize };
+  }
+
+  // direction === "hybrid"
+  let x: number | "full", y: number | "full";
+
+  if (Array.isArray(wrapperMinSize)) {
+    [x, y] = wrapperMinSize;
+  } else {
+    x = y = wrapperMinSize;
+  }
+
+  const minWidth = `${resolveSize(x, "x")}px`;
+  const minHeight = `${resolveSize(y, "y")}px`;
+
+  return { minWidth, minHeight };
+}
+
+function getWrapperAlignStyle(
+  wrapperAlign: MorphScrollT["wrapperAlign"],
+  sizeLocal: number[],
+  objectsWrapperWidthFull: number,
+  objectsWrapperHeightFull: number
+): React.CSSProperties {
+  if (!wrapperAlign) return {};
+
+  const [verticalAlign, horizontalAlign = "start"] =
+    typeof wrapperAlign === "string"
+      ? [wrapperAlign, wrapperAlign]
+      : wrapperAlign;
+  const getStyle = (algin: "start" | "center" | "end") =>
+    algin === "start"
+      ? "flex-start"
+      : verticalAlign === "center"
+      ? "center"
+      : "flex-end";
+  const alignStyles: React.CSSProperties = { display: "flex" };
+
+  if (sizeLocal[0] > objectsWrapperWidthFull)
+    alignStyles.justifyContent = getStyle(verticalAlign);
+
+  if (sizeLocal[1] > objectsWrapperHeightFull)
+    alignStyles.alignItems = getStyle(horizontalAlign);
+
+  return alignStyles;
+}
+
 export {
   objectsPerSize,
   clampValue,
   smoothScroll,
   getAllScrollBars,
   sliderCheck,
+  getWrapperMinSizeStyle,
+  getWrapperAlignStyle,
 };
