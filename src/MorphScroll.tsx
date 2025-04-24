@@ -804,16 +804,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       attribute: { name: "wrap-id", value: attribute },
     };
 
-    return render.type === "virtual" ? (
-      <div
-        wrap-id={attribute}
-        onClick={updateEmptyKeysClick}
-        key={key}
-        style={commonProps.style}
-      >
-        {content}
-      </div>
-    ) : render.type === "lazy" ? (
+    return render.type === "lazy" ? (
       // !!! наладить updateEmptyElementKeys для IntersectionTracker
       <IntersectionTracker
         key={key}
@@ -824,7 +815,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       </IntersectionTracker>
     ) : (
       <div
-        wrap-id={attribute}
+        {...(stopLoadOnScroll || emptyElements ? { "wrap-id": attribute } : {})}
         onClick={updateEmptyKeysClick}
         key={key}
         style={commonProps.style}
@@ -992,7 +983,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const childRenderOnScroll =
       stopLoadOnScroll &&
-      !loadedObjects.current.includes(`${id}-${key}`) &&
+      !loadedObjects.current.includes(`${key}`) &&
       isScrollingRef.current
         ? fallback
         : emptyElements?.mode === "fallback" &&
