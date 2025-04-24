@@ -3,10 +3,11 @@ import React from "react";
 import { ResizeTrackerT } from "./types";
 
 const ResizeTracker: React.FC<ResizeTrackerT> = ({
-  measure = "inner",
-  style,
-  onResize,
+  className,
   children,
+  style,
+  measure = "inner",
+  onResize,
 }) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = React.useState({} as DOMRectReadOnly);
@@ -50,8 +51,9 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
 
   return (
     <div
-      ref={containerRef}
       resize-tracker="〈♦〉"
+      className={className}
+      ref={containerRef}
       style={{
         ...measureStyles[measure],
         ...style,

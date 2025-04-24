@@ -1,6 +1,7 @@
 import React from "react";
 
 export type ResizeTrackerT = {
+  className?: string; // !
   children: (rect: DOMRectReadOnly) => React.ReactNode; // change!
   style?: React.CSSProperties;
   measure?: "inner" | "outer" | "all";
@@ -8,6 +9,7 @@ export type ResizeTrackerT = {
 };
 
 export type IntersectionTrackerT = {
+  className?: string; // !
   children: React.ReactNode;
   style?: React.CSSProperties;
   root?: Element | null;
@@ -15,6 +17,7 @@ export type IntersectionTrackerT = {
   threshold?: number | number[];
   visibleContent?: boolean;
   onVisible?: (key: string) => void;
+  attribute?: { name: string; value: string };
 };
 
 export type MorphScrollT = {
@@ -50,7 +53,7 @@ export type MorphScrollT = {
     wheel?: boolean; // default ?
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
-    arrows?: boolean | { size?: number; element?: React.ReactNode };
+    arrows?: boolean | { size?: number; element?: React.ReactNode }; // не работает в вертикали
   };
   progressReverse?: boolean | boolean[]; // !
   progressVisibility?: "visible" | "hover" | "hidden";

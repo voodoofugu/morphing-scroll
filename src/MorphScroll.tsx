@@ -91,7 +91,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     width: 0,
     height: 0,
   });
-  console.log("receivedWrapSize", receivedWrapSize);
   const [receivedChildSize, setReceivedChildSize] = React.useState({
     width: 0,
     height: 0,
@@ -563,12 +562,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const sliderCheckLocal = React.useCallback(() => {
-    getAllScrollBars(type, id, scrollBarsRef);
+    getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
 
     const scrollEl = scrollElementRef.current;
     if (!scrollEl || scrollBarsRef.current.length === 0) return;
 
-    getAllScrollBars(type, id, scrollBarsRef);
+    getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
 
     if (!scrollContentRef.current || scrollBarsRef.current.length === 0) return;
 
@@ -711,7 +710,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       )
         return;
 
-      getAllScrollBars(type, id, scrollBarsRef);
+      getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
 
       handleMouseDown({
         scrollElementRef: scrollElementRef.current,
@@ -766,9 +765,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const scrollObjectWrapper = (
+    attribute: string,
     elementTop?: number,
     left?: number,
-    attribute?: string,
     children?: React.ReactNode,
     key?: string
   ) => {
@@ -802,28 +801,31 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               ...wrapStyle1,
             },
       onVisible: IntersectionTrackerOnVisible,
+      attribute: { name: "wrap-id", value: attribute },
     };
 
     return render.type === "virtual" ? (
       <div
-        // !!! наладить updateEmptyElementKeys
-        // {...(attribute ? { "wrap-id": attribute } : {})}
-        // onClick={updateEmptyKeysClick}
+        wrap-id={attribute}
+        onClick={updateEmptyKeysClick}
         key={key}
-        style={{
-          ...commonProps.style,
-        }}
+        style={commonProps.style}
       >
         {content}
       </div>
     ) : render.type === "lazy" ? (
-      <IntersectionTracker key={key} {...commonProps.style}>
+      // !!! наладить updateEmptyElementKeys для IntersectionTracker
+      <IntersectionTracker
+        key={key}
+        style={commonProps.style} // постоянный ререндер из пропса
+        // attribute={commonProps.attribute} // Добавление attribute удаляет всё при прокрутке
+      >
         {content}
       </IntersectionTracker>
     ) : (
       <div
-        // {...(attribute ? { "wrap-id": attribute } : {})}
-        // onClick={updateEmptyKeysClick}
+        wrap-id={attribute}
+        onClick={updateEmptyKeysClick}
         key={key}
         style={commonProps.style}
       >
@@ -832,17 +834,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     );
   };
 
+  // !!! попробовать вынести всё что касается EmptyKeys
   const getDataIdsFromAtr = React.useCallback(() => {
-    const elements = document.querySelectorAll(`[wrap-id^="${id}-"]`);
-    return elements;
+    const elements = customScrollRef.current?.querySelectorAll(`[wrap-id]`);
+    return elements ?? [];
   }, []);
 
   const updateEmptyElementKeys = React.useCallback(
     (update = true) => {
       if (!emptyElements) return;
+
       const emptyElementKays = Array.from(getDataIdsFromAtr())
         .filter((el) => el.children.length === 0)
-        .map((el) => el.getAttribute("wrap-id")?.split("-")[1])
+        .map((el) => el.getAttribute("wrap-id"))
         .filter(Boolean)
         .join("/");
 
@@ -1017,8 +1021,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const topOrLeft = direction === "x" ? left : elementTop;
       const bottomOrRight = direction === "x" ? right : elementBottom;
       const mRoot = direction === "x" ? mRootX : mRootY;
-      // !!!
-      const mRootReverse = direction === "x" ? mRootY : mRootX;
 
       const isElementVisible =
         xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
@@ -1032,16 +1034,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
 
       if (isElementVisible && isElementVisibleHybrid) {
-        return scrollObjectWrapper(
-          elementTop,
-          left,
-          `${id}-${key}`,
-          childLocal,
-          key
-        );
+        return scrollObjectWrapper(`${key}`, elementTop, left, childLocal, key);
       }
     } else {
-      return scrollObjectWrapper(0, 0, `${id}-${key}`, childLocal, key);
+      return scrollObjectWrapper(`${key}`, 0, 0, childLocal, key);
     }
   };
 
@@ -1112,6 +1108,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             mLocalX,
             mLocalY
           )),
+
+        ...(wrapperAlign && {
+          flexShrink: 0, // это решает проблему с уменьшением ширины при флексе на objectsWrapper
+        }),
       }}
     >
       {validChildren.map(renderChild)}
@@ -1137,7 +1137,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const content = (
     <div
-      morph-scroll="〈♦〉"
+      morph-scroll={`〈♦${id}〉`}
       className={`${className && className}`}
       ref={customScrollRef}
       style={{
@@ -1270,7 +1270,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 thumbSize={args.thumbSize}
                 thumbSpace={args.thumbSpace}
                 objLengthPerSize={args.objLengthPerSize}
-                id={id}
               />
             ))}
       </div>

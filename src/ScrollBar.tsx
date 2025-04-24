@@ -8,7 +8,6 @@ type ModifiedProps = Partial<MorphScrollT> & {
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
-  id: string;
 };
 
 const ScrollBar = ({
@@ -22,7 +21,6 @@ const ScrollBar = ({
   thumbSize,
   thumbSpace,
   objLengthPerSize,
-  id,
 }: ModifiedProps) => {
   return (
     <React.Fragment>
@@ -58,7 +56,7 @@ const ScrollBar = ({
           }}
         >
           <div
-            className={`scrollBarThumb ${id}`}
+            className="scrollBarThumb"
             direction-type={direction === "hybrid" ? "y" : direction}
             onMouseDown={onMouseDown}
             style={{
@@ -75,7 +73,7 @@ const ScrollBar = ({
         </div>
       ) : (
         <div
-          className={`sliderBar ${id}`}
+          className="sliderBar"
           direction-type={direction === "hybrid" ? "y" : direction}
           onMouseDown={onMouseDown}
           style={{

@@ -52,11 +52,13 @@ function smoothScroll(
 
 const getAllScrollBars = (
   type: "scroll" | "slider",
-  id: string,
+  customScrollRef: HTMLDivElement | null,
   scrollBarsRef: React.RefObject<[] | NodeListOf<Element>>
 ) => {
-  const bars = document.querySelectorAll(
-    `.${type === "scroll" ? "scrollBarThumb" : "sliderBar"}.${id}`
+  if (!customScrollRef) return;
+
+  const bars = customScrollRef.querySelectorAll(
+    `.${type === "scroll" ? "scrollBarThumb" : "sliderBar"}`
   );
 
   if (bars.length > 0) {

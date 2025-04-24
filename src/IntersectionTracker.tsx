@@ -4,13 +4,15 @@ import { IntersectionTrackerT } from "./types";
 import numOrArrFormat from "./numOrArrFormater";
 
 const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
+  className,
+  children,
   style,
   root,
-  children,
   threshold,
   rootMargin,
   visibleContent = false,
   onVisible,
+  attribute,
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
@@ -64,7 +66,13 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   const content = visibleContent || isVisible ? children : null;
 
   return (
-    <div ref={observableElement} intersection-tracker="〈♦〉" style={style}>
+    <div
+      intersection-tracker="〈♦〉"
+      {...(attribute ? { [attribute.name]: attribute.value } : {})}
+      className={className}
+      ref={observableElement}
+      style={style}
+    >
       {content}
     </div>
   );

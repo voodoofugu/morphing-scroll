@@ -6,7 +6,7 @@ export default function useIdent() {
   const idRef = useRef<string | null>(null);
 
   if (idRef.current === null) {
-    idRef.current = `i${idCounter++}`;
+    idRef.current = `${idCounter++}`;
   }
 
   return idRef.current;
