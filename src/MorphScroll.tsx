@@ -34,7 +34,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   wrapperMargin,
   wrapperMinSize,
   progressReverse = false,
-  progressTrigger = { wheel: true },
+  progressTrigger = {},
   progressVisibility = "visible",
   suspending = false,
   fallback = null,
@@ -247,9 +247,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const hybridSize = objectSize * (validChildren.length + 1) - objectSize;
     const neededMaxSize = direction === "hybrid" ? hybridSize : localObjSize;
 
-    const objects = objectSize
-      ? Math.floor((neededMaxSize - marginPerDirection) / objectSize)
-      : 1;
+    const objects =
+      Math.floor((neededMaxSize - marginPerDirection) / objectSize) || 1;
 
     // устанавливаем crossCount если он есть и если он меньше objects
     return crossCount && crossCount < objects ? crossCount : objects;
@@ -752,6 +751,64 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     onMouseDown("wrapp");
   }, [onMouseDown]);
 
+  // !!! попробовать вынести всё что касается EmptyKeys
+  const getDataIdsFromAtr = React.useCallback(() => {
+    const elements = customScrollRef.current?.querySelectorAll(`[wrap-id]`);
+    return elements ?? [];
+  }, []);
+
+  const updateEmptyElementKeys = React.useCallback(
+    (update = true) => {
+      let emptyKays = "";
+
+      // находим все ключи из атрибута
+      const emptyElementKays = Array.from(getDataIdsFromAtr())
+        .filter((el) => el.children.length === 0)
+        .map((el) => el.getAttribute("wrap-id"))
+        .filter(Boolean)
+        .join("/");
+
+      // доп проверка для lazy что бы обработать только видимые элементы
+      emptyKays =
+        render.type !== "lazy"
+          ? emptyElementKays
+          : emptyElementKays
+              .split("/")
+              .filter((el) => el.includes("visible"))
+              .filter(Boolean)
+              .join("/");
+
+      if (!emptyElementKeysString.current) {
+        emptyElementKeysString.current = emptyKays;
+      } else if (
+        emptyKays &&
+        !emptyElementKeysString.current.includes(emptyKays)
+      ) {
+        emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyKays}`;
+      }
+
+      update && triggerUpdate();
+    },
+    [emptyElementKeysString.current]
+  );
+
+  const updateEmptyKeysClick = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (!emptyElements?.clickTrigger?.selector) return;
+
+      const target = event.target as HTMLElement;
+      const closeSelector = target.closest(emptyElements.clickTrigger.selector);
+
+      if (closeSelector) {
+        scrollTimeout.current && clearTimeout(scrollTimeout.current);
+        scrollTimeout.current = setTimeout(() => {
+          updateEmptyElementKeys();
+        }, emptyElements.clickTrigger.delay);
+      }
+    },
+    [emptyElements]
+  );
+
   const IntersectionTrackerOnVisible = React.useCallback(
     (key: string) => {
       if (render.type === "lazy" && render.onVisible) {
@@ -801,7 +858,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               ...wrapStyle1,
             },
       onVisible: IntersectionTrackerOnVisible,
-      attribute: { name: "wrap-id", value: attribute },
+      onClick: emptyElements?.clickTrigger?.selector
+        ? updateEmptyKeysClick
+        : undefined,
+      attribute: {
+        name: "wrap-id",
+        value: attribute,
+        viewVisible: render.type === "lazy" ? true : false,
+      },
     };
 
     return render.type === "lazy" ? (
@@ -809,14 +873,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       <IntersectionTracker
         key={key}
         style={commonProps.style} // постоянный ререндер из пропса
-        // attribute={commonProps.attribute} // Добавление attribute удаляет всё при прокрутке
+        attribute={commonProps.attribute} // Добавление attribute удаляет всё при прокрутке
+        onVisible={commonProps.onVisible}
+        onClick={commonProps.onClick}
       >
         {content}
       </IntersectionTracker>
     ) : (
       <div
         {...(stopLoadOnScroll || emptyElements ? { "wrap-id": attribute } : {})}
-        onClick={updateEmptyKeysClick}
+        onClick={commonProps.onClick}
         key={key}
         style={commonProps.style}
       >
@@ -825,62 +891,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     );
   };
 
-  // !!! попробовать вынести всё что касается EmptyKeys
-  const getDataIdsFromAtr = React.useCallback(() => {
-    const elements = customScrollRef.current?.querySelectorAll(`[wrap-id]`);
-    return elements ?? [];
-  }, []);
-
-  const updateEmptyElementKeys = React.useCallback(
-    (update = true) => {
-      if (!emptyElements) return;
-
-      const emptyElementKays = Array.from(getDataIdsFromAtr())
-        .filter((el) => el.children.length === 0)
-        .map((el) => el.getAttribute("wrap-id"))
-        .filter(Boolean)
-        .join("/");
-
-      if (!emptyElementKeysString.current) {
-        emptyElementKeysString.current = emptyElementKays;
-      } else if (
-        emptyElementKays &&
-        !emptyElementKeysString.current.includes(emptyElementKays)
-      ) {
-        emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyElementKays}`;
-      }
-
-      update && triggerUpdate();
-    },
-    [emptyElementKeysString.current]
-  );
-
-  const updateEmptyKeysClick = React.useCallback(
-    (event: React.MouseEvent) => {
-      if (!emptyElements?.clickTrigger?.selector) return;
-
-      const target = event.target as HTMLElement;
-      const closeSelector = target.closest(
-        emptyElements?.clickTrigger.selector
-      );
-
-      if (closeSelector) {
-        scrollTimeout.current && clearTimeout(scrollTimeout.current);
-        scrollTimeout.current = setTimeout(() => {
-          updateEmptyElementKeys();
-        }, emptyElements.clickTrigger.delay);
-      }
-    },
-    [emptyElements]
-  );
-
   // effects
   React.useEffect(() => {
-    updateEmptyElementKeys();
-  }, [validChildren.length]);
+    if (emptyElements && render.type !== "lazy") updateEmptyElementKeys();
+  }, [validChildren.length, emptyElements, render.type]);
 
   React.useEffect(() => {
-    if (render.type === "virtual") {
+    if (render.type === "virtual" || isScrolling) {
+      if (isScrolling) isScrolling(false);
       triggerUpdate();
     }
 
@@ -893,8 +911,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const wheelHandler = (e: WheelEvent) =>
       handleWheel(e, scrollEl, scrollStateRef.current, direction);
-
-    scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
+    if (progressTrigger.wheel)
+      scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
 
     return () => {
       scrollEl.removeEventListener("wheel", wheelHandler);
@@ -902,7 +920,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         cancelAnimationFrame(scrollStateRef.current.animationFrameId);
       }
     };
-  }, [direction]);
+  }, [direction, progressTrigger.wheel]);
 
   React.useEffect(() => {
     if (!scrollPositionLocal.value || validChildren.length === 0) return;

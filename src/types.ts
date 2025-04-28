@@ -16,8 +16,9 @@ export type IntersectionTrackerT = {
   rootMargin?: number[] | number;
   threshold?: number | number[];
   visibleContent?: boolean;
-  onVisible?: (key: string) => void;
-  attribute?: { name: string; value: string };
+  onVisible?: (key: string) => void; // может убрать key
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+  attribute?: { name: string; value: string; viewVisible?: boolean }; // !
 };
 
 export type MorphScrollT = {
@@ -48,9 +49,9 @@ export type MorphScrollT = {
   elementsAlign?: "start" | "center" | "end";
   edgeGradient?: boolean | { color?: string; size?: number }; // !
 
-  // ProgressBar & Rendering
+  // ProgressBar
   progressTrigger?: {
-    wheel?: boolean; // default ?
+    wheel?: boolean;
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
     arrows?: boolean | { size?: number; element?: React.ReactNode }; // не работает в вертикали

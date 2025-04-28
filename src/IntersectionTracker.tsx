@@ -12,6 +12,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   rootMargin,
   visibleContent = false,
   onVisible,
+  onClick,
   attribute,
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
@@ -67,11 +68,18 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
 
   return (
     <div
-      intersection-tracker="〈♦〉"
-      {...(attribute ? { [attribute.name]: attribute.value } : {})}
+      intersection-tracker=""
+      {...(attribute
+        ? {
+            [attribute.name]: `${attribute.value} ${
+              attribute.viewVisible ? (isVisible ? "visible" : "hide") : ""
+            }`,
+          }
+        : {})}
       className={className}
       ref={observableElement}
       style={style}
+      onClick={onClick}
     >
       {content}
     </div>
