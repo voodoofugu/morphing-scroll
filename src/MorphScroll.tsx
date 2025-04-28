@@ -731,7 +731,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const updateEmptyElementKeys = React.useCallback(
     (update = true) => {
-      let emptyKays = "";
+      let emptyKeys = "";
 
       // находим все ключи из атрибута
       const emptyElementKays = Array.from(getDataIdsFromAtr())
@@ -741,7 +741,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         .join("/");
 
       // доп проверка для lazy что бы обработать только видимые элементы
-      emptyKays =
+      emptyKeys =
         render.type !== "lazy"
           ? emptyElementKays
           : emptyElementKays
@@ -751,17 +751,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               .join("/");
 
       if (!emptyElementKeysString.current) {
-        emptyElementKeysString.current = emptyKays;
+        emptyElementKeysString.current = emptyKeys;
       } else if (
-        emptyKays &&
-        !emptyElementKeysString.current.includes(emptyKays)
-      ) {
-        emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyKays}`;
-      }
+        emptyKeys &&
+        !emptyElementKeysString.current.includes(emptyKeys)
+      )
+        emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyKeys}`;
 
       update && triggerUpdate();
     },
-    [emptyElementKeysString.current]
+    [emptyElementKeysString.current, render.type]
   );
 
   const updateEmptyKeysClick = React.useCallback(
@@ -785,10 +784,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (key: string) => {
       if (render.type === "lazy" && render.onVisible) {
         render.onVisible(key);
-        updateEmptyElementKeys();
-      } else {
-        updateEmptyElementKeys();
       }
+
+      updateEmptyElementKeys();
     },
     [render]
   );
