@@ -21,6 +21,7 @@ import {
   sliderCheck,
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
+  createResizeHandler,
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
@@ -83,18 +84,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const isScrollingRef = React.useRef<boolean>(false);
   const numForSliderRef = React.useRef<number>(0);
 
-  const [receivedScrollSize, setReceivedScrollSize] = React.useState({
-    width: 0,
-    height: 0,
-  });
-  const [receivedWrapSize, setReceivedWrapSize] = React.useState({
-    width: 0,
-    height: 0,
-  });
-  const [receivedChildSize, setReceivedChildSize] = React.useState({
-    width: 0,
-    height: 0,
-  });
+  function useSizeRef() {
+    return React.useRef<{ width: number; height: number }>({
+      width: 0,
+      height: 0,
+    });
+  }
+  const receivedScrollSizeRef = useSizeRef();
+  const receivedWrapSizeRef = useSizeRef();
+  const receivedChildSizeRef = useSizeRef();
 
   // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
   const id = useIdent();
@@ -184,7 +182,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : objectsSize[0] === "none"
         ? 0
         : objectsSize[0] === "firstChild"
-        ? receivedChildSize.width
+        ? receivedChildSizeRef.current.width
         : 0;
     const y =
       typeof objectsSize[1] === "number"
@@ -192,11 +190,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : objectsSize[1] === "none"
         ? 0
         : objectsSize[1] === "firstChild"
-        ? receivedChildSize.height
+        ? receivedChildSizeRef.current.height
         : 0;
 
     return [x, y];
-  }, [objectsSize, receivedChildSize]);
+  }, [objectsSize, receivedChildSizeRef.current]);
 
   const mRootLocal = React.useMemo(() => {
     return numOrArrFormat(
@@ -211,7 +209,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const [x, y] =
       size && Array.isArray(size)
         ? size
-        : [receivedScrollSize.width, receivedScrollSize.height];
+        : [
+            receivedScrollSizeRef.current.width,
+            receivedScrollSizeRef.current.height,
+          ];
 
     if (!progressTrigger.arrows || !arrowsLocal.size) {
       return [x, y, x, y];
@@ -231,7 +232,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     return [recountX, recountY, x, y]; // [2] & [3] is only for customScrollRef
-  }, [size, arrowsLocal.size, receivedScrollSize]);
+  }, [size, arrowsLocal.size, receivedScrollSizeRef.current]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
   // calculations
@@ -298,14 +299,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return objectsSizeLocal[0]
       ? (objectsSizeLocal[0] + gapY) * neededObj - gapY
       : render.type !== "virtual"
-      ? receivedWrapSize.width
-      : receivedChildSize.width + childsGap;
+      ? receivedWrapSizeRef.current.width
+      : receivedChildSizeRef.current.width + childsGap;
   }, [
     objectsSizeLocal[0],
     objectsPerDirection,
     gapY,
-    receivedWrapSize.width,
-    receivedChildSize,
+    receivedWrapSizeRef.current.width,
+    receivedChildSizeRef.current,
     render.type,
   ]);
 
@@ -318,14 +319,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
         : (objectsSizeLocal[1] + gapX) * childsLinePerDirection - gapX
       : render.type !== "virtual"
-      ? receivedWrapSize.height // on "fit-content"
-      : receivedChildSize.height + childsGap;
+      ? receivedWrapSizeRef.current.height // on "fit-content"
+      : receivedChildSizeRef.current.height + childsGap;
   }, [
     objectsSizeLocal[1],
     childsLinePerDirection,
     gapX,
-    receivedWrapSize.height,
-    receivedChildSize,
+    receivedWrapSizeRef.current.height,
+    receivedChildSizeRef.current,
     render.type,
   ]);
 
@@ -493,16 +494,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsPerDirection,
   ]);
 
-  const wrapperAlignLocal = React.useMemo(
-    () =>
-      getWrapperAlignStyle(
-        wrapperAlign,
-        sizeLocal,
-        objectsWrapperWidthFull,
-        objectsWrapperHeightFull
-      ),
-    [wrapperAlign, sizeLocal, objectsWrapperHeightFull, objectsWrapperWidthFull]
-  );
+  const wrapperAlignLocal = React.useMemo(() => {
+    if (!sizeLocal?.length || !wrapperAlign) return {};
+
+    return getWrapperAlignStyle(
+      wrapperAlign,
+      sizeLocal,
+      objectsWrapperWidthFull,
+      objectsWrapperHeightFull
+    );
+  }, [
+    wrapperAlign,
+    sizeLocal[0],
+    sizeLocal[1],
+    objectsWrapperHeightFull,
+    objectsWrapperWidthFull,
+  ]);
 
   const objLengthPerSize = React.useMemo(() => {
     const x = objectsPerSize(objectsWrapperWidthFull, sizeLocal[0]);
@@ -628,51 +635,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // functions
   const scrollResize = React.useCallback(
-    (rect: Partial<DOMRectReadOnly>) => {
-      const newSize = { width: rect.width ?? 0, height: rect.height ?? 0 };
-
-      if (
-        receivedScrollSize.width === newSize.width &&
-        receivedScrollSize.height === newSize.height
-      )
-        return;
-
-      setReceivedScrollSize(newSize);
-    },
-    [mLocalY, receivedScrollSize]
+    createResizeHandler(receivedScrollSizeRef, triggerUpdate),
+    []
   );
   const wrapResize = React.useCallback(
-    (rect: Partial<DOMRectReadOnly>) => {
-      const newSize = {
-        width: (rect.width ?? 0) - mLocalX,
-        height: (rect.height ?? 0) - mLocalY,
-      };
-
-      if (
-        receivedWrapSize.width === newSize.width &&
-        receivedWrapSize.height === newSize.height
-      ) {
-        return;
-      }
-
-      setReceivedWrapSize(newSize);
-    },
-    [mLocalX, mLocalY, receivedWrapSize]
+    createResizeHandler(receivedWrapSizeRef, triggerUpdate, mLocalX, mLocalY),
+    [mLocalX, mLocalY]
   );
   const childResize = React.useCallback(
-    (rect: Partial<DOMRectReadOnly>) => {
-      const newSize = { width: rect.width ?? 0, height: rect.height ?? 0 };
-
-      if (
-        receivedChildSize.width === newSize.width &&
-        receivedChildSize.height === newSize.height
-      ) {
-        return;
-      }
-
-      setReceivedChildSize(newSize);
-    },
-    [receivedChildSize]
+    createResizeHandler(receivedChildSizeRef, triggerUpdate),
+    []
   );
 
   const smoothScrollLocal = React.useCallback(
@@ -1217,7 +1189,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             objectsWrapper
           ) : (
             <ResizeTracker
-              measure={"all"}
               onResize={wrapResize}
               style={{
                 ...wrapperAlignLocal,

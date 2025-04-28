@@ -138,13 +138,11 @@ function getWrapperMinSizeStyle(
 }
 
 function getWrapperAlignStyle(
-  wrapperAlign: MorphScrollT["wrapperAlign"],
+  wrapperAlign: "start" | "center" | "end" | ("start" | "center" | "end")[],
   sizeLocal: number[],
   objectsWrapperWidthFull: number,
   objectsWrapperHeightFull: number
 ): React.CSSProperties {
-  if (!wrapperAlign) return {};
-
   const [verticalAlign, horizontalAlign = "start"] =
     typeof wrapperAlign === "string"
       ? [wrapperAlign, wrapperAlign]
@@ -152,18 +150,42 @@ function getWrapperAlignStyle(
   const getStyle = (algin: "start" | "center" | "end") =>
     algin === "start"
       ? "flex-start"
-      : verticalAlign === "center"
+      : algin === "center"
       ? "center"
       : "flex-end";
+
   const alignStyles: React.CSSProperties = { display: "flex" };
 
   if (sizeLocal[0] > objectsWrapperWidthFull)
     alignStyles.justifyContent = getStyle(verticalAlign);
 
-  if (sizeLocal[1] > objectsWrapperHeightFull)
+  if (sizeLocal[1] > objectsWrapperHeightFull) {
     alignStyles.alignItems = getStyle(horizontalAlign);
+  }
 
   return alignStyles;
+}
+
+function createResizeHandler(
+  dataRef: React.RefObject<{ width: number; height: number }>,
+  triggerUpdate: () => void,
+  offsetX = 0,
+  offsetY = 0
+) {
+  return (rect: Partial<DOMRectReadOnly>) => {
+    const newSize = {
+      width: (rect.width ?? 0) - offsetX,
+      height: (rect.height ?? 0) - offsetY,
+    };
+
+    if (
+      dataRef.current.width !== newSize.width ||
+      dataRef.current.height !== newSize.height
+    ) {
+      dataRef.current = newSize;
+      triggerUpdate();
+    }
+  };
 }
 
 export {
@@ -174,4 +196,5 @@ export {
   sliderCheck,
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
+  createResizeHandler,
 };
