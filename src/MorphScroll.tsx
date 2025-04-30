@@ -25,6 +25,8 @@ import {
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
+type TriggerValueT = number | { emptyKeys: string };
+
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
   className = "",
@@ -54,10 +56,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   emptyElements,
   crossCount,
 }) => {
-  const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
+  const [state, forceUpdate] = React.useState<TriggerValueT>(0); // для принудительного обновления
 
-  const triggerUpdate = () => {
-    forceUpdate((n) => (n === 1 ? 0 : 1));
+  const triggerUpdate = (v?: TriggerValueT) => {
+    if (typeof v !== "undefined") {
+      forceUpdate(v);
+    } else forceUpdate((x) => (typeof x === "number" && x < 1000 ? x + 1 : 0));
   };
 
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -146,10 +150,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     []
   );
   const shouldTrackKeys = emptyElements?.mode === "clear";
-  const keys = React.useMemo(
-    () => (shouldTrackKeys ? emptyElementKeysString.current : ""),
-    [shouldTrackKeys, emptyElementKeysString.current]
-  );
+
+  const keys = React.useCallback(() => {
+    const emptyKeys = typeof state === "object" ? state.emptyKeys : "";
+    return shouldTrackKeys ? emptyKeys : "";
+  }, [state, shouldTrackKeys]);
+
   const validChildren = React.useMemo(() => {
     return React.Children.toArray(children)
       .flatMap(filterValidChildren)
@@ -622,13 +628,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollTimeout.current = setTimeout(() => {
       isScrollingRef.current = false;
       isScrolling?.(false);
-      if (render.type !== "default") updateEmptyElementKeys(false);
+      if (render.type !== "default") updateEmptyElementKeys();
 
       triggerUpdate();
     }, 200);
 
     if (type === "slider") sliderCheckLocal();
-    if (render.type !== "default") updateEmptyElementKeys(false);
+    if (render.type !== "default") updateEmptyElementKeys();
 
     triggerUpdate();
   }, [direction, onScrollValue, isScrolling, render, type, sliderCheckLocal]);
@@ -729,39 +735,39 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return elements ?? [];
   }, []);
 
-  const updateEmptyElementKeys = React.useCallback(
-    (update = true) => {
-      let emptyKeys = "";
+  const updateEmptyElementKeys = React.useCallback(() => {
+    let emptyKeys = "";
 
-      // находим все ключи из атрибута
-      const emptyElementKays = Array.from(getDataIdsFromAtr())
-        .filter((el) => el.children.length === 0)
-        .map((el) => el.getAttribute("wrap-id"))
-        .filter(Boolean)
-        .join("/");
+    // находим все ключи из атрибута
+    const emptyElementKays = Array.from(getDataIdsFromAtr())
+      .filter((el) => el.children.length === 0)
+      .map((el) => el.getAttribute("wrap-id"))
+      .filter(Boolean)
+      .join("/");
 
-      // доп проверка для lazy что бы обработать только видимые элементы
-      emptyKeys =
-        render.type !== "lazy"
-          ? emptyElementKays
-          : emptyElementKays
-              .split("/")
-              .filter((el) => el.includes("visible"))
-              .filter(Boolean)
-              .join("/");
+    // доп проверка для lazy что бы обработать только видимые элементы
+    emptyKeys =
+      render.type !== "lazy"
+        ? emptyElementKays
+        : emptyElementKays
+            .split("/")
+            .filter((el) => el.includes("visible"))
+            .filter(Boolean)
+            .join("/");
 
-      if (!emptyElementKeysString.current) {
-        emptyElementKeysString.current = emptyKeys;
-      } else if (
-        emptyKeys &&
-        !emptyElementKeysString.current.includes(emptyKeys)
-      )
-        emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyKeys}`;
-
-      update && triggerUpdate();
-    },
-    [emptyElementKeysString.current, render.type]
-  );
+    if (!emptyElementKeysString.current) {
+      emptyElementKeysString.current = emptyKeys;
+      triggerUpdate({ emptyKeys: emptyKeys });
+    } else if (
+      emptyKeys &&
+      !emptyElementKeysString.current.includes(emptyKeys)
+    ) {
+      emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyKeys}`;
+      triggerUpdate({
+        emptyKeys: `${emptyElementKeysString.current}/${emptyKeys}`,
+      });
+    }
+  }, [render.type]);
 
   const updateEmptyKeysClick = React.useCallback(
     (event: React.MouseEvent) => {
