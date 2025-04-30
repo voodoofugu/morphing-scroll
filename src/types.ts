@@ -16,7 +16,7 @@ export type IntersectionTrackerT = {
   rootMargin?: number[] | number;
   threshold?: number | number[];
   visibleContent?: boolean;
-  onVisible?: (key: string) => void; // может убрать key
+  onVisible?: () => void; // !
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   attribute?: { name: string; value: string; viewVisible?: boolean }; // !
 };
