@@ -25,8 +25,6 @@ import {
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
-type TriggerValueT = number | { emptyKeys: string };
-
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
   className = "",
@@ -56,12 +54,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   emptyElements,
   crossCount,
 }) => {
-  const [state, forceUpdate] = React.useState<TriggerValueT>(0); // для принудительного обновления
+  const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
 
-  const triggerUpdate = (v?: TriggerValueT) => {
-    if (typeof v !== "undefined") {
-      forceUpdate(v);
-    } else forceUpdate((x) => (typeof x === "number" && x < 1000 ? x + 1 : 0));
+  const triggerUpdate = () => {
+    forceUpdate((x) => (typeof x === "number" && x < 1000 ? x + 1 : 0));
   };
 
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -152,9 +148,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const shouldTrackKeys = emptyElements?.mode === "clear";
 
   const keys = React.useCallback(() => {
-    const emptyKeys = typeof state === "object" ? state.emptyKeys : "";
-    return shouldTrackKeys ? emptyKeys : "";
-  }, [state, shouldTrackKeys]);
+    return shouldTrackKeys ? emptyElementKeysString.current : "";
+  }, [emptyElementKeysString.current, shouldTrackKeys]);
 
   const validChildren = React.useMemo(() => {
     return React.Children.toArray(children)
@@ -628,13 +623,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollTimeout.current = setTimeout(() => {
       isScrollingRef.current = false;
       isScrolling?.(false);
-      if (render.type !== "default") updateEmptyElementKeys();
-
-      triggerUpdate();
+      if (render.type !== "default") {
+        updateEmptyElementKeys();
+      } else triggerUpdate();
     }, 200);
 
     if (type === "slider") sliderCheckLocal();
-    if (render.type !== "default") updateEmptyElementKeys();
+    if (render.type !== "default") {
+      updateEmptyElementKeys();
+    } else triggerUpdate();
 
     triggerUpdate();
   }, [direction, onScrollValue, isScrolling, render, type, sliderCheckLocal]);
@@ -757,16 +754,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     if (!emptyElementKeysString.current) {
       emptyElementKeysString.current = emptyKeys;
-      triggerUpdate({ emptyKeys: emptyKeys });
     } else if (
       emptyKeys &&
       !emptyElementKeysString.current.includes(emptyKeys)
     ) {
       emptyElementKeysString.current = `${emptyElementKeysString.current}/${emptyKeys}`;
-      triggerUpdate({
-        emptyKeys: `${emptyElementKeysString.current}/${emptyKeys}`,
-      });
     }
+
+    triggerUpdate();
   }, [render.type]);
 
   const updateEmptyKeysClick = React.useCallback(
