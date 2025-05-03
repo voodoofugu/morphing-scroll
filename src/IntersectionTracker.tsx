@@ -59,8 +59,8 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
       {...(attribute
         ? {
             [attribute.name]: `${attribute.value} ${
-              attribute.viewVisible ? (isVisible ? "visible" : "hide") : ""
-            }`,
+              attribute.viewVisible ? (isVisible ? "visible" : "") : ""
+            }`.trim(),
           }
         : {})}
       className={className}

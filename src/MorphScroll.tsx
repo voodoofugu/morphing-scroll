@@ -50,7 +50,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   wrapperAlign,
 
   isScrolling,
-  stopLoadOnScroll = false,
 
   render = { type: "default" },
   emptyElements,
@@ -73,10 +72,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     "none"
   );
   const loadedObjects = React.useRef<(string | null)[]>([]);
+  const emptyElementKeysString = React.useRef<string>("");
+  const evenVisibleObjects = React.useRef<string>("");
+
   const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
-  const emptyElementKeysString = React.useRef<string>("");
+
   const scrollStateRef = React.useRef<ScrollStateRefT>({
     targetScrollY: 0,
     targetScrollX: 0,
@@ -97,10 +99,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const receivedChildSizeRef = useSizeRef();
 
   // ♦ hooks
-  // !!! debouncedUpdate почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
-  const debouncedUpdate = useDebouncedCallback(() => {
+  // !!! debouncedUpdateEmptyElementKeys почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
+  const debouncedUpdateEmptyElementKeys = useDebouncedCallback(() => {
     updateEmptyElementKeys();
   }, 40);
+  const debouncedSliderCheck = useDebouncedCallback(() => {
+    sliderCheckLocal();
+  }, 34);
+
   // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
   const id = useIdent();
 
@@ -261,7 +267,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     // устанавливаем crossCount если он есть и если он меньше objects
     return crossCount && crossCount < objects ? crossCount : objects;
-  }, [direction, objectsSizeLocal, sizeLocal, gapX, mLocalX, mLocalY]);
+  }, [
+    direction,
+    objectsSizeLocal,
+    sizeLocal[0],
+    sizeLocal[1],
+    gapX,
+    mLocalX,
+    mLocalY,
+  ]);
 
   const childsLinePerDirection = React.useMemo(() => {
     return objectsPerDirection > 1
@@ -579,11 +593,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
 
     const scrollEl = scrollElementRef.current;
-    if (!scrollEl || scrollBarsRef.current.length === 0) return;
-
-    getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
-
-    if (!scrollContentRef.current || scrollBarsRef.current.length === 0) return;
+    if (
+      !scrollContentRef.current ||
+      !scrollEl ||
+      scrollBarsRef.current.length === 0
+    )
+      return;
 
     sliderCheck(
       scrollEl,
@@ -592,7 +607,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       direction
     );
   }, [
-    sizeLocal,
+    sizeLocal[0],
+    sizeLocal[1],
     direction,
     scrollElementRef,
     scrollContentRef,
@@ -621,7 +637,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
-    // scroll status
     isScrollingRef.current = true;
     isScrolling?.(true);
 
@@ -630,14 +645,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollTimeout.current = setTimeout(() => {
       isScrollingRef.current = false;
       isScrolling?.(false);
-      if (render.type !== "default") debouncedUpdate();
+      if (render.type !== "default") {
+        debouncedUpdateEmptyElementKeys();
+      } else triggerUpdate();
     }, 200);
 
-    if (type === "slider") sliderCheckLocal();
-    if (render.type !== "default") debouncedUpdate();
+    if (type === "slider") debouncedSliderCheck();
+    if (render.type !== "default") {
+      debouncedUpdateEmptyElementKeys();
+    }
 
     triggerUpdate();
-  }, [direction, onScrollValue, isScrolling, render, type, sliderCheckLocal]);
+  }, [
+    direction,
+    onScrollValue,
+    isScrolling,
+    render,
+    type,
+    debouncedSliderCheck,
+  ]);
 
   // ♦ functions
   const scrollResize = React.useCallback(
@@ -717,6 +743,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       progressTrigger.progressElement,
       objLengthPerSize[0],
       objLengthPerSize[1],
+      sizeLocal[0],
+      sizeLocal[1],
     ]
   );
   const onMouseDownScrollThumb = React.useCallback(() => {
@@ -752,7 +780,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     //   return Array.from(pathSet).join("/");
     // };
 
-    const allKeys = getWrapIds();
+    // const allKeys = getWrapIds();
     const emptyKeysRaw = getWrapIds((el) => el.children.length === 0);
 
     // const allKeysStr = allKeys.join("/");
@@ -806,78 +834,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [emptyElements]
   );
 
-  const scrollObjectWrapper = (
-    attribute: string,
-    elementTop?: number,
-    left?: number,
-    children?: React.ReactNode,
-    key?: string
-  ) => {
-    const content = suspending ? (
-      <React.Suspense fallback={fallback}>{children}</React.Suspense>
-    ) : (
-      children
-    );
-
-    const wrapStyle1 = {
-      width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
-      height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : "",
-    };
-
-    const commonProps = {
-      root: scrollElementRef.current,
-      rootMargin: render.type === "lazy" ? render.rootMargin : mRootLocal,
-      style:
-        render.type === "virtual"
-          ? ({
-              ...wrapStyle1,
-              position: "absolute",
-              top: `${elementTop}px`,
-              left: `${left}px`,
-              ...(!objectsSizeLocal[0] &&
-                objectsPerDirection === 1 && {
-                  transform: "translateX(-50%)",
-                }),
-            } as React.CSSProperties)
-          : {
-              ...wrapStyle1,
-            },
-      onVisible: debouncedUpdate,
-      onClick: emptyElements?.clickTrigger?.selector
-        ? updateEmptyKeysClick
-        : undefined,
-      attribute: {
-        name: "wrap-id",
-        value: attribute,
-        viewVisible: render.type === "lazy" ? true : false,
-      },
-    };
-
-    return render.type === "lazy" ? (
-      <IntersectionTracker
-        key={key}
-        style={commonProps.style} // постоянный ререндер из пропса
-        attribute={commonProps.attribute}
-        onVisible={commonProps.onVisible}
-        onClick={commonProps.onClick}
-      >
-        {content}
-      </IntersectionTracker>
-    ) : (
-      <div
-        {...(stopLoadOnScroll || emptyElements ? { "wrap-id": attribute } : {})}
-        onClick={commonProps.onClick}
-        key={key}
-        style={commonProps.style}
-      >
-        {content}
-      </div>
-    );
-  };
-
   // ♦ effects
   React.useEffect(() => {
-    if (emptyElements && render.type !== "lazy") debouncedUpdate();
+    if (emptyElements && render.type !== "lazy")
+      debouncedUpdateEmptyElementKeys();
   }, [validChildren.length, emptyElements, render.type]);
 
   React.useEffect(() => {
@@ -887,6 +847,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     sliderCheckLocal();
+    return () => {
+      clearTimeout(scrollTimeout.current!);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -954,8 +917,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return () => {
       cancelScrolls.forEach((fn) => fn());
-      clearTimeout(scrollTimeout.current!);
-      loadedObjects.current = [];
     };
   }, [
     scrollPosition?.updater,
@@ -967,25 +928,135 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     xySize,
     objectsWrapperWidthFull,
     objectsWrapperHeightFull,
-    sizeLocal,
+    sizeLocal[0],
+    sizeLocal[1],
   ]);
 
   React.useEffect(() => {
-    if (stopLoadOnScroll) {
+    if (
+      (render.type !== "default" && render.stopLoadOnScroll) ||
+      render.type === "lazy"
+    ) {
       const dataIds = Array.from(getDataIdsFromAtr(), (el) =>
         el.getAttribute("wrap-id")
       );
       loadedObjects.current = dataIds;
     }
-  }, [stopLoadOnScroll]);
+
+    return () => {
+      if (loadedObjects.current.length > 0) loadedObjects.current = [];
+    };
+  }, [render, validChildren.length, isScrollingRef.current]);
 
   // ♦ contents
+  const scrollObjectWrapper = React.useCallback(
+    (
+      attribute: string,
+      elementTop?: number,
+      left?: number,
+      children?: React.ReactNode,
+      key?: string
+    ) => {
+      const content = suspending ? (
+        <React.Suspense fallback={fallback}>{children}</React.Suspense>
+      ) : (
+        children
+      );
+
+      const wrapStyle1 = {
+        width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : "",
+        height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : "",
+      };
+
+      const commonProps = {
+        root: scrollElementRef.current,
+        rootMargin: render.type === "lazy" ? render.rootMargin : mRootLocal,
+        style:
+          render.type === "virtual"
+            ? ({
+                ...wrapStyle1,
+                position: "absolute",
+                top: `${elementTop}px`,
+                left: `${left}px`,
+                ...(!objectsSizeLocal[0] &&
+                  objectsPerDirection === 1 && {
+                    transform: "translateX(-50%)",
+                  }),
+              } as React.CSSProperties)
+            : {
+                ...wrapStyle1,
+              },
+        onVisible: debouncedUpdateEmptyElementKeys,
+        onClick: emptyElements?.clickTrigger?.selector
+          ? updateEmptyKeysClick
+          : undefined,
+        attribute: {
+          name: "wrap-id",
+          value: attribute,
+          viewVisible: render.type === "lazy",
+        },
+      };
+
+      // механизм сохранения видимых элементов в evenVisibleObjects, что бы они всегда были видны
+      const previous = evenVisibleObjects.current.split("/").filter(Boolean);
+      const current = loadedObjects.current.filter((el) =>
+        el?.includes("visible")
+      );
+      evenVisibleObjects.current = [...new Set([...previous, ...current])].join(
+        "/"
+      );
+
+      return render.type === "lazy" ? (
+        <IntersectionTracker
+          key={key}
+          style={commonProps.style}
+          attribute={commonProps.attribute}
+          onVisible={commonProps.onVisible}
+          onClick={commonProps.onClick}
+          visibleContent={evenVisibleObjects.current.includes(key!)}
+        >
+          {content}
+        </IntersectionTracker>
+      ) : (
+        <div
+          {...((render.type === "virtual" && render.stopLoadOnScroll) ||
+          emptyElements
+            ? { "wrap-id": `${attribute} visible` }
+            : {})}
+          onClick={commonProps.onClick}
+          key={key}
+          style={commonProps.style}
+        >
+          {content}
+        </div>
+      );
+    },
+    [
+      suspending,
+      fallback,
+      objectsSizeLocal[0],
+      objectsSizeLocal[1],
+      scrollElementRef.current,
+      render,
+      mRootLocal,
+      debouncedUpdateEmptyElementKeys,
+      emptyElements,
+      objectsPerDirection,
+      loadedObjects.current,
+    ]
+  );
+
   const renderChild = (child: React.ReactNode, index: number) => {
     const key = (child as React.ReactElement).key || "";
+    const visibleObjects =
+      render.type === "lazy"
+        ? evenVisibleObjects.current
+        : loadedObjects.current;
 
     const childRenderOnScroll =
-      stopLoadOnScroll &&
-      !loadedObjects.current.includes(`${key}`) &&
+      render.type !== "default" &&
+      render.stopLoadOnScroll &&
+      !visibleObjects.includes(`${key} visible`) &&
       isScrollingRef.current
         ? fallback
         : emptyElements?.mode === "fallback" &&
@@ -1033,6 +1104,27 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return scrollObjectWrapper(`${key}`, 0, 0, childLocal, key);
     }
   };
+
+  const localChildren = React.useMemo(
+    () => validChildren.map(renderChild),
+    [
+      validChildren.length,
+      memoizedChildrenData,
+      render.type !== "default" && render.stopLoadOnScroll,
+      loadedObjects.current,
+      evenVisibleObjects.current,
+      isScrollingRef.current,
+      fallback,
+      emptyElementKeysString.current,
+      emptyElements?.mode,
+      objectsSize[0],
+      objectsSize[1],
+      direction,
+      mRootX,
+      mRootY,
+      scrollSpaceFromRef,
+    ]
+  );
 
   const objectsWrapper = (
     <div
@@ -1107,7 +1199,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }),
       }}
     >
-      {validChildren.map(renderChild)}
+      {localChildren}
     </div>
   );
 
@@ -1274,6 +1366,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             arrows={arrowsLocal}
             arrowType={positionType as handleArrowT["arrowType"]}
             handleArrow={handleArrowLocal}
+            size={
+              direction === "hybrid"
+                ? sizeLocal[0] + arrowsLocal.size * 2
+                : sizeLocal[0]
+            }
           />
         ))}
     </div>

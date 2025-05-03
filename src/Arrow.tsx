@@ -6,9 +6,10 @@ type ArrowT = {
   arrows: { size: number; element?: React.ReactNode };
   arrowType: handleArrowT["arrowType"];
   handleArrow: (arrowType: handleArrowT["arrowType"]) => void;
+  size: number;
 };
 
-const Arrow = ({ activity, arrows, arrowType, handleArrow }: ArrowT) => {
+const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
   const arrowsStyle: React.CSSProperties = {
     position: "absolute",
     display: "flex",
@@ -16,7 +17,6 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow }: ArrowT) => {
     alignItems: "center",
     cursor: "pointer",
     width: `${arrows.size}px`,
-    height: "100%",
 
     ...(arrowType ? { [arrowType]: 0 } : {}),
 
@@ -31,13 +31,17 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow }: ArrowT) => {
     }),
 
     ...(arrowType === "left" && {
-      top: 0,
       transform: "scaleX(-1)",
     }),
 
-    ...(arrowType === "right" && {
-      top: 0,
-    }),
+    ...(["top", "bottom"].includes(arrowType)
+      ? {
+          height: `${size}px`,
+        }
+      : {
+          height: "100%",
+          top: 0,
+        }),
   };
 
   return (

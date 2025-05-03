@@ -54,7 +54,7 @@ export type MorphScrollT = {
     wheel?: boolean;
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
-    arrows?: boolean | { size?: number; element?: React.ReactNode }; // не работает в вертикали
+    arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   progressReverse?: boolean | boolean[]; // !
   progressVisibility?: "visible" | "hover" | "hidden";
@@ -66,8 +66,13 @@ export type MorphScrollT = {
         type: "lazy";
         rootMargin?: number | number[];
         onVisible?: (key: string) => void;
+        stopLoadOnScroll?: boolean;
       }
-    | { type: "virtual"; rootMargin?: number | number[] };
+    | {
+        type: "virtual";
+        rootMargin?: number | number[];
+        stopLoadOnScroll?: boolean;
+      };
   emptyElements?:
     | { mode: "clear"; clickTrigger?: { selector: string; delay?: number } }
     | {
@@ -77,7 +82,7 @@ export type MorphScrollT = {
       };
   suspending?: boolean;
   fallback?: React.ReactNode;
-  stopLoadOnScroll?: boolean;
+  // stopLoadOnScroll?: boolean;
 };
 
 // progressTrigger contentSlider & arrows looped
