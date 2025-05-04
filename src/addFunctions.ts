@@ -70,7 +70,7 @@ const sliderCheck = (
   scrollEl: HTMLDivElement,
   scrollBars: NodeListOf<Element>,
   sizeLocal: number[],
-  direction: "x" | "y" | "hybrid"
+  direction: "x" | "y" | "hybridX" | "hybridY"
 ) => {
   function getActiveElem() {
     const elementsFirst = scrollBars[0]?.querySelectorAll(".sliderElem") ?? [];
@@ -80,7 +80,7 @@ const sliderCheck = (
       elementsArray: NodeListOf<Element>,
       size: number,
       scroll: HTMLDivElement,
-      direction: "x" | "y" | "hybrid"
+      direction: "x" | "y" | "hybridX" | "hybridY"
     ) {
       const scrollPosition =
         direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
@@ -106,7 +106,7 @@ const sliderCheck = (
 
 function getWrapperMinSizeStyle(
   wrapperMinSize: number | "full" | (number | "full")[],
-  direction: "x" | "y" | "hybrid",
+  direction: "x" | "y" | "hybridX" | "hybridY",
   sizeLocal: number[],
   mLocalX: number,
   mLocalY: number
@@ -117,12 +117,16 @@ function getWrapperMinSizeStyle(
         (axis === "x" ? mLocalX : mLocalY)
       : value;
 
-  if (direction !== "hybrid" && !Array.isArray(wrapperMinSize)) {
+  if (
+    direction !== "hybridX" &&
+    direction !== "hybridY" &&
+    !Array.isArray(wrapperMinSize)
+  ) {
     const minSize = `${resolveSize(wrapperMinSize, direction)}px`;
     return direction === "x" ? { minWidth: minSize } : { minHeight: minSize };
   }
 
-  // direction === "hybrid"
+  // direction is hybrid
   let x: number | "full", y: number | "full";
 
   if (Array.isArray(wrapperMinSize)) {

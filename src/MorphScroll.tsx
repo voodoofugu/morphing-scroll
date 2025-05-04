@@ -27,6 +27,8 @@ import {
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 
+import { CONST } from "./constants";
+
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
   className = "",
@@ -47,6 +49,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   onScrollValue,
 
   elementsAlign = false,
+  elementsDirection = "row",
   wrapperAlign,
 
   isScrolling,
@@ -240,7 +243,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       recountX = x - arrowFullSize;
     } else if (direction === "y") {
       recountY = y - arrowFullSize;
-    } else if (direction === "hybrid") {
+    } else if (["hybridX", "hybridY"].includes(direction)) {
       recountX = x - arrowFullSize;
       recountY = y - arrowFullSize;
     }
@@ -259,17 +262,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? objectsSizeLocal[1] + gapY
       : objectsSizeLocal[0] + gapX;
 
-    const hybridSize = objectSize * (validChildren.length + 1) - objectSize;
-    const neededMaxSize = direction === "hybrid" ? hybridSize : localObjSize;
+    const neededMaxSize =
+      direction === "hybridX"
+        ? objectSize * (validChildren.length + 1) - objectSize
+        : localObjSize;
 
     const objects =
       Math.floor((neededMaxSize - marginPerDirection) / objectSize) || 1;
 
     // устанавливаем crossCount если он есть и если он меньше objects
-    return crossCount && crossCount < objects ? crossCount : objects;
+    return crossCount && crossCount < objects
+      ? direction === "hybridX"
+        ? Math.ceil(objects / crossCount)
+        : crossCount
+      : objects;
   }, [
     direction,
-    objectsSizeLocal,
+    objectsSizeLocal[0],
+    objectsSizeLocal[1],
     sizeLocal[0],
     sizeLocal[1],
     gapX,
@@ -282,34 +292,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? Math.ceil(validChildren.length / objectsPerDirection)
       : validChildren.length;
   }, [validChildren.length, objectsPerDirection]);
-
-  // делим на группы
-  const splitIndices = React.useCallback(() => {
-    if (render.type !== "virtual" || objectsPerDirection <= 1) {
-      return [];
-    }
-
-    // Создаём массив индексов детей
-    const indices = Array.from({ length: validChildren.length }, (_, i) => i);
-
-    // Создаём пустые массивы
-    const result: number[][] = Array.from(
-      { length: objectsPerDirection },
-      () => []
-    );
-
-    indices.forEach((index) => {
-      const groupIndex = index % objectsPerDirection;
-
-      if (!result[groupIndex]) {
-        return;
-      }
-
-      result[groupIndex].push(index);
-    });
-
-    return result;
-  }, [validChildren.length, objectsPerDirection, render.type]);
 
   const objectsWrapperWidth = React.useMemo(() => {
     const childsGap = !objectsPerDirection
@@ -372,7 +354,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   let isNotAtStartX = false;
   let isNotAtEndX = false;
-  if (direction === "hybrid") {
+  if (["hybridX", "hybridY"].includes(direction)) {
     isNotAtStartX = (scrollElementRef.current?.scrollLeft || 0) > 1 && true;
     isNotAtEndX =
       Math.round((scrollElementRef.current?.scrollLeft || 0) + sizeLocal[0]) <
@@ -400,6 +382,44 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       objectsWrapperWidthFull - sizeLocal[0] // in scroll vindow
     );
   }, [objectsWrapperWidthFull, sizeLocal[0]]);
+
+  // делим на группы
+  const splitIndices = React.useCallback(() => {
+    if (render.type !== "virtual" || objectsPerDirection <= 1) {
+      return [];
+    }
+
+    // Создаём массив индексов детей
+    const indices = Array.from({ length: validChildren.length }, (_, i) => i);
+
+    // Создаём пустые массивы
+    const result: number[][] = Array.from(
+      { length: objectsPerDirection },
+      () => []
+    );
+
+    if (elementsDirection === "row") {
+      indices.forEach((index) => {
+        const groupIndex = index % objectsPerDirection;
+        if (!result[groupIndex]) return;
+        result[groupIndex].push(index);
+      });
+    } else if (elementsDirection === "column") {
+      indices.forEach((index) => {
+        const groupIndex = Math.floor(index / childsLinePerDirection);
+        if (!result[groupIndex]) return;
+        result[groupIndex].push(index);
+      });
+    }
+
+    return result;
+  }, [
+    validChildren.length,
+    objectsPerDirection,
+    childsLinePerDirection,
+    render.type,
+    elementsDirection,
+  ]);
 
   const memoizedChildrenData = React.useMemo(() => {
     if (render.type !== "virtual")
@@ -450,10 +470,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ) {
           const indexInArray = splitIndices[arrayIndex].indexOf(index);
           if (indexInArray !== -1) {
-            const neededTopIndex =
-              direction === "y" || direction === "hybrid"
-                ? indexInArray
-                : arrayIndex;
+            const neededTopIndex = ["hybridY", "hybridX", "y"].includes(
+              direction
+            )
+              ? indexInArray
+              : arrayIndex;
             const neededLeftIndex =
               direction === "x" ? indexInArray : arrayIndex;
 
@@ -475,7 +496,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop
           : alignLocal;
       })(
-        objectsPerDirection > 1 || direction === "x" || direction === "hybrid"
+        objectsPerDirection > 1 ||
+          ["hybridY", "hybridX", "x"].includes(direction)
           ? indexAndSubIndex[1]
           : index
       );
@@ -509,11 +531,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     });
   }, [
     children,
-    splitIndices,
     objectsSizeLocal,
     gap,
     render.type,
     objectsPerDirection,
+    elementsDirection,
   ]);
 
   const wrapperAlignLocal = React.useMemo(() => {
@@ -617,20 +639,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     id,
   ]);
 
-  // высчитываем сдвиг скролла и ограничиваем его
-  const thumbSpace = clampValue(
-    (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize),
-    0,
-    xySize - thumbSize
-  );
-
-  const thumbSpaceX = clampValue(
-    ((scrollElementRef.current?.scrollLeft || 0) / endObjectsWrapperX) *
-      (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
-    0,
-    sizeLocal[0] - thumbSizeX
-  );
-
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
@@ -664,6 +672,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
     debouncedSliderCheck,
   ]);
+
+  // высчитываем сдвиг скролла и ограничиваем его
+  const thumbSpace = clampValue(
+    (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize),
+    0,
+    xySize - thumbSize
+  );
+
+  const thumbSpaceX = clampValue(
+    ((scrollElementRef.current?.scrollLeft || 0) / endObjectsWrapperX) *
+      (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
+    0,
+    sizeLocal[0] - thumbSizeX
+  );
 
   // ♦ functions
   const scrollResize = React.useCallback(
@@ -759,7 +781,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // !!! попробовать вынести всё что касается EmptyKeys
   const getDataIdsFromAtr = React.useCallback(() => {
-    const elements = customScrollRef.current?.querySelectorAll(`[wrap-id]`);
+    const elements = customScrollRef.current?.querySelectorAll(
+      `[${CONST.WRAP_ATR}]`
+    );
     return elements ?? [];
   }, []);
 
@@ -767,7 +791,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const getWrapIds = (filterFn?: (el: Element) => boolean): string[] => {
       return Array.from(getDataIdsFromAtr())
         .filter(filterFn || (() => true))
-        .map((el) => el.getAttribute("wrap-id"))
+        .map((el) => el.getAttribute(CONST.WRAP_ATR))
         .filter(Boolean) as string[];
     };
 
@@ -900,7 +924,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     };
 
-    const directions = direction === "hybrid" ? ["x", "y"] : [direction];
+    const directions = ["hybridX", "hybridY"].includes(direction)
+      ? ["x", "y"]
+      : [direction];
 
     directions.forEach((dir) => {
       const index = dir === "x" ? 0 : 1;
@@ -938,7 +964,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       render.type === "lazy"
     ) {
       const dataIds = Array.from(getDataIdsFromAtr(), (el) =>
-        el.getAttribute("wrap-id")
+        el.getAttribute(CONST.WRAP_ATR)
       );
       loadedObjects.current = dataIds;
     }
@@ -991,7 +1017,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? updateEmptyKeysClick
           : undefined,
         attribute: {
-          name: "wrap-id",
+          name: CONST.WRAP_ATR,
           value: attribute,
           viewVisible: render.type === "lazy",
         },
@@ -1009,8 +1035,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return render.type === "lazy" ? (
         <IntersectionTracker
           key={key}
-          style={commonProps.style}
-          attribute={commonProps.attribute}
+          style={commonProps.style} // !!! ререндер
+          attribute={commonProps.attribute} // !!! ререндер
           onVisible={commonProps.onVisible}
           onClick={commonProps.onClick}
           visibleContent={evenVisibleObjects.current.includes(key!)}
@@ -1021,7 +1047,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         <div
           {...((render.type === "virtual" && render.stopLoadOnScroll) ||
           emptyElements
-            ? { "wrap-id": `${attribute} visible` }
+            ? { [CONST.WRAP_ATR]: `${attribute} visible` }
             : {})}
           onClick={commonProps.onClick}
           key={key}
@@ -1090,12 +1116,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
         bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
 
-      const isElementVisibleHybrid =
-        direction !== "hybrid"
-          ? true
-          : sizeLocal[0] + mRootX >
-              left - (scrollElementRef.current?.scrollLeft || 0) &&
-            right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
+      const isElementVisibleHybrid = !["hybridX", "hybridY"].includes(direction)
+        ? true
+        : sizeLocal[0] + mRootX >
+            left - (scrollElementRef.current?.scrollLeft || 0) &&
+          right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
 
       if (isElementVisible && isElementVisibleHybrid) {
         return scrollObjectWrapper(`${key}`, elementTop, left, childLocal, key);
@@ -1104,27 +1129,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return scrollObjectWrapper(`${key}`, 0, 0, childLocal, key);
     }
   };
-
-  const localChildren = React.useMemo(
-    () => validChildren.map(renderChild),
-    [
-      validChildren.length,
-      memoizedChildrenData,
-      render.type !== "default" && render.stopLoadOnScroll,
-      loadedObjects.current,
-      evenVisibleObjects.current,
-      isScrollingRef.current,
-      fallback,
-      emptyElementKeysString.current,
-      emptyElements?.mode,
-      objectsSize[0],
-      objectsSize[1],
-      direction,
-      mRootX,
-      mRootY,
-      scrollSpaceFromRef,
-    ]
-  );
 
   const objectsWrapper = (
     <div
@@ -1151,18 +1155,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             }),
 
         ...(render.type !== "virtual" &&
-        (direction === "y" || direction === "hybrid") &&
-        objectsPerDirection > 1
-          ? {
-              flexDirection: "row",
-            }
-          : render.type !== "virtual" && {
-              flexDirection: "column",
-            }),
+          objectsPerDirection > 1 && {
+            flexDirection: elementsDirection,
+          }),
 
         ...(render.type !== "virtual" &&
-          direction === "x" && {
-            flexDirection: "row",
+          objectsPerDirection === 1 && {
+            flexDirection: "column",
           }),
 
         ...(render.type !== "virtual" &&
@@ -1199,7 +1198,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }),
       }}
     >
-      {localChildren}
+      {validChildren.map(renderChild)}
     </div>
   );
 
@@ -1212,7 +1211,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       positionType: direction === "x" ? "right" : "bottom",
       visibility: isNotAtEnd,
     },
-    ...(direction === "hybrid"
+    ...(["hybridX", "hybridY"].includes(direction)
       ? [
           { positionType: "left", visibility: isNotAtStartX },
           { positionType: "right", visibility: isNotAtEndX },
@@ -1272,7 +1271,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                       objectsWrapperWidthFull > sizeLocal[0]
                         ? "scroll hidden"
                         : "hidden",
-                    hybrid:
+                    hybridX:
+                      objectsWrapperWidthFull > sizeLocal[0] &&
+                      objectsWrapperHeightFull > sizeLocal[1]
+                        ? "scroll"
+                        : "hidden",
+                    hybridY:
                       objectsWrapperWidthFull > sizeLocal[0] &&
                       objectsWrapperHeightFull > sizeLocal[1]
                         ? "scroll"
@@ -1327,7 +1331,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             },
             {
               shouldRender:
-                direction === "hybrid" && thumbSizeX < objectsWrapperWidthFull,
+                ["hybridX", "hybridY"].includes(direction) &&
+                thumbSizeX < objectsWrapperWidthFull,
               direction: "x" as const,
               thumbSize: thumbSizeX,
               thumbSpace: thumbSpaceX,
@@ -1367,7 +1372,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             arrowType={positionType as handleArrowT["arrowType"]}
             handleArrow={handleArrowLocal}
             size={
-              direction === "hybrid"
+              ["hybridX", "hybridY"].includes(direction)
                 ? sizeLocal[0] + arrowsLocal.size * 2
                 : sizeLocal[0]
             }

@@ -169,7 +169,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
     return null;
   };
 
-  if (args.direction === "hybrid") {
+  if (["hybridX", "hybridY"].includes(args.direction!)) {
     if (args.clicked === "wrapp") {
       handleAxis("x");
       handleAxis("y");

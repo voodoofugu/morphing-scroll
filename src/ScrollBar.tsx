@@ -57,7 +57,9 @@ const ScrollBar = ({
         >
           <div
             className="scrollBarThumb"
-            direction-type={direction === "hybrid" ? "y" : direction}
+            direction-type={
+              ["hybridY", "y"].includes(direction!) ? "y" : direction
+            }
             onMouseDown={onMouseDown}
             style={{
               height: `${thumbSize}px`,
@@ -74,7 +76,9 @@ const ScrollBar = ({
       ) : (
         <div
           className="sliderBar"
-          direction-type={direction === "hybrid" ? "y" : direction}
+          direction-type={
+            ["hybridY", "y"].includes(direction!) ? "y" : direction
+          }
           onMouseDown={onMouseDown}
           style={{
             position: "absolute",

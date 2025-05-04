@@ -28,7 +28,7 @@ export type MorphScrollT = {
 
   // Scroll Settings
   type?: "scroll" | "slider";
-  direction?: "x" | "y" | "hybrid";
+  direction?: "x" | "y" | "hybridX" | "hybridY";
   scrollPosition?: {
     // !
     value: number | "end" | (number | "end")[]; // !
@@ -47,6 +47,7 @@ export type MorphScrollT = {
   wrapperMinSize?: number | "full" | (number | "full")[];
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
   elementsAlign?: "start" | "center" | "end";
+  elementsDirection?: "row" | "column"; // !
   edgeGradient?: boolean | { color?: string; size?: number }; // !
 
   // ProgressBar
@@ -57,7 +58,7 @@ export type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   progressReverse?: boolean | boolean[]; // !
-  progressVisibility?: "visible" | "hover" | "hidden";
+  progressVisibility?: "visible" | "hover" | "hidden"; // может добавить массив для hybrid
 
   // optimization
   render?:
