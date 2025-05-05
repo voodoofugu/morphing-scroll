@@ -40,8 +40,8 @@ export type MorphScrollT = {
 
   // Visual Settings
   size?: number[];
-  crossCount?: number; // !
   objectsSize: (number | "none" | "firstChild")[];
+  crossCount?: number; // !
   gap?: number[] | number;
   wrapperMargin?: number[] | number;
   wrapperMinSize?: number | "full" | (number | "full")[];
@@ -60,7 +60,7 @@ export type MorphScrollT = {
   progressReverse?: boolean | boolean[]; // !
   progressVisibility?: "visible" | "hover" | "hidden"; // может добавить массив для hybrid
 
-  // optimization
+  // Optimization
   render?:
     | { type: "default" } // ?
     | {

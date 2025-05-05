@@ -53,7 +53,7 @@ function smoothScroll(
 const getAllScrollBars = (
   type: "scroll" | "slider",
   customScrollRef: HTMLDivElement | null,
-  scrollBarsRef: React.RefObject<[] | NodeListOf<Element>>
+  scrollBarsRef: React.MutableRefObject<[] | NodeListOf<Element>>
 ) => {
   if (!customScrollRef) return;
 
@@ -171,7 +171,7 @@ function getWrapperAlignStyle(
 }
 
 function createResizeHandler(
-  dataRef: React.RefObject<{ width: number; height: number }>,
+  dataRef: React.MutableRefObject<{ width: number; height: number }>,
   triggerUpdate: () => void,
   offsetX = 0,
   offsetY = 0
@@ -183,8 +183,8 @@ function createResizeHandler(
     };
 
     if (
-      dataRef.current.width !== newSize.width ||
-      dataRef.current.height !== newSize.height
+      dataRef.current?.width !== newSize.width ||
+      dataRef.current?.height !== newSize.height
     ) {
       dataRef.current = newSize;
       triggerUpdate();

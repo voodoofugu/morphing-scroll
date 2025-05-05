@@ -26,6 +26,7 @@ import {
   createResizeHandler,
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
+import { updateEmptyElementKeys, updateEmptyKeysClick } from "./emptyKeys";
 
 import { CONST } from "./constants";
 
@@ -104,7 +105,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // ♦ hooks
   // !!! debouncedUpdateEmptyElementKeys почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
   const debouncedUpdateEmptyElementKeys = useDebouncedCallback(() => {
-    updateEmptyElementKeys();
+    updateEmptyElementKeysLocal();
   }, 40);
   const debouncedSliderCheck = useDebouncedCallback(() => {
     sliderCheckLocal();
@@ -572,7 +573,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ events
   const mouseOnRefHandle = React.useCallback(
-    (event: MouseEvent | React.MouseEvent) => {
+    (event: MouseEvent | React.MouseEvent | TouchEvent) => {
       if (progressVisibility !== "hover") return;
       const func = () =>
         mouseOnRef(
@@ -779,81 +780,32 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     onMouseDown("wrapp");
   }, [onMouseDown]);
 
-  // !!! попробовать вынести всё что касается EmptyKeys
   const getDataIdsFromAtr = React.useCallback(() => {
-    const elements = customScrollRef.current?.querySelectorAll(
+    const elements = customScrollRef.current!.querySelectorAll(
       `[${CONST.WRAP_ATR}]`
     );
     return elements ?? [];
   }, []);
 
-  const updateEmptyElementKeys = React.useCallback(() => {
-    const getWrapIds = (filterFn?: (el: Element) => boolean): string[] => {
-      return Array.from(getDataIdsFromAtr())
-        .filter(filterFn || (() => true))
-        .map((el) => el.getAttribute(CONST.WRAP_ATR))
-        .filter(Boolean) as string[];
-    };
-
-    // const removeKeysFromPath = (
-    //   path: string,
-    //   keysToRemove: string[]
-    // ): string => {
-    //   const pathSet = new Set(path.split("/"));
-    //   keysToRemove.forEach((key) => pathSet.delete(key));
-    //   return Array.from(pathSet).join("/");
-    // };
-
-    // const allKeys = getWrapIds();
-    const emptyKeysRaw = getWrapIds((el) => el.children.length === 0);
-
-    // const allKeysStr = allKeys.join("/");
-    const emptyKeysFiltered =
-      render.type !== "lazy"
-        ? emptyKeysRaw
-        : emptyKeysRaw.filter((key) => key.includes("visible"));
-
-    const emptyKeysStr = emptyKeysFiltered.join("/");
-    // const fullKeysStr = removeKeysFromPath(allKeysStr, emptyKeysFiltered);
-    // const diffKeys = removeKeysFromPath(
-    //   emptyElementKeysString.current,
-    //   fullKeysStr.split("/")
-    // );
-
-    if (!emptyElementKeysString.current) {
-      emptyElementKeysString.current = emptyKeysStr;
-    } else {
-      if (
-        emptyKeysStr &&
-        !emptyElementKeysString.current.includes(emptyKeysStr)
-      ) {
-        emptyElementKeysString.current += `/${emptyKeysStr}`;
-      }
-
-      // if (diffKeys) {
-      //   emptyElementKeysString.current = removeKeysFromPath(
-      //     emptyElementKeysString.current,
-      //     diffKeys.split("/")
-      //   );
-      // }
-    }
-
-    triggerUpdate();
+  const updateEmptyElementKeysLocal = React.useCallback(() => {
+    // !!! есть механизм добавления пустых ключей, но нет добавления появившегося ключа который был пустым
+    updateEmptyElementKeys(
+      getDataIdsFromAtr,
+      emptyElementKeysString,
+      render,
+      triggerUpdate
+    );
   }, [render.type]);
 
-  const updateEmptyKeysClick = React.useCallback(
+  const updateEmptyKeysClickLocal = React.useCallback(
     (event: React.MouseEvent) => {
-      if (!emptyElements?.clickTrigger?.selector) return;
-
-      const target = event.target as HTMLElement;
-      const closeSelector = target.closest(emptyElements.clickTrigger.selector);
-
-      if (closeSelector) {
-        scrollTimeout.current && clearTimeout(scrollTimeout.current);
-        scrollTimeout.current = setTimeout(() => {
-          updateEmptyElementKeys();
-        }, emptyElements.clickTrigger.delay);
-      }
+      if (emptyElements)
+        updateEmptyKeysClick(
+          event,
+          scrollTimeout,
+          emptyElements,
+          updateEmptyElementKeysLocal
+        );
     },
     [emptyElements]
   );
@@ -872,7 +824,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     sliderCheckLocal();
     return () => {
-      clearTimeout(scrollTimeout.current!);
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+        scrollTimeout.current = null;
+      }
     };
   }, []);
 
@@ -1014,7 +969,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               },
         onVisible: debouncedUpdateEmptyElementKeys,
         onClick: emptyElements?.clickTrigger?.selector
-          ? updateEmptyKeysClick
+          ? updateEmptyKeysClickLocal
           : undefined,
         attribute: {
           name: CONST.WRAP_ATR,
@@ -1327,6 +1282,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               thumbSpace,
               objLengthPerSize: objLengthPerSizeXY,
               onMouseDown: onMouseDownScrollThumb,
+              onTouchStart: onMouseDownScrollThumb,
               progressReverseIndex: 0,
             },
             {
@@ -1338,6 +1294,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               thumbSpace: thumbSpaceX,
               objLengthPerSize: objLengthPerSize[0],
               onMouseDown: onMouseDownScrollThumbTwo,
+              onTouchStart: onMouseDownScrollThumbTwo,
               progressReverseIndex: 1,
             },
           ]
@@ -1356,6 +1313,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 progressTrigger={progressTrigger}
                 progressVisibility={progressVisibility}
                 onMouseDown={args.onMouseDown}
+                onTouchStart={args.onTouchStart}
                 thumbSize={args.thumbSize}
                 thumbSpace={args.thumbSpace}
                 objLengthPerSize={args.objLengthPerSize}

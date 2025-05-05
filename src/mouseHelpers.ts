@@ -13,7 +13,7 @@ const mouseOnEl = (el: HTMLDivElement | null) => {
 const mouseOnRef = (
   el: HTMLDivElement | null,
   childClass: string,
-  event: MouseEvent | React.MouseEvent
+  event: MouseEvent | React.MouseEvent | TouchEvent
 ) => {
   if (!el) return;
   const childs = el.querySelectorAll(`.${childClass}`);

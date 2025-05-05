@@ -7,7 +7,7 @@ type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
   scrollBarsRef: NodeListOf<Element> | [];
-  clickedObject: React.RefObject<ClickedT>;
+  clickedObject: React.MutableRefObject<ClickedT>;
   progressVisibility: "hover" | "visible" | "hidden";
   scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
@@ -21,10 +21,10 @@ type HandleMouseT = {
     callback?: () => void
   ) => void;
   mouseOnEl: (el: HTMLDivElement | null) => void;
-  mouseOnRefHandle: (event: MouseEvent | React.MouseEvent) => void;
+  mouseOnRefHandle: (event: MouseEvent | React.MouseEvent | TouchEvent) => void;
   triggerUpdate: () => void;
   scrollElemIndex?: number;
-  numForSliderRef: React.RefObject<number>;
+  numForSliderRef: React.MutableRefObject<number>;
   isScrollingRef: React.RefObject<boolean>;
 };
 
@@ -39,7 +39,7 @@ type HandleMouseMoveT = Omit<
   | "scrollContentRef"
   | "mouseOnEl"
   | "mouseOnRefHandle"
-> & { mouseEvent: MouseEvent; clicked: ClickedT };
+> & { mouseEvent: MouseEvent | TouchEvent; clicked: ClickedT };
 
 type HandleMouseUpT = Omit<
   HandleMouseT,
@@ -49,7 +49,11 @@ type HandleMouseUpT = Omit<
   | "direction"
   | "smoothScroll"
   | "sizeLocal"
-> & { mouseEvent: MouseEvent; controller: AbortController; clicked: ClickedT };
+> & {
+  mouseEvent: MouseEvent | TouchEvent;
+  controller: AbortController;
+  clicked: ClickedT;
+};
 
 function handleMouseDown(args: HandleMouseDownT) {
   if (
@@ -89,14 +93,37 @@ function handleMouseDown(args: HandleMouseDownT) {
     { signal }
   );
 
+  // слушатели для мобилок
+  if (window.matchMedia("(pointer: coarse)").matches) {
+    document.addEventListener(
+      "touchmove",
+      (touchEvent) => handleMouseMove({ ...args, mouseEvent: touchEvent }),
+      { signal, passive: false } // если используется preventDefault()
+    );
+
+    document.addEventListener(
+      "touchend",
+      (touchEvent) =>
+        handleMouseUp({ ...args, mouseEvent: touchEvent, controller }),
+      { signal }
+    );
+  }
+
   document.body.style.cursor = "grabbing";
 }
 
 function handleMouseMove(args: HandleMouseMoveT) {
   const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
+  // !!! ТУТ
   const getMove = (axis: "x" | "y") =>
-    axis === "x" ? args.mouseEvent.movementX : args.mouseEvent.movementY;
+    "touches" in args.mouseEvent
+      ? axis === "x"
+        ? args.mouseEvent.touches[0].clientX
+        : args.mouseEvent.touches[0].clientY
+      : axis === "x"
+      ? args.mouseEvent.clientX
+      : args.mouseEvent.clientY;
 
   const applyThumbOrWrap = (axis: "x" | "y") => {
     if (!args.scrollElementRef) return;

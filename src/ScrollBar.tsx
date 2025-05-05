@@ -5,6 +5,7 @@ import { MorphScrollT } from "./types";
 type ModifiedProps = Partial<MorphScrollT> & {
   sizeHeight: number;
   onMouseDown: React.MouseEventHandler<HTMLDivElement>;
+  onTouchStart: React.TouchEventHandler<HTMLDivElement>;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
@@ -18,6 +19,7 @@ const ScrollBar = ({
   progressTrigger,
   progressVisibility,
   onMouseDown,
+  onTouchStart,
   thumbSize,
   thumbSpace,
   objLengthPerSize,
@@ -61,6 +63,7 @@ const ScrollBar = ({
               ["hybridY", "y"].includes(direction!) ? "y" : direction
             }
             onMouseDown={onMouseDown}
+            onTouchStart={onTouchStart}
             style={{
               height: `${thumbSize}px`,
               willChange: "transform", // свойство убирает артефакты во время анимации
@@ -80,6 +83,7 @@ const ScrollBar = ({
             ["hybridY", "y"].includes(direction!) ? "y" : direction
           }
           onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
           style={{
             position: "absolute",
             cursor: "grab",
