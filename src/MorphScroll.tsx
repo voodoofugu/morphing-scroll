@@ -91,7 +91,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   });
   const isScrollingRef = React.useRef<boolean>(false);
   const numForSliderRef = React.useRef<number>(0);
-  const prevCoordsRef = React.useRef<number | null>(null); // !!! x + y
+  const prevCoordsRef = React.useRef<{ x: number; y: number } | null>(null);
+  console.log("prevCoordsRef", prevCoordsRef.current);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -264,17 +265,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? objectsSizeLocal[1] + gapY
       : objectsSizeLocal[0] + gapX;
 
-    const neededMaxSize =
-      direction === "hybridX"
-        ? objectSize * (validChildren.length + 1) - objectSize
-        : localObjSize;
+    const neededMaxSize = ["hybridX", "hybridY"].includes(direction)
+      ? objectSize * (validChildren.length + 1) - objectSize
+      : localObjSize;
 
     const objects =
       Math.floor((neededMaxSize - marginPerDirection) / objectSize) || 1;
 
     // устанавливаем crossCount если он есть и если он меньше objects
     return crossCount && crossCount < objects
-      ? direction === "hybridX"
+      ? ["hybridX", "hybridY"].includes(direction)
         ? Math.ceil(objects / crossCount)
         : crossCount
       : objects;

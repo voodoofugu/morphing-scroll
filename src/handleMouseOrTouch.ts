@@ -33,7 +33,7 @@ type HandleMouseT = {
   scrollElemIndex?: number;
   numForSliderRef: React.MutableRefObject<number>;
   isScrollingRef: React.RefObject<boolean>;
-  prevCoordsRef: React.MutableRefObject<number | null>;
+  prevCoordsRef: React.MutableRefObject<{ x: number; y: number } | null>;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -130,10 +130,13 @@ function handleMove(args: HandleMoveT) {
         : args.mouseEvent.clientY;
 
     const prev = args.prevCoordsRef.current;
-    const delta = prev == null ? 0 : curr - prev;
+    const delta = prev == null ? 0 : curr - (axis === "x" ? prev.x : prev.y);
 
     // сохраняем текущие координаты для следующего кадра
-    args.prevCoordsRef.current = curr;
+    args.prevCoordsRef.current = {
+      x: axis === "x" ? curr : prev?.x || 0,
+      y: axis === "y" ? curr : prev?.y || 0,
+    };
 
     return delta;
   };
