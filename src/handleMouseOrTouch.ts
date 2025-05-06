@@ -4,6 +4,7 @@ import { ScrollStateRefT } from "./handleWheel";
 type ClickedT = "thumb" | "slider" | "wrapp" | "none";
 
 type HandleMouseT = {
+  eventType: string;
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
   scrollBarsRef: NodeListOf<Element> | [];
@@ -21,18 +22,25 @@ type HandleMouseT = {
     callback?: () => void
   ) => void;
   mouseOnEl: (el: HTMLDivElement | null) => void;
-  mouseOnRefHandle: (event: MouseEvent | React.MouseEvent | TouchEvent) => void;
+  mouseOnRefHandle: (
+    event:
+      | React.MouseEvent<HTMLDivElement>
+      | React.TouchEvent<HTMLDivElement>
+      | MouseEvent
+      | TouchEvent
+  ) => void;
   triggerUpdate: () => void;
   scrollElemIndex?: number;
   numForSliderRef: React.MutableRefObject<number>;
   isScrollingRef: React.RefObject<boolean>;
+  prevCoordsRef: React.MutableRefObject<number | null>;
 };
 
 type HandleMouseDownT = HandleMouseT & {
   clicked: ClickedT;
 };
 
-type HandleMouseMoveT = Omit<
+type HandleMoveT = Omit<
   HandleMouseT,
   | "controller"
   | "progressVisibility"
@@ -41,7 +49,7 @@ type HandleMouseMoveT = Omit<
   | "mouseOnRefHandle"
 > & { mouseEvent: MouseEvent | TouchEvent; clicked: ClickedT };
 
-type HandleMouseUpT = Omit<
+type HandleUpT = Omit<
   HandleMouseT,
   | "scrollElementRef"
   | "objLengthPerSize"
@@ -55,14 +63,7 @@ type HandleMouseUpT = Omit<
   clicked: ClickedT;
 };
 
-function handleMouseDown(args: HandleMouseDownT) {
-  if (
-    !args.scrollElementRef ||
-    !args.objectsWrapperRef ||
-    !args.scrollContentRef
-  )
-    return;
-
+function handleMouseOrTouch(args: HandleMouseDownT) {
   // меняем курсор
   if (["thumb", "slider"].includes(args.clicked)) {
     // если первого бегунка нет (из-за размеров) а нужен второй то ставим индекс 0
@@ -81,30 +82,32 @@ function handleMouseDown(args: HandleMouseDownT) {
   args.clickedObject.current = args.clicked;
   args.triggerUpdate();
 
-  document.addEventListener(
-    "mousemove",
-    (mouseEvent) => handleMouseMove({ ...args, mouseEvent }),
-    { signal }
-  );
+  if (args.eventType === "mousedown") {
+    document.addEventListener(
+      "mousemove",
+      (mouseEvent) => handleMove({ ...args, mouseEvent }),
+      { signal }
+    );
 
-  document.addEventListener(
-    "mouseup",
-    (mouseEvent) => handleMouseUp({ ...args, mouseEvent, controller }),
-    { signal }
-  );
-
-  // слушатели для мобилок
-  if (window.matchMedia("(pointer: coarse)").matches) {
+    document.addEventListener(
+      "mouseup",
+      (mouseEvent) => handleUp({ ...args, mouseEvent, controller }),
+      { signal }
+    );
+  } else if (args.eventType === "touchstart") {
+    // слушатели для мобилок
     document.addEventListener(
       "touchmove",
-      (touchEvent) => handleMouseMove({ ...args, mouseEvent: touchEvent }),
-      { signal, passive: false } // если используется preventDefault()
+      (touchEvent) => handleMove({ ...args, mouseEvent: touchEvent }),
+      {
+        signal,
+        // passive: false // если используется preventDefault()
+      }
     );
 
     document.addEventListener(
       "touchend",
-      (touchEvent) =>
-        handleMouseUp({ ...args, mouseEvent: touchEvent, controller }),
+      (touchEvent) => handleUp({ ...args, mouseEvent: touchEvent, controller }),
       { signal }
     );
   }
@@ -112,18 +115,28 @@ function handleMouseDown(args: HandleMouseDownT) {
   document.body.style.cursor = "grabbing";
 }
 
-function handleMouseMove(args: HandleMouseMoveT) {
+function handleMove(args: HandleMoveT) {
+  // args.mouseEvent.preventDefault();
   const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
-  // !!! ТУТ
-  const getMove = (axis: "x" | "y") =>
-    "touches" in args.mouseEvent
-      ? axis === "x"
-        ? args.mouseEvent.touches[0].clientX
-        : args.mouseEvent.touches[0].clientY
-      : axis === "x"
-      ? args.mouseEvent.clientX
-      : args.mouseEvent.clientY;
+  const getMove = (axis: "x" | "y") => {
+    const curr =
+      "touches" in args.mouseEvent
+        ? axis === "x"
+          ? args.mouseEvent.touches[0].clientX
+          : args.mouseEvent.touches[0].clientY
+        : axis === "x"
+        ? args.mouseEvent.clientX
+        : args.mouseEvent.clientY;
+
+    const prev = args.prevCoordsRef.current;
+    const delta = prev == null ? 0 : curr - prev;
+
+    // сохраняем текущие координаты для следующего кадра
+    args.prevCoordsRef.current = curr;
+
+    return delta;
+  };
 
   const applyThumbOrWrap = (axis: "x" | "y") => {
     if (!args.scrollElementRef) return;
@@ -209,7 +222,7 @@ function handleMouseMove(args: HandleMouseMoveT) {
   }
 }
 
-function handleMouseUp(args: HandleMouseUpT) {
+function handleUp(args: HandleUpT) {
   // Отменяем все слушатели событий
   args.controller.abort();
 
@@ -243,7 +256,8 @@ function handleMouseUp(args: HandleMouseUpT) {
     }
   }
 
+  args.prevCoordsRef.current = null;
   args.triggerUpdate(); // for update ref only
 }
 
-export default handleMouseDown;
+export default handleMouseOrTouch;
