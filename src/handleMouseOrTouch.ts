@@ -119,42 +119,40 @@ function handleMove(args: HandleMoveT) {
   // args.mouseEvent.preventDefault();
   const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
-  const getMove = (axis: "x" | "y") => {
-    const curr =
+  const curr = {
+    x:
       "touches" in args.mouseEvent
-        ? axis === "x"
-          ? args.mouseEvent.touches[0].clientX
-          : args.mouseEvent.touches[0].clientY
-        : axis === "x"
-        ? args.mouseEvent.clientX
-        : args.mouseEvent.clientY;
-
-    const prev = args.prevCoordsRef.current;
-    const delta = prev == null ? 0 : curr - (axis === "x" ? prev.x : prev.y);
-
-    // сохраняем текущие координаты для следующего кадра
-    args.prevCoordsRef.current = {
-      x: axis === "x" ? curr : prev?.x || 0,
-      y: axis === "y" ? curr : prev?.y || 0,
-    };
-
-    return delta;
+        ? args.mouseEvent.touches[0].clientX
+        : args.mouseEvent.clientX,
+    y:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientY
+        : args.mouseEvent.clientY,
   };
+
+  const prev = args.prevCoordsRef.current ?? curr;
+
+  const delta = {
+    x: curr.x - prev.x,
+    y: curr.y - prev.y,
+  };
+
+  args.prevCoordsRef.current = curr;
 
   const applyThumbOrWrap = (axis: "x" | "y") => {
     if (!args.scrollElementRef) return;
 
-    const move = getMove(axis);
+    const move = delta[axis];
     const isThumb = args.clicked === "thumb";
     const length =
       axis === "x" ? args.objLengthPerSize[0] : args.objLengthPerSize[1];
-    const delta = move * (isThumb ? length : -1);
+    const deltaScroll = move * (isThumb ? length : -1);
 
     if (axis === "x") {
-      args.scrollElementRef!.scrollLeft += delta;
+      args.scrollElementRef!.scrollLeft += deltaScroll;
       args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft;
     } else {
-      args.scrollElementRef!.scrollTop += delta;
+      args.scrollElementRef!.scrollTop += deltaScroll;
       args.scrollStateRef.targetScrollY = args.scrollElementRef.scrollTop;
     }
   };
@@ -164,7 +162,7 @@ function handleMove(args: HandleMoveT) {
     if (!wrapEl) return;
 
     const reverce = args.type === "slider" && args.clicked === "wrapp" ? -1 : 1;
-    const move = getMove(axis) * reverce;
+    const move = delta[axis] * reverce;
     const pixelsForSwipe = 6;
     const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
     const extent = axis === "x" ? wrapEl.offsetWidth : wrapEl.offsetHeight;

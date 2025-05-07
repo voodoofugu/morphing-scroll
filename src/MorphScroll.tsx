@@ -1242,19 +1242,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             ...{
               overflow:
                 {
-                  y:
-                    objectsWrapperHeightFull > sizeLocal[1]
-                      ? "hidden scroll"
-                      : "hidden",
-                  x:
+                  x: `${
                     objectsWrapperWidthFull > sizeLocal[0]
                       ? "scroll hidden"
-                      : "hidden",
-                  hybrid:
-                    objectsWrapperWidthFull > sizeLocal[0] &&
+                      : "hidden"
+                  }`,
+                  y: `${
+                    objectsWrapperHeightFull > sizeLocal[1]
+                      ? "hidden scroll"
+                      : "hidden"
+                  }`,
+                  hybrid: `${
+                    objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
+                  } ${
                     objectsWrapperHeightFull > sizeLocal[1]
                       ? "scroll"
-                      : "hidden",
+                      : "hidden"
+                  }`,
                 }[
                   direction === "x" || direction === "y" ? direction : "hybrid"
                 ] ?? "hidden",
@@ -1266,6 +1270,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   scrollbarWidth: "none",
                 }
               : {}),
+
+            ...(!(progressTrigger.wheel || progressTrigger.content) && {
+              touchAction: "none",
+            }),
           }}
         >
           {objectsSize[0] !== "none" && objectsSize[1] !== "none" ? (
