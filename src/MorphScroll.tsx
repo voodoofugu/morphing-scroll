@@ -400,19 +400,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       () => []
     );
 
-    if (elementsDirection === "row") {
-      indices.forEach((index) => {
-        const groupIndex = index % objectsPerDirection;
-        if (!result[groupIndex]) return;
-        result[groupIndex].push(index);
-      });
-    } else if (elementsDirection === "column") {
-      indices.forEach((index) => {
-        const groupIndex = Math.floor(index / childsLinePerDirection);
-        if (!result[groupIndex]) return;
-        result[groupIndex].push(index);
-      });
-    }
+    const useMod =
+      (direction === "x" && elementsDirection === "column") ||
+      (direction !== "x" && elementsDirection === "row");
+
+    indices.forEach((index) => {
+      const groupIndex = useMod
+        ? index % objectsPerDirection
+        : Math.floor(index / childsLinePerDirection);
+
+      if (!result[groupIndex]) return;
+      result[groupIndex].push(index);
+    });
 
     return result;
   }, [
@@ -421,6 +420,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     childsLinePerDirection,
     render.type,
     elementsDirection,
+    direction,
   ]);
 
   const memoizedChildrenData = React.useMemo(() => {
