@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
 import { IntersectionTrackerT } from "./types";
-import numOrArrFormat from "./numOrArrFormater";
+import numOrArrFormat from "./ArgFormatter";
 
 const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   className,
@@ -18,14 +18,21 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
 
-  const margin = numOrArrFormat(rootMargin);
+  const margin = rootMargin ? numOrArrFormat(rootMargin) : null;
   const rootMarginStr = margin
     ? `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`
     : "";
 
-  const callback = React.useCallback(([entry]: IntersectionObserverEntry[]) => {
-    setIsVisible(entry.isIntersecting);
-  }, []);
+  const callback = React.useCallback(
+    ([entry]: IntersectionObserverEntry[]) => {
+      setIsVisible(entry.isIntersecting);
+
+      if (entry.isIntersecting && onVisible) {
+        onVisible(entry);
+      }
+    },
+    [onVisible]
+  );
 
   React.useEffect(() => {
     const observer = new IntersectionObserver(callback, {
@@ -41,15 +48,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     return () => {
       observer.disconnect();
     };
-  }, [root, threshold, rootMarginStr]);
-
-  React.useEffect(() => {
-    if (!isVisible || !onVisible) return;
-
-    if (isVisible && onVisible) {
-      onVisible();
-    }
-  }, [isVisible, onVisible]);
+  }, [callback, root, threshold, rootMarginStr]);
 
   const content = visibleContent || isVisible ? children : null;
 

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
 import { MorphScrollT } from "./types";
-import numOrArrFormat from "./numOrArrFormater";
+import ArgFormatter from "./ArgFormatter";
 
 import useDebouncedCallback from "./useDebouncedCallback";
 import useIdent from "./useIdent";
@@ -59,12 +59,35 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   emptyElements,
   crossCount,
 }) => {
+  // ♦ hooks
+  // !!! debouncedUpdateEmptyElementKeys почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
+  const debouncedUpdateEmptyElementKeys = useDebouncedCallback(() => {
+    updateEmptyElementKeysLocal();
+  }, 40);
+  const debouncedSliderCheck = useDebouncedCallback(() => {
+    sliderCheckLocal();
+  }, 34);
+
+  // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
+  const id = useIdent();
+
+  // ♦ errors
+  if (!objectsSize)
+    throw new Error(`⚠️ MorphScroll: 'objectsSize' prop is not provided`);
+  if (Object.keys(progressTrigger).length === 0)
+    console.error(
+      `MorphScroll id〈♦${id}〉
+'progressTrigger' prop is not provided`
+    );
+
+  // ♦ state
   const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
 
   const triggerUpdate = () => {
     forceUpdate((x) => (typeof x === "number" && x < 1000 ? x + 1 : 0));
   };
 
+  // ♦ refs
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
   const scrollContentRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
@@ -92,7 +115,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const isScrollingRef = React.useRef<boolean>(false);
   const numForSliderRef = React.useRef<number>(0);
   const prevCoordsRef = React.useRef<{ x: number; y: number } | null>(null);
-  console.log("prevCoordsRef", prevCoordsRef.current);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -103,18 +125,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const receivedScrollSizeRef = useSizeRef();
   const receivedWrapSizeRef = useSizeRef();
   const receivedChildSizeRef = useSizeRef();
-
-  // ♦ hooks
-  // !!! debouncedUpdateEmptyElementKeys почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
-  const debouncedUpdateEmptyElementKeys = useDebouncedCallback(() => {
-    updateEmptyElementKeysLocal();
-  }, 40);
-  const debouncedSliderCheck = useDebouncedCallback(() => {
-    sliderCheckLocal();
-  }, 34);
-
-  // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
-  const id = useIdent();
 
   // ♦ default
   const scrollPositionLocal = React.useMemo(() => {
@@ -134,7 +144,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return typeof edgeGradient === "object"
       ? { ...edgeGradientDefault, ...edgeGradient }
       : edgeGradientDefault;
-  }, []);
+  }, [edgeGradient]);
 
   const arrowsLocal = React.useMemo(() => {
     return {
@@ -181,7 +191,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
   }, [children, shouldTrackKeys, keys]);
 
-  const [mT, mR, mB, mL] = numOrArrFormat(wrapperMargin) || [0, 0, 0, 0];
+  const [mT, mR, mB, mL] = wrapperMargin
+    ? ArgFormatter(wrapperMargin)
+    : [0, 0, 0, 0];
   const mLocalY = mT + mB;
   const mLocalX = mL + mR;
 
@@ -195,29 +207,34 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [0, 0];
   }, [gap]);
 
+  const objectsSizing = React.useMemo(
+    () => ArgFormatter(objectsSize, true),
+    [objectsSize]
+  );
+
   const objectsSizeLocal = React.useMemo(() => {
     const x =
-      typeof objectsSize[0] === "number"
-        ? objectsSize[0]
-        : objectsSize[0] === "none"
+      typeof objectsSizing[0] === "number"
+        ? objectsSizing[0]
+        : objectsSizing[0] === "none"
         ? 0
-        : objectsSize[0] === "firstChild"
+        : objectsSizing[0] === "firstChild"
         ? receivedChildSizeRef.current.width
         : 0;
     const y =
-      typeof objectsSize[1] === "number"
-        ? objectsSize[1]
-        : objectsSize[1] === "none"
+      typeof objectsSizing[1] === "number"
+        ? objectsSizing[1]
+        : objectsSizing[1] === "none"
         ? 0
-        : objectsSize[1] === "firstChild"
+        : objectsSizing[1] === "firstChild"
         ? receivedChildSizeRef.current.height
         : 0;
 
     return [x, y];
-  }, [objectsSize, receivedChildSizeRef.current]);
+  }, [objectsSizing, receivedChildSizeRef.current]);
 
   const mRootLocal = React.useMemo(() => {
-    return numOrArrFormat(
+    return ArgFormatter(
       render.type !== "default" ? render.rootMargin || 0 : 0,
       direction === "x"
     );
@@ -271,14 +288,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const objects =
       Math.floor((neededMaxSize - marginPerDirection) / objectSize) || 1;
-
     // устанавливаем crossCount если он есть и если он меньше objects
-    return crossCount && crossCount < objects
-      ? ["hybridX", "hybridY"].includes(direction)
-        ? Math.ceil(objects / crossCount)
-        : crossCount
-      : objects;
+    const objectsPerD =
+      crossCount && crossCount < objects
+        ? ["hybridX", "hybridY"].includes(direction)
+          ? Math.ceil(objects / crossCount)
+          : crossCount
+        : objects;
+    const childsLinePerD =
+      objectsPerD > 1
+        ? Math.ceil(validChildren.length / objectsPerD)
+        : validChildren.length;
+
+    return [Math.ceil(validChildren.length / childsLinePerD), childsLinePerD];
   }, [
+    validChildren.length,
     direction,
     objectsSizeLocal[0],
     objectsSizeLocal[1],
@@ -287,20 +311,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     gapX,
     mLocalX,
     mLocalY,
+    crossCount,
   ]);
 
-  const childsLinePerDirection = React.useMemo(() => {
-    return objectsPerDirection > 1
-      ? Math.ceil(validChildren.length / objectsPerDirection)
-      : validChildren.length;
-  }, [validChildren.length, objectsPerDirection]);
-
   const objectsWrapperWidth = React.useMemo(() => {
-    const childsGap = !objectsPerDirection
+    const childsGap = !objectsPerDirection[0]
       ? 0
-      : objectsPerDirection * gapY - gapY;
+      : objectsPerDirection[0] * gapY - gapY;
     const neededObj =
-      direction === "x" ? childsLinePerDirection : objectsPerDirection;
+      direction === "x" ? objectsPerDirection[1] : objectsPerDirection[0];
 
     return objectsSizeLocal[0]
       ? (objectsSizeLocal[0] + gapY) * neededObj - gapY
@@ -309,7 +328,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       : receivedChildSizeRef.current.width + childsGap;
   }, [
     objectsSizeLocal[0],
-    objectsPerDirection,
+    objectsPerDirection[0],
     gapY,
     receivedWrapSizeRef.current.width,
     receivedChildSizeRef.current,
@@ -318,18 +337,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const objectsWrapperHeight = React.useMemo(() => {
     const childsGap =
-      childsLinePerDirection < 1 ? 1 : objectsPerDirection * gapX - gapX;
+      objectsPerDirection[1] < 1 ? 1 : objectsPerDirection[0] * gapX - gapX;
 
     return objectsSizeLocal[1]
       ? direction === "x"
-        ? (objectsSizeLocal[1] + gapX) * objectsPerDirection - gapX
-        : (objectsSizeLocal[1] + gapX) * childsLinePerDirection - gapX
+        ? (objectsSizeLocal[1] + gapX) * objectsPerDirection[0] - gapX
+        : (objectsSizeLocal[1] + gapX) * objectsPerDirection[1] - gapX
       : render.type !== "virtual"
       ? receivedWrapSizeRef.current.height // on "fit-content"
       : receivedChildSizeRef.current.height + childsGap;
   }, [
     objectsSizeLocal[1],
-    childsLinePerDirection,
+    objectsPerDirection[1],
     gapX,
     receivedWrapSizeRef.current.height,
     receivedChildSizeRef.current,
@@ -387,7 +406,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // делим на группы
   const splitIndices = React.useCallback(() => {
-    if (render.type !== "virtual" || objectsPerDirection <= 1) {
+    if (render.type !== "virtual" || objectsPerDirection[0] <= 1) {
       return [];
     }
 
@@ -396,7 +415,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     // Создаём пустые массивы
     const result: number[][] = Array.from(
-      { length: objectsPerDirection },
+      { length: objectsPerDirection[0] },
       () => []
     );
 
@@ -406,8 +425,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     indices.forEach((index) => {
       const groupIndex = useMod
-        ? index % objectsPerDirection
-        : Math.floor(index / childsLinePerDirection);
+        ? index % objectsPerDirection[0]
+        : Math.floor(index / objectsPerDirection[1]);
 
       if (!result[groupIndex]) return;
       result[groupIndex].push(index);
@@ -416,8 +435,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return result;
   }, [
     validChildren.length,
-    objectsPerDirection,
-    childsLinePerDirection,
+    objectsPerDirection[0],
+    objectsPerDirection[1],
     render.type,
     elementsDirection,
     direction,
@@ -438,8 +457,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       // находим индексы последних элементов
       const lastChildsInDirection = Math.abs(
-        Math.floor(validChildren.length / objectsPerDirection) *
-          objectsPerDirection -
+        Math.floor(validChildren.length / objectsPerDirection[0]) *
+          objectsPerDirection[0] -
           validChildren.length
       );
       // находим индексы и отсекаем лишние
@@ -450,12 +469,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (elementsAlign === "center") {
         alignSpaceLeft =
           ((objectsSizeLocal[0] + gapY) *
-            (objectsPerDirection - lastChildsInDirection)) /
+            (objectsPerDirection[0] - lastChildsInDirection)) /
           2;
       } else if (elementsAlign === "end") {
         alignSpaceLeft =
           (objectsSizeLocal[0] + gapY) *
-          (objectsPerDirection - lastChildsInDirection);
+          (objectsPerDirection[0] - lastChildsInDirection);
       }
     }
 
@@ -498,7 +517,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop
           : alignLocal;
       })(
-        objectsPerDirection > 1 ||
+        objectsPerDirection[0] > 1 ||
           ["hybridY", "hybridX", "x"].includes(direction)
           ? indexAndSubIndex[1]
           : index
@@ -517,7 +536,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft
           : alignLocal;
       })(
-        objectsPerDirection === 1 && direction === "x"
+        objectsPerDirection[0] === 1 && direction === "x"
           ? index
           : indexAndSubIndex[0]
       );
@@ -536,7 +555,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsSizeLocal,
     gap,
     render.type,
-    objectsPerDirection,
+    objectsPerDirection[0],
     elementsDirection,
   ]);
 
@@ -981,7 +1000,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 top: `${elementTop}px`,
                 left: `${left}px`,
                 ...(!objectsSizeLocal[0] &&
-                  objectsPerDirection === 1 && {
+                  objectsPerDirection[0] === 1 && {
                     transform: "translateX(-50%)",
                   }),
               } as React.CSSProperties)
@@ -1043,7 +1062,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       mRootLocal,
       debouncedUpdateEmptyElementKeys,
       emptyElements,
-      objectsPerDirection,
+      objectsPerDirection[0],
       loadedObjects.current,
     ]
   );
@@ -1067,14 +1086,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : child;
 
     const childLocal =
-      typeof objectsSize[0] === "number" &&
-      typeof objectsSize[1] === "number" ? (
+      typeof objectsSizing[0] === "number" &&
+      typeof objectsSizing[1] === "number" ? (
         childRenderOnScroll
-      ) : (objectsSize[0] === "firstChild" ||
-          objectsSize[1] === "firstChild") &&
+      ) : (objectsSizing[0] === "firstChild" ||
+          objectsSizing[1] === "firstChild") &&
         index === 0 ? (
         <ResizeTracker onResize={childResize}>
-          {() => childRenderOnScroll}
+          {childRenderOnScroll}
         </ResizeTracker>
       ) : (
         childRenderOnScroll
@@ -1115,7 +1134,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       style={{
         margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
         height:
-          objectsSize[1] !== "none"
+          objectsSizing[1] !== "none"
             ? `${objectsWrapperHeight}px`
             : "fit-content",
         width: `${objectsWrapperWidth}px`,
@@ -1132,23 +1151,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             }),
 
         ...(render.type !== "virtual" &&
-          objectsPerDirection > 1 && {
+          objectsPerDirection[0] > 1 && {
             flexDirection: elementsDirection,
           }),
 
         ...(render.type !== "virtual" &&
-          objectsPerDirection === 1 && {
+          objectsPerDirection[0] === 1 && {
             flexDirection: "column",
           }),
 
         ...(render.type !== "virtual" &&
-          objectsSize[1] !== "none" && {
+          objectsSizing[1] !== "none" && {
             flexWrap: "wrap",
           }),
 
         ...(elementsAlign &&
         render.type !== "virtual" &&
-        objectsPerDirection > 1
+        objectsPerDirection[0] > 1
           ? {
               justifyContent:
                 elementsAlign === "start"
@@ -1261,7 +1280,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   }`,
                 }[
                   direction === "x" || direction === "y" ? direction : "hybrid"
-                ] ?? "hidden",
+                ] || Object.keys(progressTrigger).length === 0
+                  ? "hidden"
+                  : "hidden",
             },
 
             ...(typeof progressTrigger.progressElement !== "boolean" ||
@@ -1276,7 +1297,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             }),
           }}
         >
-          {objectsSize[0] !== "none" && objectsSize[1] !== "none" ? (
+          {objectsSizing[0] !== "none" && objectsSizing[1] !== "none" ? (
             objectsWrapper
           ) : (
             <ResizeTracker
@@ -1285,7 +1306,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 ...wrapperAlignLocal,
               }}
             >
-              {() => objectsWrapper}
+              {objectsWrapper}
             </ResizeTracker>
           )}
         </div>
@@ -1367,7 +1388,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   if (!size) {
     return (
       <ResizeTracker measure="outer" onResize={scrollResize}>
-        {() => content}
+        {content}
       </ResizeTracker>
     );
   } else {

@@ -2,7 +2,7 @@ import React from "react";
 
 export type ResizeTrackerT = {
   className?: string; // !
-  children: (rect: DOMRectReadOnly) => React.ReactNode; // change!
+  children: React.ReactNode; // !
   style?: React.CSSProperties;
   measure?: "inner" | "outer" | "all";
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
@@ -13,11 +13,11 @@ export type IntersectionTrackerT = {
   children: React.ReactNode;
   style?: React.CSSProperties;
   root?: Element | null;
-  rootMargin?: number[] | number;
+  rootMargin?: number | number[];
   threshold?: number | number[];
   visibleContent?: boolean;
-  onVisible?: () => void; // !
-  onClick?: React.MouseEventHandler<HTMLDivElement>;
+  onVisible?: (entry: IntersectionObserverEntry) => void; // !
+  onClick?: React.MouseEventHandler<HTMLDivElement>; // !
   attribute?: { name: string; value: string; viewVisible?: boolean }; // !
 };
 
@@ -40,10 +40,14 @@ export type MorphScrollT = {
 
   // Visual Settings
   size?: number[];
-  objectsSize: (number | "none" | "firstChild")[];
+  objectsSize:
+    | number
+    | "none"
+    | "firstChild"
+    | (number | "none" | "firstChild")[];
   crossCount?: number; // !
   gap?: number[] | number;
-  wrapperMargin?: number[] | number;
+  wrapperMargin?: number | number[];
   wrapperMinSize?: number | "full" | (number | "full")[];
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
   elementsAlign?: "start" | "center" | "end";
@@ -51,7 +55,7 @@ export type MorphScrollT = {
   edgeGradient?: boolean | { color?: string; size?: number }; // !
 
   // ProgressBar
-  progressTrigger?: {
+  progressTrigger: {
     wheel?: boolean;
     content?: boolean;
     progressElement?: boolean | React.ReactNode;

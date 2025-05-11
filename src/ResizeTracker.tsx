@@ -10,7 +10,6 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
   onResize,
 }) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const [dimensions, setDimensions] = React.useState({} as DOMRectReadOnly);
 
   React.useEffect(() => {
     const element = containerRef.current;
@@ -19,7 +18,6 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setDimensions(entry.contentRect);
         onResize && onResize(entry.contentRect);
       }
     });
@@ -59,7 +57,7 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
         ...style,
       }}
     >
-      {children(dimensions)}
+      {children}
     </div>
   );
 };
