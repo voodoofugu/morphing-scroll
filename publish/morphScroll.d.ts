@@ -301,7 +301,8 @@ type MorphScrollT = {
    * @default "visible"
    *
    * @note
-   * *To remove the `progressElement`, just don't pass it in `progressTrigger`*
+   * - *To remove the `progressElement`, just don't pass it in `progressTrigger`*
+   * - *In `hover` mode, the scrollBar get classes "hover" !!!*
    *
    * @example
    * ```tsx
