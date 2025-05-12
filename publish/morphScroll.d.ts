@@ -252,23 +252,22 @@ type MorphScrollT = {
    * *♦︎ Defines the sources that can trigger the progress bar*
    *
    * @description
-   * - `wheel`: *Triggers on mouse wheel scroll*
-   * - `content`: *Triggers on content scroll*
-   * - `progressElement`: *Triggers on progress element scroll*
-   * - `arrows`: *Triggers on arrow button click*
+   * - `wheel`: *Triggered by mouse wheel scroll*
+   * - `content`: *Triggered by content click and drag*
+   * - `progressElement`: *Triggered by the progress element scroll*
+   * - `arrows`: *Triggered by arrow button click*
    *
    * @note
-   * - *If `progressElement` is `true`, the default browser scroll element will be used*
-   * - *`arrows` can be an object with `size` and `element` properties*
+   * - *`progressElement` can be thumb or slider, use props `type`*
+   * - *If `progressElement` is true and `type` is "scroll", the default browser scroll element will be used*
+   * - *`arrows` can be designed with their className or you can pass a custom element*
+   * - *`arrows` resize the `objectsWrapper` subtracting their size*
    *
    * @example
    * ```tsx
    * <MorphScroll
    *   {...props}
-   *   progressTrigger={
-   *     wheel: true,
-   *     progressElement: <YourProgressComponent/>,
-   *   }
+   *   progressTrigger={ wheel: true, progressElement: <ScrollThumb /> }
    * >
    *   {children}
    * </MorphScroll>
@@ -281,15 +280,39 @@ type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   /**---
-   * *♦︎ Reverse the progress bar direction*
+   * *♦︎ Reverse the progress bar position*
+   *
    * @default false
+   *
+   * @note
+   * *Use 1 boolean or an array of 2 booleans to set different values for hybrid `direction`*
+   *
+   * @example
+   * ```tsx
+   * <MorphScroll {...props} progressReverse={true} >
+   *   {children}
+   * </MorphScroll>
+   * ```
    */
-  progressReverse?: boolean;
+  progressReverse?: boolean | boolean[];
   /**---
    * *♦︎ Visibility of the progress bar*
+   *
    * @default "visible"
+   *
+   * @note
+   * *To remove the `progressElement`, just don't pass it in `progressTrigger`*
+   *
+   * @example
+   * ```tsx
+   * <MorphScroll {...props} progressVisibility={"hover"} >
+   *   {children}
+   * </MorphScroll>
+   * ```
    */
-  progressVisibility?: "visible" | "hover" | "hidden";
+  progressVisibility?: "visible" | "hover";
+
+  // Optimization
   /**---
    * *♦︎ Types of rendering for optimization*
    * @default-{ type: "default" }

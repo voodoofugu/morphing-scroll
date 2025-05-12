@@ -65,7 +65,7 @@ const updateEmptyElementKeys = (
 
 const updateEmptyKeysClick = (
   event: React.MouseEvent,
-  scrollTimeout: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+  setManagedTimeout: (id: string, callback: () => void, delay: number) => void,
   emptyElements: Exclude<MorphScrollT["emptyElements"], undefined>,
   callBack: () => void
 ) => {
@@ -75,10 +75,13 @@ const updateEmptyKeysClick = (
   const closeSelector = target.closest(emptyElements.clickTrigger.selector);
 
   if (closeSelector) {
-    scrollTimeout.current && clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => {
-      callBack();
-    }, emptyElements.clickTrigger.delay);
+    setManagedTimeout(
+      "emptyKeys-anim",
+      () => {
+        callBack();
+      },
+      emptyElements.clickTrigger.delay || 0
+    );
   }
 };
 

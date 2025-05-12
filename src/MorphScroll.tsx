@@ -27,6 +27,7 @@ import {
 } from "./addFunctions";
 import handleArrow, { handleArrowT } from "./handleArrow";
 import { updateEmptyElementKeys, updateEmptyKeysClick } from "./emptyKeys";
+import { setManagedTimeout, clearAllManagedTimeouts } from "./timeoutManager";
 
 import { CONST } from "./constants";
 
@@ -101,10 +102,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const loadedObjects = React.useRef<(string | null)[]>([]);
   const emptyElementKeysString = React.useRef<string>("");
   const evenVisibleObjects = React.useRef<string>("");
-
-  const scrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
 
   const scrollStateRef = React.useRef<ScrollStateRefT>({
     targetScrollY: 0,
@@ -383,13 +380,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }
 
   const thumbSize = React.useMemo(() => {
-    if (progressVisibility === "hidden") return 0;
+    if (!progressTrigger.progressElement) return 0;
     return Math.round((xySize / fullHeightOrWidth) * xySize);
-  }, [xySize, fullHeightOrWidth, progressVisibility]);
+  }, [xySize, fullHeightOrWidth, progressTrigger.progressElement]);
   const thumbSizeX = React.useMemo(() => {
-    if (progressVisibility === "hidden") return 0;
+    if (!progressTrigger.progressElement) return 0;
     return Math.round((sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]);
-  }, [sizeLocal[0], objectsWrapperWidthFull]);
+  }, [sizeLocal[0], objectsWrapperWidthFull, progressTrigger.progressElement]);
 
   const endObjectsWrapper = React.useMemo(() => {
     if (!xySize) return fullHeightOrWidth;
@@ -605,7 +602,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         mouseOnRef(
           scrollContentRef.current,
           type === "scroll" ? "scrollBar" : "sliderBar",
-          event
+          event,
+          setManagedTimeout
         );
 
       if (event.type === "mouseleave") {
@@ -675,15 +673,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     isScrollingRef.current = true;
     isScrolling?.(true);
 
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-
-    scrollTimeout.current = setTimeout(() => {
-      isScrollingRef.current = false;
-      isScrolling?.(false);
-      if (render.type !== "default") {
-        debouncedUpdateEmptyElementKeys();
-      } else triggerUpdate();
-    }, 200);
+    setManagedTimeout(
+      "handleScroll-anim",
+      () => {
+        isScrollingRef.current = false;
+        isScrolling?.(false);
+        if (render.type !== "default") {
+          debouncedUpdateEmptyElementKeys();
+        } else triggerUpdate();
+      },
+      200
+    );
 
     if (type === "slider") debouncedSliderCheck();
     if (render.type !== "default") {
@@ -841,7 +841,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (emptyElements)
         updateEmptyKeysClick(
           event,
-          scrollTimeout,
+          setManagedTimeout,
           emptyElements,
           updateEmptyElementKeysLocal
         );
@@ -863,13 +863,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     sliderCheckLocal();
     return () => {
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-        scrollTimeout.current = null;
-      }
       if (scrollStateRef.current.animationFrameId) {
         cancelAnimationFrame(scrollStateRef.current.animationFrameId);
       }
+      clearAllManagedTimeouts();
     };
   }, []);
 
@@ -1321,8 +1318,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             />
           ))}
 
-        {progressVisibility !== "hidden" &&
-          typeof progressTrigger.progressElement !== "boolean" &&
+        {typeof progressTrigger.progressElement !== "boolean" &&
           [
             {
               shouldRender: thumbSize < fullHeightOrWidth,

@@ -62,7 +62,7 @@ export type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   progressReverse?: boolean | boolean[]; // !
-  progressVisibility?: "visible" | "hover" | "hidden"; // может добавить массив для hybrid
+  progressVisibility?: "visible" | "hover";
 
   // Optimization
   render?:
