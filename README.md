@@ -213,10 +213,10 @@ npm install morphing-scroll
         <strong>Type:</strong> (left: number, top: number) => void<br />
         <br />
         <strong>Description:</strong> <em><br />
-        This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.<br />
+        This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.<br />
         <br />
         ✦ Note:<br />
-        `left` can be used for x direction, `top` for y direction and both for hybrid directions.</em><br />
+        <code>left</code> can be used for x direction, <code>top</code> for y direction and both for hybrid directions.</em><br />
         <br />
         <strong>Example:</strong>
 
