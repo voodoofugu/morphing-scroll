@@ -1,4 +1,4 @@
-import { MorphScrollT } from "./types";
+import { MorphScrollT } from "../types/types";
 import { clampValue } from "./addFunctions";
 
 export type ScrollStateRefT = {

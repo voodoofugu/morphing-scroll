@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
-import { ResizeTrackerT } from "./types";
+import { ResizeTrackerT } from "../types/types";
 
 const ResizeTracker: React.FC<ResizeTrackerT> = ({
   className,

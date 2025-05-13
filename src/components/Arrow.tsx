@@ -1,5 +1,5 @@
 import React from "react";
-import { handleArrowT } from "./handleArrow";
+import { handleArrowT } from "../functions/handleArrow";
 
 type ArrowT = {
   activity: boolean;

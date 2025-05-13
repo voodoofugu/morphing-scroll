@@ -1,10 +1,10 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
-import { MorphScrollT } from "./types";
-import ArgFormatter from "./ArgFormatter";
+import { MorphScrollT } from "../types/types";
+import ArgFormatter from "../functions/ArgFormatter";
 
-import useDebouncedCallback from "./useDebouncedCallback";
-import useIdent from "./useIdent";
+import useDebouncedCallback from "../hooks/useDebouncedCallback";
+import useIdent from "../hooks/useIdent";
 
 import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
@@ -12,9 +12,9 @@ import ScrollBar from "./ScrollBar";
 import Edge from "./Edge";
 import Arrow from "./Arrow";
 
-import handleWheel, { ScrollStateRefT } from "./handleWheel";
-import handleMouseOrTouch from "./handleMouseOrTouch";
-import { mouseOnEl, mouseOnRef } from "./mouseHelpers";
+import handleWheel, { ScrollStateRefT } from "../functions/handleWheel";
+import handleMouseOrTouch from "../functions/handleMouseOrTouch";
+import { mouseOnEl, mouseOnRef } from "../functions/mouseHelpers";
 import {
   objectsPerSize,
   clampValue,
@@ -24,12 +24,18 @@ import {
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
   createResizeHandler,
-} from "./addFunctions";
-import handleArrow, { handleArrowT } from "./handleArrow";
-import { updateEmptyElementKeys, updateEmptyKeysClick } from "./emptyKeys";
-import { setManagedTimeout, clearAllManagedTimeouts } from "./timeoutManager";
+} from "../functions/addFunctions";
+import handleArrow, { handleArrowT } from "../functions/handleArrow";
+import {
+  updateEmptyElementKeys,
+  updateEmptyKeysClick,
+} from "../functions/emptyKeys";
+import {
+  setManagedTimeout,
+  clearAllManagedTimeouts,
+} from "../helpers/timeoutManager";
 
-import { CONST } from "./constants";
+import { CONST } from "../constants";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",

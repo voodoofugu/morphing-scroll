@@ -1,8 +1,8 @@
 import React from "react";
 
-import { MorphScrollT } from "./types";
+import { MorphScrollT } from "../types/types";
 
-import { CONST } from "./constants";
+import { CONST } from "../constants";
 
 const updateEmptyElementKeys = (
   customScrollRef: () => NodeListOf<Element>,

@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
-import { MorphScrollT } from "./types";
+import { MorphScrollT } from "../types/types";
 
 type ModifiedProps = Partial<MorphScrollT> & {
   sizeHeight: number;

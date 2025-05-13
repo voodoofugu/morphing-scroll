@@ -1,4 +1,4 @@
-import { MorphScrollT } from "./types";
+import { MorphScrollT } from "../types/types";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
   if (availableSize <= objectSize) return 1;

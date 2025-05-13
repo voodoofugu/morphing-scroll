@@ -1,4 +1,4 @@
-import { MorphScrollT } from "./types";
+import { MorphScrollT } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | "none";
