@@ -1282,10 +1282,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                       : "hidden"
                   }`,
                 }[
-                  direction === "x" || direction === "y" ? direction : "hybrid"
-                ] || Object.keys(progressTrigger).length === 0
-                  ? "hidden"
-                  : "hidden",
+                  Object.keys(progressTrigger).length !== 0 &&
+                  (direction === "x" || direction === "y")
+                    ? direction
+                    : "hybrid"
+                ] ?? "hidden",
             },
 
             ...(typeof progressTrigger.progressElement !== "boolean" ||
