@@ -122,9 +122,9 @@ npm install morphing-scroll
         <br />
         <strong>Description:</strong> <em><br />
         This parameter changes the scroll or slider type direction based on the provided value.<br />
-        You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.</em><br />
+        You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.<br />
         <br />
-        <strong>Note:</strong> <em><br />
+        <strong>Note:</strong><br />
         The different between "hybridX" and "hybridY" is how the <code>crossCount</code> parameter affects them, limiting the number of either rows (hybridX) or columns (hybridY).</em><br />
         <br />
         <strong>Example:</strong>
@@ -151,7 +151,7 @@ npm install morphing-scroll
             updater?: boolean;<br />
         }<br />
         <br />
-        <strong>Default:</strong> { value: 0; duration: 200; updater: false }<br />
+        <strong>Default:</strong> { duration: 200; updater: false }<br />
         <br />
         <strong>Description:</strong> <em><br />
         This parameter allows you to set custom scroll values.<br />
@@ -161,7 +161,7 @@ npm install morphing-scroll
         "end" - This option scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
         <br />
         <code>duration</code>:<br />
-        This property determines the animation speed for scrolling in ms.</em><br />
+        This property determines the animation speed for scrolling in ms.<br />
         <br />
         <code>updater</code>:<br />
         This property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
@@ -172,7 +172,7 @@ npm install morphing-scroll
         ```tsx
         <MorphScroll
           {...props}
-          scrollTop={{ value: 100; duration: 100 }}
+          scrollPosition={{ value: 100; duration: 100 }}
         >
           {children}
         </MorphScroll>
@@ -210,10 +210,13 @@ npm install morphing-scroll
     <details>
       <summary><strong><code>onScrollValue</code></strong>: <em>Callback for scroll value.</em></summary><br />
       <ul>
-        <strong>Type:</strong> (scroll: number) => void<br />
+        <strong>Type:</strong> (left: number, top: number) => void<br />
         <br />
         <strong>Description:</strong> <em><br />
-        This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
+        This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.<br />
+        <br />
+        ✦ Note:<br />
+        `left` can be used for x direction, `top` for y direction and both for hybrid directions.</em><br />
         <br />
         <strong>Example:</strong>
 
@@ -221,9 +224,9 @@ npm install morphing-scroll
         <MorphScroll
           {...props}
           onScrollValue={
-            (scroll) => {
-              console.log("Scroll position:", scroll);
-              return scroll > 100;
+            (left, top) => {
+              if (top > 100)
+                console.log("Scroll position:", left, top);
             },
           }
         >
@@ -272,7 +275,7 @@ npm install morphing-scroll
         <br />
         If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         <ul>
           <li>The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.</li>
           <li>See the <code>ResizeTracker</code> section for more details.</li>
@@ -305,7 +308,7 @@ npm install morphing-scroll
         <br />
         If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         The numbers are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.</em><br />
         <br />
         <strong>Example:</strong>
@@ -333,7 +336,7 @@ npm install morphing-scroll
         <strong>Description:</strong> <em><br />
         This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
         <br />
         <strong>Example:</strong>
@@ -360,7 +363,7 @@ npm install morphing-scroll
         <strong>Description:</strong> <em><br />
         This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         <ul>
           <li>
             This parameter accepts either a single number or an array of numbers
@@ -400,7 +403,7 @@ npm install morphing-scroll
         <strong>Description:</strong> <em><br />
         This parameter aligns the `objectsWrapper`, which contains all the provided elements, relative to the scroll or the `size`.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         <ul>
           <li>Only takes effect when `objectsWrapper` is smaller than the scroll container.
           </li>
@@ -455,7 +458,7 @@ npm install morphing-scroll
         <br />
         The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         The size property, measured in pixels, adjusts the dimensions of the edge elements.</em><br />
         <br />
         <strong>Example:</strong>
@@ -613,7 +616,7 @@ npm install morphing-scroll
           <li>With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.</li>
         </ul><br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         <ul>
           <li>The <code>onVisible</code> property is the same as in <code>IntersectionTracker/onVisible</code>.</li>
           <li>
@@ -669,7 +672,7 @@ npm install morphing-scroll
         <br />
         <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
         <br />
         <strong>Example:</strong>
@@ -826,7 +829,7 @@ npm install morphing-scroll
         - The <code>"outer"</code> value measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
         - The <code>"all"</code> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
         <br />
-        ⚠ Note: Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+        ✦ Note: Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
         <br />
         <strong>Example:</strong>
 
@@ -1038,7 +1041,7 @@ npm install morphing-scroll
         The callback receives the <code>key</code> of the first child element as a parameter.<br />
         This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.<br />
         <br />
-        ⚠ Note:<br />
+        ✦ Note:<br />
         Instead of checking if <code>key</code> equals the element’s key name, use <code>includes</code> for verification. React may modify key names by prefixing them with special characters like <code>.$</code>, making direct equality checks unreliable and more expensive 💵.</em><br />
         <br />
         <strong>Example:</strong>

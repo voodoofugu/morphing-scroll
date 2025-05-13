@@ -53,7 +53,7 @@ type MorphScrollT = {
   /**---
    * *♦︎ Scroll position value.*
    *
-   * @default { duration: 200 }
+   * @default { duration: 200; updater: false }
    *
    * @description
    * - `value`: *Scroll position value*
