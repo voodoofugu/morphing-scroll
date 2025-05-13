@@ -1,6 +1,6 @@
 type IntersectionTrackerT = {
   /**---
-   * *♦︎ Custom class name*
+   * *♦︎ Custom class name.*
    *
    * @example
    * ```tsx
@@ -11,7 +11,7 @@ type IntersectionTrackerT = {
    */
   className?: string;
   /**---
-   * *♦︎ Custom user content*
+   * *♦︎ Custom user content.*
    *
    * @example
    * ```tsx
@@ -22,7 +22,7 @@ type IntersectionTrackerT = {
    * */
   children?: React.ReactNode;
   /**---
-   * *♦︎ Custom inline styles*
+   * *♦︎ Custom inline styles.*
    *
    * @example
    * ```tsx
@@ -35,7 +35,7 @@ type IntersectionTrackerT = {
    */
   style?: React.CSSProperties;
   /**---
-   * *♦︎ The root element for* `IntersectionObserver`
+   * *♦︎ The root element for* `IntersectionObserver`.
    *
    * @default
    * If not provided, the documents viewport is used
@@ -49,7 +49,7 @@ type IntersectionTrackerT = {
    */
   root?: Element | null;
   /**---
-   * *♦︎ The margin for the root element of the* `IntersectionObserver`
+   * *♦︎ The margin for the root element of the* `IntersectionObserver`.
    *
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
@@ -63,7 +63,7 @@ type IntersectionTrackerT = {
    */
   rootMargin?: number | number[];
   /**---
-   * *♦︎ Visibility threshold for triggering intersection events*
+   * *♦︎ Visibility threshold for triggering intersection events.*
    *
    * @note
    * *A value between `0` (out of view) and `1` (fully visible) can be single or an array*
@@ -77,7 +77,7 @@ type IntersectionTrackerT = {
    */
   threshold?: number | number[];
   /**---
-   * *♦︎ Callback function triggered when* `threshold` *is met*
+   * *♦︎ Callback function triggered when* `threshold` *is met.*
    *
    * @description
    * `entry`: *The intersection observer entry*
@@ -95,7 +95,7 @@ type IntersectionTrackerT = {
    */
   onVisible?: (entry: IntersectionObserverEntry) => void;
   /**---
-   * *♦︎ Renders children regardless of their visibility in the viewport*
+   * *♦︎ Renders children regardless of their visibility in the viewport.*
    *
    * @default false
    *
@@ -108,7 +108,7 @@ type IntersectionTrackerT = {
    */
   visibleContent?: boolean;
   /**---
-   * *♦︎ Custom attribute for the* `IntersectionTracker`
+   * *♦︎ Custom attribute for the* `IntersectionTracker`.
    *
    * @description
    * - `name`: *Attribute name* `required`
@@ -128,7 +128,7 @@ type IntersectionTrackerT = {
     viewVisible?: boolean;
   };
   /**---
-   * *♦︎ Callback function triggered when the* `IntersectionTracker` *is clicked*
+   * *♦︎ Callback function triggered when the* `IntersectionTracker` *is clicked.*
    *
    * @example
    * ```tsx

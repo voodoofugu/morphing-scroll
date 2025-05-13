@@ -51,8 +51,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           className="your-class"
-          // another props
         >
           {children}
         </MorphScroll>
@@ -75,9 +75,7 @@ npm install morphing-scroll
         <strong>Example:</strong>
 
         ```tsx
-        <MorphScroll
-          // props
-        >
+        <MorphScroll {...props} >
           {children}
         </MorphScroll>
         ```
@@ -104,8 +102,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           type="slider"
-          // another props
         >
           {children}
         </MorphScroll>
@@ -118,20 +116,23 @@ npm install morphing-scroll
     <details>
       <summary><strong><code>direction</code></strong>: <em>Scrolling direction.</em></summary><br />
       <ul>
-        <strong>Type:</strong> "x" | "y"<br />
+        <strong>Type:</strong> "x" | "y" | "hybridX" | "hybridY"<br />
         <br />
         <strong>Default:</strong> "y"<br />
         <br />
         <strong>Description:</strong> <em><br />
         This parameter changes the scroll or slider type direction based on the provided value.<br />
-        You can set it to horizontal or vertical to customize the component according to your needs.</em><br />
+        You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.</em><br />
+        <br />
+        <strong>Note:</strong> <em><br />
+        The different between "hybridX" and "hybridY" is how the <code>crossCount</code> parameter affects them, limiting the number of either rows (hybridX) or columns (hybridY).</em><br />
         <br />
         <strong>Example:</strong>
 
         ```tsx
         <MorphScroll
+          {...props}
           direction="x"
-          // another props
         >
           {children}
         </MorphScroll>
@@ -167,8 +168,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           scrollTop={{ value: 100; duration: 100 }}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -192,8 +193,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           stopLoadOnScroll
-          // another props
         >
           {children}
         </MorphScroll>
@@ -215,13 +216,13 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           onScrollValue={
             (scroll) => {
               console.log("Scroll position:", scroll);
               return scroll > 100;
             },
           }
-          // another props
         >
           {children}
         </MorphScroll>
@@ -243,10 +244,10 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           isScrolling={(motion) => {
             console.log(motion ? "Scrolling..." : "Scroll stopped.");
           }}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -278,8 +279,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           size={[100, 400]}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -308,10 +309,10 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           objectsSize={[40, 40]}
           // objectsSize={["none", "none"]}
           // objectsSize={["firstChild", "firstChild"]}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -336,9 +337,9 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           gap={10}
           // gap={[10, 10]}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -373,10 +374,10 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           padding={10}
           // padding={[10, 10]}
           // padding={[10, 10, 10, 10]}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -408,8 +409,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           contentAlign={["center", "center"]}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -428,8 +429,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           elementsAlign="center"
-          // another props
         >
           {children}
         </MorphScroll>
@@ -458,10 +459,10 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           edgeGradient={{ color: "rgba(0, 0, 0, 0.5)" }}
           // edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 20 }}
           // edgeGradient
-          // another props
         >
           {children}
         </MorphScroll>
@@ -489,8 +490,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           progressReverse
-          // another props
         >
           {children}
         </MorphScroll>
@@ -514,8 +515,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           progressVisibility="hover"
-          // another props
         >
           {children}
         </MorphScroll>
@@ -537,8 +538,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           objectsWrapFullMinSize
-          // another props
         >
           {children}
         </MorphScroll>
@@ -576,11 +577,11 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           progressTrigger={{
             wheel: true,
             progressElement: <div className="your-scroll-thumb" />,
           }}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -626,13 +627,13 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           render={{ type: "virtual" }}
           // render={{
           //   type: "lazy",
           //   rootMargin: [0, 100],
           //   onVisible: () => console.log("visible"))
           // }}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -672,6 +673,7 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           emptyElements={{
             mode: "clear",
             clickTrigger: { selector: ".close-button" },
@@ -683,7 +685,6 @@ npm install morphing-scroll
           //     delay: 100,
           //   },
           // }}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -707,8 +708,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           suspending
-          // another props
         >
           {children}
         </MorphScroll>
@@ -730,8 +731,8 @@ npm install morphing-scroll
 
         ```tsx
         <MorphScroll
+          {...props}
           fallback={<div>Loading...</div>}
-          // another props
         >
           {children}
         </MorphScroll>
@@ -776,9 +777,7 @@ npm install morphing-scroll
         <strong>Example:</strong>
 
         ```tsx
-        <ResizeTracker
-        // another props
-        >
+        <ResizeTracker {...props} >
           {(rect) => (
             <p>
               Width: {rect.width}, Height: {rect.height}

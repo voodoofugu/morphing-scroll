@@ -76,6 +76,7 @@ export type MorphScrollT = {
     | {
         type: "virtual";
         rootMargin?: number | number[];
+        // onVisible?: (key: string) => void; // ?
         stopLoadOnScroll?: boolean;
       };
   emptyElements?:
@@ -87,7 +88,6 @@ export type MorphScrollT = {
       };
   suspending?: boolean;
   fallback?: React.ReactNode;
-  // stopLoadOnScroll?: boolean;
 };
 
 // progressTrigger contentSlider & arrows looped
