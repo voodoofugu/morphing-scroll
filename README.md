@@ -143,10 +143,10 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><strong><code>scrollTop</code></strong>: <em>Scroll position and animation duration.</em></summary><br />
+      <summary><strong><code>scrollPosition</code></strong>: <em>Scroll position and animation duration settings.</em></summary><br />
       <ul>
         <strong>Type:</strong> {<br />
-            value: number | "end";<br />
+            value: number | "end" | (number | "end")[];<br />
             duration?: number;<br />
             updater?: boolean;<br />
         }<br />
@@ -156,12 +156,15 @@ npm install morphing-scroll
         <strong>Description:</strong> <em><br />
         This parameter allows you to set custom scroll values.<br />
         <br />
-        The <code>value</code> property accepts numerical pixel values.<br />
-        The <code>"end"</code> option scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
+        <code>value</code>:<br />
+        Number - Sets the scroll position to a specific value.<br />
+        "end" - This option scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
         <br />
-        The <code>duration</code> property determines the animation speed for scrolling in ms.</em><br />
+        <code>duration</code>:<br />
+        This property determines the animation speed for scrolling in ms.</em><br />
         <br />
-        The <code>updater</code> property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
+        <code>updater</code>:<br />
+        This property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
         <code>setScroll((prev) => ({ ...prev, value: 0, updater: !prev.updater }))</code></em><br />
         <br />
         <strong>Example:</strong>
