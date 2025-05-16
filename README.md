@@ -326,7 +326,7 @@ npm install morphing-scroll
         <strong>Type:</strong> (number | "none" | "firstChild")[]<br />
         <br />
         <strong>Description:</strong> <em><br />
-        This parameter limits the <strong>maximum</strong> number of columns when the <code>direction</code> is "y"/"hybrid" or rows when "x"/hybridX".</em><br />
+        This parameter limits the <strong>maximum</strong> number of columns when the <code>direction</code> is "y"/"hybridY" or rows when "x"/hybridX".</em><br />
         <br />
         <strong>Example:</strong>
 
@@ -346,13 +346,13 @@ npm install morphing-scroll
     <details>
       <summary><strong><code>gap</code></strong>: <em>Gap between cells.</em></summary><br />
       <ul>
-        <strong>Type:</strong> number[] | number<br />
+        <strong>Type:</strong> number | number[]<br />
         <br />
         <strong>Description:</strong> <em><br />
         This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
         <br />
         ✦ Note:<br />
-        The values are specified following the <code>horizontal/vertical</code> rule in pixels, regardless of the <code>direction</code>.</em><br />
+        It can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
         <br />
         <strong>Example:</strong>
 
@@ -360,7 +360,6 @@ npm install morphing-scroll
         <MorphScroll
           {...props}
           gap={10}
-          // gap={[10, 10]}
         >
           {children}
         </MorphScroll>
@@ -371,25 +370,15 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><strong><code>padding</code></strong>: <em>Padding for the <code>objectsWrapper</code>.</em></summary><br />
+      <summary><strong><code>wrapperMargin</code></strong>: <em>Margin for the <code>objectsWrapper</code>.</em></summary><br />
       <ul>
-        <strong>Type:</strong> number[] | number<br />
+        <strong>Type:</strong> number | number[]<br />
         <br />
         <strong>Description:</strong> <em><br />
-        This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area. You can provide a single number, which will apply to all sides, or an array of two or four numbers to specify spacing for specific directions.<br />
+        This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area.<br />
         <br />
         ✦ Note:<br />
-        <ul>
-          <li>
-            This parameter accepts either a single number or an array of numbers
-            <ul>
-              <li>If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.</li>
-              <li>If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.</li>
-            </ul>
-          </li>
-          <li>All values are in pixels and apply regardless of the <code>direction</code>.</li>
-          <li>This is not a CSS property, even though its name might suggest otherwise. It specifically refers to modifying the width and height of the scrollable wrapper, affecting the dimensions of the scrollable area.</li>
-        </ul></em><br />
+        It can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
         <br />
         <strong>Example:</strong>
 
@@ -397,8 +386,6 @@ npm install morphing-scroll
         <MorphScroll
           {...props}
           padding={10}
-          // padding={[10, 10]}
-          // padding={[10, 10, 10, 10]}
         >
           {children}
         </MorphScroll>

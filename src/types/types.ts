@@ -39,7 +39,7 @@ export type MorphScrollT = {
   isScrolling?: (motion: boolean) => boolean;
 
   // Visual Settings
-  size?: number[];
+  size?: number[]; // может добавить одно число для одинакового размера, как и для objectsSize
   objectsSize:
     | number
     | "none"
