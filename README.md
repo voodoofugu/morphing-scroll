@@ -266,20 +266,14 @@ npm install morphing-scroll
   #### VISUAL SETTINGS:
 
     <details>
-      <summary><strong><code>size</code></strong>: <em>MorphScroll width and height.</em></summary><br />
+      <summary><strong><code>size</code></strong>: <em>[width, height] of MorphScroll.</em></summary><br />
       <ul>
         <strong>Type:</strong> number[]<br />
         <br />
         <strong>Description:</strong> <em><br />
         This parameter sets the width and height of the <code>MorphScroll</code> component as an array of two numbers. These values help define the visual container for the scrollable area.<br />
         <br />
-        If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.<br />
-        <br />
-        ✦ Note:<br />
-        <ul>
-          <li>The values are specified following the <code>width/height</code> rule in pixels, regardless of the <code>direction</code>.</li>
-          <li>See the <code>ResizeTracker</code> section for more details.</li>
-        </ul></em><br />
+        If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
         <br />
         <strong>Example:</strong>
 
@@ -297,28 +291,49 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><strong><code>objectsSize</code> (required)</strong>: <em>Required: Size of cells for each object.</em></summary><br />
+      <summary><strong><code>objectsSize</code> (required)</strong>: <em>Size of cells for each object.</em></summary><br />
       <ul>
         <strong>Type:</strong> (number | "none" | "firstChild")[]<br />
         <br />
         <strong>Description:</strong> <em><br />
-        This parameter is the only required one. It defines the size of cells for each of your objects. <code>ObjectsSize</code> use an array of values.<br />
+        This parameter defines the [width, height] of cells for each of your objects.<br />
         <br />
         If you pass <code>"none"</code>, cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects. In this case, for example, you won’t be able to use the <code>infiniteScroll</code> feature, as it requires specific cell sizes for absolute positioning.. However, this is not a drawback if you are building something like a chat or a news feed, where the content can have varying heights, and it’s better to load new content as the user approaches the end of the existing list.<br />
         <br />
         If you specify the value <code>"firstChild"</code>, a <code>ResizeTracker</code> wrapper will be created for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
         <br />
         ✦ Note:<br />
-        The numbers are specified following the <code>width/height</code> rule, regardless of the <code>direction</code>.</em><br />
+        <code>"none"</code> is not compatible with <code>render={{ type: "virtual" }}</code>.</em><br />
         <br />
         <strong>Example:</strong>
 
         ```tsx
         <MorphScroll
           {...props}
-          objectsSize={[40, 40]}
-          // objectsSize={["none", "none"]}
-          // objectsSize={["firstChild", "firstChild"]}
+          objectsSize={[80, 80]}
+        >
+          {children}
+        </MorphScroll>
+        ```
+
+    </ul></details>
+
+    <h2></h2>
+
+    <details>
+      <summary><strong><code>crossCount</code></strong>: <em>Number of cells in each direction.</em></summary><br />
+      <ul>
+        <strong>Type:</strong> (number | "none" | "firstChild")[]<br />
+        <br />
+        <strong>Description:</strong> <em><br />
+        This parameter limits the <strong>maximum</strong> number of columns when the <code>direction</code> is "y"/"hybrid" or rows when "x"/hybridX".</em><br />
+        <br />
+        <strong>Example:</strong>
+
+        ```tsx
+        <MorphScroll
+          {...props}
+          crossCount={3}
         >
           {children}
         </MorphScroll>
