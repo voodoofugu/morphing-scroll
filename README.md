@@ -385,7 +385,7 @@ npm install morphing-scroll
         ```tsx
         <MorphScroll
           {...props}
-          padding={10}
+          wrapperMargin={10}
         >
           {children}
         </MorphScroll>
