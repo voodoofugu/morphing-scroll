@@ -81,57 +81,59 @@ const ScrollBar = ({
           </div>
         </div>
       ) : (
-        <div
-          className="sliderBar"
-          direction-type={
-            ["hybridY", "y"].includes(direction!) ? "y" : direction
-          }
-          onMouseDown={
-            onMouseDownOrTouchStart as React.MouseEventHandler<HTMLDivElement>
-          }
-          onTouchStart={
-            onMouseDownOrTouchStart as React.TouchEventHandler<HTMLDivElement>
-          }
-          style={{
-            position: "absolute",
-            cursor: "grab",
-            ...(!progressTrigger?.progressElement && {
-              pointerEvents: "none",
-            }),
-            ...(progressVisibility === "hover" && {
-              opacity: 0,
-              transition: "opacity 0.1s ease-in-out",
-            }),
-            ...(direction === "x"
-              ? {
-                  transformOrigin: "left top",
-                  left: "50%",
-                  ...(progressReverse
-                    ? {
-                        transform: "rotate(-90deg) translate(-100%, -50%)",
-                        ...(progressReverse ? { top: 0 } : { bottom: 0 }),
-                      }
-                    : {
-                        transform: "rotate(-90deg) translateY(-50%)",
-                      }),
-                }
-              : {
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  ...(progressReverse ? { left: 0 } : { right: 0 }),
-                }),
-          }}
-        >
-          {Array.from({ length: objLengthPerSize }, (_, index) => (
-            <div
-              key={index}
-              className="sliderElem"
-              style={{ width: "fit-content" }}
-            >
-              {progressTrigger?.progressElement}
-            </div>
-          ))}
-        </div>
+        objLengthPerSize > 1 && (
+          <div
+            className="sliderBar"
+            direction-type={
+              ["hybridY", "y"].includes(direction!) ? "y" : direction
+            }
+            onMouseDown={
+              onMouseDownOrTouchStart as React.MouseEventHandler<HTMLDivElement>
+            }
+            onTouchStart={
+              onMouseDownOrTouchStart as React.TouchEventHandler<HTMLDivElement>
+            }
+            style={{
+              position: "absolute",
+              cursor: "grab",
+              ...(!progressTrigger?.progressElement && {
+                pointerEvents: "none",
+              }),
+              ...(progressVisibility === "hover" && {
+                opacity: 0,
+                transition: "opacity 0.1s ease-in-out",
+              }),
+              ...(direction === "x"
+                ? {
+                    transformOrigin: "left top",
+                    left: "50%",
+                    ...(progressReverse
+                      ? {
+                          transform: "rotate(-90deg) translate(-100%, -50%)",
+                          ...(progressReverse ? { top: 0 } : { bottom: 0 }),
+                        }
+                      : {
+                          transform: "rotate(-90deg) translateY(-50%)",
+                        }),
+                  }
+                : {
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                  }),
+            }}
+          >
+            {Array.from({ length: objLengthPerSize }, (_, index) => (
+              <div
+                key={index}
+                className="sliderElem"
+                style={{ width: "fit-content" }}
+              >
+                {progressTrigger?.progressElement}
+              </div>
+            ))}
+          </div>
+        )
       )}
     </React.Fragment>
   );

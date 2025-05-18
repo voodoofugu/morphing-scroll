@@ -750,7 +750,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [scrollElementRef, scrollPositionLocal.duration]
   );
 
-  const onMouseDown = React.useCallback(
+  const onMouseOrTouchDown = React.useCallback(
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
       eventType: string = "mousedown",
@@ -809,21 +809,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (
       event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
-      onMouseDown(null, event.type);
+      onMouseOrTouchDown(null, event.type);
     },
-    [onMouseDown]
+    [onMouseOrTouchDown]
   );
   const onMouseDownScrollThumbTwo = React.useCallback(
     (
       event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
-      onMouseDown(null, event.type, 1);
+      onMouseOrTouchDown(null, event.type, 1);
     },
-    [onMouseDown]
+    [onMouseOrTouchDown]
   );
   const onMouseDownWrap = React.useCallback(() => {
-    onMouseDown("wrapp");
-  }, [onMouseDown]);
+    onMouseOrTouchDown("wrapp");
+  }, [onMouseOrTouchDown]);
 
   const getDataIdsFromAtr = React.useCallback(() => {
     const elements = customScrollRef.current!.querySelectorAll(

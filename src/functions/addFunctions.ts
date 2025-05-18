@@ -14,7 +14,7 @@ function clampValue(value: number, min = 0, max = Infinity): number {
 function smoothScroll(
   direction: "x" | "y" | undefined,
   scrollElement: Element,
-  duration: number = 200,
+  duration: number,
   targetScroll: number,
   callback?: () => void
 ) {
