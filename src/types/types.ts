@@ -27,7 +27,7 @@ export type MorphScrollT = {
   children?: React.ReactNode;
 
   // Scroll Settings
-  type?: "scroll" | "slider";
+  type?: "scroll" | "slider" | "sliderMenu"; // morphType
   direction?: "x" | "y" | "hybridX" | "hybridY";
   scrollPosition?: {
     // !
@@ -58,7 +58,7 @@ export type MorphScrollT = {
   progressTrigger: {
     wheel?: boolean;
     content?: boolean;
-    progressElement?: boolean | React.ReactNode;
+    progressElement?: boolean | React.ReactNode | React.ReactNode[];
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   progressReverse?: boolean | boolean[]; // !

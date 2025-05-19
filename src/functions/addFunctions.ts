@@ -51,7 +51,7 @@ function smoothScroll(
 }
 
 const getAllScrollBars = (
-  type: "scroll" | "slider",
+  type: Exclude<MorphScrollT["type"], undefined>,
   customScrollRef: HTMLDivElement | null,
   scrollBarsRef: React.MutableRefObject<[] | NodeListOf<Element>>
 ) => {
@@ -70,7 +70,7 @@ const sliderCheck = (
   scrollEl: HTMLDivElement,
   scrollBars: NodeListOf<Element>,
   sizeLocal: number[],
-  direction: "x" | "y" | "hybridX" | "hybridY"
+  direction: Exclude<MorphScrollT["direction"], undefined>
 ) => {
   function getActiveElem() {
     const elementsFirst = scrollBars[0]?.querySelectorAll(".sliderElem") ?? [];
@@ -80,7 +80,7 @@ const sliderCheck = (
       elementsArray: NodeListOf<Element>,
       size: number,
       scroll: HTMLDivElement,
-      direction: "x" | "y" | "hybridX" | "hybridY"
+      direction: Exclude<MorphScrollT["direction"], undefined>
     ) {
       const scrollPosition =
         direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
@@ -106,7 +106,7 @@ const sliderCheck = (
 
 function getWrapperMinSizeStyle(
   wrapperMinSize: number | "full" | (number | "full")[],
-  direction: "x" | "y" | "hybridX" | "hybridY",
+  direction: Exclude<MorphScrollT["direction"], undefined>,
   sizeLocal: number[],
   mLocalX: number,
   mLocalY: number
@@ -142,7 +142,7 @@ function getWrapperMinSizeStyle(
 }
 
 function getWrapperAlignStyle(
-  wrapperAlign: "start" | "center" | "end" | ("start" | "center" | "end")[],
+  wrapperAlign: Exclude<MorphScrollT["wrapperAlign"], undefined>,
   sizeLocal: number[],
   objectsWrapperWidthFull: number,
   objectsWrapperHeightFull: number

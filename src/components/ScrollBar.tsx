@@ -2,31 +2,91 @@
 import React from "react";
 import { MorphScrollT } from "../types/types";
 
+type OnCustomScrollFn = (
+  targetScrollTop: number,
+  direction: "y" | "x",
+  callback?: () => void
+) => void;
+
 type ModifiedProps = Partial<MorphScrollT> & {
-  sizeHeight: number;
-  onMouseDownOrTouchStart:
+  size: number[];
+  scrollBarEvent:
     | React.MouseEventHandler<HTMLDivElement>
-    | React.TouchEventHandler<HTMLDivElement>;
+    | React.TouchEventHandler<HTMLDivElement>
+    | OnCustomScrollFn;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
+  sliderCheckLocal: () => void;
 };
 
 const ScrollBar = ({
   type,
   direction,
   progressReverse,
-  sizeHeight,
+  size,
   progressTrigger,
   progressVisibility,
-  onMouseDownOrTouchStart,
+  scrollBarEvent,
   thumbSize,
   thumbSpace,
   objLengthPerSize,
+  sliderCheckLocal,
 }: ModifiedProps) => {
+  const eventProps =
+    type !== "sliderMenu"
+      ? {
+          onMouseDown:
+            scrollBarEvent as React.MouseEventHandler<HTMLDivElement>,
+          onTouchStart:
+            scrollBarEvent as React.TouchEventHandler<HTMLDivElement>,
+        }
+      : {};
+
+  const sliderContent = React.useMemo(() => {
+    if (type === "scroll" || !direction) return;
+
+    const axis = ["hybridY", "y"].includes(direction) ? "y" : "x";
+    const neededSize = axis === "x" ? size[0] : size[1];
+
+    return Array.from({ length: objLengthPerSize }, (_, index) => (
+      <div
+        key={index}
+        className="sliderElem"
+        style={{
+          ...(type === "sliderMenu" && {
+            cursor: "pointer",
+          }),
+        }}
+        onClick={
+          type === "sliderMenu"
+            ? () => {
+                (scrollBarEvent as OnCustomScrollFn)(
+                  neededSize * index,
+                  axis,
+                  sliderCheckLocal
+                );
+              }
+            : undefined
+        }
+      >
+        {Array.isArray(progressTrigger?.progressElement)
+          ? progressTrigger.progressElement[index]
+          : progressTrigger?.progressElement}
+      </div>
+    ));
+  }, [
+    objLengthPerSize,
+    direction,
+    size,
+    type,
+    scrollBarEvent,
+    progressTrigger?.progressElement,
+  ]);
+
   return (
     <React.Fragment>
-      {type !== "slider" ? (
+      {type === "scroll" ? (
         <div
           className="scrollBar"
           style={{
@@ -35,7 +95,7 @@ const ScrollBar = ({
             ...(direction === "x"
               ? {
                   transformOrigin: "left top",
-                  height: `${sizeHeight}px`,
+                  height: `${size[1]}px`,
                   ...(progressReverse
                     ? {
                         top: 0,
@@ -62,12 +122,7 @@ const ScrollBar = ({
             direction-type={
               ["hybridY", "y"].includes(direction!) ? "y" : direction
             }
-            onMouseDown={
-              onMouseDownOrTouchStart as React.MouseEventHandler<HTMLDivElement>
-            }
-            onTouchStart={
-              onMouseDownOrTouchStart as React.TouchEventHandler<HTMLDivElement>
-            }
+            {...eventProps}
             style={{
               height: `${thumbSize}px`,
               willChange: "transform", // свойство убирает артефакты во время анимации
@@ -81,23 +136,18 @@ const ScrollBar = ({
           </div>
         </div>
       ) : (
-        objLengthPerSize > 1 && (
+        objLengthPerSize > 1 &&
+        progressTrigger?.progressElement && (
           <div
             className="sliderBar"
             direction-type={
               ["hybridY", "y"].includes(direction!) ? "y" : direction
             }
-            onMouseDown={
-              onMouseDownOrTouchStart as React.MouseEventHandler<HTMLDivElement>
-            }
-            onTouchStart={
-              onMouseDownOrTouchStart as React.TouchEventHandler<HTMLDivElement>
-            }
+            {...eventProps}
             style={{
               position: "absolute",
-              cursor: "grab",
-              ...(!progressTrigger?.progressElement && {
-                pointerEvents: "none",
+              ...(type === "slider" && {
+                cursor: "grab",
               }),
               ...(progressVisibility === "hover" && {
                 opacity: 0,
@@ -123,15 +173,7 @@ const ScrollBar = ({
                   }),
             }}
           >
-            {Array.from({ length: objLengthPerSize }, (_, index) => (
-              <div
-                key={index}
-                className="sliderElem"
-                style={{ width: "fit-content" }}
-              >
-                {progressTrigger?.progressElement}
-              </div>
-            ))}
+            {sliderContent}
           </div>
         )
       )}

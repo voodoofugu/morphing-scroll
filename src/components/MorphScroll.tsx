@@ -667,7 +667,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollContentRef,
     scrollBarsRef,
     type,
-    id,
   ]);
 
   const handleScroll = React.useCallback(() => {
@@ -1289,7 +1288,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 ] ?? "hidden",
             },
 
-            ...(typeof progressTrigger.progressElement !== "boolean" ||
+            ...(type !== "scroll" ||
+            typeof progressTrigger.progressElement !== "boolean" ||
             progressTrigger.progressElement === false
               ? {
                   scrollbarWidth: "none",
@@ -1333,7 +1333,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               thumbSize,
               thumbSpace,
               objLengthPerSize: objLengthPerSizeXY,
-              onMouseDownOrTouchStart: onMouseDownScrollThumb,
+              scrollBarEvent:
+                type === "sliderMenu"
+                  ? smoothScrollLocal
+                  : onMouseDownScrollThumb,
               progressReverseIndex: 0,
             },
             {
@@ -1344,7 +1347,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               thumbSize: thumbSizeX,
               thumbSpace: thumbSpaceX,
               objLengthPerSize: objLengthPerSize[0],
-              onMouseDownOrTouchStart: onMouseDownScrollThumbTwo,
+              scrollBarEvent:
+                type === "sliderMenu"
+                  ? smoothScrollLocal
+                  : onMouseDownScrollThumbTwo,
               progressReverseIndex: 1,
             },
           ]
@@ -1359,13 +1365,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                     ? progressReverse
                     : progressReverse[args.progressReverseIndex]
                 }
-                sizeHeight={sizeLocal[0]}
+                size={sizeLocal}
                 progressTrigger={progressTrigger}
                 progressVisibility={progressVisibility}
-                onMouseDownOrTouchStart={args.onMouseDownOrTouchStart}
+                scrollBarEvent={args.scrollBarEvent}
                 thumbSize={args.thumbSize}
                 thumbSpace={args.thumbSpace}
                 objLengthPerSize={args.objLengthPerSize}
+                sliderCheckLocal={sliderCheckLocal}
               />
             ))}
       </div>
