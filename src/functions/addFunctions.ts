@@ -78,7 +78,7 @@ const sliderCheck = (
 
     function checkActive(
       elementsArray: NodeListOf<Element>,
-      size: number,
+      size: number[],
       scroll: HTMLDivElement,
       direction: Exclude<MorphScrollT["direction"], undefined>
     ) {
@@ -86,18 +86,20 @@ const sliderCheck = (
         direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
 
       elementsArray.forEach((element, index) => {
+        const neededSize = direction === "x" ? size[0] : size[1];
         const isActive =
-          scrollPosition >= size * index && scrollPosition < size * (index + 1);
+          scrollPosition >= neededSize * index &&
+          scrollPosition < neededSize * (index + 1);
         element.classList.toggle("active", isActive);
       });
     }
 
     if (elementsFirst.length > 0) {
-      checkActive(elementsFirst, sizeLocal[1], scrollEl, direction);
+      checkActive(elementsFirst, sizeLocal, scrollEl, direction);
     }
 
     if (elementsSecond.length > 0) {
-      checkActive(elementsSecond, sizeLocal[0], scrollEl, "x");
+      checkActive(elementsSecond, sizeLocal, scrollEl, "x");
     }
   }
 

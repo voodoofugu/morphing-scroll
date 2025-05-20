@@ -146,6 +146,7 @@ const ScrollBar = ({
             {...eventProps}
             style={{
               position: "absolute",
+              display: "flex",
               ...(type === "slider" && {
                 cursor: "grab",
               }),
@@ -157,16 +158,11 @@ const ScrollBar = ({
                 ? {
                     transformOrigin: "left top",
                     left: "50%",
-                    ...(progressReverse
-                      ? {
-                          transform: "rotate(-90deg) translate(-100%, -50%)",
-                          ...(progressReverse ? { top: 0 } : { bottom: 0 }),
-                        }
-                      : {
-                          transform: "rotate(-90deg) translateY(-50%)",
-                        }),
+                    transform: "translateX(-50%)",
+                    ...(progressReverse ? { top: 0 } : { bottom: 0 }),
                   }
                 : {
+                    flexDirection: "column",
                     top: "50%",
                     transform: "translateY(-50%)",
                     ...(progressReverse ? { left: 0 } : { right: 0 }),

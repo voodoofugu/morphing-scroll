@@ -44,7 +44,7 @@ export type MorphScrollT = {
     | number
     | "none"
     | "firstChild"
-    | (number | "none" | "firstChild")[];
+    | (number | "none" | "firstChild")[]; // parentSize?
   crossCount?: number; // !
   gap?: number[] | number;
   wrapperMargin?: number | number[];
