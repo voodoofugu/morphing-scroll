@@ -1325,7 +1325,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             />
           ))}
 
-        {typeof progressTrigger.progressElement !== "boolean" &&
+        {progressTrigger.progressElement &&
+          progressTrigger.progressElement !== true &&
           [
             {
               shouldRender: thumbSize < fullHeightOrWidth,

@@ -95,7 +95,7 @@ const ScrollBar = ({
             ...(direction === "x"
               ? {
                   transformOrigin: "left top",
-                  height: `${size[1]}px`,
+                  height: `${size[0]}px`,
                   ...(progressReverse
                     ? {
                         top: 0,
