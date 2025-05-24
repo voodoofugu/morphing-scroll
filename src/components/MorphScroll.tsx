@@ -79,13 +79,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const id = useIdent();
 
   // ♦ errors
-  if (!objectsSize)
-    throw new Error(`⚠️ MorphScroll: 'objectsSize' prop is not provided`);
+  const errorText = (propName: string) =>
+    `${propName} prop is not provided\nMorphScroll〈♦${id}〉`;
+
+  if (!size) throw new Error(errorText("size"));
+  if (!objectsSize) throw new Error(errorText("objectsSize"));
   if (Object.keys(progressTrigger).length === 0)
-    console.error(
-      `MorphScroll id〈♦${id}〉
-'progressTrigger' prop is not provided`
-    );
+    console.error(errorText("progressTrigger"));
 
   // ♦ state
   const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
@@ -130,6 +130,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const receivedChildSizeRef = useSizeRef();
 
   // ♦ default
+  const stabilizedScrollPosition = JSON.stringify(scrollPosition);
   const scrollPositionLocal = React.useMemo(() => {
     return {
       value:
@@ -139,7 +140,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : scrollPosition?.value ?? [0, 0],
       duration: scrollPosition?.duration ?? 200,
     };
-  }, [scrollPosition]);
+  }, [stabilizedScrollPosition]);
 
   // ♦ variables
   const edgeGradientDefault = { color: null, size: 40 };
@@ -215,26 +216,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [objectsSize]
   );
 
+  const stabilizedObjectsSize = JSON.stringify(objectsSizing);
   const objectsSizeLocal = React.useMemo(() => {
-    const x =
-      typeof objectsSizing[0] === "number"
-        ? objectsSizing[0]
-        : objectsSizing[0] === "none"
-        ? 0
-        : objectsSizing[0] === "firstChild"
-        ? receivedChildSizeRef.current.width
-        : 0;
-    const y =
-      typeof objectsSizing[1] === "number"
-        ? objectsSizing[1]
-        : objectsSizing[1] === "none"
-        ? 0
-        : objectsSizing[1] === "firstChild"
-        ? receivedChildSizeRef.current.height
-        : 0;
+    const getSize = (val: number | "none" | "firstChild", fallback: number) =>
+      typeof val === "number" ? val : val === "firstChild" ? fallback : 0;
 
-    return [x, y];
-  }, [objectsSizing, receivedChildSizeRef.current]);
+    return [
+      getSize(objectsSizing[0], receivedChildSizeRef.current.width),
+      getSize(objectsSizing[1], receivedChildSizeRef.current.height),
+    ];
+  }, [stabilizedObjectsSize, receivedChildSizeRef.current]);
 
   const mRootLocal = React.useMemo(() => {
     return ArgFormatter(
@@ -245,14 +236,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const [mRootX, mRootY] = mRootLocal ? [mRootLocal[2], mRootLocal[0]] : [0, 0];
 
+  const stabilizedSize = JSON.stringify(size);
   const sizeLocal = React.useMemo(() => {
-    const [x, y] =
-      size && Array.isArray(size)
-        ? size
-        : [
-            receivedScrollSizeRef.current.width,
-            receivedScrollSizeRef.current.height,
-          ];
+    const [x, y] = Array.isArray(size)
+      ? size
+      : typeof size === "number"
+      ? [size, size]
+      : [
+          receivedScrollSizeRef.current.width,
+          receivedScrollSizeRef.current.height,
+        ];
 
     if (!progressTrigger.arrows || !arrowsLocal.size) {
       return [x, y, x, y];
@@ -272,7 +265,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     return [recountX, recountY, x, y]; // [2] & [3] is only for customScrollRef
-  }, [size, arrowsLocal.size, receivedScrollSizeRef.current]);
+  }, [stabilizedSize, arrowsLocal.size, receivedScrollSizeRef.current]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
   // ♦ calculations
@@ -669,6 +662,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
   ]);
 
+  if (className === "chatDaiting")
+    console.log("scrollTop", scrollElementRef.current?.scrollTop);
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
@@ -1396,7 +1391,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     </div>
   );
 
-  if (!size) {
+  if (size === "auto") {
     return (
       <ResizeTracker measure="outer" onResize={scrollResize}>
         {content}

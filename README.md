@@ -48,9 +48,8 @@ npm install morphing-scroll
         This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.</em><br />
         <br />
         <strong>Example:</strong>
-    </ul>
 
-            ```tsx
+        ```tsx
         <MorphScroll
           {...props}
           className="your-class"
@@ -59,8 +58,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-
-    </details>
+    </ul></details>
 
     <h2></h2>
 
@@ -191,7 +189,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-    <details>
+    <!-- <details>
       <summary><strong><code>stopLoadOnScroll</code></strong>: <em>Stop loading when scrolling.</em></summary><br />
       <ul>
         <strong>Type:</strong> boolean<br />
@@ -202,7 +200,7 @@ npm install morphing-scroll
         This parameter helps optimize list performance during scrolling. When set to <code>true</code>, new items will not load while the list is being scrolled and will only load after scrolling stops. This can be particularly useful for lists with a large number of items.</em><br />
         <br />
         <strong>Example:</strong>
-
+  
         ```tsx
         <MorphScroll
           {...props}
@@ -211,10 +209,10 @@ npm install morphing-scroll
           {children}
         </MorphScroll>
         ```
-
+  
     </ul></details>
-
-    <h2></h2>
+  
+    <h2></h2> -->
 
     <details>
       <summary><strong><code>onScrollValue</code></strong>: <em>Callback for scroll value.</em></summary><br />
@@ -275,14 +273,15 @@ npm install morphing-scroll
   #### VISUAL SETTINGS:
 
     <details>
-      <summary><strong><code>size</code></strong>: <em>[width, height] of MorphScroll.</em></summary><br />
+      <summary><strong><code>size</code> (required)</strong>: <em>[width, height] of MorphScroll.</em></summary><br />
       <ul>
-        <strong>Type:</strong> number[]<br />
+        <strong>Type:</strong> number | number[] | "auto"<br />
         <br />
         <strong>Description:</strong> <em><br />
-        This parameter sets the width and height of the <code>MorphScroll</code> component as an array of two numbers. These values help define the visual container for the scrollable area.<br />
+        This parameter sets the width and height of the <code>MorphScroll</code>.<br />
         <br />
-        If this parameter is not specified, <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
+        <strong>Number</strong> - This option sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height or an array of 2 numbers in pixels.<br />
+        <strong>"auto"</strong> - This option  <code>MorphScroll</code> will use the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
         <br />
         <strong>Example:</strong>
 

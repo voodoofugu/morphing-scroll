@@ -72,7 +72,7 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  * - `isScrolling`
  *
  * #### • VISUAL SETTINGS:
- * - `size`
+ * - `size` - ***REQUIRED***
  * - `objectsSize` - ***REQUIRED***
  * - `gap`
  * - `padding`
