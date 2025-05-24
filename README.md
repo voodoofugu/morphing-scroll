@@ -89,14 +89,20 @@ npm install morphing-scroll
     <details>
       <summary><strong><code>type</code></strong>: <em>Type of progress element.</em></summary><br />
       <ul>
-        <strong>Type:</strong> "scroll" | "slider"<br />
+        <strong>Type:</strong> "scroll" | "slider" | "sliderMenu"<br />
         <br />
         <strong>Default:</strong> "scroll"<br />
         <br />
         <strong>Description:</strong> <em><br />
         This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
-        With the default <code>type="scroll"</code>, it functions as a typical scrollbar. However, with <code>type="slider"</code>, it displays distinct elements indicating the number of full scroll steps within the list.<br />
-        For More details, refer to <code>progressTrigger/progressElement</code>.</em><br />
+        <code>scroll</code>:<br />
+        This is the default value and represents a standard scrollbar.<br />
+        <br />
+        <code>slider</code>:<br />
+        It displays distinct elements indicating the number of full scroll steps within the list.<br />
+        <br />
+        <code>sliderMenu</code>:<br />
+        It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
         <br />
         <strong>Example:</strong>
 
@@ -157,8 +163,8 @@ npm install morphing-scroll
         This parameter allows you to set custom scroll values.<br />
         <br />
         <code>value</code>:<br />
-        Number - Sets the scroll position to a specific value.<br />
-        "end" - This option scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
+        <strong>Number</strong> - Sets the scroll position to a specific value.<br />
+        <strong>"end"</strong> - This option scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
         <br />
         <code>duration</code>:<br />
         This property determines the animation speed for scrolling in ms.<br />
