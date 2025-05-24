@@ -164,8 +164,8 @@ npm install morphing-scroll
         This parameter allows you to set custom scroll values.<br />
         <br />
         <code>value</code>:<br />
-        <mark style="border-radius: 6px;">number</mark> - Sets the scroll position to a specific value.<br />
-        <mark style="border-radius: 6px;">"end"</mark> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
+        <u>number</u> - Sets the scroll position to a specific value.<br />
+        <u>"end"</u> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
         <br />
         <code>duration</code>:<br />
         This property determines the animation speed for scrolling in ms.<br />
@@ -280,8 +280,8 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This parameter sets the width and height of the <code>MorphScroll</code>.<br />
         <br />
-        <mark style="border-radius: 6px;">number</mark> - Sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height, or an array of 2 numbers in pixels.<br />
-        <mark style="border-radius: 6px;">"auto"</mark> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
+        <u>number</u> - Sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height, or an array of 2 numbers in pixels.<br />
+        <u>"auto"</u> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
         <br />
         <b>Example:</b>
 
@@ -308,9 +308,9 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This parameter defines the [width, height] of cells for each of your objects.<br />
         <br />
-        <mark style="border-radius: 6px;">number</mark> - Sets a fixed size for your custom objects.<br />
-        <mark style="border-radius: 6px;">"none"</mark> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
-        <mark style="border-radius: 6px;">"firstChild"</mark> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
+        <u>number</u> - Sets a fixed size for your custom objects.<br />
+        <u>"none"</u> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+        <u>"firstChild"</u> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
         <br />
         ✦ Note:<br />
         <code>"none"</code> is not compatible with <code>render={{ type: "virtual" }}</code>.<br />
