@@ -49,6 +49,7 @@ npm install morphing-scroll
         <br />
         <strong>Example:</strong>
     </ul>
+
             ```tsx
         <MorphScroll
           {...props}
@@ -57,6 +58,8 @@ npm install morphing-scroll
           {children}
         </MorphScroll>
         ```
+
+
     </details>
 
     <h2></h2>
