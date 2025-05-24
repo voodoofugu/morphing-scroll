@@ -333,10 +333,10 @@ npm install morphing-scroll
     <details>
       <summary><b><code>crossCount</code></b>: <em>Number of cells in each direction.</em></summary><br />
       <ul>
-        <b>Type:</b> (number | "none" | "firstChild")[]<br />
+        <b>Type:</b> number<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter limits the <b>maximum</b> number of <b>columns</b> when the <code>direction</code> is <mark>"y"</mark> or <mark>"hybridY"</mark> or <b>rows</b> when </mark>"x"</mark> or <mark>"hybridX"</mark>.</em><br />
+        This parameter limits the <b>maximum</b> number of <b>columns</b> when the <code>direction</code> is <mark>"y" / "hybridY"</mark> or <b>rows</b> when </mark>"x" / "hybridX"</mark>.</em><br />
         <br />
         <b>Example:</b>
 
