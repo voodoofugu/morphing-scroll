@@ -40,25 +40,21 @@ npm install morphing-scroll
   #### GENERAL SETTINGS:
 
     <details>
-      <summary><strong><code>className</code></strong>: <em>Additional classes for the component.</em></summary><br />
-      <ul>
-        <strong>Type:</strong> string<br />
-        <br />
-        <strong>Description:</strong> <em><br />
-        This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.</em><br />
-        <br />
-        <strong>Example:</strong>
+  <summary><strong><code>className</code></strong>: <em>Additional classes for the component.</em></summary>
 
-        ```tsx
-        <MorphScroll
-          {...props}
-          className="your-class"
-        >
-          {children}
-        </MorphScroll>
-        ```
+  **Type:** `string`  
+  **Description:**  
+  _This parameter allows you to apply custom CSS classes to the `MorphScroll` component, enabling further customization and styling to fit your design needs._
 
-    </ul></details>
+  **Example:**
+
+  ```tsx
+  <MorphScroll {...props} className="your-class">
+    {children}
+  </MorphScroll>
+  ```
+
+    </details>
 
     <h2></h2>
 
@@ -84,7 +80,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### SCROLL SETTINGS:
+#### SCROLL SETTINGS:
 
     <details>
       <summary><strong><code>type</code></strong>: <em>Type of progress element.</em></summary><br />
@@ -95,6 +91,7 @@ npm install morphing-scroll
         <br />
         <strong>Description:</strong> <em><br />
         This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
+        <br />
         <code>scroll</code>:<br />
         This is the default value and represents a standard scrollbar.<br />
         <br />
@@ -241,7 +238,7 @@ npm install morphing-scroll
         ```
 
     </ul></details>
-      
+
     <h2></h2>
 
     <details>
@@ -269,7 +266,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### VISUAL SETTINGS:
+#### VISUAL SETTINGS:
 
     <details>
       <summary><strong><code>size</code></strong>: <em>[width, height] of MorphScroll.</em></summary><br />
@@ -563,7 +560,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### PROGRESS AND RENDERING:
+#### PROGRESS AND RENDERING:
 
     <details>
       <summary><strong><code>progressTrigger</code></strong>: <em>Triggers for the progress bar.</em></summary><br />
@@ -632,7 +629,7 @@ npm install morphing-scroll
             <ul>
               <li>If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.</li>
               <li>If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.</li>
-          </ul> 
+          </ul>
           </li>
           <li>All values are in pixels and apply regardless of the <code>direction</code>.</li>
         </ul></em><br />
@@ -753,7 +750,7 @@ npm install morphing-scroll
         ```
 
     </ul></details>
-    
+
   </div>
 
 <h2></h2>
@@ -936,7 +933,7 @@ npm install morphing-scroll
         <strong>Default:</strong> null (window)<br />
         <br />
         <strong>Description:</strong> <em><br />
-        Specifies the element that serves as the bounding box for the intersection observation. 
+        Specifies the element that serves as the bounding box for the intersection observation.
         If provided, it must be an ancestor of the observed element.<br />
         <br />
         If set to <code>null</code> (default), the window is used as the observation area.</em><br />
@@ -1083,3 +1080,7 @@ npm install morphing-scroll
 - `MorphScroll`: React component that optimizes the rendering of data lists.
 - `ResizeTracker`: React component that monitors changes to an element’s size.
 - `IntersectionTracker`: React component for tracking element visibility in the viewport.
+
+```
+
+```
