@@ -70,7 +70,7 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This is where you can pass your list elements.<br />
         Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will use the same keys as your list items, allowing it to render the correct cells for the current list.<br />
-        Additionally, <code>MorphScroll</code> handles a passed <code>null</code> value the same way as <code>undefined</code>, rendering nothing in both cases.</em><br />
+        Additionally, <code>MorphScroll</code> handles a passed <mark>null</mark> value the same way as <mark>undefined</mark>, rendering nothing in both cases.</em><br />
         <br />
         <b>Example:</b>
 
@@ -96,14 +96,11 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
         <br />
-        <code>scroll</code>:<br />
-        This is the default value and represents a standard scrollbar.<br />
+        <mark>scroll</mark> - This is the default value and represents a standard scrollbar.<br />
         <br />
-        <code>slider</code>:<br />
-        It displays distinct elements indicating the number of full scroll steps within the list.<br />
+        <mark>slider</mark> - It displays distinct elements indicating the number of full scroll steps within the list.<br />
         <br />
-        <code>sliderMenu</code>:<br />
-        It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
+        <mark>sliderMenu</mark> - It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
         <br />
         <b>Example:</b>
 
@@ -132,7 +129,7 @@ npm install morphing-scroll
         You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.<br />
         <br />
         <b>Note:</b><br />
-        The different between "hybridX" and "hybridY" is how the <code>crossCount</code> parameter affects them, limiting the number of either rows (hybridX) or columns (hybridY).</em><br />
+        The different between <mark>"hybridX"</mark> and <mark>"hybridY"</mark> is how the <code>crossCount</code> parameter affects them, limiting the number of either rows (hybridX) or columns (hybridY).</em><br />
         <br />
         <b>Example:</b>
 
@@ -164,8 +161,8 @@ npm install morphing-scroll
         This parameter allows you to set custom scroll values.<br />
         <br />
         <code>value</code>:<br />
-        <u>number</u> - Sets the scroll position to a specific value.<br />
-        <u>"end"</u> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
+        <mark>number</mark> - Sets the scroll position to a specific value.<br />
+        <mark>"end"</mark> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
         <br />
         <code>duration</code>:<br />
         This property determines the animation speed for scrolling in ms.<br />
@@ -280,8 +277,8 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This parameter sets the width and height of the <code>MorphScroll</code>.<br />
         <br />
-        <u>number</u> - Sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height, or an array of 2 numbers in pixels.<br />
-        <u>"auto"</u> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
+        <mark>number</mark> - Sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height, or an array of 2 numbers in pixels.<br />
+        <mark>"auto"</mark> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
         <br />
         <b>Example:</b>
 
@@ -308,15 +305,14 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This parameter defines the [width, height] of cells for each of your objects.<br />
         <br />
-        <u>number</u> - Sets a fixed size for your custom objects.<br />
-        <u>"none"</u> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
-        <u>"firstChild"</u> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
+        <mark>number</mark> - Sets a fixed size for your custom objects.<br />
+        <mark>"none"</mark> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+        <mark>"firstChild"</mark> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
         <br />
         ✦ Note:<br />
-        <code>"none"</code> is not compatible with <code>render={{ type: "virtual" }}</code>.<br />
         <ul>
           <li>All types can be used as 1 value, or an array of 2 values.</li>
-          <li><code>"none"</code> is not compatible with <code>render={{ type: "virtual" }}</code>.</li>
+          <li><mark>"none"</mark> is not compatible with <code>render={{ type: "virtual" }}</code>.</li>
         </ul></em><br />
         <br />
         <b>Example:</b>
@@ -340,7 +336,7 @@ npm install morphing-scroll
         <b>Type:</b> (number | "none" | "firstChild")[]<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter limits the <b>maximum</b> number of columns when the <code>direction</code> is "y"/"hybridY" or rows when "x"/hybridX".</em><br />
+        This parameter limits the <b>maximum</b> number of <b>columns</b> when the <code>direction</code> is <mark>"y"</mark> or <mark>"hybridY"</mark> or <b>rows</b> when </mark>"x"</mark> or <mark>"hybridX"</mark>.</em><br />
         <br />
         <b>Example:</b>
 
