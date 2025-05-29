@@ -39,12 +39,12 @@ export type MorphScrollT = {
   isScrolling?: (motion: boolean) => void;
 
   // Visual Settings
-  size: number | number[] | "auto"; // может добавить одно число для одинакового размера, как и для objectsSize
+  size: number | number[] | "auto";
   objectsSize:
     | number
     | "none"
     | "firstChild"
-    | (number | "none" | "firstChild")[]; // parentSize?
+    | (number | "none" | "firstChild")[]; // "auto" ?
   crossCount?: number; // !
   gap?: number[] | number;
   wrapperMargin?: number | number[];
