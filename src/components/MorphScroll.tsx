@@ -117,7 +117,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   });
   const isScrollingRef = React.useRef<boolean>(false);
   const numForSliderRef = React.useRef<number>(0);
-  const prevCoordsRef = React.useRef<{ x: number; y: number } | null>(null);
+  const prevCoordsRef = React.useRef<{
+    x: number;
+    y: number;
+    leftover: number;
+  } | null>(null);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -360,6 +364,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const fullHeightOrWidth =
     direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
+  // !!! кажется нужно direction устанавливать при клике при hybrid
   const scrollSpaceFromRef =
     direction === "x"
       ? scrollElementRef.current?.scrollLeft || 0
@@ -662,8 +667,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
   ]);
 
-  if (className === "chatDaiting")
-    console.log("scrollTop", scrollElementRef.current?.scrollTop);
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
@@ -778,7 +781,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         mouseOnEl,
         mouseOnRefHandle,
         triggerUpdate,
-        objLengthPerSize: objLengthPerSize,
         direction,
         smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
@@ -787,14 +789,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         numForSliderRef,
         isScrollingRef,
         prevCoordsRef,
+        thumbSize,
       });
     },
     [
       type,
       progressTrigger.content,
       progressTrigger.progressElement,
-      objLengthPerSize[0],
-      objLengthPerSize[1],
       sizeLocal[0],
       sizeLocal[1],
     ]

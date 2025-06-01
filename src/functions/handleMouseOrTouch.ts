@@ -15,7 +15,6 @@ type HandleMouseT = {
   direction: MorphScrollT["direction"];
   scrollStateRef: ScrollStateRefT;
   sizeLocal: number[];
-  objLengthPerSize: number[];
   smoothScroll: (
     targetScrollTop: number,
     direction: "y" | "x",
@@ -33,7 +32,12 @@ type HandleMouseT = {
   scrollElemIndex?: number;
   numForSliderRef: React.MutableRefObject<number>;
   isScrollingRef: React.RefObject<boolean>;
-  prevCoordsRef: React.MutableRefObject<{ x: number; y: number } | null>;
+  prevCoordsRef: React.MutableRefObject<{
+    x: number;
+    y: number;
+    leftover: number;
+  } | null>;
+  thumbSize: number;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -52,7 +56,6 @@ type HandleMoveT = Omit<
 type HandleUpT = Omit<
   HandleMouseT,
   | "scrollElementRef"
-  | "objLengthPerSize"
   | "scrollStateRef"
   | "direction"
   | "smoothScroll"
@@ -116,7 +119,6 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
 }
 
 function handleMove(args: HandleMoveT) {
-  // args.mouseEvent.preventDefault();
   const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
 
   const curr = {
@@ -128,10 +130,10 @@ function handleMove(args: HandleMoveT) {
       "touches" in args.mouseEvent
         ? args.mouseEvent.touches[0].clientY
         : args.mouseEvent.clientY,
+    leftover: args.prevCoordsRef.current?.leftover ?? 0,
   };
 
   const prev = args.prevCoordsRef.current ?? curr;
-
   const delta = {
     x: curr.x - prev.x,
     y: curr.y - prev.y,
@@ -140,20 +142,52 @@ function handleMove(args: HandleMoveT) {
   args.prevCoordsRef.current = curr;
 
   const applyThumbOrWrap = (axis: "x" | "y") => {
-    if (!args.scrollElementRef) return;
+    if (!args.scrollElementRef || !args.objectsWrapperRef) return;
+    let deltaScroll = 0;
 
-    const move = delta[axis];
-    const isThumb = args.clicked === "thumb";
-    const length =
-      axis === "x" ? args.objLengthPerSize[0] : args.objLengthPerSize[1];
-    const deltaScroll = move * (isThumb ? length : -1);
+    const move = (() => {
+      if (axis === "x") {
+        if ("movementX" in args.mouseEvent) return args.mouseEvent.movementX;
+        return delta.x;
+      } else {
+        if ("movementY" in args.mouseEvent) return args.mouseEvent.movementY;
+        return delta.y;
+      }
+    })();
+
+    const scrollElement = args.scrollElementRef;
+
+    if (args.clicked === "thumb") {
+      const objectsWrapper = args.objectsWrapperRef;
+
+      const visibleSize =
+        axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
+      const objSize =
+        axis === "x" ? objectsWrapper.clientWidth : objectsWrapper.clientHeight;
+
+      const maxThumbPos = visibleSize - args.thumbSize;
+      const scrollableSize = objSize - visibleSize;
+
+      if (maxThumbPos <= 0 || scrollableSize <= 0) return;
+
+      const scrollRatio = scrollableSize / maxThumbPos;
+      const prevLeftover = prev.leftover;
+      const fullDelta = move * scrollRatio + prevLeftover;
+      const intDelta = Math.trunc(fullDelta);
+      const newLeftover = fullDelta - intDelta;
+
+      args.prevCoordsRef.current!.leftover = newLeftover;
+      deltaScroll = intDelta;
+    } else {
+      deltaScroll = -move;
+    }
 
     if (axis === "x") {
-      args.scrollElementRef!.scrollLeft += deltaScroll;
-      args.scrollStateRef.targetScrollX = args.scrollElementRef.scrollLeft;
+      scrollElement.scrollLeft += deltaScroll;
+      args.scrollStateRef.targetScrollX = scrollElement.scrollLeft;
     } else {
-      args.scrollElementRef!.scrollTop += deltaScroll;
-      args.scrollStateRef.targetScrollY = args.scrollElementRef.scrollTop;
+      scrollElement.scrollTop += deltaScroll;
+      args.scrollStateRef.targetScrollY = scrollElement.scrollTop;
     }
   };
 
