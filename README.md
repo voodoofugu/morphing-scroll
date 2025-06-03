@@ -412,7 +412,10 @@ npm install morphing-scroll
       <ul>
         <b>Type:</b> number | "full" | (number | "full")[]<br /><br />
         <b>Description:</b> <em><br />
-        This parameter defines the minimum height or width of the <b>objectsWrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.</em><br />
+        This parameter defines the minimum height or width of the <b>objectsWrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
+        <br />
+        ✦ Note:<br />
+        Can be used as 1 value, or an array of 2 values.</em><br />
         <br />
         <b>Example:</b>
 
