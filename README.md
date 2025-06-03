@@ -338,7 +338,7 @@ npm install morphing-scroll
         <b>Type:</b> number<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter limits the <b>maximum</b> number of <b>columns</b> when the <code>direction</code> is <mark>"y" / "hybridY"</mark> or <b>rows</b> when </mark>"x" / "hybridX"</mark>.</em><br />
+        This parameter limits the <b>maximum</b> number of <b>columns</b> when the <code>direction</code> is <mark>"y" / "hybridY"</mark> or <b>rows</b> when <mark>"x" / "hybridX"</mark>.</em><br />
         <br />
         <b>Example:</b>
 
