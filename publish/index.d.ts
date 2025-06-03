@@ -73,7 +73,7 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  *
  * #### • VISUAL SETTINGS:
  * - `size` - ***REQUIRED***
- * - `objectsSize` - ***REQUIRED***
+ * - `objectsSize`
  * - `gap`
  * - `padding`
  * - `contentAlign`

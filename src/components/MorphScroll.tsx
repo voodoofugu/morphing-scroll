@@ -83,7 +83,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     `${propName} prop is not provided\nMorphScroll〈♦${id}〉`;
 
   if (!size) throw new Error(errorText("size"));
-  if (!objectsSize) throw new Error(errorText("objectsSize"));
   if (Object.keys(progressTrigger).length === 0)
     console.error(errorText("progressTrigger"));
 
@@ -215,22 +214,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [0, 0];
   }, [gap]);
 
-  const objectsSizing = React.useMemo(
-    () => ArgFormatter(objectsSize, true),
-    [objectsSize]
-  );
-
-  const stabilizedObjectsSize = JSON.stringify(objectsSizing);
-  const objectsSizeLocal = React.useMemo(() => {
-    const getSize = (val: number | "none" | "firstChild", fallback: number) =>
-      typeof val === "number" ? val : val === "firstChild" ? fallback : 0;
-
-    return [
-      getSize(objectsSizing[0], receivedChildSizeRef.current.width),
-      getSize(objectsSizing[1], receivedChildSizeRef.current.height),
-    ];
-  }, [stabilizedObjectsSize, receivedChildSizeRef.current]);
-
   const mRootLocal = React.useMemo(() => {
     return ArgFormatter(
       render.type !== "default" ? render.rootMargin || 0 : 0,
@@ -271,6 +254,30 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [recountX, recountY, x, y]; // [2] & [3] is only for customScrollRef
   }, [stabilizedSize, arrowsLocal.size, receivedScrollSizeRef.current]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
+
+  const objectsSizing = React.useMemo(
+    () => (objectsSize ? ArgFormatter(objectsSize, true, 2) : [null, null]),
+    [objectsSize]
+  );
+  const stabilizedObjectsSize = JSON.stringify(objectsSizing);
+  const objectsSizeLocal = React.useMemo(() => {
+    const getSize = (
+      val: number | "none" | "firstChild",
+      receivedSize: number
+    ) =>
+      typeof val === "number" ? val : val === "firstChild" ? receivedSize : 0;
+
+    return [
+      getSize(
+        objectsSizing[0] || sizeLocal[0],
+        receivedChildSizeRef.current.width
+      ),
+      getSize(
+        objectsSizing[1] || sizeLocal[1],
+        receivedChildSizeRef.current.height
+      ),
+    ];
+  }, [stabilizedObjectsSize, receivedChildSizeRef.current]);
 
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {

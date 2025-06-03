@@ -40,11 +40,11 @@ export type MorphScrollT = {
 
   // Visual Settings
   size: number | number[] | "auto";
-  objectsSize:
+  objectsSize?:
     | number
     | "none"
     | "firstChild"
-    | (number | "none" | "firstChild")[]; // "auto" ?
+    | (number | "none" | "firstChild")[];
   crossCount?: number; // !
   gap?: number[] | number;
   wrapperMargin?: number | number[];

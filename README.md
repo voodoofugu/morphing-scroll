@@ -296,11 +296,13 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>objectsSize</code> (required)</b>: <em>[width, height] of cells for each object.</em></summary><br />
+      <summary><b><code>objectsSize</code></b>: <em>[width, height] of cells for each object.</em></summary><br />
       <ul>
         <b>Type:</b><br />
         number | "none" | "firstChild"<br />
         | (number | "none" | "firstChild")[]<br />
+        <br />
+        <b>Default:</b> If you don't provide any value, the default value will be taken from <code>size</code><br />
         <br />
         <b>Description:</b> <em><br />
         This parameter defines the [width, height] of cells for each of your objects.<br />
@@ -380,7 +382,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>wrapperMargin</code></b>: <em>Margin for the <code>objectsWrapper</code>.</em></summary><br />
+      <summary><b><code>wrapperMargin</code></b>: <em>Margin for the <b>objectsWrapper</b>.</em></summary><br />
       <ul>
         <b>Type:</b> number | number[]<br />
         <br />
@@ -388,7 +390,7 @@ npm install morphing-scroll
         This parameter defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area.<br />
         <br />
         ✦ Note:<br />
-        It can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
+        Can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
         <br />
         <b>Example:</b>
 
@@ -406,22 +408,39 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>contentAlign</code></b>: <em>Aligns the content when it is smaller than the MorphScroll <code>size</code>.</em></summary><br />
+      <summary><b><code>wrapperMinSize</code></b>: <em>Minimum height or width of the <b>objectsWrapper</b>.</em></summary><br />
       <ul>
-        <b>Type:</b> [<br />
-            "start" | "center" | "end",<br />
-            "start" | "center" | "end"<br />
-        ]<br />
+        <b>Type:</b> number | "full" | (number | "full")[]<br /><br />
         <b>Description:</b> <em><br />
-        This parameter aligns the `objectsWrapper`, which contains all the provided elements, relative to the scroll or the `size`.<br />
+        This parameter defines the minimum height or width of the <b>objectsWrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.</em><br />
+        <br />
+        <b>Example:</b>
+
+        ```tsx
+        <MorphScroll
+          {...props}
+          wrapperMinSize={"full"}
+        >
+          {children}
+        </MorphScroll>
+        ```
+
+    </ul></details>
+
+    <h2></h2>
+
+    <details>
+      <summary><b><code>wrapperAlign</code></b>: <em>[horizontal, vertical] aligns your content when it is smaller than the <code>size</code>.</em></summary><br /> 
+      <ul>
+        <b>Type:</b><br />
+        "start" | "center" | "end"<br />
+        | ("start" | "center" | "end")[]
+        <br />
+        <b>Description:</b> <em><br />
+        This parameter aligns the <b>objectsWrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
         <br />
         ✦ Note:<br />
-        <ul>
-          <li>Only takes effect when `objectsWrapper` is smaller than the scroll container.
-          </li>
-          <li>The values are specified following the horizontal/vertical rule, regardless of the direction.
-          </li>
-        </ul></em><br />
+        Can be used as 1 value, or an array of 2 values.</em><br />
         <br />
         <b>Example:</b>
 
@@ -439,7 +458,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>elementsAlign</code></b>: <em>Aligns the objects within the <code>objectsWrapper</code>.</em></summary><br />
+      <summary><b><code>elementsAlign</code></b>: <em>Aligns the objects within the <b>objectsWrapper</b>.</em></summary><br />
       <ul>
         <b>Type:</b> "start" | "center" | "end"<br />
         <br />
@@ -535,29 +554,6 @@ npm install morphing-scroll
         <MorphScroll
           {...props}
           progressVisibility="hover"
-        >
-          {children}
-        </MorphScroll>
-        ```
-
-    </ul></details>
-
-    <h2></h2>
-
-    <details>
-      <summary><b><code>objectsWrapFullMinSize</code></b>: <em>Sets the <code>min-height</code> CSS property of the <code>objectsWrapper</code> to match the height of the MorphScroll.</em></summary><br />
-      <ul>
-        <b>Type:</b> boolean<br /><br />
-        <b>Default:</b> false<br /><br />
-        <b>Description:</b> <em><br />
-        In process of development</em><br />
-        <br />
-        <b>Example:</b>
-
-        ```tsx
-        <MorphScroll
-          {...props}
-          objectsWrapFullMinSize
         >
           {children}
         </MorphScroll>
