@@ -162,8 +162,9 @@ function handleMove(args: HandleMoveT) {
 
       const visibleSize =
         axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
-      const objSize =
+      const objSize = // прибавить margin?
         axis === "x" ? objectsWrapper.clientWidth : objectsWrapper.clientHeight;
+      console.log("objSize, visibleSize", objSize, visibleSize);
 
       const maxThumbPos = visibleSize - args.thumbSize;
       const scrollableSize = objSize - visibleSize;
