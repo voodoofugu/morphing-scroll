@@ -481,28 +481,90 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>edgeGradient</code></b>: <em>Gradient when scrolling overflows.</em></summary><br />
+      <summary><b><code>elementsDirection</code></b>: <em>Direction of the provided elements.</em></summary><br />
       <ul>
-        <b>Type:</b> boolean | { color?: string; size?: number }<br />
+        <b>Type:</b> "row" | "column"<br />
         <br />
-        <b>Default:</b> When using true or color, the default size will be 40<br />
+        <b>Default:</b> "row"<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
-        <br />
-        The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
-        <br />
-        ✦ Note:<br />
-        The size property, measured in pixels, adjusts the dimensions of the edge elements.</em><br />
+        This parameter changes the order of the provided elements based on the provided value.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
         <MorphScroll
           {...props}
-          edgeGradient={{ color: "rgba(0, 0, 0, 0.5)" }}
-          // edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 20 }}
-          // edgeGradient
+          elementsDirection="column"
+        >
+          {children}
+        </MorphScroll>
+        ```
+
+    </ul></details>
+
+    <h2></h2>
+
+    <details>
+      <summary><b><code>edgeGradient</code></b>: <em>Gradient when scrolling overflows.</em></summary><br />
+      <ul>
+        <b>Type:</b> boolean | { color?: string; size?: number }<br />
+        <br />
+        <b>Default:</b> When using true or providing color without size, the default size will be 40px<br />
+        <br />
+        <b>Description:</b> <em><br />
+        This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
+        <br />
+        The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
+        <br />
+        <b>Example:</b>
+
+        ```tsx
+        <MorphScroll
+          {...props}
+          edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 60 }}
+        >
+          {children}
+        </MorphScroll>
+        ```
+
+    </ul></details>
+
+    <h2></h2>
+
+  #### PROGRESSBAR:
+
+    <details>
+      <summary><b><code>progressTrigger</code></b>: <em>Triggers for the progress bar.</em></summary><br />
+      <ul>
+        <b>Type:</b> {<br />
+          wheel?: boolean;<br />
+          content?: boolean;<br />
+          progressElement?: boolean | React.ReactNode;<br />
+          arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
+        }<br />
+        <br />
+        <b>Default:</b> { wheel: true }<br />
+        <br />
+        <b>Description:</b> <em><br />
+        This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+        <br />
+        <ul>
+          <li>The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.</li>
+          <li>The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
+          <li>The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.</li>
+          <li>The <code>arrows</code> property allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom <code>element</code>.</li>
+        </ul></em><br />
+        <br />
+        <b>Example:</b>
+
+        ```tsx
+        <MorphScroll
+          {...props}
+          progressTrigger={{
+            wheel: true,
+            progressElement: <div className="your-scroll-thumb" />,
+          }}
         >
           {children}
         </MorphScroll>
@@ -515,16 +577,19 @@ npm install morphing-scroll
     <details>
       <summary><b><code>progressReverse</code></b>: <em>Reverse the progress bar position.</em></summary><br />
       <ul>
-        <b>Type:</b> boolean<br />
+        <b>Type:</b> boolean | boolean[]<br />
         <br />
         <b>Default:</b> false<br />
         <br />
-        <b>Description:</b> <em><br />
+        <b>Description:</b> <><br />
         This parameter changes the position of the progress bar based on the direction property.<br />
         <ul>
           <li>If <code>direction="x"</code>, the progress bar is on the left by default and moves to the right when <code>progressReverse</code> is enabled.</li>
           <li>If <code>direction="y"</code>, the progress bar is at the top by default and moves to the bottom when <code>progressReverse</code> is enabled.</li>
-        </ul></em><br />
+        </ul><br />
+        <br />
+        ✦ Note:<br />
+        If you use <mark>hybrid</mark> <code>direction</code> values and want to change only one <b>progressBar</b> position, you can pass an array of booleans.</em><br />
         <br />
         <b>Example:</b>
 
@@ -566,47 +631,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### PROGRESS AND RENDERING:
-
-    <details>
-      <summary><b><code>progressTrigger</code></b>: <em>Triggers for the progress bar.</em></summary><br />
-      <ul>
-        <b>Type:</b> {<br />
-          wheel?: boolean;<br />
-          content?: boolean;<br />
-          progressElement?: boolean | React.ReactNode;<br />
-          arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
-        }<br />
-        <br />
-        <b>Default:</b> { wheel: true }<br />
-        <br />
-        <b>Description:</b> <em><br />
-        This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
-        <br />
-        <ul>
-          <li>The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.</li>
-          <li>The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
-          <li>The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.</li>
-          <li>The <code>arrows</code> property allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom <code>element</code>.</li>
-        </ul></em><br />
-        <br />
-        <b>Example:</b>
-
-        ```tsx
-        <MorphScroll
-          {...props}
-          progressTrigger={{
-            wheel: true,
-            progressElement: <div className="your-scroll-thumb" />,
-          }}
-        >
-          {children}
-        </MorphScroll>
-        ```
-
-    </ul></details>
-
-    <h2></h2>
+  #### OPTIMIZATIONS:
 
     <details>
       <summary><b><code>render</code></b>: <em>Types of rendering for optimization.</em></summary><br />
