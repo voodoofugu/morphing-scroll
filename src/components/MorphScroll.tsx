@@ -282,8 +282,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
     const isHorizontal = direction === "x";
+    const isRow = elementsDirection === "row";
+    const isColumn = elementsDirection === "column";
 
-    const marginPerDirection = isHorizontal ? mLocalY : mLocalX;
     const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const objectSize = isHorizontal
       ? objectsSizeLocal[1] + gapY
@@ -294,38 +295,42 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? objectSize * (validChildren.length + 1) - objectSize
         : localObjSize;
 
-    const objects =
-      Math.floor((neededMaxSize + marginPerDirection) / objectSize) || 1;
+    const objects = Math.floor(neededMaxSize / objectSize) || 1;
     // устанавливаем crossCount если он есть и если он меньше objects
     const objectsPerD =
-      crossCount && crossCount < objects
+      crossCount && crossCount <= objects
         ? direction === "hybrid"
           ? Math.ceil(objects / crossCount)
           : crossCount
         : objects;
     const childsLinePerD =
-      objectsPerD > 1
+      objectsPerD > 1 && objectsPerD < validChildren.length
         ? Math.ceil(validChildren.length / objectsPerD)
         : validChildren.length;
 
-    return direction === "hybrid"
-      ? [
-          crossCount
-            ? elementsDirection === "row"
-              ? crossCount
-              : objectsPerD
-            : elementsDirection === "row"
-            ? validChildren.length
-            : 1,
-          crossCount
-            ? elementsDirection === "column"
-              ? crossCount
-              : objectsPerD
-            : elementsDirection === "column"
-            ? validChildren.length
-            : 1,
-        ]
-      : [objectsPerD, childsLinePerD];
+    const useCrossCount = crossCount && crossCount < validChildren.length;
+
+    if (direction === "hybrid") {
+      const x = useCrossCount
+        ? isRow
+          ? crossCount
+          : objectsPerD
+        : isRow
+        ? validChildren.length
+        : 1;
+
+      const y = useCrossCount
+        ? isColumn
+          ? crossCount
+          : objectsPerD
+        : isColumn
+        ? validChildren.length
+        : 1;
+
+      return [x, y];
+    }
+
+    return [objectsPerD, childsLinePerD];
   }, [
     validChildren.length,
     direction,
@@ -338,8 +343,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     mLocalY,
     crossCount,
   ]);
-  if (className === "scrollAvatars")
-    console.log("objectsPerDirection", objectsPerDirection);
 
   const objectsWrapperWidth = React.useMemo(() => {
     const childsGap = !objectsPerDirection[0]

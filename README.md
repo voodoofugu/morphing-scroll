@@ -126,7 +126,7 @@ npm install morphing-scroll
         <br />
         <b>Description:</b> <em><br />
         This parameter changes the scroll or slider type direction based on the provided value.<br />
-        You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.</em><br />
+        You can set the value to horizontal, vertical or hybrid positions to customize the component according to your needs.</em><br />
         <br />
         <b>Example:</b>
 
@@ -338,7 +338,11 @@ npm install morphing-scroll
         This parameter defines the number of <b>columns</b> <mark>(when <code>direction="y"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="column"</code>)</mark> or <b>rows</b> <mark>(when <code>direction="x"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="row"</code>)</mark>.<br />
         <br />
         ✦ Note:<br />
-        .</em><br />
+        <ul>
+          <li>If you use <mark>"x"</mark> or <mark>"y"</mark> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
+          <li>If you use <mark>"hybrid"</mark> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of the <code>elementsDirection</code>, but not exceeding the total number of passed elements.</li>
+        </ul></em><br />
+        <br />
         <b>Example:</b>
 
         ```tsx

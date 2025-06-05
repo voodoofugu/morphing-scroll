@@ -89,5 +89,3 @@ export type MorphScrollT = {
   suspending?: boolean;
   fallback?: React.ReactNode;
 };
-
-// progressTrigger contentSlider & arrows looped
