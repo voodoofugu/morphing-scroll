@@ -120,16 +120,13 @@ npm install morphing-scroll
     <details>
       <summary><b><code>direction</code></b>: <em>Scrolling direction.</em></summary><br />
       <ul>
-        <b>Type:</b> "x" | "y" | "hybridX" | "hybridY"<br />
+        <b>Type:</b> "x" | "y" | "hybrid"<br />
         <br />
         <b>Default:</b> "y"<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter changes the scroll or slider type direction based on the provided value.<br />
-        You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.<br />
-        <br />
-        <b>Note:</b><br />
-        The different between <mark>"hybridX"</mark> and <mark>"hybridY"</mark> is how the <code>crossCount</code> parameter affects them, limiting the number of either rows (hybridX) or columns (hybridY).</em><br />
+        You can set it to horizontal, vertical, or hybrid positions to customize the component according to your needs.</em><br />
         <br />
         <b>Example:</b>
 
@@ -338,8 +335,10 @@ npm install morphing-scroll
         <b>Type:</b> number<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter limits the <b>maximum</b> number of <b>columns</b> when the <code>direction</code> is <mark>"y" / "hybridY"</mark> or <b>rows</b> when <mark>"x" / "hybridX"</mark>.</em><br />
+        This parameter defines the number of <b>columns</b> <mark>(when <code>direction="y"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="column"</code>)</mark> or <b>rows</b> <mark>(when <code>direction="x"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="row"</code>)</mark>.<br />
         <br />
+        ✦ Note:<br />
+        .</em><br />
         <b>Example:</b>
 
         ```tsx

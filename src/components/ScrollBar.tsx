@@ -46,7 +46,7 @@ const ScrollBar = ({
   const sliderContent = React.useMemo(() => {
     if (type === "scroll" || !direction) return;
 
-    const axis = ["hybridY", "y"].includes(direction) ? "y" : "x";
+    const axis = ["hybrid", "y"].includes(direction) ? "y" : "x";
     const neededSize = axis === "x" ? size[0] : size[1];
 
     return Array.from({ length: objLengthPerSize }, (_, index) => (
@@ -120,7 +120,7 @@ const ScrollBar = ({
           <div
             className="scrollBarThumb"
             direction-type={
-              ["hybridY", "y"].includes(direction!) ? "y" : direction
+              ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
             {...eventProps}
             style={{
@@ -141,7 +141,7 @@ const ScrollBar = ({
           <div
             className="sliderBar"
             direction-type={
-              ["hybridY", "y"].includes(direction!) ? "y" : direction
+              ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
             {...eventProps}
             style={{

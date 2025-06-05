@@ -28,7 +28,7 @@ export type MorphScrollT = {
 
   // Scroll Settings
   type?: "scroll" | "slider" | "sliderMenu"; // morphType
-  direction?: "x" | "y" | "hybridX" | "hybridY";
+  direction?: "x" | "y" | "hybrid"; // !
   scrollPosition?: {
     // !
     value: number | "end" | (number | "end")[]; // !

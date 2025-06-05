@@ -7,7 +7,7 @@ type HandleMouseT = {
   eventType: string;
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
-  scrollBarsRef: NodeListOf<Element> | [];
+  scrollBar: HTMLDivElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
   progressVisibility: "hover" | "visible" | "hidden";
   scrollContentRef: HTMLDivElement | null;
@@ -38,6 +38,7 @@ type HandleMouseT = {
     leftover: number;
   } | null>;
   thumbSize: number;
+  axisFromAtr: "x" | "y" | null;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -69,11 +70,7 @@ type HandleUpT = Omit<
 function handleMouseOrTouch(args: HandleMouseDownT) {
   // меняем курсор
   if (["thumb", "slider"].includes(args.clicked)) {
-    // если первого бегунка нет (из-за размеров) а нужен второй то ставим индекс 0
-    args.mouseOnEl(
-      (args.scrollBarsRef?.[args.scrollElemIndex ?? 0] ||
-        args.scrollBarsRef?.[0]) as HTMLDivElement
-    );
+    args.mouseOnEl(args.scrollBar);
   }
   if (args.clicked === "wrapp") {
     args.mouseOnEl(args.objectsWrapperRef);
@@ -119,8 +116,6 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
 }
 
 function handleMove(args: HandleMoveT) {
-  const scrollBars = Array.from(args.scrollBarsRef) as HTMLDivElement[];
-
   const curr = {
     x:
       "touches" in args.mouseEvent
@@ -159,12 +154,20 @@ function handleMove(args: HandleMoveT) {
 
     if (args.clicked === "thumb") {
       const objectsWrapper = args.objectsWrapperRef;
+      const styles = getComputedStyle(objectsWrapper);
 
       const visibleSize =
         axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
-      const objSize = // прибавить margin?
-        axis === "x" ? objectsWrapper.clientWidth : objectsWrapper.clientHeight;
-      console.log("objSize, visibleSize", objSize, visibleSize);
+
+      // не забываем прибавить margin
+      const objSize =
+        axis === "x"
+          ? objectsWrapper.clientWidth +
+            parseFloat(styles.marginLeft) +
+            parseFloat(styles.marginRight)
+          : objectsWrapper.clientHeight +
+            parseFloat(styles.marginTop) +
+            parseFloat(styles.marginBottom);
 
       const maxThumbPos = visibleSize - args.thumbSize;
       const scrollableSize = objSize - visibleSize;
@@ -236,22 +239,12 @@ function handleMove(args: HandleMoveT) {
     }
   };
 
-  const getDirectionTypeFromScrollBars = (): ("x" | "y") | null => {
-    for (const bar of scrollBars) {
-      if (bar.style.cursor === "grabbing") {
-        return bar.getAttribute("direction-type") as "x" | "y";
-      }
-    }
-    return null;
-  };
-
-  if (["hybridX", "hybridY"].includes(args.direction!)) {
+  if (args.direction! === "hybrid") {
     if (args.clicked === "wrapp") {
       handleAxis("x");
       handleAxis("y");
-    } else {
-      const dir = getDirectionTypeFromScrollBars();
-      if (dir) handleAxis(dir);
+    } else if (args.axisFromAtr) {
+      handleAxis(args.axisFromAtr);
     }
   } else {
     handleAxis((args.direction || "y") as "x" | "y");
@@ -264,10 +257,7 @@ function handleUp(args: HandleUpT) {
 
   document.body.style.removeProperty("cursor");
   if (["thumb", "slider"].includes(args.clicked)) {
-    args.mouseOnEl(
-      (args.scrollBarsRef[args.scrollElemIndex ?? 0] ||
-        args.scrollBarsRef[0]) as HTMLDivElement
-    );
+    args.mouseOnEl(args.scrollBar);
   }
   if (args.clicked === "wrapp") {
     args.mouseOnEl(args.objectsWrapperRef);

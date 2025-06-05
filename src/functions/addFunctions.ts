@@ -119,11 +119,7 @@ function getWrapperMinSizeStyle(
         (axis === "x" ? mLocalX : mLocalY)
       : value;
 
-  if (
-    direction !== "hybridX" &&
-    direction !== "hybridY" &&
-    !Array.isArray(wrapperMinSize)
-  ) {
+  if (direction !== "hybrid" && !Array.isArray(wrapperMinSize)) {
     const minSize = `${resolveSize(wrapperMinSize, direction)}px`;
     return direction === "x" ? { minWidth: minSize } : { minHeight: minSize };
   }

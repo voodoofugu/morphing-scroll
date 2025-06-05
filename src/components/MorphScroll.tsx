@@ -246,7 +246,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       recountX = x - arrowFullSize;
     } else if (direction === "y") {
       recountY = y - arrowFullSize;
-    } else if (["hybridX", "hybridY"].includes(direction)) {
+    } else if (direction === "hybrid") {
       recountX = x - arrowFullSize;
       recountY = y - arrowFullSize;
     }
@@ -289,16 +289,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? objectsSizeLocal[1] + gapY
       : objectsSizeLocal[0] + gapX;
 
-    const neededMaxSize = ["hybridX", "hybridY"].includes(direction)
-      ? objectSize * (validChildren.length + 1) - objectSize
-      : localObjSize;
+    const neededMaxSize =
+      direction === "hybrid"
+        ? objectSize * (validChildren.length + 1) - objectSize
+        : localObjSize;
 
     const objects =
-      Math.floor((neededMaxSize - marginPerDirection) / objectSize) || 1;
+      Math.floor((neededMaxSize + marginPerDirection) / objectSize) || 1;
     // устанавливаем crossCount если он есть и если он меньше objects
     const objectsPerD =
       crossCount && crossCount < objects
-        ? ["hybridX", "hybridY"].includes(direction)
+        ? direction === "hybrid"
           ? Math.ceil(objects / crossCount)
           : crossCount
         : objects;
@@ -307,7 +308,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? Math.ceil(validChildren.length / objectsPerD)
         : validChildren.length;
 
-    return [Math.ceil(validChildren.length / childsLinePerD), childsLinePerD];
+    return direction === "hybrid"
+      ? [
+          crossCount
+            ? elementsDirection === "row"
+              ? crossCount
+              : objectsPerD
+            : elementsDirection === "row"
+            ? validChildren.length
+            : 1,
+          crossCount
+            ? elementsDirection === "column"
+              ? crossCount
+              : objectsPerD
+            : elementsDirection === "column"
+            ? validChildren.length
+            : 1,
+        ]
+      : [objectsPerD, childsLinePerD];
   }, [
     validChildren.length,
     direction,
@@ -320,6 +338,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     mLocalY,
     crossCount,
   ]);
+  if (className === "scrollAvatars")
+    console.log("objectsPerDirection", objectsPerDirection);
 
   const objectsWrapperWidth = React.useMemo(() => {
     const childsGap = !objectsPerDirection[0]
@@ -383,7 +403,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   let isNotAtStartX = false;
   let isNotAtEndX = false;
-  if (["hybridX", "hybridY"].includes(direction)) {
+  if (direction === "hybrid") {
     isNotAtStartX = (scrollElementRef.current?.scrollLeft || 0) > 1 && true;
     isNotAtEndX =
       Math.round((scrollElementRef.current?.scrollLeft || 0) + sizeLocal[0]) <
@@ -499,9 +519,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ) {
           const indexInArray = splitIndices[arrayIndex].indexOf(index);
           if (indexInArray !== -1) {
-            const neededTopIndex = ["hybridY", "hybridX", "y"].includes(
-              direction
-            )
+            const neededTopIndex = ["hybrid", "y"].includes(direction)
               ? indexInArray
               : arrayIndex;
             const neededLeftIndex =
@@ -525,8 +543,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop
           : alignLocal;
       })(
-        objectsPerDirection[0] > 1 ||
-          ["hybridY", "hybridX", "x"].includes(direction)
+        objectsPerDirection[0] > 1 || ["hybrid", "x"].includes(direction)
           ? indexAndSubIndex[1]
           : index
       );
@@ -758,7 +775,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
       eventType: string = "mousedown",
-      scrollElemIndex?: number
+      clickedSBar?: EventTarget
     ) => {
       const clickedLocal = clicked
         ? clicked
@@ -774,12 +791,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return;
 
       getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
+      let axisFromAtr: "x" | "y" | null = null;
+      if (clickedSBar) {
+        const el = clickedSBar as HTMLElement;
+        axisFromAtr = el.getAttribute("direction-type") as "x" | "y";
+      }
 
       handleMouseOrTouch({
         eventType,
         scrollElementRef: scrollElementRef.current,
         objectsWrapperRef: objectsWrapperRef.current,
-        scrollBarsRef: scrollBarsRef.current,
+        scrollBar: (clickedSBar as HTMLDivElement) || null,
         clickedObject: clickedObject,
         scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
@@ -792,11 +814,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
         clicked: clickedLocal,
-        scrollElemIndex,
         numForSliderRef,
         isScrollingRef,
         prevCoordsRef,
-        thumbSize,
+        thumbSize: axisFromAtr === "x" ? thumbSizeX : thumbSize,
+        axisFromAtr,
       });
     },
     [
@@ -811,15 +833,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (
       event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
-      onMouseOrTouchDown(null, event.type);
-    },
-    [onMouseOrTouchDown]
-  );
-  const onMouseDownScrollThumbTwo = React.useCallback(
-    (
-      event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
-    ) => {
-      onMouseOrTouchDown(null, event.type, 1);
+      onMouseOrTouchDown(null, event.type, event.target);
     },
     [onMouseOrTouchDown]
   );
@@ -924,9 +938,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     };
 
-    const directions = ["hybridX", "hybridY"].includes(direction)
-      ? ["x", "y"]
-      : [direction];
+    const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
     directions.forEach((dir) => {
       const index = dir === "x" ? 0 : 1;
@@ -1116,11 +1128,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         xySize + mRoot > topOrLeft - scrollSpaceFromRef &&
         bottomOrRight - scrollSpaceFromRef > 0 - mRoot;
 
-      const isElementVisibleHybrid = !["hybridX", "hybridY"].includes(direction)
-        ? true
-        : sizeLocal[0] + mRootX >
-            left - (scrollElementRef.current?.scrollLeft || 0) &&
-          right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
+      const isElementVisibleHybrid =
+        direction !== "hybrid"
+          ? true
+          : sizeLocal[0] + mRootX >
+              left - (scrollElementRef.current?.scrollLeft || 0) &&
+            right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
 
       if (isElementVisible && isElementVisibleHybrid) {
         return scrollObjectWrapper(`${key}`, elementTop, left, childLocal, key);
@@ -1212,7 +1225,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       positionType: direction === "x" ? "right" : "bottom",
       visibility: isNotAtEnd,
     },
-    ...(["hybridX", "hybridY"].includes(direction)
+    ...(direction === "hybrid"
       ? [
           { positionType: "left", visibility: isNotAtStartX },
           { positionType: "right", visibility: isNotAtEndX },
@@ -1337,24 +1350,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               thumbSize,
               thumbSpace,
               objLengthPerSize: objLengthPerSizeXY,
-              scrollBarEvent:
-                type === "sliderMenu"
-                  ? smoothScrollLocal
-                  : onMouseDownScrollThumb,
               progressReverseIndex: 0,
             },
             {
               shouldRender:
-                ["hybridX", "hybridY"].includes(direction) &&
-                thumbSizeX < objectsWrapperWidthFull,
+                direction === "hybrid" && thumbSizeX < objectsWrapperWidthFull,
               direction: "x" as const,
               thumbSize: thumbSizeX,
               thumbSpace: thumbSpaceX,
               objLengthPerSize: objLengthPerSize[0],
-              scrollBarEvent:
-                type === "sliderMenu"
-                  ? smoothScrollLocal
-                  : onMouseDownScrollThumbTwo,
               progressReverseIndex: 1,
             },
           ]
@@ -1372,7 +1376,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 size={sizeLocal}
                 progressTrigger={progressTrigger}
                 progressVisibility={progressVisibility}
-                scrollBarEvent={args.scrollBarEvent}
+                scrollBarEvent={
+                  type === "sliderMenu"
+                    ? smoothScrollLocal
+                    : onMouseDownScrollThumb
+                }
                 thumbSize={args.thumbSize}
                 thumbSpace={args.thumbSpace}
                 objLengthPerSize={args.objLengthPerSize}
@@ -1390,7 +1398,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             arrowType={positionType as handleArrowT["arrowType"]}
             handleArrow={handleArrowLocal}
             size={
-              ["hybridX", "hybridY"].includes(direction)
+              direction === "hybrid"
                 ? sizeLocal[0] + arrowsLocal.size * 2
                 : sizeLocal[0]
             }
