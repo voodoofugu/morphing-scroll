@@ -183,31 +183,6 @@ npm install morphing-scroll
 
     <h2></h2>
 
-    <!-- <details>
-      <summary><b><code>stopLoadOnScroll</code></b>: <em>Stop loading when scrolling.</em></summary><br />
-      <ul>
-        <b>Type:</b> boolean<br />
-        <br />
-        <b>Default:</b> false<br />
-        <br />
-        <b>Description:</b> <em><br />
-        This parameter helps optimize list performance during scrolling. When set to <code>true</code>, new items will not load while the list is being scrolled and will only load after scrolling stops. This can be particularly useful for lists with a large number of items.</em><br />
-        <br />
-        <b>Example:</b>
-  
-        ```tsx
-        <MorphScroll
-          {...props}
-          stopLoadOnScroll
-        >
-          {children}
-        </MorphScroll>
-        ```
-  
-    </ul></details>
-  
-    <h2></h2> -->
-
     <details>
       <summary><b><code>onScrollValue</code></b>: <em>Callback for scroll value.</em></summary><br />
       <ul>
@@ -267,9 +242,9 @@ npm install morphing-scroll
   #### VISUAL SETTINGS:
 
     <details>
-      <summary><b><code>size</code> (required)</b>: <em>[width, height] of MorphScroll.</em></summary><br />
+      <summary><b><code>size</code> (required)</b>: <em>[width, height] of <b>MorphScroll</b>.</em></summary><br />
       <ul>
-        <b>Type:</b> number | number[] | "auto"<br />
+        <b>Type:</b><br /> number | number[] | "auto"<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter sets the width and height of the <code>MorphScroll</code>.<br />
@@ -543,7 +518,7 @@ npm install morphing-scroll
         <b>Type:</b> {<br />
           wheel?: boolean;<br />
           content?: boolean;<br />
-          progressElement?: boolean | React.ReactNode;<br />
+          progressElement?: boolean | React.ReactNode | React.ReactNode[];<br />
           arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
         }<br />
         <br />
@@ -553,10 +528,13 @@ npm install morphing-scroll
         This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
         <br />
         <ul>
-          <li>The <code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.</li>
-          <li>The <code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
-          <li>The <code>progressElement</code> property defines whether the progress bar is controlled by a custom element. If your custom scroll element is not ready yet, you can simply pass <code>true</code>, which will display the browser's default scrollbar when <code>type="scroll"</code> is used. Alternatively, if <code>type="slider"</code> is set, a <code>sliderBar</code> element will be created, containing multiple <code>sliderElem</code> elements representing progress. Depending on the position, one of these elements will always have the <code>active</code> class.</li>
-          <li>The <code>arrows</code> property allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom <code>element</code>.</li>
+          <li><code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.</li>
+          <li><code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
+          <li><code>progressElement</code> property determines how the scroll progress is managed — either by the browser or a custom element.<br />
+          - When using <code>type="scroll"</code>, if your custom scroll element is not yet ready, you can simply set <code>progressElement</code> to <mark>true</mark>. This will fall back to the browser’s default scrollbar or allow you to provide your own scroll element later.<br />
+          - When using <code>type="slider"</code>, a <b>sliderBar</b> element is automatically generated. It contains multiple <b>sliderElem</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.<br />
+          - When using <code>type="sliderMenu"</code>, you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+          <li><code>arrows</code> property allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom <code>element</code>.</li>
         </ul></em><br />
         <br />
         <b>Example:</b>
