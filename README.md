@@ -528,15 +528,17 @@ npm install morphing-scroll
         This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
         <br />
         <ul>
-          <li><code>wheel</code> property determines whether the progress bar responds to mouse wheel scrolling.</li>
-          <li><code>content</code> property enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
-          <li><code>progressElement</code> property determines how the scroll progress is managed — either by the browser or a custom element.<br />
-          - When using <code>type="scroll"</code>, if your custom scroll element is not yet ready, you can simply set <code>progressElement</code> to <mark>true</mark>. This will fall back to the browser’s default scrollbar or allow you to provide your own scroll element later.<br />
+          <li><code>wheel</code> determines whether the progress bar responds to mouse wheel scrolling.</li>
+          <li><code>content</code> enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
+          <li><code>progressElement</code> determines how the scroll progress is managed.<br />
+          - When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <mark>true</mark> instead — this will fall back to the browser’s default scrollbar.<br />
           - When using <code>type="slider"</code>, a <b>sliderBar</b> element is automatically generated. It contains multiple <b>sliderElem</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.<br />
-          - When using <code>type="sliderMenu"</code>, you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
-          <li><code>arrows</code> property allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom <code>element</code>.</li>
-        </ul></em><br />
+          - When using <code>type="sliderMenu"</code>, everything is the same as with <mark>"slider"</mark> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+          <li><code>arrows</code> allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom element.</li>
+        </ul><br />
         <br />
+        ✦ Note:<br />
+        <code>progressTrigger</code> can only create or provide your elements, but you must make the design for them yourself.</em><br />
         <b>Example:</b>
 
         ```tsx
@@ -562,7 +564,7 @@ npm install morphing-scroll
         <br />
         <b>Default:</b> false<br />
         <br />
-        <b>Description:</b> <><br />
+        <b>Description:</b> <em><br />
         This parameter changes the position of the progress bar based on the direction property.<br />
         <ul>
           <li>If <code>direction="x"</code>, the progress bar is on the left by default and moves to the right when <code>progressReverse</code> is enabled.</li>
@@ -570,7 +572,7 @@ npm install morphing-scroll
         </ul><br />
         <br />
         ✦ Note:<br />
-        If you use <mark>hybrid</mark> <code>direction</code> values and want to change only one <b>progressBar</b> position, you can pass an array of booleans.</em><br />
+        If you use <code>direction="hybrid"</code> and want to change only one <b>progressBar</b> position, you can pass an array of booleans.</em><br />
         <br />
         <b>Example:</b>
 
