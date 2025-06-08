@@ -48,7 +48,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   wrapperMinSize,
   progressReverse = false,
   progressTrigger = {},
-  progressVisibility = "visible",
+  scrollBarOnHover = false,
   suspending = false,
   fallback = null,
   scrollPosition,
@@ -628,7 +628,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         | MouseEvent
         | TouchEvent
     ) => {
-      if (progressVisibility !== "hover") return;
+      if (!scrollBarOnHover) return;
       const func = () =>
         mouseOnRef(
           scrollContentRef.current,
@@ -643,7 +643,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         func();
       }
     },
-    [progressVisibility, type, clickedObject.current, scrollContentRef.current]
+    [scrollBarOnHover, type, clickedObject.current, scrollContentRef.current]
   );
 
   const handleArrowLocal = React.useCallback(
@@ -809,7 +809,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
         type,
-        progressVisibility,
+        scrollBarOnHover,
         mouseOnEl,
         mouseOnRefHandle,
         triggerUpdate,
@@ -1378,7 +1378,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 }
                 size={sizeLocal}
                 progressTrigger={progressTrigger}
-                progressVisibility={progressVisibility}
+                scrollBarOnHover={scrollBarOnHover}
                 scrollBarEvent={
                   type === "sliderMenu"
                     ? smoothScrollLocal

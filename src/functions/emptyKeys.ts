@@ -17,6 +17,7 @@ const updateEmptyElementKeys = (
       .filter(Boolean) as string[];
   };
 
+  // попытка реализации появления скрытых элементов то есть ключей
   // const removeKeysFromPath = (
   //   path: string,
   //   keysToRemove: string[]

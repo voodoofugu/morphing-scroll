@@ -62,7 +62,7 @@ export type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   progressReverse?: boolean | boolean[]; // !
-  progressVisibility?: "visible" | "hover";
+  scrollBarOnHover?: boolean;
 
   // Optimization
   render?:
@@ -70,7 +70,7 @@ export type MorphScrollT = {
     | {
         type: "lazy";
         rootMargin?: number | number[];
-        onVisible?: (key: string) => void;
+        onVisible?: (key: string) => void; // а надо ли оно
         stopLoadOnScroll?: boolean;
       }
     | {

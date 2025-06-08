@@ -567,12 +567,11 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         This parameter changes the position of the progress bar based on the direction property.<br />
         <ul>
-          <li>If <code>direction="x"</code>, the progress bar is on the left by default and moves to the right when <code>progressReverse</code> is enabled.</li>
-          <li>If <code>direction="y"</code>, the progress bar is at the top by default and moves to the bottom when <code>progressReverse</code> is enabled.</li>
-        </ul><br />
-        <br />
-        ✦ Note:<br />
-        If you use <code>direction="hybrid"</code> and want to change only one <b>progressBar</b> position, you can pass an array of booleans.</em><br />
+          <li>If <code>direction="x"</code>, the progress bar appears on the left by default and moves to the right when set to <mark>true</mark>.</li>
+          <li>If <code>direction="y"</code>, the progress bar appears at the bottom by default and moves to the top when set to <mark>true</mark>.</li>
+          <li>If <code>direction="hybrid"</code>, both horizontal and vertical progress bars are used with the same logic as above.<br />
+          In this case, you can also pass an array of booleans to control each bar individually.</li>
+        </ul></em><br />
         <br />
         <b>Example:</b>
 
@@ -590,21 +589,22 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>progressVisibility</code></b>: <em>Visibility of the progress bar.</em></summary><br />
+      <summary><b><code>scrollBarOnHover</code></b>: <em>Hover visibility of the <b>progressBar</b>.</em></summary><br />
       <ul>
-        <b>Type:</b> "visible" | "hover" | "hidden"<br />
+        <b>Type:</b> boolean<br />
         <br />
-        <b>Default:</b> "visible"<br />
+        <b>Default:</b> false<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter controls the visibility of the progress bar regardless of the <code>type</code> value.</em><br />
+        This parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
+        When you use it, the <b>"hover"</b> class is applied to the <b>scrollBar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
         <MorphScroll
           {...props}
-          progressVisibility="hover"
+          scrollBarOnHover
         >
           {children}
         </MorphScroll>

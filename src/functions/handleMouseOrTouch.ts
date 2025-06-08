@@ -9,7 +9,7 @@ type HandleMouseT = {
   objectsWrapperRef: HTMLDivElement | null;
   scrollBar: HTMLDivElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
-  progressVisibility: "hover" | "visible" | "hidden";
+  scrollBarOnHover: boolean;
   scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
   direction: MorphScrollT["direction"];
@@ -48,7 +48,7 @@ type HandleMouseDownT = HandleMouseT & {
 type HandleMoveT = Omit<
   HandleMouseT,
   | "controller"
-  | "progressVisibility"
+  | "scrollBarOnHover"
   | "scrollContentRef"
   | "mouseOnEl"
   | "mouseOnRefHandle"
@@ -265,7 +265,7 @@ function handleUp(args: HandleUpT) {
 
   args.clickedObject.current = "none";
 
-  if (args.progressVisibility === "hover") {
+  if (args.scrollBarOnHover) {
     let target = args.mouseEvent.target as HTMLElement | null;
     let isChildOfScrollContent = false;
 

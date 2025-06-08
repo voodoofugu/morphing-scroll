@@ -26,7 +26,7 @@ const ScrollBar = ({
   progressReverse,
   size,
   progressTrigger,
-  progressVisibility,
+  scrollBarOnHover,
   scrollBarEvent,
   thumbSize,
   thumbSpace,
@@ -111,7 +111,7 @@ const ScrollBar = ({
             ...(!progressTrigger?.progressElement !== false && {
               pointerEvents: "none",
             }),
-            ...(progressVisibility === "hover" && {
+            ...(scrollBarOnHover && {
               opacity: 0,
               transition: "opacity 0.1s ease-in-out",
             }),
@@ -150,7 +150,7 @@ const ScrollBar = ({
               ...(type === "slider" && {
                 cursor: "grab",
               }),
-              ...(progressVisibility === "hover" && {
+              ...(scrollBarOnHover && {
                 opacity: 0,
                 transition: "opacity 0.1s ease-in-out",
               }),
