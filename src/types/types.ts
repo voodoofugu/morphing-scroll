@@ -46,7 +46,7 @@ export type MorphScrollT = {
     | "firstChild"
     | (number | "none" | "firstChild")[];
   crossCount?: number; // !
-  gap?: number[] | number;
+  gap?: number | number[];
   wrapperMargin?: number | number[];
   wrapperMinSize?: number | "full" | (number | "full")[];
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
