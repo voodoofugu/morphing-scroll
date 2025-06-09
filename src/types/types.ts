@@ -17,7 +17,7 @@ export type IntersectionTrackerT = {
   threshold?: number | number[];
   visibleContent?: boolean;
   onVisible?: (entry: IntersectionObserverEntry) => void; // !
-  onClick?: React.MouseEventHandler<HTMLDivElement>; // !
+  onClick?: React.MouseEventHandler; // !
   attribute?: { name: string; value: string; viewVisible?: boolean }; // !
 };
 
@@ -65,20 +65,11 @@ export type MorphScrollT = {
   scrollBarOnHover?: boolean;
 
   // Optimization
-  render?:
-    | { type: "default" } // ?
-    | {
-        type: "lazy";
-        rootMargin?: number | number[];
-        onVisible?: (key: string) => void; // а надо ли оно
-        stopLoadOnScroll?: boolean;
-      }
-    | {
-        type: "virtual";
-        rootMargin?: number | number[];
-        // onVisible?: (key: string) => void; // ?
-        stopLoadOnScroll?: boolean;
-      };
+  render?: {
+    type: "lazy" | "virtual";
+    rootMargin?: number | number[];
+    stopLoadOnScroll?: boolean;
+  };
   emptyElements?:
     | { mode: "clear"; clickTrigger?: { selector: string; delay?: number } }
     | {

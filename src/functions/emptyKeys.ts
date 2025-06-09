@@ -7,7 +7,7 @@ import { CONST } from "../constants";
 const updateEmptyElementKeys = (
   customScrollRef: () => NodeListOf<Element>,
   emptyElementKeysString: React.MutableRefObject<string>,
-  render: Exclude<MorphScrollT["render"], undefined>,
+  render: MorphScrollT["render"],
   callBack: () => void
 ) => {
   const getWrapIds = (filterFn?: (el: Element) => boolean): string[] => {
@@ -32,7 +32,7 @@ const updateEmptyElementKeys = (
 
   // const allKeysStr = allKeys.join("/");
   const emptyKeysFiltered =
-    render.type !== "lazy"
+    render?.type !== "lazy"
       ? emptyKeysRaw
       : emptyKeysRaw.filter((key) => key.includes("visible"));
 

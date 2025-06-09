@@ -619,34 +619,26 @@ npm install morphing-scroll
     <details>
       <summary><b><code>render</code></b>: <em>Types of rendering for optimization.</em></summary><br />
       <ul>
-        <b>Type:</b><br />
-          | { type: "default" }<br />
-          | { type: "lazy"; rootMargin?: number | number[]; onVisible?: (key: string) => void }<br />
-          | { type: "virtual"; rootMargin?: number | number[] }<br />
-        <br />
-        <b>Default:</b> { type: "default" }<br />
+        <b>Type:</b> {<br />
+          type: "lazy" | "virtual";<br />
+          rootMargin?: number | number[];<br />
+          stopLoadOnScroll?: boolean;<br />
+          }<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter defines the rendering type for optimization.<br />
         <br />
+        <code>type</code>:<br />
         <ul>
-          <li>With <code>default</code>, no optimizations are applied.</li>
-          <li>With <code>lazy</code>, containers are created but do not load content until they enter the viewport. The <code>rootMargin</code> property controls the threshold for loading, and the <code>onVisible</code> callback function can be used to trigger actions when a container becomes visible for each scrollable object and provides the key of the first element in the container.</li>
-          <li>With <code>virtual</code>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position. The <code>rootMargin</code> property can also be used to extend the rendering area.</li>
+          <li>With <mark>"lazy"</mark>, containers are created but do not load content until they enter the viewport. The content is not deleted when it leaves the viewport.</li>
+          <li>With <mark>"virtual"</mark>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position.</li>
         </ul><br />
         <br />
-        ✦ Note:<br />
-        <ul>
-          <li>The <code>onVisible</code> property is the same as in <code>IntersectionTracker/onVisible</code>.</li>
-          <li>
-            The <code>rootMargin</code> property accepts either a single number or an array of numbers.
-            <ul>
-              <li>If a two-number array is provided, the values follow the <code>horizontal/vertical</code> rule.</li>
-              <li>If a four-number array is provided, the values follow the <code>top/right/bottom/left</code> rule.</li>
-          </ul> 
-          </li>
-          <li>All values are in pixels and apply regardless of the <code>direction</code>.</li>
-        </ul></em><br />
+        <code>rootMargin</code>:<br />
+        This property controls the threshold for loading content. It can be a single number or an array of 2 ( horizontal/vertical ) or 4 ( top/right/bottom/left ) numbers. It works like the loading distance from the root element ( <b>scrollElement</b> ) in pixels.<br />
+        <br />
+        <code>stopLoadOnScroll</code>:<br />
+        This property controls whether to stop loading content when the user scrolls.</em><br />
         <br />
         <b>Example:</b>
 
@@ -654,11 +646,6 @@ npm install morphing-scroll
         <MorphScroll
           {...props}
           render={{ type: "virtual" }}
-          // render={{
-          //   type: "lazy",
-          //   rootMargin: [0, 100],
-          //   onVisible: () => console.log("visible"))
-          // }}
         >
           {children}
         </MorphScroll>
