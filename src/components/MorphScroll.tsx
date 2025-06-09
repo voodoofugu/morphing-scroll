@@ -47,7 +47,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   wrapperMargin,
   wrapperMinSize,
   progressReverse = false,
-  progressTrigger = {},
+  progressTrigger = { wheel: true },
   scrollBarOnHover = false,
   suspending = false,
   fallback = null,
@@ -895,17 +895,21 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   React.useEffect(() => {
     const scrollEl = scrollElementRef.current;
+    if (!scrollEl) return;
 
-    if (progressTrigger.wheel && scrollEl) {
-      const wheelHandler = (e: WheelEvent) =>
-        handleWheel(e, scrollEl, scrollStateRef.current, direction);
+    const wheelHandler = (e: WheelEvent) =>
+      handleWheel(e, scrollEl, scrollStateRef.current, direction);
 
-      scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
+    const preventScroll = (e: Event) => e.preventDefault();
 
-      return () => {
-        scrollEl.removeEventListener("wheel", wheelHandler);
-      };
-    }
+    // если wheel не включен, то так же запрещаем scroll
+    const handler = progressTrigger.wheel ? wheelHandler : preventScroll;
+
+    scrollEl.addEventListener("wheel", handler, { passive: false });
+
+    return () => {
+      scrollEl.removeEventListener("wheel", handler);
+    };
   }, [direction, progressTrigger.wheel]);
 
   React.useEffect(() => {
@@ -1279,31 +1283,28 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
             // интересное решение overflow
             ...{
-              overflow:
-                {
-                  x: `${
-                    objectsWrapperWidthFull > sizeLocal[0]
-                      ? "scroll hidden"
-                      : "hidden"
-                  }`,
-                  y: `${
-                    objectsWrapperHeightFull > sizeLocal[1]
-                      ? "hidden scroll"
-                      : "hidden"
-                  }`,
-                  hybrid: `${
-                    objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
-                  } ${
-                    objectsWrapperHeightFull > sizeLocal[1]
-                      ? "scroll"
-                      : "hidden"
-                  }`,
-                }[
-                  Object.keys(progressTrigger).length !== 0 &&
-                  (direction === "x" || direction === "y")
-                    ? direction
-                    : "hybrid"
-                ] ?? "hidden",
+              overflow: {
+                x: `${
+                  objectsWrapperWidthFull > sizeLocal[0]
+                    ? "scroll hidden"
+                    : "hidden"
+                }`,
+                y: `${
+                  objectsWrapperHeightFull > sizeLocal[1]
+                    ? "hidden scroll"
+                    : "hidden"
+                }`,
+                hybrid: `${
+                  objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
+                } ${
+                  objectsWrapperHeightFull > sizeLocal[1] ? "scroll" : "hidden"
+                }`,
+                hide: "hidden",
+              }[
+                progressTrigger.wheel || progressTrigger.content
+                  ? direction
+                  : "hide"
+              ],
             },
 
             ...(type !== "scroll" ||
@@ -1313,10 +1314,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   scrollbarWidth: "none",
                 }
               : {}),
-
-            ...(!(progressTrigger.wheel || progressTrigger.content) && {
-              touchAction: "none",
-            }),
           }}
         >
           {objectsSizing[0] !== "none" && objectsSizing[1] !== "none" ? (

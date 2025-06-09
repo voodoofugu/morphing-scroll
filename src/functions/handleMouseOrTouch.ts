@@ -68,14 +68,6 @@ type HandleUpT = Omit<
 };
 
 function handleMouseOrTouch(args: HandleMouseDownT) {
-  // меняем курсор
-  if (["thumb", "slider"].includes(args.clicked)) {
-    args.mouseOnEl(args.scrollBar);
-  }
-  if (args.clicked === "wrapp") {
-    args.mouseOnEl(args.objectsWrapperRef);
-  }
-
   const controller = new AbortController();
   const { signal } = controller;
 
@@ -83,6 +75,14 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
   args.triggerUpdate();
 
   if (args.eventType === "mousedown") {
+    // меняем курсор
+    if (["thumb", "slider"].includes(args.clicked)) {
+      args.mouseOnEl(args.scrollBar);
+    }
+    if (args.clicked === "wrapp") {
+      args.mouseOnEl(args.objectsWrapperRef);
+    }
+
     document.addEventListener(
       "mousemove",
       (mouseEvent) => handleMove({ ...args, mouseEvent }),

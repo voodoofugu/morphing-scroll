@@ -100,7 +100,7 @@ npm install morphing-scroll
         <br />
         <mark>slider</mark> - It displays distinct elements indicating the number of full scroll steps within the list.<br />
         <br />
-        <mark>sliderMenu</mark> - It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
+        <mark>sliderMenu</mark> - It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.</em><br />
         <br />
         <b>Example:</b>
 
@@ -168,7 +168,7 @@ npm install morphing-scroll
         <br />
         <code>updater</code>:<br />
         This property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
-        <code>setScroll((prev) => ({ ...prev, value: 0, updater: !prev.updater }))</code></em><br />
+        <code>setScroll((prev) => ({ ...prev, value: 0, updater: <b>!prev.updater</b> }))</code></em><br />
         <br />
         <b>Example:</b>
 
@@ -188,7 +188,7 @@ npm install morphing-scroll
     <details>
       <summary><b><code>onScrollValue</code></b>: <em>Callback for scroll value.</em></summary><br />
       <ul>
-        <b>Type:</b> (left: number, top: number) => void<br />
+        <b>Type:</b> ( left: number, top: number ) => void<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.<br />
@@ -219,7 +219,7 @@ npm install morphing-scroll
     <details>
       <summary><b><code>isScrolling</code></b>: <em>Callback function for scroll status.</em></summary><br />
       <ul>
-        <b>Type:</b> (motion: boolean) => void<br />
+        <b>Type:</b> ( motion: boolean ) => void<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
@@ -315,7 +315,7 @@ npm install morphing-scroll
         <b>Type:</b> number<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter defines the number of <b>columns</b> <mark>(when <code>direction="y"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="column"</code>)</mark> or <b>rows</b> <mark>(when <code>direction="x"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="row"</code>)</mark>.<br />
+        This parameter defines the number of <b>columns</b> (when <code>direction="y"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="column"</code>) or <b>rows</b> (when <code>direction="x"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="row"</code>).<br />
         <br />
         ✦ Note:<br />
         <ul>
@@ -344,7 +344,7 @@ npm install morphing-scroll
         <b>Type:</b> number | number[]<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter allows you to set spacing between list items both horizontally and vertically. You can provide a single value, which will apply to both directions, or an array of two numbers to define separate spacing values.<br />
+        This parameter allows you to set spacing between list items both horizontally and vertically.<br />
         <br />
         ✦ Note:<br />
         It can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
@@ -558,6 +558,7 @@ npm install morphing-scroll
         <br />
         ✦ Note:<br />
         <code>progressTrigger</code> can only create or provide your elements, but you must make the design for them yourself.</em><br />
+        <br />
         <b>Example:</b>
 
         ```tsx
@@ -589,8 +590,7 @@ npm install morphing-scroll
         <ul>
           <li>If <code>direction="x"</code>, the progress bar appears on the left by default and moves to the right when set to <mark>true</mark>.</li>
           <li>If <code>direction="y"</code>, the progress bar appears at the bottom by default and moves to the top when set to <mark>true</mark>.</li>
-          <li>If <code>direction="hybrid"</code>, both horizontal and vertical progress bars are used with the same logic as above.<br />
-          In this case, you can also pass an array of booleans to control each bar individually.</li>
+          <li>If <code>direction="hybrid"</code>, both horizontal and vertical progress bars are used with the same logic as above. And in this case, you can also pass an array of booleans to control each bar individually.</li>
         </ul></em><br />
         <br />
         <b>Example:</b>
@@ -655,7 +655,7 @@ npm install morphing-scroll
         </ul><br />
         <br />
         <code>rootMargin</code>:<br />
-        This property controls the threshold for loading content. It can be a single number or an array of 2 ( horizontal/vertical ) or 4 ( top/right/bottom/left ) numbers. It works like the loading distance from the root element ( <b>scrollElement</b> ) in pixels.<br />
+        This property controls the threshold for loading content. It can be a single number or an array of 2 ( horizontal/vertical ) or 4 ( top/right/bottom/left ) numbers. It works like the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
         <br />
         <code>stopLoadOnScroll</code>:<br />
         This property controls whether to stop loading content when the user scrolls.</em><br />
