@@ -158,8 +158,10 @@ npm install morphing-scroll
         This parameter allows you to set custom scroll values.<br />
         <br />
         <code>value</code>:<br />
-        <mark>number</mark> - Sets the scroll position to a specific value.<br />
-        <mark>"end"</mark> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.<br />
+        <ul>
+          <li><mark>number</mark> - Sets the scroll position to a specific value.</li>
+          <li><mark>"end"</mark> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.</li>
+        </ul>
         <br />
         <code>duration</code>:<br />
         This property determines the animation speed for scrolling in ms.<br />
@@ -250,6 +252,7 @@ npm install morphing-scroll
         This parameter sets the width and height of the <code>MorphScroll</code>.<br />
         <br />
         <mark>number</mark> - Sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height, or an array of 2 numbers in pixels.<br />
+        <br />
         <mark>"auto"</mark> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
         <br />
         <b>Example:</b>
@@ -280,7 +283,9 @@ npm install morphing-scroll
         This parameter defines the [width, height] of cells for each of your objects.<br />
         <br />
         <mark>number</mark> - Sets a fixed size for your custom objects.<br />
+        <br />
         <mark>"none"</mark> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+        <br />
         <mark>"firstChild"</mark> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
         <br />
         ✦ Note:<br />
@@ -415,7 +420,7 @@ npm install morphing-scroll
       <ul>
         <b>Type:</b><br />
         "start" | "center" | "end"<br />
-        | ("start" | "center" | "end")[]
+        | ("start" | "center" | "end")[]<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter aligns the <b>objectsWrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
@@ -488,12 +493,18 @@ npm install morphing-scroll
       <ul>
         <b>Type:</b> boolean | { color?: string; size?: number }<br />
         <br />
-        <b>Default:</b> When using true or providing color without size, the default size will be 40px<br />
+        <b>Default:</b> When using without <code>size</code>, the default value is 40px<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
         <br />
-        The color property accepts any valid color format. If specified, the library will generate a gradient transitioning from the custom color to transparent. If omitted, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
+        <code>color</code> :<br />
+        The property accepts any valid color format.
+        If you provide it, the library will generate a gradient transitioning from the custom color to transparent.
+        If you provide just <mark>true</mark>, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
+        <br />
+        <code>size</code> :<br />
+        The property changes the height for horizontal and width for vertical <b>edge</b>.</em><br />
         <br />
         <b>Example:</b>
 
@@ -525,17 +536,25 @@ npm install morphing-scroll
         <b>Default:</b> { wheel: true }<br />
         <br />
         <b>Description:</b> <em><br />
-        This is one of the most important parameters, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+        This is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+        <br />
+        <code>wheel</code> :<br />
+        This parameter determines whether the progress bar responds to mouse wheel scrolling.<br />
+        <br />
+        <code>content</code> :<br />
+        This parameter enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+        <br />
+        <code>progressElement</code> :<br />
+        This parameter determines how the scroll progress is managed.<br />
         <br />
         <ul>
-          <li><code>wheel</code> determines whether the progress bar responds to mouse wheel scrolling.</li>
-          <li><code>content</code> enables interaction by clicking and dragging anywhere within the scrollable content to move it.</li>
-          <li><code>progressElement</code> determines how the scroll progress is managed.<br />
-          - When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <mark>true</mark> instead — this will fall back to the browser’s default scrollbar.<br />
-          - When using <code>type="slider"</code>, a <b>sliderBar</b> element is automatically generated. It contains multiple <b>sliderElem</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.<br />
-          - When using <code>type="sliderMenu"</code>, everything is the same as with <mark>"slider"</mark> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
-          <li><code>arrows</code> allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom element.</li>
-        </ul><br />
+          <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <mark>true</mark> instead — this will fall back to the browser’s default scrollbar.</li>
+          <li>When using <code>type="slider"</code>, a <b>sliderBar</b> element is automatically generated. It contains multiple <b>sliderElem</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li>
+          <li>When using <code>type="sliderMenu"</code>, everything is the same as with <mark>"slider"</mark> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+        </ul>
+        <br />
+        <code>arrows</code> :<br />
+        This parameter allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom element.<br />
         <br />
         ✦ Note:<br />
         <code>progressTrigger</code> can only create or provide your elements, but you must make the design for them yourself.</em><br />
@@ -566,6 +585,7 @@ npm install morphing-scroll
         <br />
         <b>Description:</b> <em><br />
         This parameter changes the position of the progress bar based on the direction property.<br />
+        <br />
         <ul>
           <li>If <code>direction="x"</code>, the progress bar appears on the left by default and moves to the right when set to <mark>true</mark>.</li>
           <li>If <code>direction="y"</code>, the progress bar appears at the bottom by default and moves to the top when set to <mark>true</mark>.</li>
