@@ -1102,9 +1102,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       !visibleObjects.includes(`${key} visible`) &&
       isScrollingRef.current
         ? fallback
-        : emptyElements?.mode === "fallback" &&
-          emptyElementKeysString.current.includes(key)
-        ? emptyElements.element ?? fallback
+        : emptyElements && emptyElementKeysString.current.includes(key)
+        ? emptyElements.mode === "fallback"
+          ? fallback
+          : typeof emptyElements.mode === "object"
+          ? emptyElements.mode.fallback
+          : null
         : child;
 
     const childLocal =

@@ -652,7 +652,7 @@ npm install morphing-scroll
         <ul>
           <li>With <mark>"lazy"</mark>, containers are created but do not load content until they enter the viewport. The content is not deleted when it leaves the viewport.</li>
           <li>With <mark>"virtual"</mark>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position.</li>
-        </ul><br />
+        </ul>
         <br />
         <code>rootMargin</code>:<br />
         This property controls the threshold for loading content. It can be a single number or an array of 2 ( horizontal/vertical ) or 4 ( top/right/bottom/left ) numbers. It works like the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
@@ -678,28 +678,29 @@ npm install morphing-scroll
     <details>
       <summary><b><code>emptyElements</code></b>: <em>Handling of empty scroll elements.</em></summary><br />
       <ul>
-        <b>Type:</b><br />
-          | {
-              mode: "clear";
-              clickTrigger?: { selector: string; delay?: number };
-            }<br />
-          | {
-              mode: "fallback";
-              element?: React.ReactNode;
-              clickTrigger?: { selector: string; delay?: number };
-            }<br /><br />
+        <b>Type:</b> {<br />
+        mode: "clear" | "fallback" | { fallback: React.ReactNode };<br />
+        clickTrigger?: { selector: string; delay?: number };<br />
+        }<br />
+        <br />
         <b>Description:</b> <em><br />
-        If certain components might return nothing during rendering, this parameter helps manage them. The check and subsequent replacement with a fallback element or removal occur after the scroll elements are rendered. Due to this, when dynamically displaying elements in different <code>render</code> modes, you may notice slight position shifts during fast scrolling, as empty elements are removed, causing subsequent elements to reposition.<br />
+        This option will allow you to delete or replace empty list items during the first rendering, or to start this process by clicking.<br />
         <br />
+        <code>mode</code> :<br />
         <ul>
-          <li><code>mode: "clear"</code> – automatically removes empty elements, eliminating unnecessary gaps in the scroll list.</li>
-          <li><code>mode: "fallback"</code> – replaces empty elements with a specified fallback component. By default, it uses the <code>fallback</code> props value, but you can also pass a separate placeholder to <code>element</code>.</li>
-        </ul><br />
+          <li><mark>"clear"</mark> – automatically removes empty elements.</li>
+          <li><mark>"fallback"</mark> – replaces empty elements with the value from the <code>fallback</code> props.</li>
+          <li><mark>{ fallback: React.ReactNode }</mark> – if you need a different element than in <code>fallback</code> to replace empty elements, you can use this option.</li>
+        </ul>
         <br />
-        <code>clickTrigger</code> – if elements are removed via a click action, this property ensures cleanup is triggered accordingly. It accepts an object with a <code>selector</code> (such as a delete button’s class) and an optional <code>delay</code> (a delay in milliseconds to accommodate animations or complex removals).<br />
+        <code>clickTrigger</code> :<br />
+        In case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <code>ms</code> ) to wait before removing the elements.<br />
         <br />
         ✦ Note:<br />
-        For clarification, the cleanup will occur on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</em><br />
+        <ul>
+          <li>The cleanup will start on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
+          <li>If you are using <code>clickTrigger</code> but there are no changes, you may need to increase the <code>delay</code> value, since the cleanup function is triggered when your item has not yet been deleted.</li>
+        </ul>
         <br />
         <b>Example:</b>
 
@@ -710,13 +711,6 @@ npm install morphing-scroll
             mode: "clear",
             clickTrigger: { selector: ".close-button" },
           }}
-          // emptyElements={{
-          //   mode: "fallback",
-          //   clickTrigger: {
-          //     selector: ".close-button",
-          //     delay: 100,
-          //   },
-          // }}
         >
           {children}
         </MorphScroll>

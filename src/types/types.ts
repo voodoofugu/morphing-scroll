@@ -70,13 +70,10 @@ export type MorphScrollT = {
     rootMargin?: number | number[];
     stopLoadOnScroll?: boolean;
   };
-  emptyElements?:
-    | { mode: "clear"; clickTrigger?: { selector: string; delay?: number } }
-    | {
-        mode: "fallback";
-        element?: React.ReactNode;
-        clickTrigger?: { selector: string; delay?: number };
-      };
+  emptyElements?: {
+    mode: "clear" | "fallback" | { fallback: React.ReactNode };
+    clickTrigger?: { selector: string; delay?: number };
+  };
   suspending?: boolean;
   fallback?: React.ReactNode;
 };
