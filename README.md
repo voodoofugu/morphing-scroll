@@ -37,7 +37,7 @@ npm install morphing-scroll
 
   <div>
 
-  #### GENERAL SETTINGS:
+  #### **GENERAL SETTINGS**:
 
     <details>
       <summary><b><code>className</code></b>: <em>Additional classes for the component.</em></summary><br />
@@ -84,7 +84,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### SCROLL SETTINGS:
+  #### **SCROLL SETTINGS**:
 
     <details>
       <summary><b><code>type</code></b>: <em>Type of progress element.</em></summary><br />
@@ -241,7 +241,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### VISUAL SETTINGS:
+  #### **VISUAL SETTINGS**:
 
     <details>
       <summary><b><code>size</code> (required)</b>: <em>[width, height] of <b>MorphScroll</b>.</em></summary><br />
@@ -521,7 +521,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### PROGRESSBAR:
+  #### **PROGRESSBAR**:
 
     <details>
       <summary><b><code>progressTrigger</code></b>: <em>Triggers for the progress bar.</em></summary><br />
@@ -634,7 +634,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### OPTIMIZATIONS:
+  #### **OPTIMIZATIONS**:
 
     <details>
       <summary><b><code>render</code></b>: <em>Types of rendering for optimization.</em></summary><br />
@@ -655,7 +655,7 @@ npm install morphing-scroll
         </ul>
         <br />
         <code>rootMargin</code>:<br />
-        This property controls the threshold for loading content. It can be a single number or an array of 2 ( horizontal/vertical ) or 4 ( top/right/bottom/left ) numbers. It works like the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
+        This property controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It works like the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
         <br />
         <code>stopLoadOnScroll</code>:<br />
         This property controls whether to stop loading content when the user scrolls.</em><br />
@@ -694,13 +694,13 @@ npm install morphing-scroll
         </ul>
         <br />
         <code>clickTrigger</code> :<br />
-        In case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <code>ms</code> ) to wait before removing the elements.<br />
+        In case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <b>ms</b> ) to wait before removing the elements.<br />
         <br />
         ✦ Note:<br />
         <ul>
           <li>The cleanup will start on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
           <li>If you are using <code>clickTrigger</code> but there are no changes, you may need to increase the <code>delay</code> value, since the cleanup function is triggered when your item has not yet been deleted.</li>
-        </ul>
+        </ul></em>
         <br />
         <b>Example:</b>
 
@@ -751,7 +751,7 @@ npm install morphing-scroll
         <b>Type:</b> React.ReactNode<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> in <code>mode: "fallback"</code> or when <code>suspending</code> is enabled.</em><br />
+        This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> or when <code>suspending</code> is enabled.</em><br />
         <br />
         <b>Example:</b>
 
@@ -779,36 +779,38 @@ npm install morphing-scroll
   <div>
 
     <details>
-      <summary><b><code>children</code></b>: <em>Render-prop function for size updates and adding content.</em></summary><br />
+      <summary><b><code>className</code></b>: <em>Additional classes for the component.</em></summary><br />
       <ul>
-        <b>Type:</b> (rect: DOMRectReadOnly) => React.ReactNode<br />
+        <b>Type:</b> string<br />
         <br />
         <b>Description:</b> <em><br />
-        Instead of a standard <code>children</code> prop, this component uses a <b>render-prop function</b> to pass size updates to its children. You can use it similarly to a regular <code>children</code> prop inside the component.<br />
-        <br />
-        The function receives an object of type <code>DOMRectReadOnly</code> with the following properties:
-        <ul>
-          <li><code>x</code> - The X-coordinate of the top-left corner of the element.</li>
-          <li><code>y</code> - The Y-coordinate of the top-left corner of the element.</li>
-          <li><code>width</code> - The width of the observed element’s content box.</li>
-          <li><code>height</code> - The height of the observed element’s content box.</li>
-          <li><code>top</code> - The distance from the top of the element to its parent's top. Equal to <code>y</code>.</li>
-          <li><code>left</code> - The distance from the left of the element to its parent's left. Equal to <code>x</code>.</li>
-          <li><code>right</code> - The distance from the left of the parent to the right edge of the element (<code>left</code> + <code>width</code>).</li>
-          <li><code>bottom</code> - The distance from the top of the parent to the bottom edge of the element (<code>top</code> + <code>height</code>).</li>
-        </ul><br />
-        <br />
-        ⚠ This is a non-standard prop that you might be used to using this is render-prop function receiving the container's size.</em><br />
+        This parameter allows you to add additional classes to the component.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
-        <ResizeTracker {...props} >
-          {(rect) => (
-            <p>
-              Width: {rect.width}, Height: {rect.height}
-            </p>
-          )}
+        <ResizeTracker className="your-class" >
+          {children}
+        </ResizeTracker>
+        ```
+
+    </ul></details>
+
+    <h2></h2>
+
+    <details>
+      <summary><b><code>children</code></b>: <em>Custom user content.</em></summary><br />
+      <ul>
+        <b>Type:</b> React.ReactNode<br />
+        <br />
+        <b>Description:</b> <em><br />
+        This parameter allows you to add custom content to the component.</em><br />
+        <br />
+        <b>Example:</b>
+
+        ```tsx
+        <ResizeTracker >
+          {children}
         </ResizeTracker>
         ```
 
@@ -824,10 +826,8 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <ResizeTracker style={{ backgroundColor: "blue" }}>
-          {(rect) => (
-            // content
-          )}
+        <ResizeTracker style={{ backgroundColor: "yellow" }}>
+          {children}
         </ResizeTracker>
         ```
 
@@ -845,19 +845,20 @@ npm install morphing-scroll
         <b>Description:</b><br />
         <em>This prop determines what is being measured by automatically applying inline styles that affect width and height.<br />
         <br />
-        - The default value <code>"inner"</code> sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.<br />
-        - The <code>"outer"</code> value measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
-        - The <code>"all"</code> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
+        <ul>
+          <li><mark>"inner"</mark> sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.</li>
+          <li><mark>"outer"</mark> measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.</li>
+          <li><mark>"all"</mark> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.</li>
+        </ul>
         <br />
-        ✦ Note: Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+        ✦ Note: <br />
+        Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
         <ResizeTracker measure="all">
-          {(rect) => (
-            // content
-          )}
+          {children}
         </ResizeTracker>
         ```
 
@@ -882,9 +883,7 @@ npm install morphing-scroll
             console.log("New size:", rect);
           }}
         >
-          {(rect) => (
-            // content
-          )}
+          {children}
         </ResizeTracker>
         ```
 
@@ -916,7 +915,9 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <IntersectionTracker>{children}</IntersectionTracker>
+        <IntersectionTracker>
+          {children}
+        </IntersectionTracker>
         ```
 
     </ul></details>
@@ -931,7 +932,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <IntersectionTracker style={{ backgroundColor: "blue" }}>
+        <IntersectionTracker style={{ backgroundColor: "yellow" }}>
           {children}
         </IntersectionTracker>
         ```
@@ -949,14 +950,14 @@ npm install morphing-scroll
         <br />
         <b>Description:</b> <em><br />
         Specifies the element that serves as the bounding box for the intersection observation. 
-        If provided, it must be an ancestor of the observed element.<br />
-        <br />
-        If set to <code>null</code> (default), the window is used as the observation area.</em><br />
+        If provided, it must be an ancestor of the observed element.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
-        <IntersectionTracker root={document.getElementById("root")}>
+        <IntersectionTracker
+          root={document.getElementById("observer-container")}
+        >
           {children}
         </IntersectionTracker>
         ```
@@ -973,22 +974,14 @@ npm install morphing-scroll
         <b>Description:</b> <em><br />
         Defines an offset around the root element, expanding or shrinking the observed area.<br />
         <br />
-        Accepts a single number or an array for fine-tuned control:<br />
-        <ul>
-          <li>A <b>single number</b> sets the same margin on all sides.</li>
-          <li>A <b>two-value array</b> <code>[topBottom, leftRight]</code> applies margins vertically and horizontally.</li>
-          <li>A <b>four-value array</b> <code>[top, right, bottom, left]</code> allows full control over each side.</li>
-        </ul>
-        <br />
-        Margins are converted to <code>px</code> values internally.</em><br />
+        ✦ Note:<br />
+        It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
         <IntersectionTracker
           rootMargin={10}
-          // rootMargin={[10, 20]}
-          // rootMargin={[10, 20, 10, 20]}
         >
           {children}
         </IntersectionTracker>
@@ -999,26 +992,24 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>threshold</code></b>: <em>Defines when the callback is triggered.</em></summary><br />
+      <summary><b><code>threshold</code></b>: <em>Defines when the callback <code>onVisible</code> and content visibility should be triggered.</em></summary><br />
       <ul>
         <b>Type:</b> number | number[]<br />
         <br />
         <b>Description:</b> <em><br />
-        .Specifies at what percentage of the observed element’s visibility the callback should be executed.<br />
+        Specifies at what percentage of the observed element’s visibility the callback should be executed.<br />
         <br />
+        ✦ Note:<br />
         <ul>
-          <li>A <b>single number</b> (e.g., <code>0.5</code>) triggers when that fraction of the element is visible.</li>
-          <li>A <b>array of numbers</b> (e.g., <code>[0, 0.5, 1]</code>) triggers the callback multiple times at different visibility levels.</li>
-        </ul>
-        <br />
-        A value of <code>0</code> means the callback fires when any part of the element appears, while <code>1</code> means the element must be fully visible.</em><br />
+          <li>A value of <code>0</code> means the callback fires when any part of the element appears, while <code>1</code> means the element must be fully visible.</li>
+          <li>An array (e.g., <code>[0, 0.5, 1]</code>) triggers the callback multiple times at different visibility levels.</li>
+        </ul></em>
         <br />
         <b>Example:</b>
 
         ```tsx
         <IntersectionTracker
           threshold={0.5}
-          // threshold={[0, 0.5, 1]}
         >
           {children}
         </IntersectionTracker>
@@ -1036,14 +1027,17 @@ npm install morphing-scroll
         <b>Default:</b> false<br />
         <br />
         <b>Description:</b> <em><br />
-        If set to `true`, the tracked elements will always be visible, regardless of their actual intersection status.
-        <br />
+        If set to <mark>true</mark>, the tracked elements will always be visible, regardless of their actual intersection status.<br />
         This can be useful for testing purposes or when using the <code>onVisible</code> callback, ensuring it continues to trigger whenever the element enters the viewport.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
-        <IntersectionTracker visibleContent>{children}</IntersectionTracker>
+        <IntersectionTracker
+          visibleContent
+        >
+          {children}
+        </IntersectionTracker>
         ```
 
     </ul></details>
@@ -1053,25 +1047,20 @@ npm install morphing-scroll
     <details>
       <summary><b><code>onVisible</code></b>: <em>Callback function triggered when the element becomes visible.</em></summary><br />
       <ul>
-        <b>Type:</b> (key: string) => void<br />
+        <b>Type:</b> (entry: IntersectionObserverEntry) => void<br />
         <br />
         <b>Description:</b> <em><br />
         A callback function that is invoked when the observed element enters the viewport or the defined observation area.<br />
         <br />
-        The callback receives the <code>key</code> of the first child element as a parameter.<br />
-        This can be useful for lazy loading, analytics tracking, animations, or any other action that needs to be triggered when an element becomes visible.<br />
-        <br />
         ✦ Note:<br />
-        Instead of checking if <code>key</code> equals the element’s key name, use <code>includes</code> for verification. React may modify key names by prefixing them with special characters like <code>.$</code>, making direct equality checks unreliable and more expensive 💵.</em><br />
+        .</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
         <IntersectionTracker
-          onVisible={(key) => {
-            if (key.includes("elementId")) {
-              // do something
-            }
+          onVisible={(entry) => {
+            console.log(entry);
           }}
         >
           {children}
