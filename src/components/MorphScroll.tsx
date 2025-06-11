@@ -24,6 +24,7 @@ import {
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
   createResizeHandler,
+  stabilizeMany,
 } from "../functions/addFunctions";
 import handleArrow, { handleArrowT } from "../functions/handleArrow";
 import {
@@ -132,8 +133,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const receivedWrapSizeRef = useSizeRef();
   const receivedChildSizeRef = useSizeRef();
 
+  // ♦ stabilize
+  const [
+    stabilizedScrollPosition,
+    stabilizedRender,
+    stabilizedSize,
+    stabilizedObjectsSize,
+    stabilizedEmptyElements,
+  ] = stabilizeMany(scrollPosition, render, size, objectsSize, emptyElements);
+
   // ♦ default
-  const stabilizedScrollPosition = JSON.stringify(scrollPosition);
   const scrollPositionLocal = React.useMemo(() => {
     return {
       value:
@@ -181,22 +190,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     },
     []
   );
-  const shouldTrackKeys = emptyElements?.mode === "clear";
 
   const keys = React.useCallback(() => {
-    return shouldTrackKeys ? emptyElementKeysString.current : "";
-  }, [emptyElementKeysString.current, shouldTrackKeys]);
+    return emptyElements?.mode === "clear"
+      ? emptyElementKeysString.current
+      : "";
+  }, [emptyElementKeysString.current, stabilizedEmptyElements]);
 
   const validChildren = React.useMemo(() => {
     return React.Children.toArray(children)
       .flatMap(filterValidChildren)
       .filter(Boolean)
       .filter((child) =>
-        shouldTrackKeys && React.isValidElement(child)
+        emptyElements?.mode === "clear" && React.isValidElement(child)
           ? !emptyElementKeysString.current.includes(child.key as string)
           : true
       );
-  }, [children, shouldTrackKeys, keys]);
+  }, [children, stabilizedEmptyElements, keys]);
 
   const [mT, mR, mB, mL] = wrapperMargin
     ? ArgFormatter(wrapperMargin)
@@ -214,14 +224,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [0, 0];
   }, [gap]);
 
-  const stabilizedRender = render ? Object.values(render).join("/") : "";
   const mRootLocal = React.useMemo(() => {
     return ArgFormatter(render?.rootMargin || 0, direction === "x");
   }, [stabilizedRender, direction]);
 
   const [mRootX, mRootY] = mRootLocal ? [mRootLocal[2], mRootLocal[0]] : [0, 0];
 
-  const stabilizedSize = JSON.stringify(size);
   const sizeLocal = React.useMemo(() => {
     const [x, y] = Array.isArray(size)
       ? size
@@ -255,9 +263,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const objectsSizing = React.useMemo(
     () => (objectsSize ? ArgFormatter(objectsSize, true, 2) : [null, null]),
-    [objectsSize]
+    [stabilizedObjectsSize]
   );
-  const stabilizedObjectsSize = JSON.stringify(objectsSizing);
+  const stabilizedObjectsSizing = JSON.stringify(objectsSizing);
   const objectsSizeLocal = React.useMemo(() => {
     const getSize = (
       val: number | "none" | "firstChild",
@@ -275,7 +283,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         receivedChildSizeRef.current.height
       ),
     ];
-  }, [stabilizedObjectsSize, receivedChildSizeRef.current]);
+  }, [stabilizedObjectsSizing, receivedChildSizeRef.current]);
 
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
@@ -578,7 +586,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     });
   }, [
     children,
-    objectsSizeLocal,
+    objectsSizeLocal[0],
+    objectsSizeLocal[1],
     gap,
     stabilizedRender,
     objectsPerDirection[0],
@@ -861,22 +870,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const updateEmptyKeysClickLocal = React.useCallback(
     (event: React.MouseEvent) => {
-      if (emptyElements)
+      if (emptyElements?.clickTrigger)
         updateEmptyKeysClick(
           event,
           setManagedTimeout,
-          emptyElements,
+          emptyElements.clickTrigger,
           updateEmptyElementKeysLocal
         );
     },
-    [emptyElements]
+    [stabilizedEmptyElements]
   );
 
   // ♦ effects
   React.useEffect(() => {
     if (emptyElements && render?.type !== "lazy")
       debouncedUpdateEmptyElementKeys();
-  }, [validChildren.length, emptyElements, stabilizedRender]);
+  }, [validChildren.length, stabilizedEmptyElements, stabilizedRender]);
 
   React.useEffect(() => {
     if (render?.type === "virtual" || isScrolling) {
@@ -1050,12 +1059,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           <IntersectionTracker
             key={key}
             style={wrapStyle} // !!! ререндер
-            attribute={attributeProps}
             onVisible={debouncedUpdateEmptyElementKeys}
-            onClick={onClickHandler as React.MouseEventHandler}
             visibleContent={visible}
             root={rootElement}
             rootMargin={render?.rootMargin}
+            onClick={onClickHandler as React.MouseEventHandler}
+            attribute={attributeProps}
           >
             {content}
           </IntersectionTracker>
@@ -1083,7 +1092,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollElementRef.current, // необязательно мемоизировать, но можно
       stabilizedRender,
       debouncedUpdateEmptyElementKeys,
-      emptyElements,
+      stabilizedEmptyElements,
       objectsPerDirection[0],
       loadedObjects.current,
       updateEmptyKeysClickLocal,

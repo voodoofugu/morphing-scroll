@@ -67,13 +67,11 @@ const updateEmptyElementKeys = (
 const updateEmptyKeysClick = (
   event: React.MouseEvent,
   setManagedTimeout: (id: string, callback: () => void, delay: number) => void,
-  emptyElements: Exclude<MorphScrollT["emptyElements"], undefined>,
+  clickTrigger: { selector: string; delay?: number },
   callBack: () => void
 ) => {
-  if (!emptyElements?.clickTrigger?.selector) return;
-
   const target = event.target as HTMLElement;
-  const closeSelector = target.closest(emptyElements.clickTrigger.selector);
+  const closeSelector = target.closest(clickTrigger.selector);
 
   if (closeSelector) {
     setManagedTimeout(
@@ -81,7 +79,7 @@ const updateEmptyKeysClick = (
       () => {
         callBack();
       },
-      emptyElements.clickTrigger.delay || 0
+      clickTrigger.delay || 0
     );
   }
 };
