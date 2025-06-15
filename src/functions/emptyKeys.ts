@@ -5,61 +5,60 @@ import { MorphScrollT } from "../types/types";
 import { CONST } from "../constants";
 
 const updateEmptyElementKeys = (
-  customScrollRef: () => NodeListOf<Element>,
-  emptyElementKeysString: React.MutableRefObject<string>,
-  render: MorphScrollT["render"],
-  callBack: () => void
+  customScrollRef: HTMLDivElement,
+  loadedObjects: React.MutableRefObject<(string | null)[]>,
+  emptyElementKeysString: React.MutableRefObject<(string | null)[]>,
+  callBack: () => void,
+  renderType?: "lazy" | "virtual"
 ) => {
-  const getWrapIds = (filterFn?: (el: Element) => boolean): string[] => {
-    return Array.from(customScrollRef())
-      .filter(filterFn || (() => true))
-      .map((el) => el.getAttribute(CONST.WRAP_ATR))
-      .filter(Boolean) as string[];
-  };
+  const { allIds, emptyKeysRaw } = (() => {
+    const allIds: string[] = [];
+    const emptyKeysRaw: string[] = [];
 
-  // попытка реализации появления скрытых элементов то есть ключей
-  // const removeKeysFromPath = (
-  //   path: string,
-  //   keysToRemove: string[]
-  // ): string => {
-  //   const pathSet = new Set(path.split("/"));
-  //   keysToRemove.forEach((key) => pathSet.delete(key));
-  //   return Array.from(pathSet).join("/");
-  // };
+    // createTreeWalker быстрый итератор по всем дочерним элементам
+    const walker = document.createTreeWalker(
+      customScrollRef, // мы обходим сам корневой контейнер
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode(node) {
+          if (node instanceof Element && node.hasAttribute(CONST.WRAP_ATR)) {
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_SKIP;
+        },
+      }
+    );
 
-  // const allKeys = getWrapIds();
-  const emptyKeysRaw = getWrapIds((el) => el.children.length === 0);
-
-  // const allKeysStr = allKeys.join("/");
-  const emptyKeysFiltered =
-    render?.type !== "lazy"
-      ? emptyKeysRaw
-      : emptyKeysRaw.filter((key) => key.includes("visible"));
-
-  const emptyKeysStr = emptyKeysFiltered.join("/");
-  // const fullKeysStr = removeKeysFromPath(allKeysStr, emptyKeysFiltered);
-  // const diffKeys = removeKeysFromPath(
-  //   emptyElementKeysString.current,
-  //   fullKeysStr.split("/")
-  // );
-
-  if (!emptyElementKeysString.current) {
-    emptyElementKeysString.current = emptyKeysStr;
-  } else {
-    if (
-      emptyKeysStr &&
-      !emptyElementKeysString.current.includes(emptyKeysStr)
-    ) {
-      emptyElementKeysString.current += `/${emptyKeysStr}`;
+    let currentNode = walker.nextNode();
+    while (currentNode) {
+      const el = currentNode as Element;
+      const id = el.getAttribute(CONST.WRAP_ATR);
+      if (id) {
+        if (id.includes("visible")) allIds.push(id.split(" ")[0]);
+        if (el.children.length === 0) emptyKeysRaw.push(id);
+      }
+      currentNode = walker.nextNode();
     }
 
-    // if (diffKeys) {
-    //   emptyElementKeysString.current = removeKeysFromPath(
-    //     emptyElementKeysString.current,
-    //     diffKeys.split("/")
-    //   );
-    // }
+    return { allIds, emptyKeysRaw };
+  })();
+
+  function normalizeId(id: string): string {
+    return id.replace(/\s*visible\s*$/, "").trim();
   }
+
+  const mergedLoadedObjects = new Set(loadedObjects.current);
+  const mergedEmptyKeys = new Set(emptyElementKeysString.current);
+
+  allIds.forEach((id) => mergedLoadedObjects.add(id));
+  emptyKeysRaw.forEach((id) =>
+    renderType === "lazy"
+      ? id.includes("visible") && mergedEmptyKeys.add(normalizeId(id))
+      : mergedEmptyKeys.add(normalizeId(id))
+  );
+
+  loadedObjects.current = Array.from(mergedLoadedObjects);
+  emptyElementKeysString.current = Array.from(mergedEmptyKeys);
 
   callBack();
 };

@@ -239,6 +239,5 @@ export {
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
   createResizeHandler,
-  stabilizeObject,
   stabilizeMany,
 };
