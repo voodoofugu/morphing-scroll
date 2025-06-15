@@ -17,8 +17,6 @@ export type IntersectionTrackerT = {
   threshold?: number | number[];
   visibleContent?: boolean;
   onVisible?: (entry: IntersectionObserverEntry) => void; // !
-  onClick?: React.MouseEventHandler; // !
-  attribute?: { name: string; value: string; viewVisible?: boolean }; // !
 };
 
 export type MorphScrollT = {

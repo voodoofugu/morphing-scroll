@@ -6,7 +6,6 @@ import ArgFormatter from "../functions/ArgFormatter";
 import useDebouncedCallback from "../hooks/useDebouncedCallback";
 import useIdent from "../hooks/useIdent";
 
-import IntersectionTracker from "./IntersectionTracker";
 import ResizeTracker from "./ResizeTracker";
 import ScrollBar from "./ScrollBar";
 import Edge from "./Edge";
@@ -28,9 +27,9 @@ import {
 } from "../functions/addFunctions";
 import handleArrow, { handleArrowT } from "../functions/handleArrow";
 import {
-  updateEmptyElementKeys,
+  updateLoadedElementsKeys,
   updateEmptyKeysClick,
-} from "../functions/emptyKeys";
+} from "../functions/updateKeys";
 import {
   setManagedTimeout,
   clearAllManagedTimeouts,
@@ -68,9 +67,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   crossCount,
 }) => {
   // ♦ hooks
-  // !!! debouncedUpdateEmptyElementKeys почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
-  const debouncedUpdateEmptyElementKeys = useDebouncedCallback(() => {
-    updateEmptyElementKeysLocal();
+  // !!! debouncedUpdateLoadedElementsKeysLocal почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
+  const debouncedUpdateLoadedElementsKeysLocal = useDebouncedCallback(() => {
+    updateLoadedElementsKeysLocal();
   }, 40);
   const debouncedSliderCheck = useDebouncedCallback(() => {
     sliderCheckLocal();
@@ -107,7 +106,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
   // ключи объектов, которые когда либо были загружены
   const loadedObjects = React.useRef<(string | null)[]>([]);
-  const emptyElementKeysString = React.useRef<(string | null)[]>([]);
+  const emptyElementKeysString = React.useRef<(string | null)[] | null>([]);
 
   const scrollStateRef = React.useRef<ScrollStateRefT>({
     targetScrollY: 0,
@@ -140,7 +139,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     stabilizedSize,
     stabilizedObjectsSize,
     stabilizedEmptyElements,
-  ] = stabilizeMany(scrollPosition, render, size, objectsSize, emptyElements);
+    stabilizedWrapperMinSize,
+    stabilizedWrapperAlign,
+    stabilizedGap,
+  ] = stabilizeMany(
+    scrollPosition,
+    render,
+    size,
+    objectsSize,
+    emptyElements,
+    wrapperMinSize,
+    wrapperAlign,
+    gap
+  );
 
   // ♦ default
   const scrollPositionLocal = React.useMemo(() => {
@@ -203,14 +214,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       .filter((key): key is string => key !== null)
       .filter((key) => {
         if (emptyElements?.mode === "clear") {
-          return !emptyElementKeysString.current.includes(key);
+          return !emptyElementKeysString.current?.includes(key);
         }
         return true;
       });
   }, [
     children,
     stabilizedEmptyElements,
-    emptyElementKeysString.current.join("/"),
+    emptyElementKeysString.current?.join("/"),
   ]);
 
   const [mT, mR, mB, mL] = wrapperMargin
@@ -362,7 +373,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return objectsSizeLocal[0]
       ? (objectsSizeLocal[0] + gapY) * neededObj - gapY
-      : render?.type !== "virtual"
+      : !render?.type
       ? receivedWrapSizeRef.current.width
       : receivedChildSizeRef.current.width + childsGap;
   }, [
@@ -382,7 +393,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ? direction === "x"
         ? (objectsSizeLocal[1] + gapX) * objectsPerDirection[0] - gapX
         : (objectsSizeLocal[1] + gapX) * objectsPerDirection[1] - gapX
-      : render?.type !== "virtual"
+      : !render?.type
       ? receivedWrapSizeRef.current.height // on "fit-content"
       : receivedChildSizeRef.current.height + childsGap;
   }, [
@@ -445,8 +456,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [objectsWrapperWidthFull, sizeLocal[0]]);
 
   // делим на группы
+  // !!! splitIndices может сделать функцию что бы не хранить массив
   const splitIndices = React.useCallback(() => {
-    if (render?.type !== "virtual" || objectsPerDirection[0] <= 1) {
+    if (!render?.type || objectsPerDirection[0] <= 1) {
       return [];
     }
 
@@ -485,7 +497,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const memoizedChildrenData = React.useMemo(() => {
-    if (render?.type !== "virtual")
+    if (!render?.type)
       return [{ elementTop: 0, elementBottom: 0, left: 0, right: 0 }];
 
     let lastIndices: number[] = [];
@@ -712,7 +724,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         isScrollingRef.current = false;
         isScrolling?.(false);
         if (!render?.type) {
-          debouncedUpdateEmptyElementKeys();
+          debouncedUpdateLoadedElementsKeysLocal();
         } else triggerUpdate();
       },
       200
@@ -720,7 +732,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     if (type === "slider") debouncedSliderCheck();
     if (!render?.type) {
-      debouncedUpdateEmptyElementKeys();
+      debouncedUpdateLoadedElementsKeysLocal();
     }
 
     triggerUpdate();
@@ -846,10 +858,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     onMouseOrTouchDown("wrapp");
   }, [onMouseOrTouchDown]);
 
-  const updateEmptyElementKeysLocal = React.useCallback(() => {
+  const updateLoadedElementsKeysLocal = React.useCallback(() => {
     if (!customScrollRef.current) return;
-    // !!! есть механизм добавления пустых ключей, но нет добавления появившегося ключа который был пустым
-    updateEmptyElementKeys(
+    updateLoadedElementsKeys(
       customScrollRef.current,
       loadedObjects,
       emptyElementKeysString,
@@ -865,7 +876,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           event,
           setManagedTimeout,
           emptyElements.clickTrigger,
-          updateEmptyElementKeysLocal
+          updateLoadedElementsKeysLocal
         );
     },
     [stabilizedEmptyElements]
@@ -900,18 +911,94 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [validChildrenKeys[0]]
   );
 
+  const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
+    const common: React.CSSProperties = {
+      margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
+      height:
+        objectsSizing[1] !== "none"
+          ? `${objectsWrapperHeight}px`
+          : "fit-content",
+      width: `${objectsWrapperWidth}px`,
+      ...(progressTrigger.content && { cursor: "grab" }),
+      ...(gap && !render?.type && { gap: `${gapX}px ${gapY}px` }),
+      ...(wrapperMinSize &&
+        getWrapperMinSizeStyle(
+          wrapperMinSize,
+          direction,
+          sizeLocal,
+          mLocalX,
+          mLocalY
+        )),
+      ...(wrapperAlign && { flexShrink: 0 }), // это решает проблему с уменьшением ширины при флексе на objectsWrapper
+    };
+
+    if (render?.type) {
+      return {
+        ...common,
+        position: "relative",
+      };
+    }
+
+    const isMulti = objectsPerDirection[0] > 1;
+    const flexDirection = isMulti ? elementsDirection : "column";
+    const flexWrap = objectsSizing[1] !== "none" ? "wrap" : undefined;
+    const justifyContent =
+      isMulti && elementsAlign
+        ? elementsAlign === "start"
+          ? "flex-start"
+          : elementsAlign === "center"
+          ? "center"
+          : "flex-end"
+        : undefined;
+
+    const alignItems = !isMulti ? "center" : undefined;
+
+    return {
+      ...common,
+      display: "flex",
+      flexDirection,
+      flexWrap,
+      ...(justifyContent && { justifyContent }),
+      ...(alignItems && { alignItems }),
+    };
+  }, [
+    wrapperMargin,
+    [mT, mR, mB, mL, mLocalX, mLocalY].join(),
+    objectsSizing[1],
+    objectsWrapperHeight,
+    objectsWrapperWidth,
+    progressTrigger.content,
+    stabilizedGap,
+    [gapX, gapY].join(),
+    render?.type,
+    stabilizedWrapperMinSize,
+    direction,
+    sizeLocal.join(),
+    stabilizedWrapperAlign,
+    objectsPerDirection[0],
+    elementsDirection,
+    elementsAlign,
+  ]);
+
   // ♦ effects
   React.useEffect(() => {
-    if (emptyElements) debouncedUpdateEmptyElementKeys();
+    if (emptyElements || render?.type) {
+      // устанавливаем null для emptyElementKeysString что бы не использовать его когда он не нужен
+      if (!emptyElements && emptyElementKeysString.current !== null)
+        emptyElementKeysString.current = null;
+
+      debouncedUpdateLoadedElementsKeysLocal();
+    }
   }, [
-    validChildrenKeys.length,
     stabilizedEmptyElements,
+    render?.type,
     stabilizedRender,
     isScrollingRef.current,
+    validChildrenKeys.length,
   ]);
 
   React.useEffect(() => {
-    if (render?.type === "virtual" || isScrolling) {
+    if (render?.type || isScrolling) {
       if (isScrolling) isScrolling(false);
       triggerUpdate();
     }
@@ -1009,15 +1096,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       children?: React.ReactNode,
       key?: string
     ) => {
-      const isLazy = render?.type === "lazy";
-      const isVirtual = render?.type === "virtual";
-
-      const rootElement = scrollElementRef.current ?? null;
-
       const wrapStyle: React.CSSProperties = {
         width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : undefined,
         height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : undefined,
-        ...(isVirtual && {
+        ...(render?.type && {
           position: "absolute",
           top: `${elementTop}px`,
           left: `${left}px`,
@@ -1037,33 +1119,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const onClickHandler =
         emptyElements?.clickTrigger?.selector && updateEmptyKeysClickLocal;
 
-      const attributeProps = {
-        name: CONST.WRAP_ATR,
-        value: attribute,
-        viewVisible: isLazy,
-      };
-
-      if (isLazy) {
-        return (
-          <IntersectionTracker
-            key={key}
-            style={wrapStyle} // !!! ререндер
-            onVisible={debouncedUpdateEmptyElementKeys}
-            visibleContent={key ? loadedObjects.current.includes(key) : false}
-            root={rootElement}
-            rootMargin={render?.rootMargin}
-            onClick={onClickHandler as React.MouseEventHandler}
-            attribute={attributeProps}
-          >
-            {content}
-          </IntersectionTracker>
-        );
-      }
-
       return (
         <div
-          {...((isVirtual && render?.stopLoadOnScroll) || emptyElements
-            ? { [CONST.WRAP_ATR]: `${attribute}` }
+          {...(render?.type || render?.stopLoadOnScroll || emptyElements
+            ? { [CONST.WRAP_ATR]: `${attribute}${key ? " visible" : ""}` }
             : {})}
           onClick={onClickHandler as React.MouseEventHandler}
           key={key}
@@ -1091,15 +1150,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       (child) => React.isValidElement(child) && child.key === key
     ) as React.ReactElement | undefined;
 
-    const visibleObjectsKeys =
-      render?.type === "lazy" ? loadedObjects.current : validChildrenKeys;
+    const visibleObjectsKeys = render?.type
+      ? loadedObjects.current
+      : validChildrenKeys;
 
     const childRenderOnScroll =
       render?.stopLoadOnScroll &&
       !visibleObjectsKeys.includes(`${key} visible`) &&
       isScrollingRef.current
         ? fallback
-        : emptyElements && emptyElementKeysString.current.includes(key)
+        : emptyElements && emptyElementKeysString.current?.includes(key)
         ? emptyElements.mode === "fallback"
           ? fallback
           : typeof emptyElements.mode === "object"
@@ -1121,7 +1181,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         childRenderOnScroll
       );
 
-    if (render?.type === "virtual") {
+    if (render?.type) {
       const { elementTop, elementBottom, left, right } =
         memoizedChildrenData[index];
 
@@ -1140,7 +1200,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               left - (scrollElementRef.current?.scrollLeft || 0) &&
             right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
 
-      if (isElementVisible && isElementVisibleHybrid) {
+      const isElementVisibleRenderLazy =
+        render?.type === "lazy" && loadedObjects.current.length > 0
+          ? loadedObjects.current.includes(key)
+          : false;
+
+      if (
+        (isElementVisible && isElementVisibleHybrid) ||
+        isElementVisibleRenderLazy
+      ) {
         return scrollObjectWrapper(`${key}`, elementTop, left, childLocal, key);
       }
     } else {
@@ -1153,70 +1221,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       className="objectsWrapper"
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
-      // onTouchStart={onMouseDownWrap}
-      style={{
-        margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
-        height:
-          objectsSizing[1] !== "none"
-            ? `${objectsWrapperHeight}px`
-            : "fit-content",
-        width: `${objectsWrapperWidth}px`,
-
-        ...(progressTrigger.content && { cursor: "grab" }),
-
-        ...(gap &&
-          render?.type !== "virtual" && { gap: `${gapX}px ${gapY}px` }),
-        ...(render?.type === "virtual"
-          ? {
-              position: "relative",
-            }
-          : {
-              display: "flex",
-            }),
-
-        ...(render?.type !== "virtual" &&
-          objectsPerDirection[0] > 1 && {
-            flexDirection: elementsDirection,
-          }),
-
-        ...(render?.type !== "virtual" &&
-          objectsPerDirection[0] === 1 && {
-            flexDirection: "column",
-          }),
-
-        ...(render?.type !== "virtual" &&
-          objectsSizing[1] !== "none" && {
-            flexWrap: "wrap",
-          }),
-
-        ...(elementsAlign &&
-        render?.type !== "virtual" &&
-        objectsPerDirection[0] > 1
-          ? {
-              justifyContent:
-                elementsAlign === "start"
-                  ? "flex-start"
-                  : elementsAlign === "center"
-                  ? "center"
-                  : "flex-end",
-            }
-          : render?.type !== "virtual" && {
-              alignItems: "center",
-            }),
-
-        ...(wrapperMinSize &&
-          getWrapperMinSizeStyle(
-            wrapperMinSize,
-            direction,
-            sizeLocal,
-            mLocalX,
-            mLocalY
-          )),
-
-        ...(wrapperAlign && {
-          flexShrink: 0, // это решает проблему с уменьшением ширины при флексе на objectsWrapper
-        }),
-      }}
+      style={wrapperStyle}
     >
       {validChildrenKeys.map(renderChild)}
     </div>

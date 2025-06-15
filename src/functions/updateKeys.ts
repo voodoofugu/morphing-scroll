@@ -4,10 +4,10 @@ import { MorphScrollT } from "../types/types";
 
 import { CONST } from "../constants";
 
-const updateEmptyElementKeys = (
+const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
   loadedObjects: React.MutableRefObject<(string | null)[]>,
-  emptyElementKeysString: React.MutableRefObject<(string | null)[]>,
+  emptyElementKeysString: React.MutableRefObject<(string | null)[] | null>,
   callBack: () => void,
   renderType?: "lazy" | "virtual"
 ) => {
@@ -48,17 +48,18 @@ const updateEmptyElementKeys = (
   }
 
   const mergedLoadedObjects = new Set(loadedObjects.current);
-  const mergedEmptyKeys = new Set(emptyElementKeysString.current);
-
   allIds.forEach((id) => mergedLoadedObjects.add(id));
-  emptyKeysRaw.forEach((id) =>
-    renderType === "lazy"
-      ? id.includes("visible") && mergedEmptyKeys.add(normalizeId(id))
-      : mergedEmptyKeys.add(normalizeId(id))
-  );
-
   loadedObjects.current = Array.from(mergedLoadedObjects);
-  emptyElementKeysString.current = Array.from(mergedEmptyKeys);
+
+  if (emptyElementKeysString.current) {
+    const mergedEmptyKeys = new Set(emptyElementKeysString.current);
+    emptyKeysRaw.forEach((id) =>
+      renderType === "lazy"
+        ? id.includes("visible") && mergedEmptyKeys.add(normalizeId(id))
+        : mergedEmptyKeys.add(normalizeId(id))
+    );
+    emptyElementKeysString.current = Array.from(mergedEmptyKeys);
+  }
 
   callBack();
 };
@@ -83,4 +84,4 @@ const updateEmptyKeysClick = (
   }
 };
 
-export { updateEmptyElementKeys, updateEmptyKeysClick };
+export { updateLoadedElementsKeys, updateEmptyKeysClick };
