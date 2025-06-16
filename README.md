@@ -1050,10 +1050,19 @@ npm install morphing-scroll
         <b>Type:</b> (entry: IntersectionObserverEntry) => void<br />
         <br />
         <b>Description:</b> <em><br />
-        A callback function that is invoked when the observed element enters the viewport or the defined observation area.<br />
+        A callback function that is called when the observed element enters the viewport or the area defined by the <code>root</code> property.<br />
         <br />
         ✦ Note:<br />
-        .</em><br />
+        The <code>IntersectionObserverEntry</code> object provides details about the intersection state, including:<br />
+        <ul>
+          <li><code>boundingClientRect</code>: The bounding rectangle of the element relative to the viewport.</li>
+          <li><code>intersectionRatio</code>: The percentage of the element that is visible in the viewport.</li>
+          <li><code>intersectionRect</code>: The intersection rectangle between the element and the viewport.</li>
+          <li><code>rootBounds</code>: The bounding rectangle of the root element relative to the viewport.</li>
+          <li><code>target</code>: The observed element.</li>
+          <li><code>time</code>: The timestamp when the intersection state changed.</li>
+        </ul>
+        More information in the <b>Link</b> below.</em><br />
         <br />
         <b>Example:</b>
 
