@@ -1,22 +1,22 @@
 import React from "react";
 
 export type ResizeTrackerT = {
-  className?: string; // !
-  children: React.ReactNode; // !
+  className?: string;
+  children: React.ReactNode;
   style?: React.CSSProperties;
   measure?: "inner" | "outer" | "all";
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
 };
 
 export type IntersectionTrackerT = {
-  className?: string; // !
+  className?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;
   root?: Element | null;
   rootMargin?: number | number[];
   threshold?: number | number[];
   visibleContent?: boolean;
-  onVisible?: (entry: IntersectionObserverEntry) => void; // !
+  onVisible?: (entry: IntersectionObserverEntry) => void;
 };
 
 export type MorphScrollT = {
@@ -26,10 +26,9 @@ export type MorphScrollT = {
 
   // Scroll Settings
   type?: "scroll" | "slider" | "sliderMenu"; // morphType
-  direction?: "x" | "y" | "hybrid"; // !
+  direction?: "x" | "y" | "hybrid";
   scrollPosition?: {
-    // !
-    value: number | "end" | (number | "end")[]; // !
+    value: number | "end" | (number | "end")[];
     duration?: number;
     updater?: boolean;
   };
@@ -43,23 +42,23 @@ export type MorphScrollT = {
     | "none"
     | "firstChild"
     | (number | "none" | "firstChild")[];
-  crossCount?: number; // !
+  crossCount?: number;
   gap?: number | number[];
   wrapperMargin?: number | number[];
   wrapperMinSize?: number | "full" | (number | "full")[];
-  wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[]; // !
+  wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
   elementsAlign?: "start" | "center" | "end";
-  elementsDirection?: "row" | "column"; // !
-  edgeGradient?: boolean | { color?: string; size?: number }; // !
+  elementsDirection?: "row" | "column";
+  edgeGradient?: boolean | { color?: string; size?: number };
 
-  // ProgressBar
+  // Progress Bar
   progressTrigger: {
     wheel?: boolean;
     content?: boolean;
     progressElement?: boolean | React.ReactNode | React.ReactNode[];
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
-  progressReverse?: boolean | boolean[]; // !
+  progressReverse?: boolean | boolean[];
   scrollBarOnHover?: boolean;
 
   // Optimization

@@ -50,8 +50,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           className="your-class"
         >
           {children}
@@ -105,8 +104,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           type="slider"
         >
           {children}
@@ -131,8 +129,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           direction="x"
         >
           {children}
@@ -144,12 +141,12 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>scrollPosition</code></b>: <em>Scroll position and animation duration settings.</em></summary><br />
+      <summary><b><code>scrollPosition</code></b>: <em>Scroll position and additional options.</em></summary><br />
       <ul>
         <b>Type:</b> {<br />
-            value: number | "end" | (number | "end")[];<br />
-            duration?: number;<br />
-            updater?: boolean;<br />
+        value: number | "end" | (number | "end")[];<br />
+        duration?: number;<br />
+        updater?: boolean;<br />
         }<br />
         <br />
         <b>Default:</b> { duration: 200; updater: false }<br />
@@ -162,9 +159,10 @@ npm install morphing-scroll
           <li><mark>number</mark> - Sets the scroll position to a specific value.</li>
           <li><mark>"end"</mark> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.</li>
         </ul>
+        You can also provide an array of two values to specific positions ( e.g., [ x, y ] axes ) for hybrid directions.</code>.<br />
         <br />
         <code>duration</code>:<br />
-        This property determines the animation speed for scrolling in ms.<br />
+        This property determines the animation speed for scrolling in <b>ms</b>.<br />
         <br />
         <code>updater</code>:<br />
         This property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
@@ -173,8 +171,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           scrollPosition={{ value: 100; duration: 100 }}
         >
           {children}
@@ -191,21 +188,14 @@ npm install morphing-scroll
         <b>Type:</b> ( left: number, top: number ) => void<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.<br />
-        <br />
-        ✦ Note:<br />
-        <code>left</code> can be used for x direction, <code>top</code> for y direction and both for hybrid directions.</em><br />
+        This parameter accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           onScrollValue={
-            (left, top) => {
-              if (top > 100)
-                console.log("Scroll position:", left, top);
-            },
+            (left, top) => console.log("Scroll position:", left, top),
           }
         >
           {children}
@@ -227,8 +217,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           isScrolling={(motion) => {
             console.log(motion ? "Scrolling..." : "Scroll stopped.");
           }}
@@ -244,22 +233,21 @@ npm install morphing-scroll
   #### **VISUAL SETTINGS**:
 
     <details>
-      <summary><b><code>size</code> (required)</b>: <em>[width, height] of <b>MorphScroll</b>.</em></summary><br />
+      <summary><b><code>size</code> (required)</b>: <em>[width, height] dimension of <b>MorphScroll</b>.</em></summary><br />
       <ul>
         <b>Type:</b><br /> number | number[] | "auto"<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter sets the width and height of the <code>MorphScroll</code>.<br />
         <br />
-        <mark>number</mark> - Sets a fixed size for the <code>MorphScroll</code>. It can be 1 number if you want to set the same width and height, or an array of 2 numbers in pixels.<br />
+        <mark>number</mark> - Sets a fixed size in pixels. It can be 1 number if you want to set the same width and height, or an array of 2 numbers.<br />
         <br />
         <mark>"auto"</mark> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           size={[100, 400]}
         >
           {children}
@@ -271,7 +259,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>objectsSize</code></b>: <em>[width, height] of cells for each object.</em></summary><br />
+      <summary><b><code>objectsSize</code></b>: <em>[width, height] dimension of cells for each object.</em></summary><br />
       <ul>
         <b>Type:</b><br />
         number | "none" | "firstChild"<br />
@@ -297,8 +285,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           objectsSize={[80, 80]}
         >
           {children}
@@ -326,8 +313,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           crossCount={3}
         >
           {children}
@@ -352,8 +338,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           gap={10}
         >
           {children}
@@ -378,8 +363,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           wrapperMargin={10}
         >
           {children}
@@ -403,8 +387,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           wrapperMinSize={"full"}
         >
           {children}
@@ -431,8 +414,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           contentAlign={["center", "center"]}
         >
           {children}
@@ -451,8 +433,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           elementsAlign="center"
         >
           {children}
@@ -476,8 +457,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           elementsDirection="column"
         >
           {children}
@@ -509,8 +489,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 60 }}
         >
           {children}
@@ -562,8 +541,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           progressTrigger={{
             wheel: true,
             progressElement: <div className="your-scroll-thumb" />,
@@ -596,8 +574,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           progressReverse
         >
           {children}
@@ -622,8 +599,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           scrollBarOnHover
         >
           {children}
@@ -663,8 +639,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           render={{ type: "virtual" }}
         >
           {children}
@@ -705,8 +680,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           emptyElements={{
             mode: "clear",
             clickTrigger: { selector: ".close-button" },
@@ -733,8 +707,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           suspending
         >
           {children}
@@ -756,8 +729,7 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <MorphScroll
-          {...props}
+        <MorphScroll {...props}
           fallback={<div>Loading...</div>}
         >
           {children}
@@ -1045,7 +1017,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>onVisible</code></b>: <em>Callback function triggered when the element becomes visible.</em></summary><br />
+      <summary><b><code>onVisible</code></b>: <em>Callback function triggered when the element becomes visible. The callback can be used to load new list items for <code>MorphScroll</code>.</em></summary><br />
       <ul>
         <b>Type:</b> (entry: IntersectionObserverEntry) => void<br />
         <br />
@@ -1062,6 +1034,7 @@ npm install morphing-scroll
           <li><code>target</code>: The observed element.</li>
           <li><code>time</code>: The timestamp when the intersection state changed.</li>
         </ul>
+        <br />
         More information in the <b>Link</b> below.</em><br />
         <br />
         <b>Example:</b>

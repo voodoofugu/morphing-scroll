@@ -5,23 +5,24 @@ import IntersectionTrackerT from "./intersectionTracker";
 import MorphScrollT from "./morphScroll";
 
 /**
- * ### *ResizeTracker component*〈♦〉
+ * ### ResizeTracker component〈♦〉
  *
  * ---
- * ### PROPS:
+ * ### Props:
  * - `className`
  * - `children`
  * - `style`
  * - `measure`
  * - `onResize`
- * ##### ! MORE DETAILS IN PROPS OR LINKS !
+ *
+ * _More information in props or links!_
  *
  * ---
- * ### RETURNS:
- * React component.
+ * ### Returns:
+ * _React component._
  *
  * ---
- * ### LINKS:
+ * ### Links:
  * [ResizeTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-resizetracker-)
  *
  * [MDN Reference for Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
@@ -29,10 +30,10 @@ import MorphScrollT from "./morphScroll";
 declare const ResizeTracker: React.FC<ResizeTrackerT>;
 
 /**
- * ### *IntersectionTracker component*〈♦〉
+ * ### IntersectionTracker component〈♦〉
  *
  * ---
- * ### PROPS:
+ * ### Props:
  * - `children`
  * - `style`
  * - `root`
@@ -40,63 +41,68 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
  * - `threshold`
  * - `visibleContent`
  * - `onVisible`
- * ##### ! MORE DETAILS IN PROPS OR LINKS !
+ *
+ * _More information in props or links!_
  *
  * ---
- * ### RETURNS:
- * React component.
+ * ### Returns:
+ * _React component._
  *
  * ---
- * ### LINKS:
- * [IntersectionTracker Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ * ### Links:
+ * [IntersectionTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-intersectiontracker-)
  *
  * [MDN Reference for Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  */
 declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
 /**
- * ### *MorphScroll component*〈♦〉
+ * ### MorphScroll component〈♦〉
  *
  * ---
- * ### PROPS:
- * #### • GENERAL SETTINGS:
+ * ### Props:
+ * ##### - GENERAL SETTINGS:
  * - `className`
  * - `children`
  *
- * #### • SCROLL SETTINGS:
+ * ##### - SCROLL SETTINGS:
  * - `type`
  * - `direction`
- * - `scrollTop`
- * - `stopLoadOnScroll`
+ * - `scrollPosition`
  * - `onScrollValue`
  * - `isScrolling`
  *
- * #### • VISUAL SETTINGS:
+ * ##### - VISUAL SETTINGS:
  * - `size` - ***REQUIRED***
  * - `objectsSize`
+ * - `crossCount`
  * - `gap`
- * - `padding`
- * - `contentAlign`
+ * - `wrapperMargin`
+ * - `wrapperMinSize`
+ * - `wrapperAlign`
  * - `elementsAlign`
+ * - `elementsDirection`
  * - `edgeGradient`
- * - `progressReverse`
- * - `progressVisibility`
- * - `objectsWrapFullMinSize`
  *
- * #### • PROGRESS AND RENDERING:
- * - `progressTrigger` - ***REQUIRED***
+ * ##### - PROGRESSBAR:
+ * - `progressTrigger`
+ * - `progressReverse`
+ * - `scrollBarOnHover`
+ *
+ * ##### - OPTIMIZATIONS:
  * - `render`
  * - `emptyElements`
  * - `suspending`
  * - `fallback`
- * ##### ! MORE DETAILS IN PROPS OR LINKS !
+ *
+ * _More information in props or links!_
  *
  * ---
- * ### RETURNS:
- * React component.
+ * ### Returns:
+ * _React component._
  *
  * ---
- * ### LINKS:
+ * ### Links:
  * [MorphScroll Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll)
  */
 declare const MorphScroll: React.FC<MorphScrollT>;

@@ -1,19 +1,21 @@
 type MorphScrollT = {
   // General Settings
   /**---
-   * *♦︎ Custom class name.*
-   *
+   * Custom class name.
+   * ___
    * @example
    * ```tsx
-   * <MorphScroll {...props} className="custom-class" >
+   * <MorphScroll {...props}
+   *   className="custom-class"
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    * */
   className?: string;
   /**---
-   * *♦︎ Custom user content.*
-   *
+   * Custom user content.
+   * ___
    * @example
    * ```tsx
    * <MorphScroll {...props} >
@@ -25,34 +27,38 @@ type MorphScrollT = {
 
   // Scroll Settings
   /**---
-   * *♦︎ Type of progress element.*
-   *
+   * Type of progress element.
+   * ___
    * @default "scroll"
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} type="slider" >
+   * <MorphScroll {...props}
+   *   type="slider"
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  type?: "scroll" | "slider";
+  type?: "scroll" | "slider" | "sliderMenu";
   /**---
-   * *♦︎ Scrolling direction.*
-   *
+   * Scrolling direction.
+   * ___
    * @default "y"
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} direction="x" >
+   * <MorphScroll {...props}
+   *   direction="x"
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  direction?: "x" | "y" | "hybridX" | "hybridY";
+  direction?: "x" | "y" | "hybrid";
   /**---
-   * *♦︎ Scroll position value.*
-   *
+   * Scroll position value and additional options.
+   * ___
    * @default { duration: 200; updater: false }
    *
    * @description
@@ -61,11 +67,13 @@ type MorphScrollT = {
    * - `updater`: *Helper to force an update when setting the same scroll value repeatedly*
    *
    * @note
-   * `value` can be an array of values for x and y directions
+   * `value` property can be an array of two values for hybrid directions
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} scrollPosition={{ value: 100, duration: 300 }} >
+   * <MorphScroll {...props}
+   *   scrollPosition={{ value: 100, duration: 300 }}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
@@ -76,53 +84,56 @@ type MorphScrollT = {
     updater?: boolean;
   };
   /**---
-   * *♦︎ Callback for scroll value.*
-   *
+   * Callback for scroll value.
+   * ___
    * @description
-   * - `left`: *Scroll position on the x-axis*
-   * - `top`: *Scroll position on the y-axis*
-   *
-   * @note
-   * `left` can be used for x direction, `top` for y direction and both for hybrid directions
+   * - `left`: *Current scroll position on the x-axis*
+   * - `top`: *Current scroll position on the y-axis*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} onScrollValue={(left, top) => console.log(left, top)} >
+   * <MorphScroll {...props}
+   *   onScrollValue={(left, top) => console.log("Scroll position:", left, top)}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   onScrollValue?: (left: number, top: number) => void;
   /**---
-   * *♦︎ Callback for scroll status.*
-   *
+   * Callback for scroll status.
+   * ___
    * @example
    * ```tsx
-   * <MorphScroll {...props} isScrolling={(motion) => console.log(motion)} >
+   * <MorphScroll {...props}
+   *   isScrolling={(motion) => console.log(motion)}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  isScrolling?: (motion: boolean) => boolean;
+  isScrolling?: (motion: boolean) => void;
 
   // Visual Settings
   /**---
-   * *♦︎ Dimensions of the* `MorphScroll` *component:* `[width, height]`.
+   * `[width, height]` dimension of `MorphScroll`.
    *
-   * @default
-   * Inherits the size of its parent element
-   *
-   * @note
-   * *Uses the library’s* `ResizeTracker` *for automatic resizing*
+   * REQUIRED
+   * ___
+   * @description
+   * - `number` *sets the width and height, can be an array of 2 numbers*
+   * - `"auto"` *for automatic resizing based on the parent element*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} size={[200, 100]} >
+   * <MorphScroll {...props}
+   *   size={[200, 100]}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  size?: number[];
+  size: number | number[] | "auto";
   /**---
    * *♦︎ Size of the objects inside* `MorphScroll` *component:* `[width, height]`.
    *
