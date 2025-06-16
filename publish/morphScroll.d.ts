@@ -135,15 +135,20 @@ type MorphScrollT = {
    */
   size: number | number[] | "auto";
   /**---
-   * *♦︎ Size of the objects inside* `MorphScroll` *component:* `[width, height]`.
+   * [width, height] dimension of cells for each object.
+   * ___
+   * @default [width, height] from size
    *
-   * @note
-   * - *Use `"none"` to disable size calculation - **not compatible** with* `render={{ type: "virtual" }}`
-   * - *Use `"firstChild"` to auto-size based on the first child of each cell*
+   * @description
+   * - `number` *sets the width and height, can be an array of 2 numbers*
+   * - `"none"` *objects will be created without defined size*
+   * - `"firstChild"` *all objects will have the same size as the first child*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} objectsSize={[80, 80]} >
+   * <MorphScroll {...props}
+   *   objectsSize={[80, 80]}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
@@ -154,53 +159,65 @@ type MorphScrollT = {
     | "firstChild"
     | (number | "none" | "firstChild")[];
   /**---
-   * *♦︎ Number of cells in the* `objectsWrapper` *in each direction.*
-   *
+   * Number of cells in each direction.
+   *___
    * @example
    * ```tsx
-   * <MorphScroll {...props} crossCount={3} >
+   * <MorphScroll {...props}
+   *   crossCount={3}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   crossCount?: number;
   /**---
-   * *♦︎ Gap between cells.*
-   *
+   * Gap between cells.
+   * ___
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} gap={10} >
+   * <MorphScroll {...props}
+   *   gap={10}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   gap?: number | number[];
   /**---
-   * *♦︎ Margin for the* `objectsWrapper`.
-   *
+   * Margin for the* `objectsWrapper`.
+   * ___
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} wrapperMargin={10} >
+   * <MorphScroll {...props}
+   *   wrapperMargin={10}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   wrapperMargin?: number | number[];
   /**---
-   * *♦︎ Sets the `min-width` or `min-height` CSS property of the* `objectsWrapper`.
+   * Minimum height or width of the `objectsWrapper`.
+   * ___
+   * @description
+   * - `number` *sets the min-size*
+   * - `"full"` *min-size is equal to `MorphScroll`*
    *
    * @note
-   * - *Use an array of 2 numbers with hybrid directions to set different values*
+   * - *Can be used as 1 value, or an array of 2 values.*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} wrapperMinSize={"full"} >
+   * <MorphScroll {...props}
+   *   wrapperMinSize={"full"}
+   * >
    *   {children}
    * </MorphScroll>
    * ```

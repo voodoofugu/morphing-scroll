@@ -330,10 +330,10 @@ npm install morphing-scroll
         <b>Type:</b> number | number[]<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter allows you to set spacing between list items both horizontally and vertically.<br />
+        This parameter allows you to set spacing in pixels between list items both horizontally and vertically.<br />
         <br />
         ✦ Note:<br />
-        It can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
+        It can be 1 number or an array of 2 or 4 numbers.</em><br />
         <br />
         <b>Example:</b>
 
@@ -1017,12 +1017,12 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>onVisible</code></b>: <em>Callback function triggered when the element becomes visible. The callback can be used to load new list items for <code>MorphScroll</code>.</em></summary><br />
+      <summary><b><code>onVisible</code></b>: <em>Callback function triggered when the element becomes visible.</em></summary><br />
       <ul>
         <b>Type:</b> (entry: IntersectionObserverEntry) => void<br />
         <br />
         <b>Description:</b> <em><br />
-        A callback function that is called when the observed element enters the viewport or the area defined by the <code>root</code> property.<br />
+        A callback function that is called when the observed element enters the viewport or the area defined by the <code>root</code> property. This can be used to load new list items for <code>MorphScroll</code>.<br />
         <br />
         ✦ Note:<br />
         The <code>IntersectionObserverEntry</code> object provides details about the intersection state, including:<br />
