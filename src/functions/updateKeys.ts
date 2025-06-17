@@ -7,6 +7,7 @@ import { CONST } from "../constants";
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
   loadedObjects: React.MutableRefObject<(string | null)[]>,
+  currentObjects: React.MutableRefObject<(string | null)[]>,
   emptyElementKeysString: React.MutableRefObject<(string | null)[] | null>,
   callBack: () => void,
   renderType?: "lazy" | "virtual"
@@ -34,7 +35,7 @@ const updateLoadedElementsKeys = (
       const el = currentNode as Element;
       const id = el.getAttribute(CONST.WRAP_ATR);
       if (id) {
-        if (id.includes("visible")) allIds.push(id.split(" ")[0]);
+        if (id.includes("visible")) allIds.push(id);
         if (el.children.length === 0) emptyKeysRaw.push(id);
       }
       currentNode = walker.nextNode();
@@ -47,8 +48,10 @@ const updateLoadedElementsKeys = (
     return id.replace(/\s*visible\s*$/, "").trim();
   }
 
+  currentObjects.current = allIds.map((id) => normalizeId(id));
+
   const mergedLoadedObjects = new Set(loadedObjects.current);
-  allIds.forEach((id) => mergedLoadedObjects.add(id));
+  allIds.forEach((id) => mergedLoadedObjects.add(id.split(" ")[0])); // убираем visible
   loadedObjects.current = Array.from(mergedLoadedObjects);
 
   if (emptyElementKeysString.current) {

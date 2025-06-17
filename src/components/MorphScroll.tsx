@@ -106,6 +106,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
   // ключи объектов, которые когда либо были загружены
   const loadedObjects = React.useRef<(string | null)[]>([]);
+  const currentObjects = React.useRef<(string | null)[]>([]);
   const emptyElementKeysString = React.useRef<(string | null)[] | null>([]);
 
   const scrollStateRef = React.useRef<ScrollStateRefT>({
@@ -863,6 +864,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     updateLoadedElementsKeys(
       customScrollRef.current,
       loadedObjects,
+      currentObjects,
       emptyElementKeysString,
       triggerUpdate,
       render?.type
@@ -1087,7 +1089,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, [scrollPositionLocal.value.join(), scrollPosition?.updater]);
 
+  const fallbackLocal = (fallbackEl: React.ReactNode, key?: string) => {
+    if (React.isValidElement(fallbackEl) && key) {
+      return React.cloneElement(fallbackEl, { key });
+    }
+    return fallbackEl;
+  };
+
   // ♦ contents
+
   const scrollObjectWrapper = React.useCallback(
     (
       attribute: string,
@@ -1111,7 +1121,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
 
       const content = suspending ? (
-        <React.Suspense fallback={fallback}>{children}</React.Suspense>
+        <React.Suspense fallback={fallbackLocal(fallback, key)}>
+          {children}
+        </React.Suspense>
       ) : (
         children
       );
@@ -1150,21 +1162,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       (child) => React.isValidElement(child) && child.key === key
     ) as React.ReactElement | undefined;
 
-    const visibleObjectsKeys = render?.type
-      ? loadedObjects.current
-      : validChildrenKeys;
+    // обработка детей для render?
+    const visibleObjectsKeys =
+      render?.type === "lazy" ? loadedObjects.current : currentObjects.current;
+
+    // !!! ререндер fallbackWithKey из за React.CloneElement надо мемоизировать
+    const fallbackWithKey = fallbackLocal(fallback, key);
+    const fallbackWithKeyFromEmptyElements =
+      typeof emptyElements?.mode === "object"
+        ? fallbackLocal(emptyElements.mode.fallback, key)
+        : fallbackWithKey;
 
     const childRenderOnScroll =
       render?.stopLoadOnScroll &&
-      !visibleObjectsKeys.includes(`${key} visible`) &&
-      isScrollingRef.current
-        ? fallback
-        : emptyElements && emptyElementKeysString.current?.includes(key)
-        ? emptyElements.mode === "fallback"
-          ? fallback
-          : typeof emptyElements.mode === "object"
-          ? emptyElements.mode.fallback
-          : child
+      isScrollingRef.current &&
+      !visibleObjectsKeys.includes(`${key}`)
+        ? fallbackWithKey
+        : emptyElementKeysString.current?.includes(key)
+        ? fallbackWithKeyFromEmptyElements
         : child;
 
     const childLocal =

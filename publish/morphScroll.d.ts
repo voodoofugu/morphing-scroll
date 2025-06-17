@@ -208,10 +208,10 @@ type MorphScrollT = {
    * ___
    * @description
    * - `number` *sets the min-size*
-   * - `"full"` *min-size is equal to `MorphScroll`*
+   * - `"full"` *min-size is equal to property `size`*
    *
    * @note
-   * - *Can be used as 1 value, or an array of 2 values.*
+   * - *Can be used as 1 value, or an array of 2 values for [width, height].*
    *
    * @example
    * ```tsx
@@ -224,77 +224,83 @@ type MorphScrollT = {
    */
   wrapperMinSize?: number | "full" | (number | "full")[];
   /**---
-   * *♦︎ Aligns the* `objectsWrapper` *when it's smaller than the defined* `size`.
-   *
+   * [horizontal, vertical] aligns your content when it is smaller than the `size`.
+   *___
    * @note
-   * *Use 1 value to align one or both axes, or an array of 2 values for x and y alignment*
+   * *Use 1 value to align one or both axes, or an array of 2 values to align both axes*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} wrapperAlign={["start", "center"]} >
+   * <MorphScroll {...props}
+   *   wrapperAlign={["start", "center"]}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
   /**---
-   * *♦︎ Aligns the objects inside* `MorphScroll` *component.*
-   *
+   * Aligns the objects inside `MorphScroll`.
+   * ___
    * @example
    * ```tsx
-   * <MorphScroll {...props} elementsAlign={"center"} >
+   * <MorphScroll {...props}
+   *   elementsAlign={"center"}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   elementsAlign?: "start" | "center" | "end";
   /**---
-   * *♦︎ Direction of the objects inside* `MorphScroll` *component.*
-   *
+   * Direction of the provided elements
+   * ___
    * @default "row"
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} elementsDirection={"column"} >
+   * <MorphScroll {...props}
+   *   elementsDirection={"column"}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   elementsDirection?: "row" | "column";
   /**---
-   * *♦︎ Gradient overlay at the edges of the scroll area.*
-   *
-   * @default `true` is treated as `{ size: 40 }`
+   * Gradient overlay at the edges of the scroll area.
+   * ___
+   * @default { size: 40 }
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} edgeGradient={{ color: "rgba(0,0,0,0.4)"}} >
+   * <MorphScroll {...props}
+   *   edgeGradient={{ color: "rgba(0,0,0,0.4)"}}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   edgeGradient?: boolean | { color?: string; size?: number };
 
-  // ProgressBar
+  // Progress Bar
   /**---
-   * *♦︎ Defines the sources that can trigger the progress bar.*
-   *
+   * Triggers for the scroll progress.
+   * ___
    * @description
    * - `wheel`: *Triggered by mouse wheel scroll*
    * - `content`: *Triggered by content click and drag*
-   * - `progressElement`: *Triggered by the progress element scroll*
+   * - `progressElement`: *Triggered by provided progress element*
    * - `arrows`: *Triggered by arrow button click*
    *
    * @note
    * - *`progressElement` can be thumb or slider, use props `type`*
    * - *If `progressElement` is true and `type` is "scroll", the default browser scroll element will be used*
-   * - *`arrows` can be designed with their className or you can pass a custom element*
-   * - *`arrows` resize the `objectsWrapper` subtracting their size*
+   * - *`arrows` can be designed with their className or you can provide a custom element*
    *
    * @example
    * ```tsx
-   * <MorphScroll
-   *   {...props}
+   * <MorphScroll {...props}
    *   progressTrigger={ wheel: true, progressElement: <ScrollThumb /> }
    * >
    *   {children}
@@ -308,8 +314,8 @@ type MorphScrollT = {
     arrows?: boolean | { size?: number; element?: React.ReactNode };
   };
   /**---
-   * *♦︎ Reverse the progress bar position.*
-   *
+   * Reverse the progress bar position.
+   * ___
    * @default false
    *
    * @note
@@ -317,120 +323,108 @@ type MorphScrollT = {
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} progressReverse={true} >
+   * <MorphScroll {...props}
+   *   progressReverse={true}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
   progressReverse?: boolean | boolean[];
   /**---
-   * *♦︎ Controls the visibility of the progress bar.*
-   *
-   * @default "visible"
-   *
-   * @note
-   * - *To remove the `progressElement`, just don't pass it in `progressTrigger`*
-   * - *In "hover" mode, "hover"/"leave" classes are added for styling or animation*
+   * Hover visibility of the progress bar.
+   * ___
+   * @default false
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} progressVisibility={"hover"} >
+   * <MorphScroll {...props}
+   *   progressVisibility={"hover"}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  progressVisibility?: "visible" | "hover";
+  scrollBarOnHover?: boolean;
 
   // Optimization
   /**---
-   * *♦︎ Rendering strategy for performance optimization.*
-   *
-   * @default { type: "default" }
-   *
+   * Rendering strategy for performance optimization.
+   * ___
    * @description
-   * - `"default"`: *Renders all elements normally*
-   * - `"lazy"`: *Renders elements only when they enter the viewport*
-   * - `"virtual"`: *Like* `"lazy"`*, but removes elements when they leave the viewport*
+   * - `"lazy"`: *Does not deleted content when it leaves the viewport*
+   * - `"virtual"`: *Deletes content when it leaves the viewport*
+   * - `rootMargin`: *Distance for loading from the root element*
+   * - `stopLoadOnScroll`: *Stops loading content when scrolling*
    *
    * @note
-   * - `rootMargin`: *Margin around your objects for loading*
-   * - `onVisible`: *Callback function when an element becomes visible*
-   * - `stopLoadOnScroll`: *Stops loading elements when scrolling*
-   * - `virtual`: *Is not compatible with* `objectsSize: "none"`
+   * *`render` is not compatible with `objectsSize: "none"`*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} render={{ type: "virtual" }} >
+   * <MorphScroll {...props}
+   *   render={{ type: "virtual" }}
+   * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  render?:
-    | { type: "default" }
-    | {
-        type: "lazy";
-        rootMargin?: number | number[];
-        onVisible?: (key: string) => void;
-        stopLoadOnScroll?: boolean;
-      }
-    | {
-        type: "virtual";
-        rootMargin?: number | number[];
-        stopLoadOnScroll?: boolean;
-      };
+  render?: {
+    type: "lazy" | "virtual";
+    rootMargin?: number | number[];
+    stopLoadOnScroll?: boolean;
+  };
   /**---
-   * *♦︎ Behavior for handling empty scroll elements.*
-   *
+   * Handling of empty scroll elements.
+   * ___
    * @description
-   * - `clear`: *Removes empty elements from the DOM*
+   * - `"clear"`: *Removes empty elements from the DOM*
    * - `fallback`: *Replaces empty elements with a fallback element*
-   *
-   * @note
    * - `clickTrigger`: *Start clearing elements when passed selector is clicked*
-   * - `element`: *Custom fallback node, if omitted, uses the* `fallback` *prop*
    *
    * @example
    * ```tsx
-   * <MorphScroll
-   *   {...props}
+   * <MorphScroll {...props}
    *   emptyElements={{
    *     mode: "clear",
-   *     clickTrigger: { selector: ".close", delay: 100 } }}
+   *     clickTrigger: { selector: ".close-button" }
+   *   }}
    * >
    *   {children}
    * </MorphScroll>
    *  ```
    */
-  emptyElements?:
-    | {
-        mode: "clear";
-        clickTrigger?: { selector: string; delay?: number };
-      }
-    | {
-        mode: "fallback";
-        element?: React.ReactNode;
-        clickTrigger?: { selector: string; delay?: number };
-      };
+  emptyElements?: {
+    mode: "clear" | "fallback" | { fallback: React.ReactNode };
+    clickTrigger?: { selector: string; delay?: number };
+  };
   /**---
-   * *♦︎ Enables React Suspense for children.*
-   *
+   * Enables React Suspense for children.
+   * ___
    * @example
    * ```tsx
-   * <MorphScroll {...props} suspending >
+   * <MorphScroll {...props}
+   *   suspending
+   * >
    *   {children}
    * </MorphScroll>
    *  ```
    */
   suspending?: boolean;
   /**---
-   * *♦︎ Fallback element to display during loading or as a placeholder.*
-   *
+   * Fallback element to display during loading or as a placeholder.
+   * ___
    * @note
-   * *Used when `suspending`, `emptyElements.mode === "fallback"`, or `render.type === "lazy"` / `"virtual"`*
+   * *Used when:*
+   * - *`suspending === "lazy"`*
+   * - *`render.stopLoadOnScroll === true`*
+   * - *`emptyElements.mode === "fallback"`*
    *
    * @example
    * ```tsx
-   * <MorphScroll {...props} fallback={<div>Loading...</div>} >
+   * <MorphScroll {...props}
+   *   fallback={<div>Loading...</div>}
+   * >
    *   {children}
    * </MorphScroll>
    *  ```

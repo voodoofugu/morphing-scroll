@@ -409,7 +409,7 @@ npm install morphing-scroll
         This parameter aligns the <b>objectsWrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
         <br />
         ✦ Note:<br />
-        Can be used as 1 value, or an array of 2 values.</em><br />
+        Use 1 value to align one or both axes, or an array of 2 values to align both axes.</em><br />
         <br />
         <b>Example:</b>
 
@@ -426,7 +426,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>elementsAlign</code></b>: <em>Aligns the objects within the <b>objectsWrapper</b>.</em></summary><br />
+      <summary><b><code>elementsAlign</code></b>: <em>Aligns the objects inside <code>MorphScroll</code>.</em></summary><br />
       <ul>
         <b>Type:</b> "start" | "center" | "end"<br />
         <br />
@@ -469,11 +469,11 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>edgeGradient</code></b>: <em>Gradient when scrolling overflows.</em></summary><br />
+      <summary><b><code>edgeGradient</code></b>: <em>Gradient overlay at the edges of the scroll area.</em></summary><br />
       <ul>
         <b>Type:</b> boolean | { color?: string; size?: number }<br />
         <br />
-        <b>Default:</b> When using without <code>size</code>, the default value is 40px<br />
+        <b>Default:</b> { size: 40 }<br />
         <br />
         <b>Description:</b> <em><br />
         This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
@@ -503,7 +503,7 @@ npm install morphing-scroll
   #### **PROGRESSBAR**:
 
     <details>
-      <summary><b><code>progressTrigger</code></b>: <em>Triggers for the progress bar.</em></summary><br />
+      <summary><b><code>progressTrigger</code></b>: <em>Triggers for the scroll progress.</em></summary><br />
       <ul>
         <b>Type:</b> {<br />
           wheel?: boolean;<br />
@@ -586,7 +586,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>scrollBarOnHover</code></b>: <em>Hover visibility of the <b>progressBar</b>.</em></summary><br />
+      <summary><b><code>scrollBarOnHover</code></b>: <em>Hover visibility of the <b>progress bar</b>.</em></summary><br />
       <ul>
         <b>Type:</b> boolean<br />
         <br />
@@ -613,7 +613,7 @@ npm install morphing-scroll
   #### **OPTIMIZATIONS**:
 
     <details>
-      <summary><b><code>render</code></b>: <em>Types of rendering for optimization.</em></summary><br />
+      <summary><b><code>render</code></b>: <em>Rendering strategy for performance optimization.</em></summary><br />
       <ul>
         <b>Type:</b> {<br />
           type: "lazy" | "virtual";<br />
@@ -622,19 +622,23 @@ npm install morphing-scroll
           }<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter defines the rendering type for optimization.<br />
+        This parameter adds a gradual rendering of the content as it enters the viewport.<br />
+        When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
         <br />
         <code>type</code>:<br />
         <ul>
-          <li>With <mark>"lazy"</mark>, containers are created but do not load content until they enter the viewport. The content is not deleted when it leaves the viewport.</li>
-          <li>With <mark>"virtual"</mark>, a container is created for each scrollable object, and its absolute positioning is calculated based on <code>scrollTop</code> and scroll area dimensions. Rendering is dynamically adjusted according to the scroll position.</li>
+          <li>With <mark>"lazy"</mark>, content is not deleted when it leaves the viewport.</li>
+          <li>With <mark>"virtual"</mark>, content is deleted when it leaves the viewport.</li>
         </ul>
         <br />
         <code>rootMargin</code>:<br />
-        This property controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It works like the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
+        This property controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It is the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
         <br />
         <code>stopLoadOnScroll</code>:<br />
-        This property controls whether to stop loading content when the user scrolls.</em><br />
+        This property controls whether to stop loading content when scrolling.<br />
+        <br />
+        ✦ Note:<br />
+        <code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />
         <br />
         <b>Example:</b>
 
@@ -673,7 +677,7 @@ npm install morphing-scroll
         <br />
         ✦ Note:<br />
         <ul>
-          <li>The cleanup will start on the initial render, when the number of passed elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
+          <li>The cleanup will start on the initial render, when the number of passed elements changes, on scroll and on click if you use <code>clickTrigger</code>.</li>
           <li>If you are using <code>clickTrigger</code> but there are no changes, you may need to increase the <code>delay</code> value, since the cleanup function is triggered when your item has not yet been deleted.</li>
         </ul></em>
         <br />
