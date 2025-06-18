@@ -40,18 +40,18 @@ npm install morphing-scroll
   #### **GENERAL SETTINGS**:
 
     <details>
-      <summary><b><code>className</code></b>: <em>Additional classes for the component.</em></summary><br />
+      <summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br />
       <ul>
         <b>Type:</b> string<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter allows you to apply custom CSS classes to the <code>MorphScroll</code> component, enabling further customization and styling to fit your design needs.</em><br />
+        This parameter allows you to add additional classes to the component.</em><br />
         <br />
         <b>Example:</b>
 
         ```tsx
         <MorphScroll {...props}
-          className="your-class"
+          className="custom-class"
         >
           {children}
         </MorphScroll>
@@ -233,7 +233,7 @@ npm install morphing-scroll
   #### **VISUAL SETTINGS**:
 
     <details>
-      <summary><b><code>size</code> (required)</b>: <em>[width, height] dimension of <b>MorphScroll</b>.</em></summary><br />
+      <summary><b><code>size</code> REQUIRED</b>: <em>[width, height] dimension of <b>MorphScroll</b>.</em></summary><br />
       <ul>
         <b>Type:</b><br /> number | number[] | "auto"<br />
         <br />
@@ -350,7 +350,7 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>wrapperMargin</code></b>: <em>Margin for the <b>objectsWrapper</b>.</em></summary><br />
+      <summary><b><code>wrapperMargin</code></b>: <em>Margin for the <b>.ms-objects-wrapper</b>.</em></summary><br />
       <ul>
         <b>Type:</b> number | number[]<br />
         <br />
@@ -375,11 +375,11 @@ npm install morphing-scroll
     <h2></h2>
 
     <details>
-      <summary><b><code>wrapperMinSize</code></b>: <em>Minimum height or width of the <b>objectsWrapper</b>.</em></summary><br />
+      <summary><b><code>wrapperMinSize</code></b>: <em>Minimum height or width of the <b>.ms-objects-wrapper</b>.</em></summary><br />
       <ul>
         <b>Type:</b> number | "full" | (number | "full")[]<br /><br />
         <b>Description:</b> <em><br />
-        This parameter defines the minimum height or width of the <b>objectsWrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
+        This parameter defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
         <br />
         ✦ Note:<br />
         Can be used as 1 value, or an array of 2 values.</em><br />
@@ -406,7 +406,7 @@ npm install morphing-scroll
         | ("start" | "center" | "end")[]<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter aligns the <b>objectsWrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
+        This parameter aligns the <b>.ms-objects-wrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
         <br />
         ✦ Note:<br />
         Use 1 value to align one or both axes, or an array of 2 values to align both axes.</em><br />
@@ -484,7 +484,7 @@ npm install morphing-scroll
         If you provide just <mark>true</mark>, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
         <br />
         <code>size</code> :<br />
-        The property changes the height for horizontal and width for vertical <b>edge</b>.</em><br />
+        The property changes the height for horizontal and width for vertical <b>.ms-edge</b>.</em><br />
         <br />
         <b>Example:</b>
 
@@ -528,7 +528,7 @@ npm install morphing-scroll
         <br />
         <ul>
           <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <mark>true</mark> instead — this will fall back to the browser’s default scrollbar.</li>
-          <li>When using <code>type="slider"</code>, a <b>sliderBar</b> element is automatically generated. It contains multiple <b>sliderElem</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li>
+          <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>sliderElem</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li>
           <li>When using <code>type="sliderMenu"</code>, everything is the same as with <mark>"slider"</mark> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
         </ul>
         <br />
@@ -594,7 +594,7 @@ npm install morphing-scroll
         <br />
         <b>Description:</b> <em><br />
         This parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
-        When you use it, the <b>"hover"</b> class is applied to the <b>scrollBar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.</em><br />
+        When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.</em><br />
         <br />
         <b>Example:</b>
 
@@ -632,7 +632,7 @@ npm install morphing-scroll
         </ul>
         <br />
         <code>rootMargin</code>:<br />
-        This property controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It is the distance for loading from the root element ( <b>scrollElement</b> ) in pixels.<br />
+        This property controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It is the distance for loading from the root element ( <b>.ms-element</b> ) in pixels.<br />
         <br />
         <code>stopLoadOnScroll</code>:<br />
         This property controls whether to stop loading content when scrolling.<br />
@@ -728,7 +728,13 @@ npm install morphing-scroll
         <b>Type:</b> React.ReactNode<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter sets the fallback element for custom element. It will be used for <code>emptyElements</code> or when <code>suspending</code> is enabled.</em><br />
+        This parameter sets the fallback element to display during loading or placeholder.<br />
+        It will be used when:
+        <ul>
+          <li><code>suspending</code> is set to <mark>true</mark>.</li>
+          <li><code>render.stopLoadOnScroll</code> is set to <mark>true</mark>.</li>
+          <li><code>emptyElements.mode</code> is set to <mark>"fallback"</mark>.</li> 
+        </ul></em><br />
         <br />
         <b>Example:</b>
 
@@ -755,7 +761,7 @@ npm install morphing-scroll
   <div>
 
     <details>
-      <summary><b><code>className</code></b>: <em>Additional classes for the component.</em></summary><br />
+      <summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br />
       <ul>
         <b>Type:</b> string<br />
         <br />
@@ -765,7 +771,9 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <ResizeTracker className="your-class" >
+        <ResizeTracker
+          className="custom-class"
+        >
           {children}
         </ResizeTracker>
         ```
@@ -802,7 +810,9 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <ResizeTracker style={{ backgroundColor: "yellow" }}>
+        <ResizeTracker
+          style={{ backgroundColor: "yellow" }}
+        >
           {children}
         </ResizeTracker>
         ```
@@ -833,7 +843,9 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <ResizeTracker measure="all">
+        <ResizeTracker
+          measure="all"
+        >
           {children}
         </ResizeTracker>
         ```
@@ -884,6 +896,28 @@ npm install morphing-scroll
   <div>
 
     <details>
+      <summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br />
+      <ul>
+        <b>Type:</b> string<br />
+        <br />
+        <b>Description:</b> <em><br />
+        This parameter allows you to add additional classes to the component.</em><br />
+        <br />
+        <b>Example:</b>
+
+        ```tsx
+        <IntersectionTracker
+          className="custom-class"
+        >
+          {children}
+        </IntersectionTracker>
+        ```
+
+    </ul></details>
+
+    <h2></h2>
+
+    <details>
       <summary><b><code>children</code></b>: <em>Custom user content.</em></summary><br />
       <ul>
         <b>Type:</b> React.ReactNode<br />
@@ -908,7 +942,9 @@ npm install morphing-scroll
         <b>Example:</b>
 
         ```tsx
-        <IntersectionTracker style={{ backgroundColor: "yellow" }}>
+        <IntersectionTracker
+          style={{ backgroundColor: "yellow" }}
+        >
           {children}
         </IntersectionTracker>
         ```
@@ -1045,9 +1081,7 @@ npm install morphing-scroll
 
         ```tsx
         <IntersectionTracker
-          onVisible={(entry) => {
-            console.log(entry);
-          }}
+          onVisible={(entry) => console.log(entry)}
         >
           {children}
         </IntersectionTracker>
@@ -1067,6 +1101,6 @@ npm install morphing-scroll
 
 ### 〈♦ API 〉
 
-- `MorphScroll`: React component that optimizes the rendering of data lists.
+- `MorphScroll`: Main React component that optimizes the rendering of data lists.
 - `ResizeTracker`: React component that monitors changes to an element’s size.
 - `IntersectionTracker`: React component for tracking element visibility in the viewport.

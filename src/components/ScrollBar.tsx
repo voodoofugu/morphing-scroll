@@ -88,7 +88,7 @@ const ScrollBar = ({
     <React.Fragment>
       {type === "scroll" ? (
         <div
-          className="scrollBar"
+          className="ms-bar"
           style={{
             position: "absolute",
             width: "fit-content",
@@ -118,8 +118,8 @@ const ScrollBar = ({
           }}
         >
           <div
-            className="scrollBarThumb"
-            direction-type={
+            className="ms-thumb"
+            data-direction={
               ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
             {...eventProps}
@@ -139,8 +139,8 @@ const ScrollBar = ({
         objLengthPerSize > 1 &&
         progressTrigger?.progressElement && (
           <div
-            className="sliderBar"
-            direction-type={
+            className="ms-slider"
+            data-direction={
               ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
             {...eventProps}

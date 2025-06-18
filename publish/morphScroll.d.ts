@@ -118,7 +118,7 @@ type MorphScrollT = {
   /**---
    * `[width, height]` dimension of `MorphScroll`.
    *
-   * REQUIRED
+   * **REQUIRED**
    * ___
    * @description
    * - `number` *sets the width and height, can be an array of 2 numbers*
@@ -188,7 +188,7 @@ type MorphScrollT = {
    */
   gap?: number | number[];
   /**---
-   * Margin for the* `objectsWrapper`.
+   * Margin for the* `.ms-objects-wrapper`.
    * ___
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
@@ -204,7 +204,7 @@ type MorphScrollT = {
    */
   wrapperMargin?: number | number[];
   /**---
-   * Minimum height or width of the `objectsWrapper`.
+   * Minimum height or width of the `.ms-objects-wrapper`.
    * ___
    * @description
    * - `number` *sets the min-size*
@@ -253,7 +253,7 @@ type MorphScrollT = {
    */
   elementsAlign?: "start" | "center" | "end";
   /**---
-   * Direction of the provided elements
+   * Direction of the provided elements.
    * ___
    * @default "row"
    *
@@ -412,11 +412,11 @@ type MorphScrollT = {
    */
   suspending?: boolean;
   /**---
-   * Fallback element to display during loading or as a placeholder.
+   * Fallback element to display during loading or placeholder.
    * ___
    * @note
    * *Used when:*
-   * - *`suspending === "lazy"`*
+   * - *`suspending === true`*
    * - *`render.stopLoadOnScroll === true`*
    * - *`emptyElements.mode === "fallback"`*
    *

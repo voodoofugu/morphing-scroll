@@ -25,7 +25,7 @@ export type MorphScrollT = {
   children?: React.ReactNode;
 
   // Scroll Settings
-  type?: "scroll" | "slider" | "sliderMenu"; // morphType
+  type?: "scroll" | "slider" | "sliderMenu";
   direction?: "x" | "y" | "hybrid";
   scrollPosition?: {
     value: number | "end" | (number | "end")[];

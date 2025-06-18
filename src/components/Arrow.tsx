@@ -46,7 +46,7 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
 
   return (
     <div
-      className={`arrowBox ${arrowType}${activity ? " active" : ""}`}
+      className={`ms-arrow-box ${arrowType}${activity ? " active" : ""}`}
       style={{
         ...arrowsStyle,
       }}

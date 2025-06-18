@@ -1,18 +1,20 @@
 type ResizeTrackerT = {
   /**---
-   * *♦︎ Custom class name.*
-   *
+   * Custom class name.
+   * ___
    * @example
    * ```tsx
-   * <ResizeTracker className="custom-class" >
+   * <ResizeTracker
+   *   className="custom-class"
+   * >
    *   {children}
    * </ResizeTracker>
    * ```
    */
   className?: string;
   /**---
-   * *♦︎ Custom user content.*
-   *
+   * Custom user content.
+   * ___
    * @example
    * ```tsx
    * <ResizeTracker>
@@ -22,12 +24,12 @@ type ResizeTrackerT = {
    * */
   children: React.ReactNode;
   /**---
-   * *♦︎ Custom inline styles for the ResizeTracker.*
-   *
+   * Custom inline styles.
+   * ___
    * @example
    * ```tsx
    * <ResizeTracker
-   *   style={{ backgroundColor: "blue" }}
+   *   style={{ backgroundColor: "yellow" }}
    * >
    *   {children}
    * </ResizeTracker>
@@ -35,8 +37,8 @@ type ResizeTrackerT = {
    */
   style?: React.CSSProperties;
   /**---
-   * *♦︎ Defines size measurement behavior.*
-   *
+   * Defines size measurement behavior.
+   * ___
    * @description
    * - `inner`: *Fits content*
    * - `outer`: *Fills parent*
@@ -46,17 +48,19 @@ type ResizeTrackerT = {
    *
    * @example
    * ```tsx
-   * <ResizeTracker measure="outer" >
+   * <ResizeTracker
+   *   measure="outer"
+   * >
    *   {children}
    * </ResizeTracker>
    * ```
    */
   measure?: "inner" | "outer" | "all";
   /**---
-   * *♦︎ Callback on dimension change.*
-   *
+   * Callback on dimension change.
+   * ___
    * @description
-   * `rect`: *The dimensions of the container*
+   * *`rect` is the dimensions of the container*
    *
    * @example
    * ```tsx

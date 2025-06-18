@@ -34,6 +34,7 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
  *
  * ---
  * ### Props:
+ * - `className`
  * - `children`
  * - `style`
  * - `root`

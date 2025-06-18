@@ -650,7 +650,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const func = () =>
         mouseOnRef(
           scrollContentRef.current,
-          type === "scroll" ? "scrollBar" : "sliderBar",
+          "ms-bar",
           event,
           setManagedTimeout
         );
@@ -813,7 +813,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       let axisFromAtr: "x" | "y" | null = null;
       if (clickedSBar) {
         const el = clickedSBar as HTMLElement;
-        axisFromAtr = el.getAttribute("direction-type") as "x" | "y";
+        axisFromAtr = el.getAttribute("data-direction") as "x" | "y";
       }
 
       handleMouseOrTouch({
@@ -1089,13 +1089,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, [scrollPositionLocal.value.join(), scrollPosition?.updater]);
 
-  const fallbackLocal = (fallbackEl: React.ReactNode, key?: string) => {
-    if (React.isValidElement(fallbackEl) && key) {
-      return React.cloneElement(fallbackEl, { key });
-    }
-    return fallbackEl;
-  };
-
   // ♦ contents
 
   const scrollObjectWrapper = React.useCallback(
@@ -1121,9 +1114,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
 
       const content = suspending ? (
-        <React.Suspense fallback={fallbackLocal(fallback, key)}>
-          {children}
-        </React.Suspense>
+        <React.Suspense fallback={fallback}>{children}</React.Suspense>
       ) : (
         children
       );
@@ -1133,12 +1124,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       return (
         <div
+          key={key}
           {...(render?.type || render?.stopLoadOnScroll || emptyElements
             ? { [CONST.WRAP_ATR]: `${attribute}${key ? " visible" : ""}` }
             : {})}
-          onClick={onClickHandler as React.MouseEventHandler}
-          key={key}
+          className="ms-object-box"
           style={wrapStyle}
+          onClick={onClickHandler as React.MouseEventHandler}
         >
           {content}
         </div>
@@ -1166,20 +1158,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const visibleObjectsKeys =
       render?.type === "lazy" ? loadedObjects.current : currentObjects.current;
 
-    // !!! ререндер fallbackWithKey из за React.CloneElement надо мемоизировать
-    const fallbackWithKey = fallbackLocal(fallback, key);
-    const fallbackWithKeyFromEmptyElements =
-      typeof emptyElements?.mode === "object"
-        ? fallbackLocal(emptyElements.mode.fallback, key)
-        : fallbackWithKey;
-
     const childRenderOnScroll =
       render?.stopLoadOnScroll &&
       isScrollingRef.current &&
       !visibleObjectsKeys.includes(`${key}`)
-        ? fallbackWithKey
+        ? fallback
         : emptyElementKeysString.current?.includes(key)
-        ? fallbackWithKeyFromEmptyElements
+        ? typeof emptyElements?.mode === "object"
+          ? emptyElements.mode.fallback
+          : fallback
         : child;
 
     const childLocal =
@@ -1233,7 +1220,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const objectsWrapper = (
     <div
-      className="objectsWrapper"
+      className="ms-objects-wrapper"
       ref={objectsWrapperRef}
       onMouseDown={onMouseDownWrap}
       style={wrapperStyle}
@@ -1270,7 +1257,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }}
     >
       <div
-        className="scrollContent"
+        className="ms-content"
         ref={scrollContentRef}
         onMouseEnter={mouseOnRefHandle}
         onMouseLeave={mouseOnRefHandle}
@@ -1293,7 +1280,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }}
       >
         <div
-          className="scrollElement"
+          className="ms-element"
           ref={scrollElementRef}
           onScroll={handleScroll}
           style={{

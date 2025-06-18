@@ -60,7 +60,7 @@ const getAllScrollBars = (
   if (!customScrollRef) return;
 
   const bars = customScrollRef.querySelectorAll(
-    `.${type === "scroll" ? "scrollBarThumb" : "sliderBar"}`
+    `.${type === "scroll" ? "ms-thumb" : "ms-slider"}`
   );
 
   if (bars.length > 0) {

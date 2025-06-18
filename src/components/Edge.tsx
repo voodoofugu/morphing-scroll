@@ -39,7 +39,7 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
 
     ...(edgeType ? { [edgeType]: 0 } : {}),
 
-    // scale second edge
+    // scale second ms-edge
     ...(edgeType === "right"
       ? {
           transform: "scaleX(-1)",
@@ -51,7 +51,7 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
 
   return (
     <div
-      className={`edge${edgeType ? ` ${edgeType}` : ""}`}
+      className={`ms-edge${edgeType ? ` ${edgeType}` : ""}`}
       style={{
         ...edgeStyle,
         opacity: visibility ? 1 : 0,
