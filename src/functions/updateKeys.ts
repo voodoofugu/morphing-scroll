@@ -1,14 +1,13 @@
 import React from "react";
 
-import { MorphScrollT } from "../types/types";
-
 import { CONST } from "../constants";
 
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
-  loadedObjects: React.MutableRefObject<(string | null)[]>,
-  currentObjects: React.MutableRefObject<(string | null)[]>,
-  emptyElementKeysString: React.MutableRefObject<(string | null)[] | null>,
+  objectsKeys: React.MutableRefObject<{
+    loaded: string[];
+    empty: string[] | null;
+  }>,
   callBack: () => void,
   renderType?: "lazy" | "virtual"
 ) => {
@@ -35,7 +34,7 @@ const updateLoadedElementsKeys = (
       const el = currentNode as Element;
       const id = el.getAttribute(CONST.WRAP_ATR);
       if (id) {
-        if (id.includes("visible")) allIds.push(id);
+        allIds.push(id);
         if (el.children.length === 0) emptyKeysRaw.push(id);
       }
       currentNode = walker.nextNode();
@@ -44,25 +43,24 @@ const updateLoadedElementsKeys = (
     return { allIds, emptyKeysRaw };
   })();
 
-  function normalizeId(id: string): string {
-    return id.replace(/\s*visible\s*$/, "").trim();
+  const mergedLoadedObjects = new Set(objectsKeys.current.loaded);
+  allIds.forEach((id) => mergedLoadedObjects.add(id));
+
+  let emptyKeys = null;
+  if (objectsKeys.current.empty) {
+    const mergedEmptyKeys = new Set(objectsKeys.current.empty);
+    emptyKeysRaw.forEach((id) => mergedEmptyKeys.add(id));
+    emptyKeys = Array.from(mergedEmptyKeys);
   }
 
-  currentObjects.current = allIds.map((id) => normalizeId(id));
-
-  const mergedLoadedObjects = new Set(loadedObjects.current);
-  allIds.forEach((id) => mergedLoadedObjects.add(id.split(" ")[0])); // убираем visible
-  loadedObjects.current = Array.from(mergedLoadedObjects);
-
-  if (emptyElementKeysString.current) {
-    const mergedEmptyKeys = new Set(emptyElementKeysString.current);
-    emptyKeysRaw.forEach((id) =>
+  objectsKeys.current = {
+    // для loaded если "lazy" мержим все ключи
+    loaded:
       renderType === "lazy"
-        ? id.includes("visible") && mergedEmptyKeys.add(normalizeId(id))
-        : mergedEmptyKeys.add(normalizeId(id))
-    );
-    emptyElementKeysString.current = Array.from(mergedEmptyKeys);
-  }
+        ? Array.from(mergedLoadedObjects)
+        : allIds.map((id) => id),
+    empty: emptyKeys,
+  };
 
   callBack();
 };

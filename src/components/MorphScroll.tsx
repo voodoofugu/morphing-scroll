@@ -67,7 +67,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   crossCount,
 }) => {
   // ♦ hooks
-  // !!! debouncedUpdateLoadedElementsKeysLocal почему-то проигрывается два раза, возможно проблема оптимизации scrollObjectWrapper
   const debouncedUpdateLoadedElementsKeysLocal = useDebouncedCallback(() => {
     updateLoadedElementsKeysLocal();
   }, 40);
@@ -105,9 +104,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     "none"
   );
   // ключи объектов, которые когда либо были загружены
-  const loadedObjects = React.useRef<(string | null)[]>([]);
-  const currentObjects = React.useRef<(string | null)[]>([]);
-  const emptyElementKeysString = React.useRef<(string | null)[] | null>([]);
+  const objectsKeys = React.useRef<{
+    loaded: string[];
+    empty: string[] | null;
+  }>({ loaded: [], empty: [] });
 
   const scrollStateRef = React.useRef<ScrollStateRefT>({
     targetScrollY: 0,
@@ -215,15 +215,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       .filter((key): key is string => key !== null)
       .filter((key) => {
         if (emptyElements?.mode === "clear") {
-          return !emptyElementKeysString.current?.includes(key);
+          return !objectsKeys.current.empty?.includes(key);
         }
         return true;
       });
-  }, [
-    children,
-    stabilizedEmptyElements,
-    emptyElementKeysString.current?.join("/"),
-  ]);
+  }, [children, stabilizedEmptyElements, objectsKeys.current.empty?.join()]);
 
   const [mT, mR, mB, mL] = wrapperMargin
     ? ArgFormatter(wrapperMargin)
@@ -415,7 +411,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const fullHeightOrWidth =
     direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
-  // !!! кажется нужно direction устанавливать при клике при hybrid
   const scrollSpaceFromRef =
     direction === "x"
       ? scrollElementRef.current?.scrollLeft || 0
@@ -457,7 +452,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [objectsWrapperWidthFull, sizeLocal[0]]);
 
   // делим на группы
-  // !!! splitIndices может сделать функцию что бы не хранить массив
   const splitIndices = React.useCallback(() => {
     if (!render?.type || objectsPerDirection[0] <= 1) {
       return [];
@@ -863,9 +857,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!customScrollRef.current) return;
     updateLoadedElementsKeys(
       customScrollRef.current,
-      loadedObjects,
-      currentObjects,
-      emptyElementKeysString,
+      objectsKeys,
       triggerUpdate,
       render?.type
     );
@@ -986,8 +978,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   React.useEffect(() => {
     if (emptyElements || render?.type) {
       // устанавливаем null для emptyElementKeysString что бы не использовать его когда он не нужен
-      if (!emptyElements && emptyElementKeysString.current !== null)
-        emptyElementKeysString.current = null;
+      if (!emptyElements && objectsKeys.current.empty !== null)
+        objectsKeys.current.empty = null;
 
       debouncedUpdateLoadedElementsKeysLocal();
     }
@@ -1093,11 +1085,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const scrollObjectWrapper = React.useCallback(
     (
-      attribute: string,
+      key: string,
       elementTop?: number,
       left?: number,
-      children?: React.ReactNode,
-      key?: string
+      children?: React.ReactNode
     ) => {
       const wrapStyle: React.CSSProperties = {
         width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : undefined,
@@ -1125,8 +1116,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return (
         <div
           key={key}
-          {...(render?.type || render?.stopLoadOnScroll || emptyElements
-            ? { [CONST.WRAP_ATR]: `${attribute}${key ? " visible" : ""}` }
+          {...(render || emptyElements
+            ? {
+                [CONST.WRAP_ATR]: `${key}`,
+              }
             : {})}
           className="ms-object-box"
           style={wrapStyle}
@@ -1144,7 +1137,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       stabilizedRender,
       stabilizedEmptyElements,
       objectsPerDirection[0],
-      loadedObjects.current.join(),
     ]
   );
 
@@ -1155,15 +1147,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     ) as React.ReactElement | undefined;
 
     // обработка детей для render?
-    const visibleObjectsKeys =
-      render?.type === "lazy" ? loadedObjects.current : currentObjects.current;
-
     const childRenderOnScroll =
       render?.stopLoadOnScroll &&
       isScrollingRef.current &&
-      !visibleObjectsKeys.includes(`${key}`)
+      !objectsKeys.current.loaded.includes(`${key}`)
         ? fallback
-        : emptyElementKeysString.current?.includes(key)
+        : objectsKeys.current.empty?.includes(key)
         ? typeof emptyElements?.mode === "object"
           ? emptyElements.mode.fallback
           : fallback
@@ -1202,19 +1191,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               left - (scrollElementRef.current?.scrollLeft || 0) &&
             right - (scrollElementRef.current?.scrollLeft || 0) > 0 - mRootX;
 
-      const isElementVisibleRenderLazy =
-        render?.type === "lazy" && loadedObjects.current.length > 0
-          ? loadedObjects.current.includes(key)
-          : false;
-
-      if (
-        (isElementVisible && isElementVisibleHybrid) ||
-        isElementVisibleRenderLazy
-      ) {
-        return scrollObjectWrapper(`${key}`, elementTop, left, childLocal, key);
+      if (isElementVisible && isElementVisibleHybrid) {
+        return scrollObjectWrapper(key, elementTop, left, childLocal);
       }
     } else {
-      return scrollObjectWrapper(`${key}`, 0, 0, childLocal, key);
+      return scrollObjectWrapper(key, 0, 0, childLocal);
     }
   };
 
