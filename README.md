@@ -1,4 +1,4 @@
-![logo](https://drive.google.com/uc?export=view&id=1mpb5TAElX3Xla4sGFISp4bQMu0zuNJaa "logo")
+![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/main/src/assets/styled-atom.png?v=1)
 
 <h2></h2>
 
