@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/main/src/assets/styled-atom.png?v=1)
+![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/main/src/assets/banner-01.jpg?v=1)
 
 <h2></h2>
 
@@ -118,6 +118,8 @@ npm install morphing-scroll
           {children}
         </MorphScroll>
         ```
+
+        <img src="https://raw.githubusercontent.com/voodoofugu/morphing-scroll/main/src/assets/banner-02.jpg?v=1">
 
     </ul></details>
 
