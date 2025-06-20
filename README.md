@@ -6,16 +6,22 @@
 
 - [About](#-about-)
 - [Installation](#-installation-)
-- [MorphScroll](#-morphscroll-)
-- [ResizeTracker](#-resizetracker-)
-- [IntersectionTracker](#-intersectiontracker-)
+- [Components](#-components-)
 - [API](#-api-)
 
 <h2></h2>
 
 ### 〈♦ About 〉
 
-`morphing-scroll` is a `React` library designed to optimize the rendering of data lists. It leverages virtual rendering and lazy loading to handle large datasets efficiently, significantly enhancing performance. The library also resolves cross-browser inconsistencies in scroll element rendering by replacing them with custom ones. Additionally, it provides convenient horizontal scrolling with flexible content movement options.
+`morphing-scroll` is a `React` is a React library originally created to address common limitations of the native browser scrollbar, including:
+
+- Design customization constraints
+- Cross-browser compatibility
+- Lack of horizontal scrolling support via mouse wheel
+
+Over time, the library evolved to include numerous optimizations for handling large lists, significantly improving performance and flexibility.
+
+All features are described below through the available components and their corresponding props.
 
 <h2></h2>
 
@@ -29,15 +35,17 @@ npm install morphing-scroll
 
 <h2></h2>
 
-### 〈♦ MorphScroll 〉
+### 〈♦ Components 〉
+
+#### MorphScroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
-- ### Props:
+- #### Props:
 
   <div>
 
-  #### **GENERAL SETTINGS**:
+  ##### **GENERAL SETTINGS**:
 
     <details>
       <summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br />
@@ -83,7 +91,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### **SCROLL SETTINGS**:
+  ##### **SCROLL SETTINGS**:
 
     <details>
       <summary><b><code>type</code></b>: <em>Type of progress element.</em></summary><br />
@@ -230,7 +238,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### **VISUAL SETTINGS**:
+  ##### **VISUAL SETTINGS**:
 
     <details>
       <summary><b><code>size</code> REQUIRED</b>: <em>[width, height] dimension of <b>MorphScroll</b>.</em></summary><br />
@@ -500,7 +508,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### **PROGRESSBAR**:
+  ##### **PROGRESSBAR**:
 
     <details>
       <summary><b><code>progressTrigger</code></b>: <em>Triggers for the scroll progress.</em></summary><br />
@@ -610,7 +618,7 @@ npm install morphing-scroll
 
     <h2></h2>
 
-  #### **OPTIMIZATIONS**:
+  ##### **OPTIMIZATIONS**:
 
     <details>
       <summary><b><code>render</code></b>: <em>Rendering strategy for performance optimization.</em></summary><br />
@@ -752,11 +760,11 @@ npm install morphing-scroll
 
 <h2></h2>
 
-### 〈♦ ResizeTracker 〉
+#### 〈♦ ResizeTracker 〉
 
 `ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
 
-- ### Props:
+- #### Props:
 
   <div>
 
@@ -881,17 +889,17 @@ npm install morphing-scroll
 
   </div>
 
-- ### Link:
+- #### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
 <h2></h2>
 
-### 〈♦ IntersectionTracker 〉
+#### 〈♦ IntersectionTracker 〉
 
 `IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
 
-- ### Props:
+- #### Props:
 
   <div>
 
@@ -1093,7 +1101,7 @@ npm install morphing-scroll
 
   </div>
 
-- ### Link:
+- #### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
@@ -1101,6 +1109,6 @@ npm install morphing-scroll
 
 ### 〈♦ API 〉
 
-- `MorphScroll`: Main React component that optimizes the rendering of data lists.
-- `ResizeTracker`: React component that monitors changes to an element’s size.
-- `IntersectionTracker`: React component for tracking element visibility in the viewport.
+- `MorphScroll`: Main component for custom list rendering.
+- `ResizeTracker`: Component for monitoring changes to an element’s size.
+- `IntersectionTracker`: Component for tracking element visibility in the viewport.
