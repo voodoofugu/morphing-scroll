@@ -23,7 +23,7 @@ import MorphScrollT from "./morphScroll";
  *
  * ---
  * ### Links:
- * [ResizeTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-resizetracker-)
+ * [ResizeTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-resizetracker)
  *
  * [MDN Reference for Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  */
@@ -51,7 +51,7 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
  *
  * ---
  * ### Links:
- * [IntersectionTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-intersectiontracker-)
+ * [IntersectionTracker Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-intersectiontracker)
  *
  * [MDN Reference for Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  */
@@ -104,7 +104,7 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  *
  * ---
  * ### Links:
- * [MorphScroll Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-scroll)
+ * [MorphScroll Documentation](https://github.com/voodoofugu/morphing-scroll?tab=readme-ov-file#-morphscroll)
  */
 declare const MorphScroll: React.FC<MorphScrollT>;
 
