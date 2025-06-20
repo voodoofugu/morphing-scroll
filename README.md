@@ -109,6 +109,7 @@ npm install morphing-scroll
         <br />
         <mark>sliderMenu</mark> - It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.</em><br />
         <br />
+        <img src="https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-02.jpg?v=1">
         <b>Example:</b>
 
         ```tsx
@@ -119,7 +120,7 @@ npm install morphing-scroll
         </MorphScroll>
         ```
 
-        <img src="https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-02.jpg?v=1"></ul></details>
+    </ul></details>
 
     <h2></h2>
 
