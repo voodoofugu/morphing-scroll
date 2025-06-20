@@ -2,7 +2,7 @@
 
 <h2></h2>
 
-### 〈♦ Table of contents 〉
+### 〈 Table of contents 〉
 
 - [About](#-about-)
 - [Installation](#-installation-)
@@ -11,7 +11,7 @@
 
 <h2></h2>
 
-### 〈♦ About 〉
+### 〈 About 〉
 
 `morphing-scroll` is a `React` is a React library originally created to address common limitations of the native browser scrollbar, including:
 
@@ -25,7 +25,7 @@ All features are described below through the available components and their corr
 
 <h2></h2>
 
-### 〈♦ Installation 〉
+### 〈 Installation 〉
 
 To install the library, use the following command:
 
@@ -35,9 +35,9 @@ npm install morphing-scroll
 
 <h2></h2>
 
-### 〈♦ Components 〉
+### 〈 Components 〉
 
-#### MorphScroll
+#### ♦ MorphScroll
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
@@ -760,7 +760,7 @@ npm install morphing-scroll
 
 <h2></h2>
 
-#### 〈♦ ResizeTracker 〉
+#### ♦ ResizeTracker
 
 `ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
 
@@ -895,7 +895,7 @@ npm install morphing-scroll
 
 <h2></h2>
 
-#### 〈♦ IntersectionTracker 〉
+#### ♦ IntersectionTracker
 
 `IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
 
@@ -1107,7 +1107,7 @@ npm install morphing-scroll
 
 <h2></h2>
 
-### 〈♦ API 〉
+### 〈 API 〉
 
 - `MorphScroll`: Main component for custom list rendering.
 - `ResizeTracker`: Component for monitoring changes to an element’s size.
