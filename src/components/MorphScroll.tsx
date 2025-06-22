@@ -79,7 +79,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ errors
   const errorText = (propName: string) =>
-    `${propName} prop is not provided\nMorphScroll〈♦${id}〉`;
+    `Prop "${propName}" is not provided\nMorphScroll〈♦${id}〉`;
 
   if (!size) throw new Error(errorText("size"));
   if (Object.keys(progressTrigger).length === 0)
@@ -288,11 +288,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return [
       getSize(
-        objectsSizing[0] || sizeLocal[0],
+        objectsSizing[0] && objectsSizing[0] !== "none"
+          ? objectsSizing[0]
+          : direction === "y"
+          ? sizeLocal[0]
+          : 0,
         receivedChildSizeRef.current.width
       ),
       getSize(
-        objectsSizing[1] || sizeLocal[1],
+        objectsSizing[1] && objectsSizing[1] !== "none"
+          ? objectsSizing[1]
+          : direction === "x"
+          ? sizeLocal[1]
+          : 0,
         receivedChildSizeRef.current.height
       ),
     ];
@@ -430,12 +438,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }
 
   const thumbSize = React.useMemo(() => {
-    if (!progressTrigger.progressElement) return 0;
-    return Math.round((xySize / fullHeightOrWidth) * xySize);
+    if (!progressTrigger.progressElement || !fullHeightOrWidth) return 0;
+
+    const value = Math.round((xySize / fullHeightOrWidth) * xySize);
+    return !Number.isFinite(value) || value < 0 ? 0 : value;
   }, [xySize, fullHeightOrWidth, progressTrigger.progressElement]);
+
   const thumbSizeX = React.useMemo(() => {
     if (!progressTrigger.progressElement) return 0;
-    return Math.round((sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]);
+
+    const value = Math.round(
+      (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]
+    );
+    return !Number.isFinite(value) || value < 0 ? 0 : value;
   }, [sizeLocal[0], objectsWrapperWidthFull, progressTrigger.progressElement]);
 
   const endObjectsWrapper = React.useMemo(() => {
@@ -839,6 +854,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       progressTrigger.content,
       progressTrigger.progressElement,
       sizeLocal.join(),
+      thumbSize,
+      thumbSizeX,
     ]
   );
   const onMouseDownScrollThumb = React.useCallback(
@@ -909,10 +926,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const common: React.CSSProperties = {
       margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
       height:
-        objectsSizing[1] !== "none"
+        objectsSizing[1] && objectsSizing[1] !== "none"
           ? `${objectsWrapperHeight}px`
           : "fit-content",
-      width: `${objectsWrapperWidth}px`,
+      width:
+        objectsSizing[0] && objectsSizing[0] !== "none"
+          ? `${objectsWrapperWidth}px`
+          : "fit-content",
       ...(progressTrigger.content && { cursor: "grab" }),
       ...(gap && !render?.type && { gap: `${gapX}px ${gapY}px` }),
       ...(wrapperMinSize &&
@@ -933,9 +953,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
     }
 
-    const isMulti = objectsPerDirection[0] > 1;
-    const flexDirection = isMulti ? elementsDirection : "column";
-    const flexWrap = objectsSizing[1] !== "none" ? "wrap" : undefined;
+    const isMulti = objectsPerDirection[0] > 1 && direction === "hybrid";
+    const flexDirection = isMulti
+      ? elementsDirection
+      : direction === "x"
+      ? "row"
+      : "column";
+    const flexWrap = objectsSizing[1] ? "wrap" : undefined;
     const justifyContent =
       isMulti && elementsAlign
         ? elementsAlign === "start"
@@ -1304,7 +1328,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               : {}),
           }}
         >
-          {objectsSizing[0] !== "none" && objectsSizing[1] !== "none" ? (
+          {objectsSizing[0] && objectsSizing[1] ? (
             objectsWrapper
           ) : (
             <ResizeTracker

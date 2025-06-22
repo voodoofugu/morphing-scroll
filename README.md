@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-01.jpg?v=1)
+![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.jpg?v=1)
 
 <h2></h2>
 
@@ -109,7 +109,6 @@ npm install morphing-scroll
         <br />
         <mark>sliderMenu</mark> - It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.</em><br />
         <br />
-        <img src="https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-02.jpg?v=1">
         <b>Example:</b>
 
         ```tsx
@@ -271,7 +270,7 @@ npm install morphing-scroll
       <summary><b><code>objectsSize</code></b>: <em>[width, height] dimension of cells for each object.</em></summary><br />
       <ul>
         <b>Type:</b><br />
-        number | "none" | "firstChild"<br />
+        number | "firstChild"<br />
         | (number | "none" | "firstChild")[]<br />
         <br />
         <b>Default:</b> If you don't provide any value, the default value will be taken from <code>size</code><br />
@@ -287,7 +286,7 @@ npm install morphing-scroll
         <br />
         ✦ Note:<br />
         <ul>
-          <li>All types can be used as 1 value, or an array of 2 values.</li>
+          <li>All types except "none" can be used as 1 value, or an array of 2 values.</li>
           <li><mark>"none"</mark> is not compatible with <code>render={{ type: "virtual" }}</code>.</li>
         </ul></em><br />
         <br />
@@ -311,7 +310,7 @@ npm install morphing-scroll
         <b>Type:</b> number<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter defines the number of <b>columns</b> (when <code>direction="y"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="column"</code>) or <b>rows</b> (when <code>direction="x"</code> or <code>direction="hybrid"</code> with <code>elementsDirection="row"</code>).<br />
+        This parameter defines the number of <b>columns</b> (<code>direction="y"</code>, <code>direction="hybrid"</code> + <code>elementsDirection="column"</code>) or <b>rows</b> (<code>direction="x"</code>, <code>direction="hybrid"</code> + <code>elementsDirection="row"</code>).<br />
         <br />
         ✦ Note:<br />
         <ul>
