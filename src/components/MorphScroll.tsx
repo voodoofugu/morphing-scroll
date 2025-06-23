@@ -275,30 +275,41 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
   const objectsSizing = React.useMemo(
-    () => (objectsSize ? ArgFormatter(objectsSize, true, 2) : [null, null]),
+    () =>
+      objectsSize
+        ? !Array.isArray(objectsSize)
+          ? ArgFormatter(objectsSize, true, 2)
+          : objectsSize
+        : [null, null],
     [stabilizedObjectsSize]
   );
   const stabilizedObjectsSizing = JSON.stringify(objectsSizing);
   const objectsSizeLocal = React.useMemo(() => {
     const getSize = (
-      val: number | "none" | "firstChild",
+      val: number | "none" | "firstChild" | "size",
       receivedSize: number
     ) =>
       typeof val === "number" ? val : val === "firstChild" ? receivedSize : 0;
 
     return [
       getSize(
-        objectsSizing[0] && objectsSizing[0] !== "none"
+        objectsSizing[0] &&
+          objectsSizing[0] !== "none" &&
+          objectsSizing[0] !== "size"
           ? objectsSizing[0]
-          : direction === "y"
+          : (direction === "y" && objectsSizing[0] !== "none") ||
+            objectsSizing[0] === "size"
           ? sizeLocal[0]
           : 0,
         receivedChildSizeRef.current.width
       ),
       getSize(
-        objectsSizing[1] && objectsSizing[1] !== "none"
+        objectsSizing[1] &&
+          objectsSizing[1] !== "none" &&
+          objectsSizing[1] !== "size"
           ? objectsSizing[1]
-          : direction === "x"
+          : (direction === "x" && objectsSizing[1] !== "none") ||
+            objectsSizing[1] === "size"
           ? sizeLocal[1]
           : 0,
         receivedChildSizeRef.current.height
@@ -1328,7 +1339,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               : {}),
           }}
         >
-          {objectsSizing[0] && objectsSizing[1] ? (
+          {objectsSizeLocal[0] && objectsSizeLocal[1] ? (
             objectsWrapper
           ) : (
             <ResizeTracker

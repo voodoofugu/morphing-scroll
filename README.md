@@ -33,6 +33,8 @@ To install the library, use the following command:
 npm install morphing-scroll
 ```
 
+Next, to start using the `MorphScroll` component, start with the required property `size` and two additional `objectsSize` and `progressTrigger`, which you will find described below.
+
 <h2></h2>
 
 ### 〈 Components 〉
@@ -270,8 +272,8 @@ npm install morphing-scroll
       <summary><b><code>objectsSize</code></b>: <em>[width, height] dimension of cells for each object.</em></summary><br />
       <ul>
         <b>Type:</b><br />
-        number | "firstChild"<br />
-        | (number | "none" | "firstChild")[]<br />
+        number | "size" | "firstChild" | "none"<br />
+        | (number | "size" | "firstChild" | "none")[]<br />
         <br />
         <b>Default:</b> If you don't provide any value, the default value will be taken from <code>size</code><br />
         <br />
@@ -280,9 +282,17 @@ npm install morphing-scroll
         <br />
         <mark>number</mark> - Sets a fixed size for your custom objects.<br />
         <br />
-        <mark>"none"</mark> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+        <mark>"size"</mark> - The dimensions will be taken from <code>size</code>.<br />
         <br />
         <mark>"firstChild"</mark> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
+        <br />
+        <mark>"none"</mark> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+        <br />
+        <mark>undefined</mark> - If no value is provided, the default behavior is partially inferred from the <code>size</code> prop:
+        <ul>
+          <li>When <code>direction="x"</code>, the height from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["size", "none"]</code>.</li>
+          <li>When <code>direction="y"</code>, the width from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["none", "size"]</code>.</li>
+        </ul>
         <br />
         ✦ Note:<br />
         <ul>
