@@ -296,8 +296,8 @@ Next, to start using the `MorphScroll` component, start with the required proper
         <br />
         ✦ Note:<br />
         <ul>
-          <li>All types except "none" can be used as 1 value, or an array of 2 values.</li>
-          <li><mark>"none"</mark> is not compatible with <code>render={{ type: "virtual" }}</code>.</li>
+          <li>All types can be used as 1 value, or an array of 2 values.</li>
+          <li><mark>"none"</mark> is not compatible with <code>render</code>.</li>
         </ul></em><br />
         <br />
         <b>Example:</b>
