@@ -348,6 +348,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const useCrossCount = crossCount && crossCount < validChildrenKeys.length;
 
+    const validated = (val: number): number =>
+      Number.isFinite(val) && val > 0 ? val : 1;
+
     if (direction === "hybrid") {
       const x = useCrossCount
         ? isRow
@@ -365,10 +368,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? validChildrenKeys.length
         : 1;
 
-      return [x, y];
+      return [validated(x), validated(y)];
     }
 
-    return [objectsPerD, childsLinePerD];
+    return [validated(objectsPerD), validated(childsLinePerD)];
   }, [
     validChildrenKeys.length,
     direction,
