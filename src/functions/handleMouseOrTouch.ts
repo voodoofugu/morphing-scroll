@@ -98,10 +98,13 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     // слушатели для мобилок
     document.addEventListener(
       "touchmove",
-      (touchEvent) => handleMove({ ...args, mouseEvent: touchEvent }),
+      (touchEvent) => {
+        touchEvent.preventDefault();
+        handleMove({ ...args, mouseEvent: touchEvent });
+      },
       {
         signal,
-        // passive: false // если используется preventDefault()
+        passive: false, // обязательно!
       }
     );
 
