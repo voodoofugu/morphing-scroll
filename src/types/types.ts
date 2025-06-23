@@ -39,10 +39,10 @@ export type MorphScrollT = {
   size: number | number[] | "auto";
   objectsSize?:
     | number
-    | "none"
     | "size"
     | "firstChild"
-    | (number | "none" | "size" | "firstChild")[];
+    | "none"
+    | (number | "size" | "firstChild" | "none")[];
   crossCount?: number;
   gap?: number | number[];
   wrapperMargin?: number | number[];
