@@ -704,6 +704,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal.join(),
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
+      scrollPositionLocal.duration, // для smoothScrollLocal
     ]
   );
 
@@ -870,6 +871,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal.join(),
       thumbSize,
       thumbSizeX,
+      scrollPositionLocal.duration, // для smoothScrollLocal
     ]
   );
   const onMouseDownScrollThumb = React.useCallback(
@@ -933,7 +935,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       firstChildKeyRef.current = validChildrenKeys[0];
     },
-    [validChildrenKeys[0]]
+    [
+      validChildrenKeys[0],
+      scrollPositionLocal.duration, // для smoothScrollLocal
+    ]
   );
 
   const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
