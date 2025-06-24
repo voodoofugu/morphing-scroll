@@ -141,13 +141,14 @@ type MorphScrollT = {
    *
    * @description
    * - `number` *sets the width and height, can be an array of 2 numbers*
-   * - `"none"` *objects will be created without defined size*
+   * - `"size"` *all objects will take the dimensions from the `size` prop*
    * - `"firstChild"` *all objects will have the same size as the first child*
+   * - `"none"` *objects will be created without defined size*
    *
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   objectsSize={[80, 80]}
+   *   objectsSize={80}
    * >
    *   {children}
    * </MorphScroll>
@@ -155,9 +156,10 @@ type MorphScrollT = {
    */
   objectsSize:
     | number
-    | "none"
+    | "size"
     | "firstChild"
-    | (number | "none" | "firstChild")[];
+    | "none"
+    | (number | "size" | "firstChild" | "none")[];
   /**---
    * Number of cells in each direction.
    *___
