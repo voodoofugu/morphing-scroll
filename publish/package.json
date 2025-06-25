@@ -1,11 +1,15 @@
 {
   "name": "morphing-scroll",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Library for using various methods of scrolling objects〈♦〉",
   "author": "Georg Schilin",
   "license": "MIT",
-  "main": "index.js",
-  "type": "commonjs",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "exports": {
+    "import": "./esm/index.js",
+    "require": "./cjs/index.js"
+  },
   "types": "./types/index.d.ts",
   "keywords": [
     "react",

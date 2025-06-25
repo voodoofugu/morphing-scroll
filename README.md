@@ -33,6 +33,19 @@ To install the library, use the following command:
 npm install morphing-scroll
 ```
 
+Next, import the `MorphScroll` component into your React application:
+
+```tsx
+import { MorphScroll } from "morphing-scroll";
+```
+
+> **✦ Note:**  
+> `MorphScroll` exports both **CommonJS** and **ESM** builds.  
+> Your environment will automatically use the appropriate version:
+>
+> - **Modern bundlers** (e.g. _Vite_, _Webpack 5_, _esbuild_) use the **ESM** (`import`) build
+> - **Node.js** (and older environments) use the **CommonJS** (`require`) build
+
 Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
 <h2></h2>

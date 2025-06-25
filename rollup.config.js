@@ -11,16 +11,12 @@ export default [
       {
         file: "dist/cjs/index.js",
         format: "cjs",
-        // exports: "named",
       },
-      // {
-      //   file: "dist/esm/index.js",
-      //   format: "esm",
-      //   exports: "named",
-      //   globals: {
-      //     react: "React",
-      //   },
-      // },
+      {
+        file: "dist/esm/index.js",
+        format: "esm",
+        preserveModules: false,
+      },
     ],
     plugins: [
       del({ targets: "dist/*" }),
@@ -28,8 +24,20 @@ export default [
       commonjs(),
       typescript(),
       terser({
+        compress: {
+          passes: 2,
+          unsafe: true,
+          unsafe_arrows: true,
+          unsafe_comps: true,
+          unsafe_math: true,
+          drop_console: true,
+          pure_funcs: ["console.log"],
+        },
+        mangle: {
+          toplevel: true,
+        },
         output: {
-          comments: false, // Удаляет все комментарии
+          comments: false,
         },
       }),
     ],
