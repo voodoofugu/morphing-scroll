@@ -141,6 +141,15 @@ function getWrapperMinSizeStyle(
   return { minWidth, minHeight };
 }
 
+const getStyleAlign = (algin: "start" | "center" | "end" | undefined) =>
+  algin
+    ? algin === "start"
+      ? "flex-start"
+      : algin === "center"
+      ? "center"
+      : "flex-end"
+    : undefined;
+
 function getWrapperAlignStyle(
   wrapperAlign: Exclude<MorphScrollT["wrapperAlign"], undefined>,
   sizeLocal: number[],
@@ -151,20 +160,14 @@ function getWrapperAlignStyle(
     typeof wrapperAlign === "string"
       ? [wrapperAlign, wrapperAlign]
       : wrapperAlign;
-  const getStyle = (algin: "start" | "center" | "end") =>
-    algin === "start"
-      ? "flex-start"
-      : algin === "center"
-      ? "center"
-      : "flex-end";
 
   const alignStyles: React.CSSProperties = { display: "flex" };
 
   if (sizeLocal[0] > objectsWrapperWidthFull)
-    alignStyles.justifyContent = getStyle(verticalAlign);
+    alignStyles.justifyContent = getStyleAlign(verticalAlign);
 
   if (sizeLocal[1] > objectsWrapperHeightFull) {
-    alignStyles.alignItems = getStyle(horizontalAlign);
+    alignStyles.alignItems = getStyleAlign(horizontalAlign);
   }
 
   return alignStyles;
@@ -240,4 +243,5 @@ export {
   getWrapperAlignStyle,
   createResizeHandler,
   stabilizeMany,
+  getStyleAlign,
 };

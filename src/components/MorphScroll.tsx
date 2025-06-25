@@ -24,6 +24,7 @@ import {
   getWrapperAlignStyle,
   createResizeHandler,
   stabilizeMany,
+  getStyleAlign,
 } from "../functions/addFunctions";
 import handleArrow, { handleArrowT } from "../functions/handleArrow";
 import {
@@ -56,7 +57,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   children,
   onScrollValue,
 
-  elementsAlign = false,
+  elementsAlign,
   elementsDirection = "row",
   wrapperAlign,
 
@@ -972,31 +973,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
     }
 
-    const isMulti = objectsPerDirection[0] > 1 && direction === "hybrid";
-    const flexDirection = isMulti
-      ? elementsDirection
-      : direction === "x"
-      ? "row"
-      : "column";
     const flexWrap = objectsSizing[1] ? "wrap" : undefined;
-    const justifyContent =
-      isMulti && elementsAlign
-        ? elementsAlign === "start"
-          ? "flex-start"
-          : elementsAlign === "center"
-          ? "center"
-          : "flex-end"
-        : undefined;
-
-    const alignItems = !isMulti ? "center" : undefined;
+    const flexDirection =
+      objectsPerDirection[0] === 1
+        ? direction === "y"
+          ? "column"
+          : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
+        : elementsDirection;
 
     return {
       ...common,
       display: "flex",
       flexDirection,
       flexWrap,
-      ...(justifyContent && { justifyContent }),
-      ...(alignItems && { alignItems }),
+      justifyContent: getStyleAlign(elementsAlign),
     };
   }, [
     wrapperMargin,
