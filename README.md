@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.jpg?v=2)
+![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.jpg)
 
 <h2></h2>
 
@@ -39,14 +39,13 @@ Next, import the `MorphScroll` component into your React application:
 import { MorphScroll } from "morphing-scroll";
 ```
 
+Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
+
 > **✦ Note:**  
-> `MorphScroll` exports both **CommonJS** and **ESM** builds.  
-> Your environment will automatically use the appropriate version:
+> `MorphScroll` exports both **CommonJS** and **ESM** builds:
 >
 > - **Modern bundlers** (e.g. _Vite_, _Webpack 5_, _esbuild_) use the **ESM** (`import`) build
 > - **Node.js** (and older environments) use the **CommonJS** (`require`) build
-
-Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
 <h2></h2>
 
