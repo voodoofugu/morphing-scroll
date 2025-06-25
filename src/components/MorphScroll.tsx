@@ -40,7 +40,7 @@ import { CONST } from "../constants";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   type = "scroll",
-  className = "",
+  className,
   size,
   objectsSize,
   direction = "y",
@@ -51,7 +51,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   progressTrigger = { wheel: true },
   scrollBarOnHover = false,
   suspending = false,
-  fallback = null,
+  fallback,
   scrollPosition,
   edgeGradient,
   children,
@@ -1263,7 +1263,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const content = (
     <div
       morph-scroll={`〈♦${id}〉`}
-      className={`${className && className}`}
+      className={className}
       ref={customScrollRef}
       style={{
         width: `${sizeLocal[2]}px`,

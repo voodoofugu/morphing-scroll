@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.jpg?v=1)
+![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.jpg?v=2)
 
 <h2></h2>
 
@@ -33,7 +33,7 @@ To install the library, use the following command:
 npm install morphing-scroll
 ```
 
-Next, to start using the `MorphScroll` component, start with the required property `size` and two additional `objectsSize` and `progressTrigger`, which you will find described below.
+Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
 <h2></h2>
 
