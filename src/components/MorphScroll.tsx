@@ -345,6 +345,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const childsLinePerD =
       objectsPerD > 1 && objectsPerD < validChildrenKeys.length
         ? Math.ceil(validChildrenKeys.length / objectsPerD)
+        : objectsPerD > validChildrenKeys.length
+        ? 1
         : validChildrenKeys.length;
 
     const useCrossCount = crossCount && crossCount < validChildrenKeys.length;

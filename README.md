@@ -1038,6 +1038,8 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
       <ul>
         <b>Type:</b> number | number[]<br />
         <br />
+        <b>Default:</b> 0<br />
+        <br />
         <b>Description:</b> <em><br />
         Specifies at what percentage of the observed element’s visibility the callback should be executed.<br />
         <br />
@@ -1070,7 +1072,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
         <br />
         <b>Description:</b> <em><br />
         If set to <mark>true</mark>, the tracked elements will always be visible, regardless of their actual intersection status.<br />
-        This can be useful for testing purposes or when using the <code>onVisible</code> callback, ensuring it continues to trigger whenever the element enters the viewport.</em><br />
+        This is useful for testing purposes or when using the <code>onVisible</code> callback, ensuring that it reliably triggers whenever the element enters the viewport, even if all elements are already visible.</em><br />
         <br />
         <b>Example:</b>
 
@@ -1103,9 +1105,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
           <li><code>rootBounds</code>: The bounding rectangle of the root element relative to the viewport.</li>
           <li><code>target</code>: The observed element.</li>
           <li><code>time</code>: The timestamp when the intersection state changed.</li>
-        </ul>
-        <br />
-        More information in the <b>Link</b> below.</em><br />
+        </ul></em>
         <br />
         <b>Example:</b>
 

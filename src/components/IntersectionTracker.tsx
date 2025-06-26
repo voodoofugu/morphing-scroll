@@ -16,10 +16,11 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
 
-  const margin = rootMargin ? numOrArrFormat(rootMargin) : null;
-  const rootMarginStr = margin
-    ? `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`
-    : "";
+  const rootMarginStr = React.useMemo(() => {
+    if (!rootMargin) return "";
+    const margin = numOrArrFormat(rootMargin);
+    return `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`;
+  }, [rootMargin]);
 
   const callback = React.useCallback(
     ([entry]: IntersectionObserverEntry[]) => {
@@ -48,8 +49,6 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     };
   }, [callback, root, threshold, rootMarginStr]);
 
-  const content = visibleContent || isVisible ? children : null;
-
   return (
     <div
       intersection-tracker=""
@@ -57,7 +56,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
       ref={observableElement}
       style={style}
     >
-      {content}
+      {visibleContent || isVisible ? children : null}
     </div>
   );
 };
