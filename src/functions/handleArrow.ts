@@ -5,7 +5,12 @@ export type handleArrowT = {
   scrollElement: Element;
   wrapSize: number[];
   scrollSize: number[];
-  smoothScroll: (targetScroll: number, direction: "y" | "x") => void;
+  smoothScroll: (
+    targetScroll: number,
+    direction: "y" | "x",
+    duration: number
+  ) => void;
+  duration: number;
 };
 
 const handleArrow = ({
@@ -14,6 +19,7 @@ const handleArrow = ({
   wrapSize,
   scrollSize,
   smoothScroll,
+  duration,
 }: handleArrowT) => {
   const width = wrapSize[0];
   const height = wrapSize[1];
@@ -23,7 +29,7 @@ const handleArrow = ({
   const maxValue = ["top", "bottom"].includes(arrowType) ? height : width;
 
   const scrollTo = (position: number, direction: "y" | "x") =>
-    smoothScroll(clampValue(position, 0, maxValue), direction);
+    smoothScroll(clampValue(position, 0, maxValue), direction, duration);
 
   if (arrowType === "top" && top > 0) {
     scrollTo(top - scrollSize[1], "y");

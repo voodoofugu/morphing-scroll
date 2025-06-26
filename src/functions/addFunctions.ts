@@ -21,7 +21,7 @@ function smoothScroll(
   callback?: () => void
 ) {
   let frameId: number;
-  if (!scrollElement) return null;
+  if (!scrollElement && !targetScroll) return null;
 
   const startTime = performance.now();
 

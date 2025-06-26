@@ -18,6 +18,7 @@ type HandleMouseT = {
   smoothScroll: (
     targetScrollTop: number,
     direction: "y" | "x",
+    duration: number,
     callback?: () => void
   ) => void;
   mouseOnEl: (el: HTMLDivElement | null) => void;
@@ -39,6 +40,7 @@ type HandleMouseT = {
   } | null>;
   thumbSize: number;
   axisFromAtr: "x" | "y" | null;
+  duration: number;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -219,9 +221,9 @@ function handleMove(args: HandleMoveT) {
       !args.isScrollingRef.current
     ) {
       if (move > 0 && scroll + size < extent) {
-        args.smoothScroll(scroll + size, axis);
+        args.smoothScroll(scroll + size, axis, args.duration);
       } else if (move < 0 && scroll > 0) {
-        args.smoothScroll(scroll - size, axis);
+        args.smoothScroll(scroll - size, axis, args.duration);
       }
 
       args.numForSliderRef.current = 0;

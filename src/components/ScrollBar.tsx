@@ -5,6 +5,7 @@ import { MorphScrollT } from "../types/types";
 type OnCustomScrollFn = (
   targetScrollTop: number,
   direction: "y" | "x",
+  duration: number,
   callback?: () => void
 ) => void;
 
@@ -18,6 +19,7 @@ type ModifiedProps = Partial<MorphScrollT> & {
   thumbSpace: number;
   objLengthPerSize: number;
   sliderCheckLocal: () => void;
+  duration: number;
 };
 
 const ScrollBar = ({
@@ -32,6 +34,7 @@ const ScrollBar = ({
   thumbSpace,
   objLengthPerSize,
   sliderCheckLocal,
+  duration,
 }: ModifiedProps) => {
   const eventProps =
     type !== "sliderMenu"
@@ -64,6 +67,7 @@ const ScrollBar = ({
                 (scrollBarEvent as OnCustomScrollFn)(
                   neededSize * index,
                   axis,
+                  duration,
                   sliderCheckLocal
                 );
               }

@@ -136,7 +136,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ stabilize
   const [
-    stabilizedScrollPosition,
+    stabilizedScrollPositionValue,
     stabilizedRender,
     stabilizedSize,
     stabilizedObjectsSize,
@@ -145,7 +145,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     stabilizedWrapperAlign,
     stabilizedGap,
   ] = stabilizeMany(
-    scrollPosition,
+    scrollPosition?.value,
     render,
     size,
     objectsSize,
@@ -165,7 +165,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : scrollPosition?.value ?? [null],
       duration: scrollPosition?.duration ?? 200,
     };
-  }, [stabilizedScrollPosition]);
+  }, [stabilizedScrollPositionValue, scrollPosition?.duration]);
 
   // ♦ variables
   const edgeGradientDefault = { color: null, size: 40 };
@@ -698,6 +698,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         wrapSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
         scrollSize: sizeLocal,
         smoothScroll: smoothScrollLocal,
+        duration: scrollPositionLocal.duration,
       });
     },
     [
@@ -705,7 +706,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal.join(),
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
-      scrollPositionLocal.duration, // для smoothScrollLocal
+      scrollPositionLocal.duration,
     ]
   );
 
@@ -800,19 +801,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const smoothScrollLocal = React.useCallback(
-    (targetScroll: number, direction: "y" | "x", callback?: () => void) => {
+    (
+      targetScroll: number,
+      direction: "y" | "x",
+      duration: number,
+      callback?: () => void
+    ) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
       return smoothScroll(
         direction,
         scrollEl,
-        scrollPositionLocal.duration,
+        duration,
         targetScroll,
         callback
       );
     },
-    [scrollElementRef, scrollPositionLocal.duration]
+    [scrollElementRef]
   );
 
   const onMouseOrTouchDown = React.useCallback(
@@ -863,6 +869,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         prevCoordsRef,
         thumbSize: axisFromAtr === "x" ? thumbSizeX : thumbSize,
         axisFromAtr,
+        duration: scrollPositionLocal.duration,
       });
     },
     [
@@ -872,7 +879,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal.join(),
       thumbSize,
       thumbSizeX,
-      scrollPositionLocal.duration, // для smoothScrollLocal
+      scrollPositionLocal.duration,
     ]
   );
   const onMouseDownScrollThumb = React.useCallback(
@@ -911,35 +918,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const startScrolling = React.useCallback(
-    (
-      dir: "x" | "y",
-      value: number | "end" | null,
-      full: number,
-      size: number,
-      endValue: number,
-      cancelScrolls: (() => void)[]
-    ) => {
+    (dir: "x" | "y", targetScroll: number, cancelScrolls: (() => void)[]) => {
       if (!firstChildKeyRef.current) {
         firstChildKeyRef.current = validChildrenKeys[0];
-      }
-
-      if (firstChildKeyRef.current !== validChildrenKeys[0] || value === null)
+      } else if (firstChildKeyRef.current !== validChildrenKeys[0]) {
+        firstChildKeyRef.current = validChildrenKeys[0];
         return;
-
-      if (value === "end" && full > size) {
-        const cancel = smoothScrollLocal(endValue, dir);
-        if (cancel) cancelScrolls.push(cancel);
-      } else if (typeof value === "number") {
-        const cancel = smoothScrollLocal(value, dir);
-        if (cancel) cancelScrolls.push(cancel);
       }
 
-      firstChildKeyRef.current = validChildrenKeys[0];
+      const cancel = smoothScrollLocal(
+        targetScroll,
+        dir,
+        scrollPositionLocal.duration
+      );
+      if (cancel) cancelScrolls.push(cancel);
     },
-    [
-      validChildrenKeys[0],
-      scrollPositionLocal.duration, // для smoothScrollLocal
-    ]
+    [validChildrenKeys[0], scrollPositionLocal.duration]
   );
 
   const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
@@ -1060,7 +1054,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // эффекты для scrollPosition
   React.useEffect(() => {
-    if (!scrollPositionLocal.value || validChildrenKeys.length === 0) return;
+    if (!scrollPositionLocal.value) return;
 
     const cancelScrolls: (() => void)[] = [];
     const directions = direction === "hybrid" ? ["x", "y"] : [direction];
@@ -1068,12 +1062,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     directions.forEach((dir) => {
       const index = dir === "x" ? 0 : 1;
       const value = scrollPositionLocal.value[index];
+
       if (value === "end")
         startScrolling(
           dir as "x" | "y",
-          "end",
-          dir === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull,
-          sizeLocal[index],
           dir === "x" ? endObjectsWrapperX : endObjectsWrapper,
           cancelScrolls
         );
@@ -1084,27 +1076,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, [
     scrollPositionLocal.value.join(),
-    validChildrenKeys[0],
-    validChildrenKeys.length,
+    stabilizedScrollPositionValue,
     endObjectsWrapper,
+    endObjectsWrapperX,
+    objectsWrapperWidthFull,
+    objectsWrapperHeightFull,
   ]);
   React.useEffect(() => {
-    if (!scrollPositionLocal.value || validChildrenKeys.length === 0) return;
+    if (!scrollPositionLocal.value) return;
 
     const cancelScrolls: (() => void)[] = [];
-
     const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
     directions.forEach((dir) => {
       const index = dir === "x" ? 0 : 1;
-      const value = scrollPositionLocal.value[index];
-      if (typeof value === "number")
+      if (typeof scrollPositionLocal.value[index] === "number")
         startScrolling(
           dir as "x" | "y",
           scrollPositionLocal.value[index],
-          dir === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull,
-          sizeLocal[index],
-          dir === "x" ? endObjectsWrapperX : endObjectsWrapper,
           cancelScrolls
         );
     });
@@ -1112,7 +1101,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       cancelScrolls.forEach((fn) => fn());
     };
-  }, [scrollPositionLocal.value.join(), scrollPosition?.updater]);
+  }, [stabilizedScrollPositionValue, scrollPosition?.updater]);
 
   // ♦ contents
 
@@ -1405,6 +1394,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 thumbSpace={args.thumbSpace}
                 objLengthPerSize={args.objLengthPerSize}
                 sliderCheckLocal={sliderCheckLocal}
+                duration={scrollPositionLocal.duration}
               />
             ))}
       </div>
