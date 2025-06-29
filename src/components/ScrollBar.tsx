@@ -181,4 +181,5 @@ const ScrollBar = ({
   );
 };
 
+ScrollBar.displayName = "ScrollBar";
 export default React.memo(ScrollBar);

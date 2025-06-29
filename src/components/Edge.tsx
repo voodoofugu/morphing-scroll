@@ -60,4 +60,5 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
   );
 };
 
+Edge.displayName = "Edge";
 export default React.memo(Edge);

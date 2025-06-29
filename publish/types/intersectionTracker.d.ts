@@ -105,7 +105,9 @@ type IntersectionTrackerT = {
    * @example
    * ```tsx
    * <IntersectionTracker
-   *   onVisible={(entry) => console.log(entry)}
+   *   onIntersection={(entry) => {
+   *     if (entry.isIntersecting) loadMoreItems();
+   *   }}
    * >
    *   {children}
    * </IntersectionTracker>
@@ -113,7 +115,7 @@ type IntersectionTrackerT = {
    *
    * @link https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserverEntry
    */
-  onVisible?: (entry: IntersectionObserverEntry) => void;
+  onIntersection?: (entry: IntersectionObserverEntry) => void;
 };
 
 export default IntersectionTrackerT;

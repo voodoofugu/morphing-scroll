@@ -11,7 +11,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
   threshold,
   rootMargin,
   visibleContent = false,
-  onVisible, // onIntersection потом переименовать
+  onIntersection, // onIntersection потом переименовать
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const observableElement = React.useRef<HTMLDivElement | null>(null);
@@ -26,8 +26,8 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     ([entry]: IntersectionObserverEntry[]) => {
       setIsVisible(entry.isIntersecting);
 
-      if (onVisible) {
-        onVisible({
+      if (onIntersection) {
+        onIntersection({
           time: entry.time,
           rootBounds: entry.rootBounds,
           boundingClientRect: entry.boundingClientRect,
@@ -38,7 +38,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
         });
       }
     },
-    [onVisible]
+    [onIntersection]
   );
 
   React.useEffect(() => {
@@ -68,4 +68,6 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
     </div>
   );
 };
+
+IntersectionTracker.displayName = "IntersectionTracker";
 export default IntersectionTracker;

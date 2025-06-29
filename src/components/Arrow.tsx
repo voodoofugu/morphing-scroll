@@ -57,4 +57,5 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
   );
 };
 
+Arrow.displayName = "Arrow";
 export default React.memo(Arrow);

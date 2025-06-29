@@ -62,4 +62,5 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
   );
 };
 
+ResizeTracker.displayName = "ResizeTracker";
 export default ResizeTracker;

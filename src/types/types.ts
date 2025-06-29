@@ -16,7 +16,7 @@ export type IntersectionTrackerT = {
   rootMargin?: number | number[];
   threshold?: number | number[];
   visibleContent?: boolean;
-  onVisible?: (entry: IntersectionObserverEntry) => void;
+  onIntersection?: (entry: IntersectionObserverEntry) => void;
 };
 
 export type MorphScrollT = {

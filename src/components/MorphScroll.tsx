@@ -789,17 +789,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   // ♦ functions
-  const scrollResize = React.useCallback(
+  const debouncedScrollResize = useDebouncedCallback(
     createResizeHandler(receivedScrollSizeRef, triggerUpdate),
-    []
+    40
   );
-  const wrapResize = React.useCallback(
+  const debouncedWrapResize = useDebouncedCallback(
     createResizeHandler(receivedWrapSizeRef, triggerUpdate, mLocalX, mLocalY),
-    [mLocalX, mLocalY]
+    40
   );
-  const childResize = React.useCallback(
+  const debouncedChildResize = useDebouncedCallback(
     createResizeHandler(receivedChildSizeRef, triggerUpdate),
-    []
+    40
   );
 
   const smoothScrollLocal = React.useCallback(
@@ -1189,7 +1189,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ) : (objectsSizing[0] === "firstChild" ||
           objectsSizing[1] === "firstChild") &&
         index === 0 ? (
-        <ResizeTracker onResize={childResize}>
+        <ResizeTracker onResize={debouncedChildResize}>
           {childRenderOnScroll}
         </ResizeTracker>
       ) : (
@@ -1332,7 +1332,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             objectsWrapper
           ) : (
             <ResizeTracker
-              onResize={wrapResize}
+              onResize={debouncedWrapResize}
               style={{
                 ...wrapperAlignLocal,
               }}
@@ -1421,7 +1421,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   if (size === "auto") {
     return (
-      <ResizeTracker measure="outer" onResize={scrollResize}>
+      <ResizeTracker measure="outer" onResize={debouncedScrollResize}>
         {content}
       </ResizeTracker>
     );
@@ -1430,4 +1430,5 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }
 };
 
+MorphScroll.displayName = "MorphScroll";
 export default MorphScroll;
