@@ -106,6 +106,20 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  * ### Links:
  * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll#-morphscroll)
  */
+
 declare const MorphScroll: React.FC<MorphScrollT>;
 
+/**
+ * ### Morph - all content of the library〈♦〉
+ */
+declare const Morph: {
+  /** See `MorphScroll` */
+  MorphScroll: React.FC<MorphScrollT>;
+  /** See `ResizeTracker` */
+  ResizeTracker: React.FC<ResizeTrackerT>;
+  /** See `IntersectionTracker` */
+  IntersectionTracker: React.FC<IntersectionTrackerT>;
+};
+
 export { MorphScroll, ResizeTracker, IntersectionTracker };
+export default Morph;

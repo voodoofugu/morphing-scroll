@@ -39,10 +39,16 @@ Next, import the `MorphScroll` component into your React application:
 import { MorphScroll } from "morphing-scroll";
 ```
 
+If you prefer, you can also import the entire library as a single object using the default export:
+
+```tsx
+import Morph from "morphing-scroll";
+```
+
 Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
 > **✦ Note:**  
-> `MorphScroll` exports both **CommonJS** and **ESM** builds:
+> `MorphScroll` supports both **ESM** and **CommonJS** builds:
 >
 > - **Modern bundlers** (e.g. _Vite_, _Webpack 5_, _esbuild_) use the **ESM** (`import`) build
 > - **Node.js** (and older environments) use the **CommonJS** (`require`) build
@@ -1034,7 +1040,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
     <h2></h2>
 
     <details>
-      <summary><b><code>threshold</code></b>: <em>Defines when the callback <code>onVisible</code> and content visibility should be triggered.</em></summary><br />
+      <summary><b><code>threshold</code></b>: <em>Defines when the callback <code>onIntersection</code> and content visibility should be triggered.</em></summary><br />
       <ul>
         <b>Type:</b> number | number[]<br />
         <br />
@@ -1072,7 +1078,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
         <br />
         <b>Description:</b> <em><br />
         If set to <mark>true</mark>, the tracked elements will always be visible, regardless of their actual intersection status.<br />
-        This is useful for testing purposes or when using the <code>onVisible</code> callback, ensuring that it reliably triggers whenever the element enters the viewport, even if all elements are already visible.</em><br />
+        This is useful for testing purposes or when using the <code>onIntersection</code> callback, ensuring that it reliably triggers whenever the element enters the viewport, even if all elements are already visible.</em><br />
         <br />
         <b>Example:</b>
 
@@ -1089,12 +1095,12 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
     <h2></h2>
 
     <details>
-      <summary><b><code>onVisible</code></b>: <em>Callback function triggered when the element becomes visible.</em></summary><br />
+      <summary><b><code>onIntersection</code></b>: <em>Callback function triggered when the element becomes visible.</em></summary><br />
       <ul>
         <b>Type:</b> (entry: IntersectionObserverEntry) => void<br />
         <br />
         <b>Description:</b> <em><br />
-        A callback function that is called when the observed element enters the viewport or the area defined by the <code>root</code> property. This can be used to load new list items for <code>MorphScroll</code>.<br />
+        A callback function that is called when the observed element enters or leaves the viewport or the area defined by the <code>root</code> property. This can be used to load new list items for <code>MorphScroll</code>.<br />
         <br />
         ✦ Note:<br />
         The <code>IntersectionObserverEntry</code> object provides details about the intersection state, including:<br />
@@ -1111,7 +1117,9 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
         ```tsx
         <IntersectionTracker
-          onVisible={(entry) => console.log(entry)}
+          onIntersection={
+            (entry) => { if (entry.isIntersecting) loadMoreItems(); }
+          }
         >
           {children}
         </IntersectionTracker>

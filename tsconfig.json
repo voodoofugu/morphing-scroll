@@ -4,11 +4,11 @@
     "target": "es6",
     "lib": ["dom", "es2019"],
     "declaration": true,
-    "outDir": "./dist",
+    "outDir": "./dist/shared",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "types": ["react"],
+    "types": ["react", "node"],
     "typeRoots": ["./node_modules/@types"],
     "strict": true,
     "jsx": "react"
