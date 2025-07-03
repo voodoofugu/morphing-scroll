@@ -284,7 +284,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : [null, null],
     [stabilizedObjectsSize]
   );
-  const stabilizedObjectsSizing = JSON.stringify(objectsSizing);
   const objectsSizeLocal = React.useMemo(() => {
     const getSize = (
       val: number | "none" | "firstChild" | "size",
@@ -316,7 +315,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         receivedChildSizeRef.current.height
       ),
     ];
-  }, [stabilizedObjectsSizing, receivedChildSizeRef.current]);
+  }, [stabilizedObjectsSize, stabilizedSize, receivedChildSizeRef.current]);
 
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
