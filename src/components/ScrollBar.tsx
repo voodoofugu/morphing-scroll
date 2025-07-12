@@ -129,11 +129,12 @@ const ScrollBar = ({
             {...eventProps}
             style={{
               height: `${thumbSize}px`,
-              willChange: "transform", // свойство убирает артефакты во время анимации
+              willChange: "transform, height", // свойство убирает артефакты во время анимации
               transform: `translateY(${thumbSpace}px)`,
               ...(progressTrigger?.progressElement && {
                 cursor: "grab",
               }),
+              transition: "height 0.05s ease-in-out", // небольшая анимация для плавности при resize
             }}
           >
             {progressTrigger?.progressElement}
