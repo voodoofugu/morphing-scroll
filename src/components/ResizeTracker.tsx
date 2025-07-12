@@ -53,6 +53,7 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
       className={className}
       ref={containerRef}
       style={{
+        willChange: "width, height",
         ...measureStyles[measure],
         ...style,
       }}
