@@ -1281,8 +1281,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                   top: `${arrowsLocal.size}px`,
                   left: `${arrowsLocal.size}px`,
                 })),
-
-          ...(size === "auto" && { willChange: "width, height" }),
+          // ...(size === "auto" && { willChange: "width, height" }),  // избыточно
         }}
       >
         <div
