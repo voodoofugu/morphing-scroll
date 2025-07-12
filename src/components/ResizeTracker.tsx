@@ -32,8 +32,8 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
 
   // Styles
   const outer = {
-    minWidth: "100%",
-    minHeight: "100%",
+    width: "100%",
+    height: "100%",
   };
 
   const inner = {
@@ -44,7 +44,7 @@ const ResizeTracker: React.FC<ResizeTrackerT> = ({
   const measureStyles = {
     inner: { ...inner },
     outer: { ...outer },
-    all: { ...outer, ...inner },
+    all: { minWidth: "100%", minHeight: "100%", ...inner },
   };
 
   return (
