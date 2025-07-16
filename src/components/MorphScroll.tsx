@@ -1295,28 +1295,31 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
             // интересное решение overflow
             ...{
-              overflow: {
-                x: `${
-                  objectsWrapperWidthFull > sizeLocal[0]
-                    ? "scroll hidden"
-                    : "hidden"
-                }`,
-                y: `${
-                  objectsWrapperHeightFull > sizeLocal[1]
-                    ? "hidden scroll"
-                    : "hidden"
-                }`,
-                hybrid: `${
-                  objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
-                } ${
-                  objectsWrapperHeightFull > sizeLocal[1] ? "scroll" : "hidden"
-                }`,
-                hide: "hidden",
-              }[
-                progressTrigger.wheel || progressTrigger.content
-                  ? direction
-                  : "hide"
-              ],
+              overflow:
+                {
+                  x: `${
+                    objectsWrapperWidthFull > sizeLocal[0]
+                      ? "scroll hidden"
+                      : "hidden"
+                  }`,
+                  y: `${
+                    objectsWrapperHeightFull > sizeLocal[1]
+                      ? "hidden scroll"
+                      : "hidden"
+                  }`,
+                  hybrid: `${
+                    objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
+                  } ${
+                    objectsWrapperHeightFull > sizeLocal[1]
+                      ? "scroll"
+                      : "hidden"
+                  }`,
+                  hide: "hidden",
+                }[
+                  progressTrigger.wheel || progressTrigger.content
+                    ? direction
+                    : "hide"
+                ] ?? "hidden",
             },
 
             ...(type !== "scroll" ||
