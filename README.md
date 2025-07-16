@@ -366,10 +366,10 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
         <b>Type:</b> number | number[]<br />
         <br />
         <b>Description:</b> <em><br />
-        This parameter allows you to set spacing in pixels between list items both horizontally and vertically.<br />
+        This parameter allows you to set spacing in pixels between list items for rows and columns.<br />
         <br />
         ✦ Note:<br />
-        It can be 1 number or an array of 2 or 4 numbers.</em><br />
+        It can be 1 number or an array of 2 numbers.</em><br />
         <br />
         <b>Example:</b>
 
