@@ -303,6 +303,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
         <mark>"size"</mark> - The dimensions will be taken from <code>size</code>.<br />
         <br />
         <mark>"firstChild"</mark> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
+        This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
         <br />
         <mark>"none"</mark> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
         <br />
