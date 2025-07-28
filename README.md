@@ -999,9 +999,9 @@ The <code>IntersectionObserverEntry</code> object provides details about the int
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
-<h2></h2>
-
 </div></ul>
+
+<h2></h2>
 
 ### 〈 API 〉
 
