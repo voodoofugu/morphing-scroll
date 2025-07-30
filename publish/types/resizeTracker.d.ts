@@ -1,5 +1,6 @@
 type ResizeTrackerT = {
   /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom class name.
    * ___
    * @example
@@ -13,6 +14,7 @@ type ResizeTrackerT = {
    */
   className?: string;
   /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom user content.
    * ___
    * @example
@@ -24,6 +26,7 @@ type ResizeTrackerT = {
    * */
   children: React.ReactNode;
   /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom inline styles.
    * ___
    * @example
@@ -37,6 +40,7 @@ type ResizeTrackerT = {
    */
   style?: React.CSSProperties;
   /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Defines size measurement behavior.
    * ___
    * @description
@@ -57,6 +61,7 @@ type ResizeTrackerT = {
    */
   measure?: "inner" | "outer" | "all";
   /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Callback on dimension change.
    * ___
    * @description

@@ -4,8 +4,8 @@ import ResizeTrackerT from "./resizeTracker";
 import IntersectionTrackerT from "./intersectionTracker";
 import MorphScrollT from "./morphScroll";
 
-/**
- * ### ResizeTracker component〈♦〉
+/** ---
+ * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) ResizeTracker component
  *
  * ---
  * ### Props:
@@ -29,8 +29,8 @@ import MorphScrollT from "./morphScroll";
  */
 declare const ResizeTracker: React.FC<ResizeTrackerT>;
 
-/**
- * ### IntersectionTracker component〈♦〉
+/** ---
+ * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) IntersectionTracker component
  *
  * ---
  * ### Props:
@@ -57,8 +57,8 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
  */
 declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
-/**
- * ### MorphScroll component〈♦〉
+/** ---
+ * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) MorphScroll component
  *
  * ---
  * ### Props:
@@ -109,8 +109,8 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
 declare const MorphScroll: React.FC<MorphScrollT>;
 
-/**
- * ### Morph - all content of the library〈♦〉
+/** ---
+ * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) Morph - all content of the library
  */
 declare const Morph: {
   /** See `MorphScroll` */

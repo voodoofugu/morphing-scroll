@@ -155,6 +155,8 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-direction.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -194,6 +196,8 @@ This property is a helper for the <code>value</code> property. When setting the 
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollPosition.png)
 
 </div></ul></details>
 
@@ -264,6 +268,8 @@ This parameter sets the width and height of the <code>MorphScroll</code>.<br />
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-size.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -307,6 +313,8 @@ This can be useful if you want to change the size of objects in your list dynami
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsSize.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -331,6 +339,8 @@ This parameter defines the number of <b>columns</b> (<code>direction="y"</code>,
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-crossCount.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -351,6 +361,8 @@ It can be 1 number or an array of 2 numbers.</em><br />
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-gap.png)
 
 </div></ul></details>
 
@@ -373,6 +385,8 @@ Can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMargin.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -393,6 +407,8 @@ Can be used as 1 value, or an array of 2 values.</em><br />
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMinSize.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -411,10 +427,12 @@ Use 1 value to align one or both axes, or an array of 2 values to align both axe
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} contentAlign={["center", "center"]}>
+<MorphScroll {...props} wrapperAlign={["center", "center"]}>
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperAlign.png)
 
 </div></ul></details>
 
@@ -430,6 +448,8 @@ Use 1 value to align one or both axes, or an array of 2 values to align both axe
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-elementsAlign.png)
 
 </div></ul></details>
 
@@ -450,6 +470,8 @@ This parameter changes the order of the provided elements based on the provided 
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-elementsDirection.png)
 
 </div></ul></details>
 
@@ -481,6 +503,8 @@ The property changes the height for horizontal and width for vertical <b>.ms-edg
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edgeGradient.png)
 
 </div></ul></details>
 
@@ -562,6 +586,8 @@ This parameter changes the position of the progress bar based on the direction p
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
+
 </div></ul></details>
 
 <h2></h2>
@@ -582,6 +608,8 @@ When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when 
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
 
 </div></ul></details>
 
@@ -622,6 +650,8 @@ This property controls whether to stop loading content when scrolling.<br />
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-render.png)
 
 </div></ul></details>
 
@@ -665,6 +695,8 @@ In case if elements are removed via a click action, use this option. It accepts 
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyElements.png)
 
 </div></ul></details>
 
