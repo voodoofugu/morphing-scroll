@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "publish": "cd publish && npm publish",
+    "publish": "cp README.md publish/ && cd publish && npm publish",
     "lint": "eslint src"
   },
   "keywords": [
