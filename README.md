@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.jpg)
+![logo](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-logo.png)
 
 <h2></h2>
 
@@ -6,11 +6,11 @@
 
 - [About](#-about-)
 - [Installation](#-installation-)
-- [Components](#-components-)
+- [API](#-api-)
   - [MorphScroll](#-morphscroll)
   - [Resizetracker](#-resizetracker)
   - [Intersectiontracker](#-intersectiontracker)
-- [API](#-api-)
+- [License](#-license-)
 
 <h2></h2>
 
@@ -58,7 +58,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <h2></h2>
 
-### 〈 Components 〉
+### 〈 API 〉
 
 <ul><div>
 
@@ -131,6 +131,8 @@ This parameter defines how the provided <code>progressElement</code> behaves wit
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-type.png)
 
 </div></ul></details>
 
@@ -1003,8 +1005,6 @@ The <code>IntersectionObserverEntry</code> object provides details about the int
 
 <h2></h2>
 
-### 〈 API 〉
+### 〈 License 〉
 
-- `MorphScroll`: Main component for custom list rendering.
-- `ResizeTracker`: Component for monitoring changes to an element’s size.
-- `IntersectionTracker`: Component for tracking element visibility in the viewport.
+[MIT](./publish/LICENSE)
