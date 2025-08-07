@@ -315,7 +315,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         receivedChildSizeRef.current.height
       ),
     ];
-  }, [stabilizedObjectsSize, stabilizedSize, receivedChildSizeRef.current]);
+  }, [
+    stabilizedObjectsSize,
+    stabilizedSize,
+    receivedChildSizeRef.current,
+    sizeLocal.join(),
+  ]);
 
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
@@ -1188,6 +1193,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ) : (objectsSizing[0] === "firstChild" ||
           objectsSizing[1] === "firstChild") &&
         index === 0 ? (
+        // for first child
         <ResizeTracker onResize={debouncedChildResize}>
           {childRenderOnScroll}
         </ResizeTracker>
