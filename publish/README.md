@@ -1039,4 +1039,4 @@ The <code>IntersectionObserverEntry</code> object provides details about the int
 
 ### 〈 License 〉
 
-[MIT](./publish/LICENSE)
+- [MIT](./publish/LICENSE)
