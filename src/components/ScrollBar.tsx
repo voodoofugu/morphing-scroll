@@ -55,7 +55,7 @@ const ScrollBar = ({
     return Array.from({ length: objLengthPerSize }, (_, index) => (
       <div
         key={index}
-        className="sliderElem"
+        className="ms-slider-element"
         style={{
           ...(type === "sliderMenu" && {
             cursor: "pointer",

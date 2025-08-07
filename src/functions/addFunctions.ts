@@ -75,8 +75,10 @@ const sliderCheck = (
   direction: Exclude<MorphScrollT["direction"], undefined>
 ) => {
   function getActiveElem() {
-    const elementsFirst = scrollBars[0]?.querySelectorAll(".sliderElem") ?? [];
-    const elementsSecond = scrollBars[1]?.querySelectorAll(".sliderElem") ?? [];
+    const elementsFirst =
+      scrollBars[0]?.querySelectorAll(".ms-slider-element") ?? [];
+    const elementsSecond =
+      scrollBars[1]?.querySelectorAll(".ms-slider-element") ?? [];
 
     function checkActive(
       elementsArray: NodeListOf<Element>,
@@ -92,7 +94,12 @@ const sliderCheck = (
         const isActive =
           scrollPosition >= neededSize * index &&
           scrollPosition < neededSize * (index + 1);
-        element.classList.toggle("active", isActive);
+
+        if (isActive) {
+          element.classList.add("active");
+        } else {
+          element.classList.remove("active");
+        }
       });
     }
 
