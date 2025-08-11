@@ -51,7 +51,10 @@ import Morph from "morphing-scroll";
 Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
 > **✦ Note:**  
-> `MorphScroll` supports only **ESM** (`import`) build
+> `MorphScroll` supports both **ESM** and **CommonJS** builds:
+>
+> - **Modern bundlers** (e.g. _Vite_, _Webpack 5_, _esbuild_) use the **ESM** (`import`) build
+> - **Node.js** (and older environments) use the **CommonJS** (`require`) build
 
 <h2></h2>
 

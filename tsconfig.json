@@ -4,7 +4,7 @@
     "target": "es6",
     "lib": ["dom", "es2019"],
     "declaration": true,
-    "outDir": "./dist/shared",
+    "outDir": "./dist/types",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",

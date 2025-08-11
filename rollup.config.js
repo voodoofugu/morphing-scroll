@@ -28,14 +28,25 @@ const plugins = [
 ];
 
 export default [
-  // ESM точка входа — импортирует React и экспортирует shared
+  // ESM точка входа
   {
     input: "./src/index.ts",
     output: {
-      file: "dist/index.js",
+      file: "dist/esm/index.js",
       format: "esm",
     },
     plugins: [del({ targets: "dist/*" }), ...plugins],
-    external: ["react"],
+    external: (id) => /^react/.test(id),
+  },
+
+  // CJS точка входа
+  {
+    input: "./src/index.ts",
+    output: {
+      file: "dist/cjs/index.js",
+      format: "cjs",
+    },
+    plugins,
+    external: (id) => /^react/.test(id),
   },
 ];
