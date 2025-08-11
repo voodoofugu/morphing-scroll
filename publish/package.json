@@ -1,15 +1,13 @@
 {
   "name": "morphing-scroll",
-  "version": "2.2.17",
-  "description": "React library for custom object scrolling and scrollbar styling〈♦〉",
+  "version": "2.2.20",
+  "description": "React library for custom object scrolling and scrollbar styling",
   "author": "Georg Schilin",
   "license": "MIT",
-  "main": "./cjs/index.js",
-  "module": "./esm/index.js",
+  "module": "./index.js",
   "exports": {
     ".": {
-      "import": "./esm/index.js",
-      "require": "./cjs/index.js",
+      "import": "./index.js",
       "types": "./types/index.d.ts"
     },
     "./package.json": "./package.json"
