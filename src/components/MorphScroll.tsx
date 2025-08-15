@@ -97,6 +97,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollContentRef = React.useRef<HTMLDivElement | null>(null);
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
+
   const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
 
   const firstChildKeyRef = React.useRef<string | null>(null);
@@ -682,6 +683,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       objectsWrapperWidthFull,
       objectsWrapperHeightFull
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     wrapperAlign,
     sizeLocal.join(),
@@ -694,158 +696,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const y = objectsPerSize(objectsWrapperHeightFull, sizeLocal[1]);
 
     return [x, y];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectsWrapperWidthFull, objectsWrapperHeightFull, sizeLocal.join()]);
   const objLengthPerSizeXY = React.useMemo(() => {
     return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
-
-  // ♦ events
-  const mouseOnRefHandle = React.useCallback(
-    (
-      event:
-        | React.MouseEvent<HTMLDivElement>
-        | React.TouchEvent<HTMLDivElement>
-        | MouseEvent
-        | TouchEvent
-    ) => {
-      if (!scrollBarOnHover) return;
-      const func = () =>
-        mouseOnRef(
-          scrollContentRef.current,
-          "ms-bar",
-          event,
-          setManagedTimeout
-        );
-
-      if (event.type === "mouseleave") {
-        !["thumb", "slider", "wrapp"].includes(clickedObject.current) && func();
-      } else {
-        func();
-      }
-    },
-    [scrollBarOnHover, type, clickedObject.current, scrollContentRef.current]
-  );
-
-  const handleArrowLocal = React.useCallback(
-    (arrowType: handleArrowT["arrowType"]) => {
-      if (!scrollElementRef.current) return;
-
-      handleArrow({
-        arrowType: arrowType,
-        scrollElement: scrollElementRef.current,
-        wrapSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
-        scrollSize: sizeLocal,
-        smoothScroll: smoothScrollLocal,
-        duration: scrollPositionLocal.duration,
-      });
-    },
-    [
-      scrollElementRef.current,
-      sizeLocal.join(),
-      objectsWrapperWidthFull,
-      objectsWrapperHeightFull,
-      scrollPositionLocal.duration,
-    ]
-  );
-
-  const sliderCheckLocal = React.useCallback(() => {
-    getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
-
-    const scrollEl = scrollElementRef.current;
-    if (
-      !scrollContentRef.current ||
-      !scrollEl ||
-      scrollBarsRef.current.length === 0
-    )
-      return;
-
-    sliderCheck(
-      scrollEl,
-      scrollBarsRef.current as NodeListOf<Element>,
-      sizeLocal,
-      direction
-    );
-  }, [
-    sizeLocal.join(),
-    direction,
-    scrollElementRef,
-    scrollContentRef,
-    scrollBarsRef,
-    type,
-  ]);
-
-  const updateLoadedElementsKeysLocal = React.useCallback(() => {
-    if (!customScrollRef.current) return;
-    updateLoadedElementsKeys(
-      customScrollRef.current,
-      objectsKeys,
-      triggerUpdate,
-      render?.type
-    );
-  }, [renderST]);
-
-  const updateEmptyKeysClickLocal = React.useCallback(
-    (event: React.MouseEvent) => {
-      if (emptyElements?.clickTrigger)
-        updateEmptyKeysClick(
-          event,
-          setManagedTimeout,
-          emptyElements.clickTrigger,
-          updateLoadedElementsKeysLocal
-        );
-    },
-    [emptyElementsST]
-  );
-
-  const handleScroll = React.useCallback(() => {
-    const scrollEl = scrollElementRef.current;
-    if (!scrollEl) return;
-
-    onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
-
-    isScrollingRef.current = true;
-    isScrolling?.(true);
-
-    setManagedTimeout(
-      "handleScroll-anim",
-      () => {
-        isScrollingRef.current = false;
-        isScrolling?.(false);
-        if (!render?.type) {
-          debouncedUpdateLoadedElementsKeysLocal();
-        } else triggerUpdate();
-      },
-      200
-    );
-
-    if (type === "slider") debouncedSliderCheck();
-    if (!render?.type) {
-      debouncedUpdateLoadedElementsKeysLocal();
-    }
-
-    triggerUpdate();
-  }, [
-    onScrollValue,
-    isScrolling,
-    type,
-    render?.type,
-    debouncedSliderCheck,
-    updateLoadedElementsKeysLocal,
-  ]);
-
-  // высчитываем сдвиг скролла и ограничиваем его
-  const thumbSpace = clampValue(
-    (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize),
-    0,
-    xySize - thumbSize
-  );
-
-  const thumbSpaceX = clampValue(
-    ((scrollElementRef.current?.scrollLeft || 0) / endObjectsWrapperX) *
-      (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
-    0,
-    sizeLocal[0] - thumbSizeX
-  );
 
   // ♦ functions
   const debouncedScrollResize = useDebouncedCallback(
@@ -880,6 +736,121 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
     },
     [scrollElementRef]
+  );
+
+  const startScrolling = React.useCallback(
+    (dir: "x" | "y", targetScroll: number, cancelScrolls: (() => void)[]) => {
+      if (!firstChildKeyRef.current) {
+        firstChildKeyRef.current = validChildrenKeys[0];
+      } else if (firstChildKeyRef.current !== validChildrenKeys[0]) {
+        firstChildKeyRef.current = validChildrenKeys[0];
+        return;
+      }
+
+      const cancel = smoothScrollLocal(
+        targetScroll,
+        dir,
+        scrollPositionLocal.duration
+      );
+      if (cancel) cancelScrolls.push(cancel);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [validChildrenKeys[0], scrollPositionLocal.duration, smoothScrollLocal]
+  );
+
+  const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
+    const common: React.CSSProperties = {
+      margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
+      height:
+        objectsSizing[1] && objectsSizing[1] !== "none"
+          ? `${objectsWrapperHeight}px`
+          : "fit-content",
+      width:
+        objectsSizing[0] && objectsSizing[0] !== "none"
+          ? `${objectsWrapperWidth}px`
+          : "fit-content",
+      ...(progressTrigger.content && { cursor: "grab" }),
+      ...(gap && !render?.type && { gap: `${gapX}px ${gapY}px` }),
+      ...(wrapperMinSize &&
+        getWrapperMinSizeStyle(
+          wrapperMinSize,
+          direction,
+          sizeLocal,
+          mLocalX,
+          mLocalY
+        )),
+      ...(wrapperAlign && { flexShrink: 0 }), // это решает проблему с уменьшением ширины при флексе на objectsWrapper
+    };
+
+    if (render?.type) {
+      return {
+        ...common,
+        position: "relative",
+      };
+    }
+
+    const flexWrap = objectsSizing[1] ? "wrap" : undefined;
+    const flexDirection =
+      objectsPerDirection[0] === 1
+        ? direction === "y"
+          ? "column"
+          : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
+        : elementsDirection;
+
+    return {
+      ...common,
+      display: "flex",
+      flexDirection,
+      flexWrap,
+      justifyContent: getStyleAlign(elementsAlign),
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    wrapperMargin,
+    wrapperAlignST,
+    wrapperMinSizeST,
+    [mT, mR, mB, mL, mLocalX, mLocalY, gapX, gapY].join(),
+    sizeLocal.join(),
+    gapST,
+    objectsSizing[1],
+    objectsWrapperHeight,
+    objectsWrapperWidth,
+    progressTrigger.content,
+    gapST,
+    render?.type,
+    direction,
+    objectsPerDirection[0],
+    elementsDirection,
+    elementsAlign,
+  ]);
+
+  // ♦ events
+  const mouseOnRefHandle = React.useCallback(
+    (
+      event:
+        | React.MouseEvent<HTMLDivElement>
+        | React.TouchEvent<HTMLDivElement>
+        | MouseEvent
+        | TouchEvent
+    ) => {
+      if (!scrollBarOnHover) return;
+      const func = () =>
+        mouseOnRef(
+          scrollContentRef.current,
+          "ms-bar",
+          event,
+          setManagedTimeout
+        );
+
+      if (event.type === "mouseleave") {
+        !["thumb", "slider", "wrapp"].includes(clickedObject.current) && func();
+      } else {
+        func();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [scrollBarOnHover, clickedObject.current, scrollContentRef.current]
   );
 
   const onMouseOrTouchDown = React.useCallback(
@@ -933,7 +904,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         duration: scrollPositionLocal.duration,
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
+      direction,
       type,
       progressTrigger.content,
       progressTrigger.progressElement,
@@ -941,6 +914,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       thumbSize,
       thumbSizeX,
       scrollPositionLocal.duration,
+      smoothScrollLocal,
+      mouseOnRefHandle,
+      scrollBarOnHover,
     ]
   );
   const onMouseDownScrollThumb = React.useCallback(
@@ -955,89 +931,132 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     onMouseOrTouchDown("wrapp");
   }, [onMouseOrTouchDown]);
 
-  const startScrolling = React.useCallback(
-    (dir: "x" | "y", targetScroll: number, cancelScrolls: (() => void)[]) => {
-      if (!firstChildKeyRef.current) {
-        firstChildKeyRef.current = validChildrenKeys[0];
-      } else if (firstChildKeyRef.current !== validChildrenKeys[0]) {
-        firstChildKeyRef.current = validChildrenKeys[0];
-        return;
-      }
+  const handleArrowLocal = React.useCallback(
+    (arrowType: handleArrowT["arrowType"]) => {
+      if (!scrollElementRef.current) return;
 
-      const cancel = smoothScrollLocal(
-        targetScroll,
-        dir,
-        scrollPositionLocal.duration
-      );
-      if (cancel) cancelScrolls.push(cancel);
+      handleArrow({
+        arrowType: arrowType,
+        scrollElement: scrollElementRef.current,
+        wrapSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
+        scrollSize: sizeLocal,
+        smoothScroll: smoothScrollLocal,
+        duration: scrollPositionLocal.duration,
+      });
     },
-    [validChildrenKeys[0], scrollPositionLocal.duration]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      scrollElementRef.current,
+      sizeLocal.join(),
+      objectsWrapperWidthFull,
+      objectsWrapperHeightFull,
+      scrollPositionLocal.duration,
+      smoothScrollLocal,
+    ]
   );
 
-  const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
-    const common: React.CSSProperties = {
-      margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
-      height:
-        objectsSizing[1] && objectsSizing[1] !== "none"
-          ? `${objectsWrapperHeight}px`
-          : "fit-content",
-      width:
-        objectsSizing[0] && objectsSizing[0] !== "none"
-          ? `${objectsWrapperWidth}px`
-          : "fit-content",
-      ...(progressTrigger.content && { cursor: "grab" }),
-      ...(gap && !render?.type && { gap: `${gapX}px ${gapY}px` }),
-      ...(wrapperMinSize &&
-        getWrapperMinSizeStyle(
-          wrapperMinSize,
-          direction,
-          sizeLocal,
-          mLocalX,
-          mLocalY
-        )),
-      ...(wrapperAlign && { flexShrink: 0 }), // это решает проблему с уменьшением ширины при флексе на objectsWrapper
-    };
+  const sliderCheckLocal = React.useCallback(() => {
+    getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
 
-    if (render?.type) {
-      return {
-        ...common,
-        position: "relative",
-      };
+    const scrollEl = scrollElementRef.current;
+    if (
+      !scrollContentRef.current ||
+      !scrollEl ||
+      scrollBarsRef.current.length === 0
+    )
+      return;
+
+    sliderCheck(
+      scrollEl,
+      scrollBarsRef.current as NodeListOf<Element>,
+      sizeLocal,
+      direction
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    sizeLocal.join(),
+    direction,
+    scrollElementRef,
+    scrollContentRef,
+    scrollBarsRef.current,
+    type,
+  ]);
+
+  const updateLoadedElementsKeysLocal = React.useCallback(() => {
+    if (!customScrollRef.current) return;
+    updateLoadedElementsKeys(
+      customScrollRef.current,
+      objectsKeys,
+      triggerUpdate,
+      render?.type
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renderST]);
+
+  const updateEmptyKeysClickLocal = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (emptyElements?.clickTrigger)
+        updateEmptyKeysClick(
+          event,
+          setManagedTimeout,
+          emptyElements.clickTrigger,
+          updateLoadedElementsKeysLocal
+        );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [emptyElementsST, updateLoadedElementsKeysLocal]
+  );
+
+  const handleScroll = React.useCallback(() => {
+    const scrollEl = scrollElementRef.current;
+    if (!scrollEl) return;
+
+    onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
+
+    isScrollingRef.current = true;
+    isScrolling?.(true);
+
+    setManagedTimeout(
+      "handleScroll-anim",
+      () => {
+        isScrollingRef.current = false;
+        isScrolling?.(false);
+        if (!render?.type) {
+          debouncedUpdateLoadedElementsKeysLocal();
+        } else triggerUpdate();
+      },
+      200
+    );
+
+    if (type === "slider") debouncedSliderCheck();
+    if (!render?.type) {
+      debouncedUpdateLoadedElementsKeysLocal();
     }
 
-    const flexWrap = objectsSizing[1] ? "wrap" : undefined;
-    const flexDirection =
-      objectsPerDirection[0] === 1
-        ? direction === "y"
-          ? "column"
-          : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
-        : elementsDirection;
-
-    return {
-      ...common,
-      display: "flex",
-      flexDirection,
-      flexWrap,
-      justifyContent: getStyleAlign(elementsAlign),
-    };
+    triggerUpdate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    wrapperMargin,
-    [mT, mR, mB, mL, mLocalX, mLocalY].join(),
-    objectsSizing[1],
-    objectsWrapperHeight,
-    objectsWrapperWidth,
-    progressTrigger.content,
-    gapST,
-    [gapX, gapY].join(),
+    onScrollValue,
+    isScrolling,
+    type,
     render?.type,
-    wrapperMinSizeST,
-    direction,
-    sizeLocal.join(),
-    wrapperAlignST,
-    objectsPerDirection[0],
-    elementsDirection,
-    elementsAlign,
+    debouncedSliderCheck,
+    updateLoadedElementsKeysLocal,
   ]);
+
+  // высчитываем сдвиг скролла и ограничиваем его
+  const thumbSpace = clampValue(
+    (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize),
+    0,
+    xySize - thumbSize
+  );
+
+  const thumbSpaceX = clampValue(
+    ((scrollElementRef.current?.scrollLeft || 0) / endObjectsWrapperX) *
+      (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
+    0,
+    sizeLocal[0] - thumbSizeX
+  );
 
   // ♦ effects
   React.useEffect(() => {
@@ -1057,15 +1076,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   React.useEffect(() => {
+    const animationFrameId = scrollStateRef.current.animationFrameId;
+
     if (render?.type || isScrolling) {
-      if (isScrolling) isScrolling(false);
-      triggerUpdate();
+      if (isScrolling) {
+        isScrolling(false);
+        triggerUpdate();
+      }
     }
 
     sliderCheckLocal();
+
     return () => {
-      if (scrollStateRef.current.animationFrameId) {
-        cancelAnimationFrame(scrollStateRef.current.animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
       clearAllManagedTimeouts();
     };
@@ -1142,7 +1166,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [scrollPositionValueST, scrollPosition?.updater]);
 
   // ♦ contents
-
   const scrollObjectWrapper = React.useCallback(
     (
       key: string,
@@ -1189,11 +1212,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         </div>
       );
     },
+    // eslint-disable-next-line
     [
       suspending,
       !!fallback,
       objectsSizeLocal.join(),
-      scrollElementRef.current,
       renderST,
       emptyElementsST,
       objectsPerDirection[0],

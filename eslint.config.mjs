@@ -34,6 +34,6 @@ export default [
       "react-hooks/rules-of-hooks": "error", // проверка правил хуков
       "react-hooks/exhaustive-deps": "warn", // проверка зависимостей
     },
-    ignores: ["./publish/**", "./node_modules/**", "./dist/**"],
+    ignores: ["./publish/**", "./node_modules/**", "./dist/**", ],
   },
 ];
