@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 import React from "react";
 import { MorphScrollT } from "../types/types";
 
@@ -86,6 +85,8 @@ const ScrollBar = ({
     type,
     scrollBarEvent,
     progressTrigger?.progressElement,
+    duration,
+    sliderCheckLocal,
   ]);
 
   return (

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 import React from "react";
 import { MorphScrollT } from "../types/types";
 import ArgFormatter from "../functions/ArgFormatter";
@@ -165,6 +164,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : scrollPosition?.value ?? [null],
       duration: scrollPosition?.duration ?? 200,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stabilizedScrollPositionValue, scrollPosition?.duration]);
 
   // ♦ variables
