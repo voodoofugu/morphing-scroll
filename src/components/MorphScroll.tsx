@@ -770,12 +770,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     triggerUpdate();
   }, [
-    direction,
     onScrollValue,
     isScrolling,
-    stabilizedRender,
     type,
+    render?.type,
     debouncedSliderCheck,
+    debouncedUpdateLoadedElementsKeysLocal,
   ]);
 
   // высчитываем сдвиг скролла и ограничиваем его
@@ -920,7 +920,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           updateLoadedElementsKeysLocal
         );
     },
-    [stabilizedEmptyElements]
+    [stabilizedEmptyElements, updateLoadedElementsKeysLocal]
   );
 
   const startScrolling = React.useCallback(
@@ -1022,6 +1022,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     stabilizedRender,
     isScrollingRef.current,
     validChildrenKeys.length,
+    debouncedUpdateLoadedElementsKeysLocal,
   ]);
 
   React.useEffect(() => {
@@ -1165,6 +1166,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       stabilizedRender,
       stabilizedEmptyElements,
       objectsPerDirection[0],
+      updateEmptyKeysClickLocal,
     ]
   );
 
