@@ -135,14 +135,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ stabilize
   const [
-    stabilizedScrollPositionValue,
-    stabilizedRender,
-    stabilizedSize,
-    stabilizedObjectsSize,
-    stabilizedEmptyElements,
-    stabilizedWrapperMinSize,
-    stabilizedWrapperAlign,
-    stabilizedGap,
+    scrollPositionValueST,
+    renderST,
+    sizeST,
+    objectsSizeST,
+    emptyElementsST,
+    wrapperMinSizeST,
+    wrapperAlignST,
+    gapST,
+    progressTriggerST,
+    objectsKeysEmptyST,
   ] = stabilizeMany(
     scrollPosition?.value,
     render,
@@ -151,7 +153,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     emptyElements,
     wrapperMinSize,
     wrapperAlign,
-    gap
+    gap,
+    progressTrigger,
+    objectsKeys.current.empty
   );
 
   // ♦ default
@@ -165,7 +169,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       duration: scrollPosition?.duration ?? 200,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stabilizedScrollPositionValue, scrollPosition?.duration]);
+  }, [scrollPositionValueST, scrollPosition?.duration]);
 
   // ♦ variables
   const edgeGradientDefault = { color: null, size: 40 };
@@ -173,6 +177,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return typeof edgeGradient === "object"
       ? { ...edgeGradientDefault, ...edgeGradient }
       : edgeGradientDefault;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edgeGradient]);
 
   const arrowsLocal = React.useMemo(() => {
@@ -182,7 +187,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ? progressTrigger.arrows
         : {}),
     };
-  }, [progressTrigger.arrows]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressTriggerST]);
 
   // optimization validChildren
   const filterValidChildren = React.useCallback(
@@ -220,7 +226,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         }
         return true;
       });
-  }, [children, stabilizedEmptyElements, objectsKeys.current.empty?.join()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [children, filterValidChildren, emptyElementsST, objectsKeysEmptyST]);
 
   const [mT, mR, mB, mL] = wrapperMargin
     ? ArgFormatter(wrapperMargin)
@@ -240,7 +247,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const mRootLocal = React.useMemo(() => {
     return ArgFormatter(render?.rootMargin || 0, direction === "x");
-  }, [stabilizedRender, direction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renderST, direction]);
 
   const [mRootX, mRootY] = mRootLocal ? [mRootLocal[2], mRootLocal[0]] : [0, 0];
 
@@ -272,7 +280,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     return [recountX, recountY, x, y]; // [2] & [3] is only for customScrollRef
-  }, [stabilizedSize, arrowsLocal.size, receivedScrollSizeRef.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    sizeST,
+    progressTriggerST,
+    direction,
+    arrowsLocal.size,
+    receivedScrollSizeRef.current.height,
+    receivedScrollSizeRef.current.width,
+  ]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
   const objectsSizing = React.useMemo(
@@ -282,7 +298,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? ArgFormatter(objectsSize, true, 2)
           : objectsSize
         : [null, null],
-    [stabilizedObjectsSize]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [objectsSizeST]
   );
   const objectsSizeLocal = React.useMemo(() => {
     const getSize = (
@@ -315,10 +332,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         receivedChildSizeRef.current.height
       ),
     ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    stabilizedObjectsSize,
-    stabilizedSize,
-    receivedChildSizeRef.current,
+    objectsSizing,
+    direction,
+    receivedChildSizeRef.current.width,
+    receivedChildSizeRef.current.height,
     sizeLocal.join(),
   ]);
 
@@ -379,14 +398,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     return [validated(objectsPerD), validated(childsLinePerD)];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    elementsDirection,
+    gapY,
+    gapX,
+    objectsSizeLocal.join(),
     validChildrenKeys.length,
     direction,
-    objectsSizeLocal.join(),
     sizeLocal.join(),
-    gapX,
-    mLocalX,
-    mLocalY,
     crossCount,
   ]);
 
@@ -402,13 +422,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       : !render?.type
       ? receivedWrapSizeRef.current.width
       : receivedChildSizeRef.current.width + childsGap;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    direction,
     objectsSizeLocal[0],
     objectsPerDirection.join(),
     gapY,
     receivedWrapSizeRef.current.width,
-    receivedChildSizeRef.current,
-    stabilizedRender,
+    receivedChildSizeRef.current.width,
+    render?.type,
   ]);
 
   const objectsWrapperHeight = React.useMemo(() => {
@@ -422,13 +444,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       : !render?.type
       ? receivedWrapSizeRef.current.height // on "fit-content"
       : receivedChildSizeRef.current.height + childsGap;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    direction,
     objectsSizeLocal[1],
     objectsPerDirection.join(),
     gapX,
     receivedWrapSizeRef.current.height,
-    receivedChildSizeRef.current,
-    stabilizedRender,
+    receivedChildSizeRef.current.height,
+    render?.type,
   ]);
 
   const objectsWrapperHeightFull = React.useMemo(() => {
@@ -472,6 +496,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]
     );
     return !Number.isFinite(value) || value < 0 ? 0 : value;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sizeLocal[0], objectsWrapperWidthFull, progressTrigger.progressElement]);
 
   const endObjectsWrapper = React.useMemo(() => {
@@ -485,6 +510,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return (
       objectsWrapperWidthFull - sizeLocal[0] // in scroll vindow
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectsWrapperWidthFull, sizeLocal[0]]);
 
   // делим на группы
@@ -519,10 +545,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     });
 
     return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     validChildrenKeys.length,
     objectsPerDirection.join(),
-    stabilizedRender,
+    render?.type,
     elementsDirection,
     direction,
   ]);
@@ -632,13 +659,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         right,
       };
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    children,
-    objectsSizeLocal.join(),
-    gap,
-    stabilizedRender,
+    direction,
     objectsPerDirection[0],
+    objectsSizeLocal.join(),
+    gapX,
+    gapY,
+    render?.type,
     elementsDirection,
+    elementsAlign,
+    splitIndices,
+    validChildrenKeys.join(),
   ]);
 
   const wrapperAlignLocal = React.useMemo(() => {
@@ -742,6 +774,29 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
   ]);
 
+  const updateLoadedElementsKeysLocal = React.useCallback(() => {
+    if (!customScrollRef.current) return;
+    updateLoadedElementsKeys(
+      customScrollRef.current,
+      objectsKeys,
+      triggerUpdate,
+      render?.type
+    );
+  }, [renderST]);
+
+  const updateEmptyKeysClickLocal = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (emptyElements?.clickTrigger)
+        updateEmptyKeysClick(
+          event,
+          setManagedTimeout,
+          emptyElements.clickTrigger,
+          updateLoadedElementsKeysLocal
+        );
+    },
+    [emptyElementsST]
+  );
+
   const handleScroll = React.useCallback(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
@@ -775,7 +830,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
     render?.type,
     debouncedSliderCheck,
-    debouncedUpdateLoadedElementsKeysLocal,
+    updateLoadedElementsKeysLocal,
   ]);
 
   // высчитываем сдвиг скролла и ограничиваем его
@@ -900,29 +955,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     onMouseOrTouchDown("wrapp");
   }, [onMouseOrTouchDown]);
 
-  const updateLoadedElementsKeysLocal = React.useCallback(() => {
-    if (!customScrollRef.current) return;
-    updateLoadedElementsKeys(
-      customScrollRef.current,
-      objectsKeys,
-      triggerUpdate,
-      render?.type
-    );
-  }, [stabilizedRender]);
-
-  const updateEmptyKeysClickLocal = React.useCallback(
-    (event: React.MouseEvent) => {
-      if (emptyElements?.clickTrigger)
-        updateEmptyKeysClick(
-          event,
-          setManagedTimeout,
-          emptyElements.clickTrigger,
-          updateLoadedElementsKeysLocal
-        );
-    },
-    [stabilizedEmptyElements, updateLoadedElementsKeysLocal]
-  );
-
   const startScrolling = React.useCallback(
     (dir: "x" | "y", targetScroll: number, cancelScrolls: (() => void)[]) => {
       if (!firstChildKeyRef.current) {
@@ -995,13 +1027,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsWrapperHeight,
     objectsWrapperWidth,
     progressTrigger.content,
-    stabilizedGap,
+    gapST,
     [gapX, gapY].join(),
     render?.type,
-    stabilizedWrapperMinSize,
+    wrapperMinSizeST,
     direction,
     sizeLocal.join(),
-    stabilizedWrapperAlign,
+    wrapperAlignST,
     objectsPerDirection[0],
     elementsDirection,
     elementsAlign,
@@ -1017,12 +1049,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       debouncedUpdateLoadedElementsKeysLocal();
     }
   }, [
-    stabilizedEmptyElements,
+    emptyElementsST,
     render?.type,
-    stabilizedRender,
     isScrollingRef.current,
     validChildrenKeys.length,
-    debouncedUpdateLoadedElementsKeysLocal,
+    updateLoadedElementsKeysLocal,
   ]);
 
   React.useEffect(() => {
@@ -1083,7 +1114,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, [
     scrollPositionLocal.value.join(),
-    stabilizedScrollPositionValue,
+    scrollPositionValueST,
     endObjectsWrapper,
     endObjectsWrapperX,
     objectsWrapperWidthFull,
@@ -1108,7 +1139,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       cancelScrolls.forEach((fn) => fn());
     };
-  }, [stabilizedScrollPositionValue, scrollPosition?.updater]);
+  }, [scrollPositionValueST, scrollPosition?.updater]);
 
   // ♦ contents
 
@@ -1163,8 +1194,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       !!fallback,
       objectsSizeLocal.join(),
       scrollElementRef.current,
-      stabilizedRender,
-      stabilizedEmptyElements,
+      renderST,
+      emptyElementsST,
       objectsPerDirection[0],
       updateEmptyKeysClickLocal,
     ]
