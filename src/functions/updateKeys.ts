@@ -73,16 +73,20 @@ const updateEmptyKeysClick = (
 ) => {
   const target = event.target as HTMLElement;
   const closeSelector = target.closest(clickTrigger.selector);
+  if (!closeSelector) return;
 
-  if (closeSelector) {
-    setManagedTimeout(
-      "emptyKeys-anim",
-      () => {
-        callBack();
-      },
-      clickTrigger.delay || 0
-    );
-  }
+  const parentWrapper = target.closest<HTMLElement>(`[${CONST.WRAP_ATR}]`);
+
+  if (parentWrapper) parentWrapper.classList.add("remove");
+
+  setManagedTimeout(
+    "emptyKeys-anim",
+    () => {
+      if (parentWrapper) parentWrapper.classList.remove("remove");
+      callBack();
+    },
+    clickTrigger.delay || 0
+  );
 };
 
 export { updateLoadedElementsKeys, updateEmptyKeysClick };

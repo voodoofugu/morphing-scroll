@@ -1071,7 +1071,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     emptyElementsST,
     render?.type,
     isScrollingRef.current,
-    validChildrenKeys.length,
+    validChildrenKeys.join(),
     updateLoadedElementsKeysLocal,
   ]);
 

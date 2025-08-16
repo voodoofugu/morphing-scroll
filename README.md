@@ -679,7 +679,8 @@ In case if elements are removed via a click action, use this option. It accepts 
 ✦ Note:<br />
 <ul>
   <li>The cleanup will start on the initial render, when the number of passed elements changes, on scroll and on click if you use <code>clickTrigger</code>.</li>
-  <li>If you are using <code>clickTrigger</code> but there are no changes, you may need to increase the <code>delay</code> value, since the cleanup function is triggered when your item has not yet been deleted.</li>
+  <li>If you are using <code>clickTrigger</code> but there are no changes, you may need to increase the <code>delay</code> value, since the cleanup function is triggered when your item has not yet been deleted.<br />
+  Also, after clicking, the wrapper <code>ms-object-box</code> of your element will get the <code>remove</code> class and you can use it, for example, to add a fade animation before the <code>delay</code> ends and the cleanup function is triggered.</li>
 </ul></em>
 <br />
 <b>Example:</b>
