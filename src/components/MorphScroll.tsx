@@ -856,8 +856,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         func();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [scrollBarOnHover, clickedObject.current, scrollContentRef.current]
+    [scrollBarOnHover]
   );
 
   const onMouseOrTouchDown = React.useCallback(
@@ -953,7 +952,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      scrollElementRef.current,
       sizeLocal.join(),
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
@@ -980,14 +978,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       direction
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    sizeLocal.join(),
-    direction,
-    scrollElementRef,
-    scrollContentRef,
-    scrollBarsRef.current,
-    type,
-  ]);
+  }, [sizeLocal.join(), direction, scrollElementRef, scrollContentRef, type]);
 
   const updateLoadedElementsKeysLocal = React.useCallback(() => {
     if (!customScrollRef.current) return;
