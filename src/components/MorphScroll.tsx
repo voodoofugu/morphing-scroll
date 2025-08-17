@@ -1080,19 +1080,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         triggerUpdate();
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [direction, JSON.stringify(progressTrigger.wheel)]
   );
-  const onKeyUp = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (keyDownX.current) {
-        // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
-        e.stopPropagation();
-        keyDownX.current = false;
-        triggerUpdate();
-      }
-    },
-    [direction]
-  );
+  const onKeyUp = React.useCallback((e: React.KeyboardEvent) => {
+    if (keyDownX.current) {
+      // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
+      e.stopPropagation();
+      keyDownX.current = false;
+      triggerUpdate();
+    }
+  }, []);
 
   // ♦ effects
   React.useEffect(() => {
