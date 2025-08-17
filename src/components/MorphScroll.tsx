@@ -38,33 +38,39 @@ import {
 import { CONST } from "../constants";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
-  type = "scroll",
+  // General Settings
   className,
+  children,
+
+  // Scroll Settings
+  type = "scroll",
+  direction = "y",
+  scrollPosition,
+  onScrollValue,
+  isScrolling,
+
+  // Visual Settings
   size,
   objectsSize,
-  direction = "y",
+  crossCount,
   gap,
   wrapperMargin,
   wrapperMinSize,
-  progressReverse = false,
-  progressTrigger = { wheel: true },
-  scrollBarOnHover = false,
-  suspending = false,
-  fallback,
-  scrollPosition,
-  edgeGradient,
-  children,
-  onScrollValue,
-
+  wrapperAlign,
   elementsAlign,
   elementsDirection = "row",
-  wrapperAlign,
+  edgeGradient,
 
-  isScrolling,
+  // Progress Bar
+  progressTrigger = { wheel: true },
+  progressReverse = false,
+  scrollBarOnHover = false,
 
+  // Optimization
   render,
   emptyElements,
-  crossCount,
+  suspending = false,
+  fallback,
 }) => {
   // ♦ hooks
   const debouncedUpdateLoadedElementsKeysLocal = useDebouncedCallback(() => {
@@ -123,6 +129,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     y: number;
     leftover: number;
   } | null>(null);
+  const keyDownX = React.useRef<boolean>(false);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -1058,6 +1065,35 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     sizeLocal[0] - thumbSizeX
   );
 
+  const onKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      const keyName =
+        typeof progressTrigger.wheel === "object" &&
+        progressTrigger.wheel.changeDirectionKey
+          ? progressTrigger.wheel.changeDirectionKey
+          : "KeyX";
+
+      if (e.code === keyName && direction === "hybrid" && !keyDownX.current) {
+        // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
+        e.stopPropagation();
+        keyDownX.current = true;
+        triggerUpdate();
+      }
+    },
+    [direction, JSON.stringify(progressTrigger.wheel)]
+  );
+  const onKeyUp = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if (keyDownX.current) {
+        // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
+        e.stopPropagation();
+        keyDownX.current = false;
+        triggerUpdate();
+      }
+    },
+    [direction]
+  );
+
   // ♦ effects
   React.useEffect(() => {
     if (emptyElements || render?.type) {
@@ -1096,14 +1132,33 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, []);
 
   React.useEffect(() => {
+    // wheel вешается вручную что бы выключить дефолтный scroll!!!
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
-    const wheelHandler = (e: WheelEvent) =>
-      handleWheel(e, scrollEl, scrollStateRef.current, direction);
-
     const preventScroll = (e: Event) => e.preventDefault();
 
+    const directionWithPriority =
+      direction === "hybrid" &&
+      typeof progressTrigger.wheel === "object" &&
+      progressTrigger.wheel.changeDirection
+        ? "x"
+        : direction;
+
+    const directionLocal =
+      (direction === "hybrid" &&
+        objectsWrapperHeight + mLocalY <= sizeLocal[1]) ||
+      keyDownX.current
+        ? // уточнение был ли применён changeDirection что бы клавиша меняла уже его направление
+          ["hybrid", "y"].includes(directionWithPriority)
+          ? "x"
+          : "y"
+        : directionWithPriority;
+
+    const wheelHandler = (e: WheelEvent) => {
+      preventScroll(e);
+      handleWheel(e, scrollStateRef.current, directionLocal);
+    };
     // если wheel не включен, то так же запрещаем scroll
     const handler = progressTrigger.wheel ? wheelHandler : preventScroll;
 
@@ -1112,7 +1167,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       scrollEl.removeEventListener("wheel", handler);
     };
-  }, [direction, progressTrigger.wheel]);
+  }, [
+    direction,
+    JSON.stringify(progressTrigger.wheel),
+    objectsWrapperHeight,
+    sizeLocal[1],
+    mLocalY,
+    keyDownX.current,
+  ]);
 
   // эффекты для scrollPosition
   React.useEffect(() => {
@@ -1350,9 +1412,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           className="ms-element"
           ref={scrollElementRef}
           onScroll={handleScroll}
+          onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
           style={{
             width: "100%",
             height: "100%",
+            outline: "none",
             ...wrapperAlignLocal,
 
             // интересное решение overflow

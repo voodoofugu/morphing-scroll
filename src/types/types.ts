@@ -54,7 +54,9 @@ export type MorphScrollT = {
 
   // Progress Bar
   progressTrigger: {
-    wheel?: boolean;
+    wheel?:
+      | boolean
+      | { changeDirection?: boolean; changeDirectionKey?: string };
     content?: boolean;
     progressElement?: boolean | React.ReactNode | React.ReactNode[];
     arrows?: boolean | { size?: number; element?: React.ReactNode };

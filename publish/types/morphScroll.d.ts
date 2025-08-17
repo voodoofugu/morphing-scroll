@@ -316,7 +316,6 @@ type MorphScrollT = {
    * @note
    * - *`progressElement` can be thumb or slider, use props `type`*
    * - *If `progressElement` is true and `type` is "scroll", the default browser scroll element will be used*
-   * - *`arrows` can be designed with their className or you can provide a custom element*
    *
    * @example
    * ```tsx
@@ -328,7 +327,9 @@ type MorphScrollT = {
    * ```
    */
   progressTrigger: {
-    wheel?: boolean;
+    wheel?:
+      | boolean
+      | { changeDirection?: boolean; changeDirectionKey?: string };
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
     arrows?: boolean | { size?: number; element?: React.ReactNode };

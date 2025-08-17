@@ -485,12 +485,12 @@ This parameter changes the order of the provided elements based on the provided 
 <b>Description:</b> <em><br />
 This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
 <br />
-<code>color</code> :<br />
+<code>color</code>:<br />
 The property accepts any valid color format.
 If you provide it, the library will generate a gradient transitioning from the custom color to transparent.
 If you provide just <mark>true</mark>, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
 <br />
-<code>size</code> :<br />
+<code>size</code>:<br />
 The property changes the height for horizontal and width for vertical <b>.ms-edge</b>.</em><br />
 <br />
 <b>Example:</b>
@@ -514,7 +514,7 @@ The property changes the height for horizontal and width for vertical <b>.ms-edg
 
 <details><summary><b><code>progressTrigger</code></b>: <em>Triggers for the scroll progress.</em></summary><br /><ul><div>
 <b>Type:</b> {<br />
-  wheel?: boolean;<br />
+  wheel?: boolean | { changeDirection?: boolean; changeDirectionKey?: string };<br />
   content?: boolean;<br />
   progressElement?: boolean | React.ReactNode | React.ReactNode[];<br />
   arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
@@ -525,13 +525,18 @@ The property changes the height for horizontal and width for vertical <b>.ms-edg
 <b>Description:</b> <em><br />
 This is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
 <br />
-<code>wheel</code> :<br />
-This parameter determines whether the progress bar responds to mouse wheel scrolling.<br />
+<code>wheel</code>:<br />
+Determines whether the progress bar responds to mouse wheel scrolling.<br />
+If you use <code>direction="hybrid"</code>, you can use:
+<ul>
+  <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li>
+  <li><code>changeDirectionKey</code>: allows switching the scroll direction by pressing a specific key.<br />Default: <mark>"KeyX"</mark></li>
+</ul>
 <br />
-<code>content</code> :<br />
+<code>content</code>:<br />
 This parameter enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 <br />
-<code>progressElement</code> :<br />
+<code>progressElement</code>:<br />
 This parameter determines how the scroll progress is managed.<br />
 <br />
 <ul>
@@ -540,11 +545,15 @@ This parameter determines how the scroll progress is managed.<br />
   <li>When using <code>type="sliderMenu"</code>, everything is the same as with <mark>"slider"</mark> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
-<code>arrows</code> :<br />
+<code>arrows</code>:<br />
 This parameter allows you to add custom arrows to the progress bar. You can either specify a <code>size</code> for the arrows and provide a custom element.<br />
 <br />
 ✦ Note:<br />
-<code>progressTrigger</code> can only create or provide your elements, but you must make the design for them yourself.</em><br />
+<ul>
+  <li><code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</li>
+  <li>The Library scroll element automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
+</ul>
+<code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</em><br />
 <br />
 <b>Example:</b>
 
@@ -666,14 +675,14 @@ clickTrigger?: { selector: string; delay?: number };<br />
 <b>Description:</b> <em><br />
 This option will allow you to delete or replace empty list items during the first rendering, or to start this process by clicking.<br />
 <br />
-<code>mode</code> :<br />
+<code>mode</code>:<br />
 <ul>
   <li><mark>"clear"</mark> – automatically removes empty elements.</li>
   <li><mark>"fallback"</mark> – replaces empty elements with the value from the <code>fallback</code> props.</li>
   <li><mark>{ fallback: React.ReactNode }</mark> – if you need a different element than in <code>fallback</code> to replace empty elements, you can use this option.</li>
 </ul>
 <br />
-<code>clickTrigger</code> :<br />
+<code>clickTrigger</code>:<br />
 In case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <b>ms</b> ) to wait before removing the elements.<br />
 <br />
 ✦ Note:<br />

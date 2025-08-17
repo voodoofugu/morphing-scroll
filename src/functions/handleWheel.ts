@@ -1,5 +1,5 @@
-import { MorphScrollT } from "../types/types";
 import { clampValue } from "./addFunctions";
+import type { MorphScrollT } from "../types/types";
 
 export type ScrollStateRefT = {
   targetScrollY: number;
@@ -10,11 +10,12 @@ export type ScrollStateRefT = {
 
 export default function handleWheel(
   e: WheelEvent,
-  scrollEl: HTMLDivElement,
   stateRef: ScrollStateRefT,
   direction: MorphScrollT["direction"]
 ) {
-  e.preventDefault();
+  const currentObject = e.target as HTMLElement;
+  const scrollEl = currentObject.closest(".ms-element") as HTMLDivElement;
+  if (!scrollEl.matches(":focus")) scrollEl.focus();
 
   // Устанавливаем начальные значения
   if (!stateRef.animating) {
