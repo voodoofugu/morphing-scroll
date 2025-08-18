@@ -514,10 +514,12 @@ The property changes the height for horizontal and width for vertical <b>.ms-edg
 
 <details><summary><b><code>progressTrigger</code></b>: <em>Triggers for the scroll progress.</em></summary><br /><ul><div>
 <b>Type:</b> {<br />
-  wheel?: boolean | { changeDirection?: boolean; changeDirectionKey?: string };<br />
-  content?: boolean;<br />
-  progressElement?: boolean | React.ReactNode | React.ReactNode[];<br />
-  arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
+  <ul> 
+    wheel?: boolean | { changeDirection?: boolean; changeDirectionKey?: string };<br />
+    content?: boolean;<br />
+    progressElement?: boolean | React.ReactNode | React.ReactNode[];<br />
+    arrows?: boolean | { size?: number; element?: React.ReactNode };<br />
+  </ul>
 }<br />
 <br />
 <b>Default:</b> { wheel: true }<br />
