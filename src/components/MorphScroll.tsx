@@ -1167,6 +1167,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // эффекты для scrollPosition
   React.useEffect(() => {
+    // для "end"
     if (!scrollPositionLocal.value) return;
 
     const cancelScrolls: (() => void)[] = [];
@@ -1187,15 +1188,19 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       cancelScrolls.forEach((fn) => fn());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    direction,
     scrollPositionLocal.value.join(),
     scrollPositionValueST,
     endObjectsWrapper,
     endObjectsWrapperX,
     objectsWrapperWidthFull,
     objectsWrapperHeightFull,
+    // startScrolling, <-- добавление вызывает некорректный auto scroll так как первый ребёнок перестаёт меняться а full размеры нет
   ]);
   React.useEffect(() => {
+    // для number
     if (!scrollPositionLocal.value) return;
 
     const cancelScrolls: (() => void)[] = [];
@@ -1214,7 +1219,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       cancelScrolls.forEach((fn) => fn());
     };
-  }, [scrollPositionValueST, scrollPosition?.updater]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    scrollPositionValueST,
+    scrollPosition?.updater,
+    direction,
+    startScrolling,
+    scrollPositionLocal.value.join(),
+  ]);
 
   // ♦ contents
   const scrollObjectWrapper = React.useCallback(
