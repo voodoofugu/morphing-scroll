@@ -742,7 +742,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         callback
       );
     },
-    [scrollElementRef]
+    []
   );
 
   const startScrolling = React.useCallback(
