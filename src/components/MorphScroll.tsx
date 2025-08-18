@@ -1060,7 +1060,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (e: React.KeyboardEvent) => {
       const keyName =
         typeof progressTrigger.wheel === "object" &&
-        progressTrigger.wheel.changeDirectionKey
+        typeof progressTrigger.wheel.changeDirectionKey === "string"
           ? progressTrigger.wheel.changeDirectionKey
           : "KeyX";
 
