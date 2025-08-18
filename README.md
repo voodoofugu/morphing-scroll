@@ -530,7 +530,7 @@ Determines whether the progress bar responds to mouse wheel scrolling.<br />
 If you use <code>direction="hybrid"</code>, you can use:
 <ul>
   <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li>
-  <li><code>changeDirectionKey</code>: allows switching the scroll direction by pressing a specific key.<br />Default: <mark>"KeyX"</mark></li>
+  <li><code>changeDirectionKey</code>: allows switching the scroll direction by pressing a specific key ( default: <mark>"KeyX"</mark> ).</li>
 </ul>
 <br />
 <code>content</code>:<br />
@@ -540,8 +540,8 @@ This parameter enables interaction by clicking and dragging anywhere within the 
 This parameter determines how the scroll progress is managed.<br />
 <br />
 <ul>
-  <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <mark>true</mark> instead — this will fall back to the browser’s default scrollbar.</li>
-  <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li>
+  <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <mark>true</mark> instead — this will fall back to the browser’s default scrollbar.</li><br />
+  <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
   <li>When using <code>type="sliderMenu"</code>, everything is the same as with <mark>"slider"</mark> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
@@ -552,9 +552,7 @@ This parameter allows you to add custom arrows to the progress bar. You can eith
 <ul>
   <li><code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</li>
   <li>The Library scroll element automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
-</ul>
-<code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</em><br />
-<br />
+</ul></em><br />
 <b>Example:</b>
 
 ```tsx
