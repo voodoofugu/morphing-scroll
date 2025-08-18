@@ -116,7 +116,8 @@ Additionally, <code>MorphScroll</code> handles a passed <mark>null</mark> value 
 <b>Type:</b><br />
 "scroll" | "slider" | "sliderMenu"<br />
 <br />
-<b>Default:</b> "scroll"<br />
+<b>Default:</b><br />
+"scroll"<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
@@ -145,7 +146,8 @@ This parameter defines how the provided <code>progressElement</code> behaves wit
 <b>Type:</b><br />
 "x" | "y" | "hybrid"<br />
 <br />
-<b>Default:</b> "y"<br />
+<b>Default:</b><br />
+"y"<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter changes the scroll or slider type direction based on the provided value.<br />
@@ -175,7 +177,8 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 </ul>
 }<br />
 <br />
-<b>Default:</b> { duration: 200; updater: false }<br />
+<b>Default:</b><br />
+{ duration: 200; updater: false }<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter allows you to set custom scroll values.<br />
@@ -289,7 +292,8 @@ This parameter sets the width and height of the <code>MorphScroll</code>.<br />
 number | "size" | "firstChild" | "none"<br />
 | (number | "size" | "firstChild" | "none")[]<br />
 <br />
-<b>Default:</b> If you don't provide any value, the default value will be taken from <code>size</code><br />
+<b>Default:</b><br />
+If you don't provide any value, the default value will be taken from <code>size</code><br />
 <br />
 <b>Description:</b> <em><br />
 This parameter defines the [width, height] of cells for each of your objects.<br />
@@ -475,7 +479,8 @@ Use 1 value to align one or both axes, or an array of 2 values to align both axe
 <b>Type:</b><br />
 "row" | "column"<br />
 <br />
-<b>Default:</b> "row"<br />
+<b>Default:</b><br />
+"row"<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter changes the order of the provided elements based on the provided value.</em><br />
@@ -498,7 +503,8 @@ This parameter changes the order of the provided elements based on the provided 
 <b>Type:</b><br />
 boolean | { color?: string; size?: number }<br />
 <br />
-<b>Default:</b> { size: 40 }<br />
+<b>Default:</b><br />
+{ size: 40 }<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
@@ -541,7 +547,8 @@ The property changes the height for horizontal and width for vertical <b>.ms-edg
   </ul>
 }<br />
 <br />
-<b>Default:</b> { wheel: true }<br />
+<b>Default:</b><br />
+{ wheel: true }<br />
 <br />
 <b>Description:</b> <em><br />
 This is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
@@ -598,7 +605,8 @@ This parameter allows you to add custom arrows to the progress bar. You can eith
 <b>Type:</b><br />
 boolean | boolean[]<br />
 <br />
-<b>Default:</b> false<br />
+<b>Default:</b><br />
+false<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter changes the position of the progress bar based on the direction property.<br />
@@ -627,7 +635,8 @@ This parameter changes the position of the progress bar based on the direction p
 <b>Type:</b><br />
 boolean<br />
 <br />
-<b>Default:</b> false<br />
+<b>Default:</b><br />
+false<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
@@ -746,7 +755,8 @@ In case if elements are removed via a click action, use this option. It accepts 
 <b>Type:</b><br />
 boolean<br />
 <br />
-<b>Default:</b> false<br />
+<b>Default:</b><br />
+false<br />
 <br />
 <b>Description:</b> <em><br />
 This parameter adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br />
@@ -850,7 +860,8 @@ React.CSSProperties<br />
 <b>Type:</b><br />
 "inner" | "outer" | "all"<br />
 <br />
-<b>Default:</b> "inner"<br />
+<b>Default:</b><br />
+"inner"<br />
 <br />
 <b>Description:</b><br />
 <em>This prop determines what is being measured by automatically applying inline styles that affect width and height.<br />
@@ -965,7 +976,8 @@ React.CSSProperties<br />
 <b>Type:</b><br />
 Element | null<br />
 <br />
-<b>Default:</b> null (window)<br />
+<b>Default:</b><br />
+null (window)<br />
 <br />
 <b>Description:</b> <em><br />
 Specifies the element that serves as the bounding box for the intersection observation. 
@@ -1007,7 +1019,8 @@ It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 
 <b>Type:</b><br />
 number | number[]<br />
 <br />
-<b>Default:</b> 0<br />
+<b>Default:</b><br />
+0<br />
 <br />
 <b>Description:</b> <em><br />
 Specifies at what percentage of the observed element’s visibility the callback should be executed.<br />
@@ -1032,7 +1045,8 @@ Specifies at what percentage of the observed element’s visibility the callback
 <b>Type:</b><br />
 boolean<br />
 <br />
-<b>Default:</b> false<br />
+<b>Default:</b><br />
+false<br />
 <br />
 <b>Description:</b> <em><br />
 If set to <mark>true</mark>, the tracked elements will always be visible, regardless of their actual intersection status.<br />
