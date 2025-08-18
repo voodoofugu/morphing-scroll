@@ -530,7 +530,8 @@ Determines whether the progress bar responds to mouse wheel scrolling.<br />
 If you use <code>direction="hybrid"</code>, you can use:
 <ul>
   <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li>
-  <li><code>changeDirectionKey</code>: allows switching the scroll direction by pressing a specific key ( default: <mark>"KeyX"</mark> ).</li>
+  <li><code>changeDirectionKey</code>: allows switching the scroll direction by pressing a specific key ( default: <mark>"KeyX"</mark> ).<br />
+  [more](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)</li>
 </ul>
 <br />
 <code>content</code>:<br />
