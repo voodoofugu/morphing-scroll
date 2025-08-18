@@ -581,7 +581,7 @@ This parameter allows you to add custom arrows to the progress bar. You can eith
 ✦ Note:<br />
 <ul>
   <li><code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</li>
-  <li>The Library scroll element automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
+  <li>The Library scroll element in browser automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
 </ul></em><br />
 <b>Example:</b>
 
