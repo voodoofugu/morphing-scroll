@@ -369,6 +369,24 @@ type MorphScrollT = {
    * ```
    */
   scrollBarOnHover?: boolean;
+  /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * Scroll bar margin at its edges.
+   * ___
+   * @note
+   * - *Used when: `type="scroll"`*
+   * - *When `direction="hybrid"` you can set an array of values*
+   *
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   scrollBarEdge={10}
+   * >
+   *   {children}
+   * </MorphScroll>
+   * ```
+   */
+  scrollBarEdge?: number | number[];
 
   // Optimization
   /**---

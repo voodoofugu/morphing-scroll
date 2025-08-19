@@ -101,16 +101,18 @@ const ScrollBar = ({
               ? {
                   transformOrigin: "left top",
                   height: `${size[0]}px`,
+                  left: "50%",
                   ...(progressReverse
                     ? {
                         top: 0,
-                        transform: "rotate(-90deg) translateX(-100%)",
+                        transform: "rotate(-90deg) translate(-100%, -50%)",
                       }
-                    : { transform: "rotate(-90deg)" }),
+                    : { transform: "rotate(-90deg) translateY(-50%)" }),
                 }
               : {
-                  top: 0,
-                  height: "100%",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  height: `${size[1]}px`,
                   ...(progressReverse ? { left: 0 } : { right: 0 }),
                 }),
             ...(!progressTrigger?.progressElement !== false && {
@@ -125,6 +127,7 @@ const ScrollBar = ({
           <div
             className="ms-thumb"
             data-direction={
+              // убираем "hybrid"
               ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
             {...eventProps}

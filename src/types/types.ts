@@ -63,6 +63,7 @@ export type MorphScrollT = {
   };
   progressReverse?: boolean | boolean[];
   scrollBarOnHover?: boolean;
+  scrollBarEdge?: number | number[];
 
   // Optimization
   render?: {

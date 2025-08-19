@@ -41,6 +41,7 @@ type HandleMouseT = {
   thumbSize: number;
   axisFromAtr: "x" | "y" | null;
   duration: number;
+  scrollBarEdge: number[];
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -164,8 +165,13 @@ function handleMove(args: HandleMoveT) {
       const visibleSize =
         axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
 
+      const visibleSizeWithLimit =
+        axis === "x"
+          ? scrollElement.clientWidth - args.scrollBarEdge[0]
+          : scrollElement.clientHeight - args.scrollBarEdge[1];
+
       // не забываем прибавить margin
-      const objSize =
+      const objectsWrapperSize =
         axis === "x"
           ? objectsWrapper.clientWidth +
             parseFloat(styles.marginLeft) +
@@ -174,8 +180,8 @@ function handleMove(args: HandleMoveT) {
             parseFloat(styles.marginTop) +
             parseFloat(styles.marginBottom);
 
-      const maxThumbPos = visibleSize - args.thumbSize;
-      const scrollableSize = objSize - visibleSize;
+      const maxThumbPos = visibleSizeWithLimit - args.thumbSize;
+      const scrollableSize = objectsWrapperSize - visibleSize;
 
       if (maxThumbPos <= 0 || scrollableSize <= 0) return;
 

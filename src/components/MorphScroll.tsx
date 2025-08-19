@@ -65,6 +65,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   progressTrigger = { wheel: true },
   progressReverse = false,
   scrollBarOnHover = false,
+  scrollBarEdge,
 
   // Optimization
   render,
@@ -153,6 +154,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     gapST,
     progressTriggerST,
     objectsKeysEmptyST,
+    scrollBarEdgeST,
   ] = stabilizeMany(
     scrollPosition?.value,
     render,
@@ -163,7 +165,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     wrapperAlign,
     gap,
     progressTrigger,
-    objectsKeys.current.empty
+    objectsKeys.current.empty,
+    scrollBarEdge
   );
 
   // ♦ default
@@ -299,6 +302,39 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
+  const scrollBarEdgeLocal = React.useMemo(() => {
+    let scrollBarEdgeLet;
+
+    if (typeof scrollBarEdge === "number") {
+      const scrollBarEdgeX2 = scrollBarEdge * 2;
+      scrollBarEdgeLet = [scrollBarEdgeX2, scrollBarEdgeX2];
+    } else if (Array.isArray(scrollBarEdge)) {
+      scrollBarEdgeLet = [
+        scrollBarEdge[0] ? scrollBarEdge[0] * 2 : 0,
+        scrollBarEdge[1]
+          ? scrollBarEdge[1] * 2
+          : scrollBarEdge[0]
+          ? scrollBarEdge[0] * 2
+          : 0,
+      ];
+    } else {
+      scrollBarEdgeLet = [0, 0];
+    }
+
+    return scrollBarEdgeLet;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollBarEdgeST]);
+
+  const sizeWithLimit = React.useMemo(() => {
+    const x = sizeLocal[0] - scrollBarEdgeLocal[0];
+    const y = sizeLocal[1] - scrollBarEdgeLocal[1];
+
+    return [x, y];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollBarEdgeLocal.join(), sizeLocal[0], sizeLocal[1]]);
+  const xySizeForThumb =
+    direction === "x" ? sizeWithLimit[0] : sizeWithLimit[1];
+
   const objectsSizing = React.useMemo(
     () =>
       objectsSize
@@ -342,7 +378,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    objectsSizing,
+    objectsSizing.join(),
     direction,
     receivedChildSizeRef.current.width,
     receivedChildSizeRef.current.height,
@@ -493,19 +529,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const thumbSize = React.useMemo(() => {
     if (!progressTrigger.progressElement || !fullHeightOrWidth) return 0;
 
-    const value = Math.round((xySize / fullHeightOrWidth) * xySize);
+    const value = Math.round(
+      (xySizeForThumb / fullHeightOrWidth) * xySizeForThumb
+    );
     return !Number.isFinite(value) || value < 0 ? 0 : value;
-  }, [xySize, fullHeightOrWidth, progressTrigger.progressElement]);
+  }, [xySizeForThumb, fullHeightOrWidth, progressTrigger.progressElement]);
 
   const thumbSizeX = React.useMemo(() => {
     if (!progressTrigger.progressElement) return 0;
 
     const value = Math.round(
-      (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]
+      (sizeWithLimit[0] / objectsWrapperWidthFull) * sizeWithLimit[0]
     );
     return !Number.isFinite(value) || value < 0 ? 0 : value;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sizeLocal[0], objectsWrapperWidthFull, progressTrigger.progressElement]);
+  }, [
+    sizeWithLimit[0],
+    objectsWrapperWidthFull,
+    progressTrigger.progressElement,
+  ]);
 
   const endObjectsWrapper = React.useMemo(() => {
     if (!xySize) return fullHeightOrWidth;
@@ -908,6 +950,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         thumbSize: axisFromAtr === "x" ? thumbSizeX : thumbSize,
         axisFromAtr,
         duration: scrollPositionLocal.duration,
+        scrollBarEdge: scrollBarEdgeLocal,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -923,6 +966,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       smoothScrollLocal,
       mouseOnRefHandle,
       scrollBarOnHover,
+      scrollBarEdgeLocal.join(),
     ]
   );
   const onMouseDownScrollThumb = React.useCallback(
@@ -1044,16 +1088,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // высчитываем сдвиг скролла и ограничиваем его
   const thumbSpace = clampValue(
-    (scrollSpaceFromRef / endObjectsWrapper) * (xySize - thumbSize),
+    (scrollSpaceFromRef / endObjectsWrapper) * (xySizeForThumb - thumbSize),
     0,
-    xySize - thumbSize
+    xySizeForThumb - thumbSize
   );
 
   const thumbSpaceX = clampValue(
     ((scrollElementRef.current?.scrollLeft || 0) / endObjectsWrapperX) *
-      (sizeLocal[0] - (sizeLocal[0] / objectsWrapperWidthFull) * sizeLocal[0]),
+      (sizeWithLimit[0] -
+        (sizeWithLimit[0] / objectsWrapperWidthFull) * sizeWithLimit[0]),
     0,
-    sizeLocal[0] - thumbSizeX
+    sizeWithLimit[0] - thumbSizeX
   );
 
   const onKeyDown = React.useCallback(
@@ -1515,7 +1560,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                     ? progressReverse
                     : progressReverse[args.progressReverseIndex]
                 }
-                size={sizeLocal}
+                size={sizeWithLimit}
                 progressTrigger={progressTrigger}
                 scrollBarOnHover={scrollBarOnHover}
                 scrollBarEvent={

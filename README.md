@@ -656,6 +656,31 @@ When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when 
 
 <h2></h2>
 
+<details><summary><b><code>scrollBarEdge</code></b>: <em>Scroll bar margin at its edges.</em></summary><br /><ul><div>
+<b>Type:</b><br />
+number | number[]<br />
+<br />
+<b>Description:</b> <em><br />
+Defines the margin (in pixels) applied to the edges of the scroll bar, effectively reducing its size.<br />
+If you use <code>direction="hybrid"</code>, you can also pass an array of numbers to control each bar individually.<br />
+<br />
+✦ Note:<br />
+This parameter is only used when <code>type="scroll"</code> is set.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} scrollBarEdge={10}>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+
+</div></ul></details>
+
+<h2></h2>
+
 ##### **OPTIMIZATIONS**:
 
 <details><summary><b><code>render</code></b>: <em>Rendering strategy for performance optimization.</em></summary><br /><ul><div>
