@@ -336,7 +336,7 @@ type MorphScrollT = {
   };
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Reverse the progress bar position.
+   * Reverse your progress bar position.
    * ___
    * @default false
    *
@@ -355,7 +355,7 @@ type MorphScrollT = {
   progressReverse?: boolean | boolean[];
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Hover visibility of the progress bar.
+   * Progress bar hover visibility.
    * ___
    * @default false
    *

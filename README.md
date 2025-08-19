@@ -601,7 +601,7 @@ This parameter allows you to add custom arrows to the progress bar. You can eith
 
 <h2></h2>
 
-<details><summary><b><code>progressReverse</code></b>: <em>Reverse the progress bar position.</em></summary><br /><ul><div>
+<details><summary><b><code>progressReverse</code></b>: <em>Reverse your progress bar position.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean | boolean[]<br />
 <br />
@@ -631,7 +631,7 @@ This parameter changes the position of the progress bar based on the direction p
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarOnHover</code></b>: <em>Hover visibility of the <b>progress bar</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollBarOnHover</code></b>: <em>Progress bar hover visibility.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
