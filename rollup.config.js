@@ -45,6 +45,7 @@ export default [
     output: {
       file: "dist/cjs/index.js",
       format: "cjs",
+      exports: "named",
     },
     plugins,
     external: (id) => /^react/.test(id),

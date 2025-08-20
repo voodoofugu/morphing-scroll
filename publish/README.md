@@ -581,7 +581,7 @@ This parameter allows you to add custom arrows to the progress bar. You can eith
 ✦ Note:<br />
 <ul>
   <li><code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</li>
-  <li>The Library scroll element automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
+  <li>The Library scroll element in browser automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
 </ul></em><br />
 <b>Example:</b>
 
@@ -601,7 +601,7 @@ This parameter allows you to add custom arrows to the progress bar. You can eith
 
 <h2></h2>
 
-<details><summary><b><code>progressReverse</code></b>: <em>Reverse the progress bar position.</em></summary><br /><ul><div>
+<details><summary><b><code>progressReverse</code></b>: <em>Reverse your progress bar position.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean | boolean[]<br />
 <br />
@@ -631,7 +631,7 @@ This parameter changes the position of the progress bar based on the direction p
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarOnHover</code></b>: <em>Hover visibility of the <b>progress bar</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollBarOnHover</code></b>: <em>Progress bar hover visibility.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -651,6 +651,31 @@ When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when 
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>scrollBarEdge</code></b>: <em>Scroll bar margin at its edges.</em></summary><br /><ul><div>
+<b>Type:</b><br />
+number | number[]<br />
+<br />
+<b>Description:</b> <em><br />
+Defines the margin (in pixels) applied to the edges of the scroll bar, effectively reducing its size.<br />
+If you use <code>direction="hybrid"</code>, you can also pass an array of numbers to control each bar individually.<br />
+<br />
+✦ Note:<br />
+This parameter is only used when <code>type="scroll"</code> is set.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} scrollBarEdge={10}>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
 
 </div></ul></details>
 
