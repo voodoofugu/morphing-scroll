@@ -111,13 +111,19 @@ declare const MorphScroll: React.FC<MorphScrollT>;
 
 /** ---
  * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) Morph - all content of the library
+ *
+ * ---
+ * ### Returns:
+ * - `ResizeTracker`: *component that monitors changes to an element’s size.*
+ * - `IntersectionTracker`: *component for tracking the intersection of an element with the viewport.*
+ * - `MorphScroll`: *is the main component of the library responsible for displaying your data.*
  */
 declare const Morph: {
-  /** See `MorphScroll` */
+  /** See `{ MorphScroll }` */
   MorphScroll: React.FC<MorphScrollT>;
-  /** See `ResizeTracker` */
+  /** See `{ ResizeTracker }` */
   ResizeTracker: React.FC<ResizeTrackerT>;
-  /** See `IntersectionTracker` */
+  /** See `{ IntersectionTracker }` */
   IntersectionTracker: React.FC<IntersectionTrackerT>;
 };
 
