@@ -2,7 +2,6 @@ import React from "react";
 import { MorphScrollT } from "../types/types";
 import ArgFormatter from "../functions/ArgFormatter";
 
-import useDebouncedCallback from "../hooks/useDebouncedCallback";
 import useIdent from "../hooks/useIdent";
 
 import ResizeTracker from "./ResizeTracker";
@@ -30,10 +29,7 @@ import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
 } from "../functions/updateKeys";
-import {
-  setManagedTimeout,
-  clearAllManagedTimeouts,
-} from "../helpers/timeoutManager";
+import { setManagedTask, clearAllManagedTasks } from "../helpers/taskManager";
 
 import { CONST } from "../constants";
 
@@ -74,13 +70,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   fallback,
 }) => {
   // ♦ hooks
-  const debouncedUpdateLoadedElementsKeysLocal = useDebouncedCallback(() => {
-    updateLoadedElementsKeysLocal();
-  }, 40);
-  const debouncedSliderCheck = useDebouncedCallback(() => {
-    sliderCheckLocal();
-  }, 34);
-
   // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
   const id = useIdent();
 
@@ -753,17 +742,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
 
   // ♦ functions
-  const debouncedScrollResize = useDebouncedCallback(
+  const scrollResize = React.useCallback(
     createResizeHandler(receivedScrollSizeRef, triggerUpdate),
-    40
+    [receivedScrollSizeRef.current.height, receivedScrollSizeRef.current.width]
   );
-  const debouncedWrapResize = useDebouncedCallback(
+  const wrapResize = React.useCallback(
     createResizeHandler(receivedWrapSizeRef, triggerUpdate, mLocalX, mLocalY),
-    40
+    [
+      receivedWrapSizeRef.current.height,
+      receivedWrapSizeRef.current.width,
+      mLocalX,
+      mLocalY,
+    ]
   );
-  const debouncedChildResize = useDebouncedCallback(
+  const childResize = React.useCallback(
     createResizeHandler(receivedChildSizeRef, triggerUpdate),
-    40
+    [receivedChildSizeRef.current.height, receivedChildSizeRef.current.width]
   );
 
   const smoothScrollLocal = React.useCallback(
@@ -884,13 +878,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         | TouchEvent
     ) => {
       if (!scrollBarOnHover) return;
-      const func = () =>
-        mouseOnRef(
-          scrollContentRef.current,
-          "ms-bar",
-          event,
-          setManagedTimeout
-        );
+      const func = () => mouseOnRef(scrollContentRef.current, "ms-bar", event);
 
       if (event.type === "mouseleave") {
         !["thumb", "slider", "wrapp"].includes(clickedObject.current) && func();
@@ -1040,7 +1028,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (emptyElements?.clickTrigger)
         updateEmptyKeysClick(
           event,
-          setManagedTimeout,
           emptyElements.clickTrigger,
           updateLoadedElementsKeysLocal
         );
@@ -1058,22 +1045,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     isScrollingRef.current = true;
     isScrolling?.(true);
 
-    setManagedTimeout(
-      "handleScroll-anim",
-      () => {
-        isScrollingRef.current = false;
-        isScrolling?.(false);
-        if (!render?.type) {
-          debouncedUpdateLoadedElementsKeysLocal();
-        } else triggerUpdate();
-      },
-      200
-    );
+    setManagedTask(() => {
+      isScrollingRef.current = false;
+      isScrolling?.(false);
+      updateLoadedElementsKeysLocal();
+    }, 200);
 
-    if (type === "slider") debouncedSliderCheck();
-    if (!render?.type) {
-      debouncedUpdateLoadedElementsKeysLocal();
-    }
+    if (type === "slider") setManagedTask(() => sliderCheckLocal(), 33);
 
     triggerUpdate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1081,8 +1059,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     onScrollValue,
     isScrolling,
     type,
-    render?.type,
-    debouncedSliderCheck,
+    sliderCheckLocal,
     updateLoadedElementsKeysLocal,
   ]);
 
@@ -1130,20 +1107,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ effects
   React.useEffect(() => {
+    // единоразовый запуск проверки ключей
     if (emptyElements || render?.type) {
       // устанавливаем null для emptyElementKeysString что бы не использовать его когда он не нужен
       if (!emptyElements && objectsKeys.current.empty !== null)
         objectsKeys.current.empty = null;
 
-      debouncedUpdateLoadedElementsKeysLocal();
+      updateLoadedElementsKeysLocal();
     }
-  }, [
-    emptyElementsST,
-    render?.type,
-    isScrollingRef.current,
-    validChildrenKeys.join(),
-    updateLoadedElementsKeysLocal,
-  ]);
+  }, [emptyElementsST, render?.type, updateLoadedElementsKeysLocal]);
 
   React.useEffect(() => {
     const animationFrameId = scrollStateRef.current.animationFrameId;
@@ -1161,7 +1133,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-      clearAllManagedTimeouts();
+      clearAllManagedTasks("timeout");
     };
   }, []);
 
@@ -1358,7 +1330,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           objectsSizing[1] === "firstChild") &&
         index === 0 ? (
         // for first child
-        <ResizeTracker onResize={debouncedChildResize}>
+        <ResizeTracker onResize={childResize}>
           {childRenderOnScroll}
         </ResizeTracker>
       ) : (
@@ -1508,7 +1480,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             objectsWrapper
           ) : (
             <ResizeTracker
-              onResize={debouncedWrapResize}
+              onResize={wrapResize}
               style={{
                 ...wrapperAlignLocal,
               }}
@@ -1597,7 +1569,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   if (size === "auto") {
     return (
-      <ResizeTracker measure="outer" onResize={debouncedScrollResize}>
+      <ResizeTracker measure="outer" onResize={scrollResize}>
         {content}
       </ResizeTracker>
     );

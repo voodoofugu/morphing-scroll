@@ -1,5 +1,3 @@
-import React from "react";
-
 export type ResizeTrackerT = {
   className?: string;
   children: React.ReactNode;

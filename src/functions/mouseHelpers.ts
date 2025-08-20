@@ -1,3 +1,5 @@
+import { setManagedTask } from "../helpers/taskManager";
+
 // функция смены курсора
 const mouseOnEl = (el: HTMLDivElement | null) => {
   if (!el) return;
@@ -19,8 +21,7 @@ const mouseOnRef = (
     | React.MouseEvent<HTMLDivElement>
     | React.TouchEvent<HTMLDivElement>
     | MouseEvent
-    | TouchEvent,
-  setManagedTimeout: (id: string, callback: () => void, delay: number) => void
+    | TouchEvent
 ) => {
   if (!el) return;
   const childs = el.querySelectorAll(`.${childClass}`);
@@ -33,11 +34,7 @@ const mouseOnRef = (
       target.classList.remove("hover");
       target.classList.add("leave");
 
-      setManagedTimeout(
-        `mouseOnRef${i}-anim`,
-        () => target.classList.remove("leave"),
-        200
-      );
+      setManagedTask(() => target.classList.remove("leave"), 200);
     } else {
       target.style.opacity = "1";
       target.classList.add("hover");

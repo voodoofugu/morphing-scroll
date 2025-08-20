@@ -1,5 +1,7 @@
 import React from "react";
 
+import { setManagedTask } from "../helpers/taskManager";
+
 import { CONST } from "../constants";
 
 const updateLoadedElementsKeys = (
@@ -54,7 +56,7 @@ const updateLoadedElementsKeys = (
   }
 
   objectsKeys.current = {
-    // для loaded если "lazy" мержим все ключи
+    // для loaded если "lazy" объединяем все ключи
     loaded:
       renderType === "lazy"
         ? Array.from(mergedLoadedObjects)
@@ -67,7 +69,6 @@ const updateLoadedElementsKeys = (
 
 const updateEmptyKeysClick = (
   event: React.MouseEvent,
-  setManagedTimeout: (id: string, callback: () => void, delay: number) => void,
   clickTrigger: { selector: string; delay?: number },
   callBack: () => void
 ) => {
@@ -79,14 +80,10 @@ const updateEmptyKeysClick = (
 
   if (parentWrapper) parentWrapper.classList.add("remove");
 
-  setManagedTimeout(
-    "emptyKeys-anim",
-    () => {
-      if (parentWrapper) parentWrapper.classList.remove("remove");
-      callBack();
-    },
-    clickTrigger.delay || 0
-  );
+  setManagedTask(() => {
+    if (parentWrapper) parentWrapper.classList.remove("remove");
+    callBack();
+  }, clickTrigger.delay || 0);
 };
 
 export { updateLoadedElementsKeys, updateEmptyKeysClick };

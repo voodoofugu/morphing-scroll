@@ -1,63 +1,48 @@
-import { useEffect, useMemo } from "react";
-
-// Тип для DebouncedFunction с методом cancel
+// useDebouncedCallback.ts
+import { useRef, useCallback, useEffect } from "react";
+import {
+  setManagedTask,
+  clearManagedTask,
+  clearAllManagedTasks,
+} from "../helpers/taskManager";
 
 type DebounceMode = number | "requestFrame";
-
 type DebouncedFunction<T extends (...args: any[]) => void> = ((
   ...args: Parameters<T>
-) => void) & {
-  cancel: () => void;
-};
+) => void) & { cancel: () => void };
 
-function debounce<T extends (...args: any[]) => void>(
-  fn: T,
-  delay: DebounceMode
+// Генератор уникальных ID для дебаунса
+let autoIdCounter = 0;
+const generateId = () => `deb_${autoIdCounter++}`;
+
+function useDebouncedCallback<T extends (...args: any[]) => void>(
+  callback: T,
+  delay: DebounceMode,
+  id?: string
 ): DebouncedFunction<T> {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-  let rafId: number | null = null;
+  const localIdRef = useRef(id || generateId());
 
-  const debounced = ((...args: Parameters<T>) => {
-    if (delay === "requestFrame") {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        fn(...args);
-        rafId = null;
-      });
-    } else {
-      if (timeout !== null) clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        fn(...args);
-        timeout = null;
-      }, delay);
-    }
-  }) as DebouncedFunction<T>;
+  const debounced = useCallback(
+    ((...args: Parameters<T>) => {
+      const currentId = localIdRef.current;
+
+      clearManagedTask(currentId);
+      setManagedTask(() => callback(...args), delay, currentId);
+    }) as DebouncedFunction<T>,
+    [callback, delay]
+  );
 
   debounced.cancel = () => {
-    if (timeout !== null) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-    if (rafId !== null) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
+    const currentId = localIdRef.current;
+    clearManagedTask(currentId);
   };
 
-  return debounced;
-}
-
-// Hook
-export default function useDebouncedCallback<
-  T extends (...args: any[]) => void
->(callback: T, delay: DebounceMode): DebouncedFunction<T> {
-  const debounced = useMemo(() => debounce(callback, delay), [delay, callback]);
-
+  // Очистка при размонтировании компонента
   useEffect(() => {
-    return () => {
-      debounced.cancel();
-    };
+    return () => debounced.cancel();
   }, [debounced]);
 
   return debounced;
 }
+
+export default useDebouncedCallback;
