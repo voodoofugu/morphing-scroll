@@ -689,7 +689,7 @@ number<br />
 30<br />
 <br />
 <b>Description:</b> <em><br />
-Defines the minimum size (in pixels) of the scroll bar thumb.<br />
+If the scrollable content is long, this option sets the minimum size (in pixels) of the scroll bar thumb automatically.<br />
 <br />
 ✦ Note:<br />
 This parameter is only used when <code>type="scroll"</code> is set.</em><br />
