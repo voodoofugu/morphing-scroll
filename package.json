@@ -2,12 +2,12 @@
   "name": "morphing-scroll-repo",
   "author": "Georg Schilin",
   "license": "MIT",
-  "private": true,
   "main": "src/shared/index.ts",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "publish": "cp README.md publish/ && cd publish && npm publish",
+    "publish": "cd publish && npm publish",
+    "prepare-publish": "node buildHelper.ts",
     "lint": "eslint src"
   },
   "keywords": [
