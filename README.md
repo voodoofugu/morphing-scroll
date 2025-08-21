@@ -681,6 +681,33 @@ This parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <h2></h2>
 
+<details><summary><b><code>thumbMinSize</code></b>: <em>Scroll bar thumb minimum size.</em></summary><br /><ul><div>
+<b>Type:</b><br />
+number<br />
+<br />
+<b>Default:</b><br />
+30<br />
+<br />
+<b>Description:</b> <em><br />
+Defines the minimum size (in pixels) of the scroll bar thumb.<br />
+<br />
+✦ Note:<br />
+This parameter is only used when <code>type="scroll"</code> is set.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} thumbMinSize={40}>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+
+</div></ul></details>
+
+<h2></h2>
+
 ##### **OPTIMIZATIONS**:
 
 <details><summary><b><code>render</code></b>: <em>Rendering strategy for performance optimization.</em></summary><br /><ul><div>

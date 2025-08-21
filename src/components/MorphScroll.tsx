@@ -1,6 +1,6 @@
 import React from "react";
 import { MorphScrollT } from "../types/types";
-import ArgFormatter from "../functions/ArgFormatter";
+import argsFormatter from "../helpers/argsFormatter";
 
 import useIdent from "../hooks/useIdent";
 
@@ -11,7 +11,6 @@ import Arrow from "./Arrow";
 
 import handleWheel, { ScrollStateRefT } from "../functions/handleWheel";
 import handleMouseOrTouch from "../functions/handleMouseOrTouch";
-import { mouseOnEl, mouseOnRef } from "../functions/mouseHelpers";
 import {
   objectsPerSize,
   clampValue,
@@ -29,6 +28,9 @@ import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
 } from "../functions/updateKeys";
+import calculateThumbSize from "../functions/calculateThumbSize";
+import { mouseOnEl, mouseOnRef } from "../functions/mouseOn";
+
 import { setManagedTask, clearAllManagedTasks } from "../helpers/taskManager";
 
 import { CONST } from "../constants";
@@ -62,6 +64,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   progressReverse = false,
   scrollBarOnHover = false,
   scrollBarEdge,
+  thumbMinSize,
 
   // Optimization
   render,
@@ -230,7 +233,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [children, filterValidChildren, emptyElementsST, objectsKeysEmptyST]);
 
   const [mT, mR, mB, mL] = wrapperMargin
-    ? ArgFormatter(wrapperMargin)
+    ? argsFormatter(wrapperMargin)
     : [0, 0, 0, 0];
   const mLocalY = mT + mB;
   const mLocalX = mL + mR;
@@ -246,7 +249,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [gap]);
 
   const mRootLocal = React.useMemo(() => {
-    return ArgFormatter(render?.rootMargin || 0, direction === "x");
+    return argsFormatter(render?.rootMargin || 0, direction === "x");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [renderST, direction]);
 
@@ -328,7 +331,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     () =>
       objectsSize
         ? !Array.isArray(objectsSize)
-          ? ArgFormatter(objectsSize, true, 2)
+          ? argsFormatter(objectsSize, true, 2)
           : objectsSize
         : [null, null],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -515,27 +518,42 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       objectsWrapperWidthFull;
   }
 
+  const thumbMinSizeLocal = React.useMemo(
+    () => thumbMinSize ?? 30,
+    [thumbMinSize]
+  );
+
   const thumbSize = React.useMemo(() => {
     if (!progressTrigger.progressElement || !fullHeightOrWidth) return 0;
 
-    const value = Math.round(
-      (xySizeForThumb / fullHeightOrWidth) * xySizeForThumb
+    return calculateThumbSize(
+      xySizeForThumb,
+      fullHeightOrWidth,
+      xySizeForThumb,
+      thumbMinSizeLocal
     );
-    return !Number.isFinite(value) || value < 0 ? 0 : value;
-  }, [xySizeForThumb, fullHeightOrWidth, progressTrigger.progressElement]);
+  }, [
+    xySizeForThumb,
+    fullHeightOrWidth,
+    progressTrigger.progressElement,
+    thumbMinSizeLocal,
+  ]);
 
   const thumbSizeX = React.useMemo(() => {
     if (!progressTrigger.progressElement) return 0;
 
-    const value = Math.round(
-      (sizeWithLimit[0] / objectsWrapperWidthFull) * sizeWithLimit[0]
+    return calculateThumbSize(
+      sizeWithLimit[0],
+      objectsWrapperWidthFull,
+      sizeWithLimit[0],
+      thumbMinSizeLocal
     );
-    return !Number.isFinite(value) || value < 0 ? 0 : value;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     sizeWithLimit[0],
     objectsWrapperWidthFull,
     progressTrigger.progressElement,
+    thumbMinSizeLocal,
   ]);
 
   const endObjectsWrapper = React.useMemo(() => {

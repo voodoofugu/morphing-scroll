@@ -62,6 +62,7 @@ export type MorphScrollT = {
   progressReverse?: boolean | boolean[];
   scrollBarOnHover?: boolean;
   scrollBarEdge?: number | number[];
+  thumbMinSize?: number;
 
   // Optimization
   render?: {

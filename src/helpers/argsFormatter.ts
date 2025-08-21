@@ -1,4 +1,4 @@
-const ArgFormatter = <T extends number | string>(
+const argsFormatter = <T extends number | string>(
   value: T | T[],
   reverse: boolean = false,
   itemsCount?: number
@@ -25,4 +25,4 @@ const ArgFormatter = <T extends number | string>(
   return arr;
 };
 
-export default ArgFormatter;
+export default argsFormatter;

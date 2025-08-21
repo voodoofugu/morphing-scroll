@@ -387,6 +387,23 @@ type MorphScrollT = {
    * ```
    */
   scrollBarEdge?: number | number[];
+  /**---
+   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * Scroll bar thumb minimum size.
+   * ___
+   * @note
+   * *Used when: `type="scroll"`*
+   *
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   thumbMinSize={40}
+   * >
+   *   {children}
+   * </MorphScroll>
+   * ```
+   */
+  thumbMinSize?: number;
 
   // Optimization
   /**---
