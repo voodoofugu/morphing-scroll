@@ -294,28 +294,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
-  const scrollBarEdgeLocal = React.useMemo(() => {
-    let scrollBarEdgeLet;
+  const scrollBarEdgeLocal = React.useMemo<[number, number]>(() => {
+    if (!scrollBarEdge) return [0, 0];
 
     if (typeof scrollBarEdge === "number") {
-      const scrollBarEdgeX2 = scrollBarEdge * 2;
-      scrollBarEdgeLet = [scrollBarEdgeX2, scrollBarEdgeX2];
-    } else if (Array.isArray(scrollBarEdge)) {
-      scrollBarEdgeLet = [
-        scrollBarEdge[0] ? scrollBarEdge[0] * 2 : 0,
-        scrollBarEdge[1]
-          ? scrollBarEdge[1] * 2
-          : scrollBarEdge[0]
-          ? scrollBarEdge[0] * 2
-          : 0,
-      ];
-    } else {
-      scrollBarEdgeLet = [0, 0];
+      const val = scrollBarEdge * 2;
+      return [val, val];
     }
 
-    return scrollBarEdgeLet;
+    if (Array.isArray(scrollBarEdge)) {
+      const [first = 0, second] = scrollBarEdge;
+      return [first * 2, (second ?? first) * 2];
+    }
+
+    return [0, 0];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollBarEdgeST]);
+
+  const scrollBarEdgeHeightOrWidth =
+    direction === "x" ? scrollBarEdgeLocal[0] : scrollBarEdgeLocal[1];
 
   const sizeWithLimit = React.useMemo(() => {
     const x = sizeLocal[0] - scrollBarEdgeLocal[0];
@@ -1522,7 +1519,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           progressTrigger.progressElement !== true &&
           [
             {
-              shouldRender: thumbSize < fullHeightOrWidth,
+              shouldRender:
+                thumbSize < fullHeightOrWidth - scrollBarEdgeHeightOrWidth,
               direction: direction,
               thumbSize,
               thumbSpace,
@@ -1531,7 +1529,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             },
             {
               shouldRender:
-                direction === "hybrid" && thumbSizeX < objectsWrapperWidthFull,
+                direction === "hybrid" &&
+                thumbSizeX < objectsWrapperWidthFull - scrollBarEdgeLocal[0],
               direction: "x" as const,
               thumbSize: thumbSizeX,
               thumbSpace: thumbSpaceX,
