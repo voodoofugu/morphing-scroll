@@ -1052,23 +1052,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const handleScroll = React.useCallback(() => {
-    const scrollEl = scrollElementRef.current;
-    if (!scrollEl) return;
-
-    onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
-
-    isScrollingRef.current = true;
-    isScrolling?.(true);
-
     setManagedTask(() => {
-      isScrollingRef.current = false;
-      isScrolling?.(false);
-      updateLoadedElementsKeysLocal();
-    }, 200);
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl) return;
 
-    if (type === "slider") setManagedTask(() => sliderCheckLocal(), 33);
+      onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
-    triggerUpdate();
+      isScrollingRef.current = true;
+      isScrolling?.(true);
+
+      setManagedTask(() => {
+        isScrollingRef.current = false;
+        isScrolling?.(false);
+        updateLoadedElementsKeysLocal();
+      }, 200);
+
+      if (type === "slider") setManagedTask(() => sliderCheckLocal(), 33);
+
+      triggerUpdate();
+    }, 6); // убирает просадки ниже 30 FPS
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
@@ -1379,6 +1381,199 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
   };
 
+  const getEdgeOrArrowData = React.useMemo(
+    () => [
+      {
+        positionType: direction === "x" ? "left" : "top",
+        visibility: isNotAtStart,
+      },
+      {
+        positionType: direction === "x" ? "right" : "bottom",
+        visibility: isNotAtEnd,
+      },
+      ...(direction === "hybrid"
+        ? [
+            { positionType: "left", visibility: isNotAtStartX },
+            { positionType: "right", visibility: isNotAtEndX },
+          ]
+        : []),
+    ],
+    [isNotAtStart, isNotAtEnd, direction, isNotAtStartX, isNotAtEndX]
+  );
+
+  const containerStyle = React.useMemo(
+    () => ({
+      width: `${sizeLocal[2]}px`,
+      height: `${sizeLocal[3]}px`,
+    }),
+    [sizeLocal]
+  );
+
+  const scrollBarConfigs = React.useMemo(() => {
+    const base: any[] = [
+      {
+        shouldRender:
+          thumbSize < fullHeightOrWidth - scrollBarEdgeHeightOrWidth,
+        direction,
+        thumbSize,
+        thumbSpace,
+        objLengthPerSize: objLengthPerSizeXY,
+        progressReverseIndex: 0,
+      },
+      {
+        shouldRender:
+          direction === "hybrid" &&
+          thumbSizeX < objectsWrapperWidthFull - scrollBarEdgeLocal[0],
+        direction: "x" as const,
+        thumbSize: thumbSizeX,
+        thumbSpace: thumbSpaceX,
+        objLengthPerSize: objLengthPerSize[0],
+        progressReverseIndex: 1,
+      },
+    ];
+
+    return base.filter(({ shouldRender }) => shouldRender);
+  }, [
+    thumbSize,
+    fullHeightOrWidth,
+    scrollBarEdgeHeightOrWidth,
+    direction,
+    thumbSizeX,
+    objectsWrapperWidthFull,
+    scrollBarEdgeLocal[0],
+    thumbSpace,
+    thumbSpaceX,
+    objLengthPerSizeXY,
+    objLengthPerSize,
+  ]);
+
+  const contentBoxStyle = React.useMemo(() => {
+    const base: any = {
+      position: "relative",
+      width: `${sizeLocal[0]}px`,
+      height: `${sizeLocal[1]}px`,
+    };
+
+    if (progressTrigger.arrows && arrowsLocal.size) {
+      if (direction === "x") base.left = `${arrowsLocal.size}px`;
+      else if (direction === "y") base.top = `${arrowsLocal.size}px`;
+      else {
+        base.top = `${arrowsLocal.size}px`;
+        base.left = `${arrowsLocal.size}px`;
+      }
+    }
+
+    return base;
+  }, [sizeLocal, progressTriggerST, arrowsLocal.size, direction]);
+
+  const overflowStyleValue = React.useMemo(() => {
+    const map = {
+      x: objectsWrapperWidthFull > sizeLocal[0] ? "scroll hidden" : "hidden",
+      y: objectsWrapperHeightFull > sizeLocal[1] ? "hidden scroll" : "hidden",
+      hybrid: `${
+        objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
+      } ${objectsWrapperHeightFull > sizeLocal[1] ? "scroll" : "hidden"}`,
+      hide: "hidden",
+    };
+    return (
+      map[
+        progressTrigger.wheel || progressTrigger.content ? direction : "hide"
+      ] ?? "hidden"
+    );
+  }, [
+    objectsWrapperWidthFull,
+    objectsWrapperHeightFull,
+    sizeLocal[0],
+    sizeLocal[1],
+    progressTriggerST,
+    direction,
+  ]);
+
+  const edgesJSX = React.useMemo(() => {
+    if (!edgeGradient) return null;
+    return getEdgeOrArrowData.map(({ positionType, visibility }) => (
+      <Edge
+        key={`edge-${positionType}`}
+        edgeGradient={edgeGradientLocal}
+        visibility={visibility}
+        edgeType={positionType as "left" | "right" | "top" | "bottom"}
+      />
+    ));
+  }, [edgeGradient, getEdgeOrArrowData, edgeGradientLocal]);
+
+  const arrowsJSX = React.useMemo(() => {
+    if (!progressTrigger.arrows) return null;
+
+    return getEdgeOrArrowData.map(({ positionType, visibility }) => (
+      <Arrow
+        key={`arrow-${positionType}`}
+        activity={visibility}
+        arrows={arrowsLocal}
+        arrowType={positionType as handleArrowT["arrowType"]}
+        handleArrow={handleArrowLocal ?? handleArrowLocal}
+        size={
+          direction === "hybrid"
+            ? sizeLocal[0] + arrowsLocal.size * 2
+            : sizeLocal[0]
+        }
+      />
+    ));
+  }, [
+    progressTrigger.arrows,
+    getEdgeOrArrowData,
+    arrowsLocal,
+    handleArrowLocal,
+    sizeLocal[0],
+    direction,
+  ]);
+
+  const scrollBarsJSX = React.useMemo(() => {
+    if (
+      !progressTrigger.progressElement ||
+      progressTrigger.progressElement === true
+    )
+      return null;
+
+    return scrollBarConfigs.map((args) => {
+      const progressReverseValue =
+        typeof progressReverse === "boolean"
+          ? progressReverse
+          : progressReverse[args.progressReverseIndex];
+
+      return (
+        <ScrollBar
+          key={String(args.direction)}
+          type={type}
+          direction={args.direction}
+          progressReverse={progressReverseValue}
+          size={sizeWithLimit}
+          progressTrigger={progressTrigger}
+          scrollBarOnHover={scrollBarOnHover}
+          scrollBarEvent={
+            type === "sliderMenu" ? smoothScrollLocal : onMouseDownScrollThumb
+          }
+          thumbSize={args.thumbSize}
+          thumbSpace={args.thumbSpace}
+          objLengthPerSize={args.objLengthPerSize}
+          sliderCheckLocal={sliderCheckLocal}
+          duration={scrollPositionLocal.duration}
+        />
+      );
+    });
+  }, [
+    progressTrigger.progressElement,
+    scrollBarConfigs,
+    type,
+    progressReverse,
+    sizeWithLimit,
+    progressTrigger,
+    scrollBarOnHover,
+    smoothScrollLocal,
+    onMouseDownScrollThumb,
+    sliderCheckLocal,
+    scrollPositionLocal.duration,
+  ]);
+
   const objectsWrapper = (
     <div
       className="ms-objects-wrapper"
@@ -1390,32 +1585,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     </div>
   );
 
-  const getEdgeOrArrowData = [
-    {
-      positionType: direction === "x" ? "left" : "top",
-      visibility: isNotAtStart,
-    },
-    {
-      positionType: direction === "x" ? "right" : "bottom",
-      visibility: isNotAtEnd,
-    },
-    ...(direction === "hybrid"
-      ? [
-          { positionType: "left", visibility: isNotAtStartX },
-          { positionType: "right", visibility: isNotAtEndX },
-        ]
-      : []),
-  ];
-
   const content = (
     <div
       morph-scroll={`〈♦${id}〉`}
       className={className}
       ref={customScrollRef}
-      style={{
-        width: `${sizeLocal[2]}px`,
-        height: `${sizeLocal[3]}px`,
-      }}
+      style={containerStyle}
     >
       <div
         className="ms-content"
@@ -1424,22 +1599,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         onMouseLeave={mouseOnRefHandle}
         onTouchStart={mouseOnRefHandle}
         onTouchEnd={mouseOnRefHandle}
-        style={{
-          position: "relative",
-          width: `${sizeLocal[0]}px`,
-          height: `${sizeLocal[1]}px`,
-          ...(progressTrigger.arrows &&
-            arrowsLocal.size &&
-            (direction === "x"
-              ? { left: `${arrowsLocal.size}px` }
-              : direction === "y"
-              ? { top: `${arrowsLocal.size}px` }
-              : {
-                  top: `${arrowsLocal.size}px`,
-                  left: `${arrowsLocal.size}px`,
-                })),
-          // ...(size === "auto" && { willChange: "width, height" }),  // избыточно
-        }}
+        style={contentBoxStyle}
       >
         <div
           className="ms-element"
@@ -1452,135 +1612,28 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             height: "100%",
             outline: "none",
             ...wrapperAlignLocal,
-
-            // интересное решение overflow
-            ...{
-              overflow:
-                {
-                  x: `${
-                    objectsWrapperWidthFull > sizeLocal[0]
-                      ? "scroll hidden"
-                      : "hidden"
-                  }`,
-                  y: `${
-                    objectsWrapperHeightFull > sizeLocal[1]
-                      ? "hidden scroll"
-                      : "hidden"
-                  }`,
-                  hybrid: `${
-                    objectsWrapperWidthFull > sizeLocal[0] ? "scroll" : "hidden"
-                  } ${
-                    objectsWrapperHeightFull > sizeLocal[1]
-                      ? "scroll"
-                      : "hidden"
-                  }`,
-                  hide: "hidden",
-                }[
-                  progressTrigger.wheel || progressTrigger.content
-                    ? direction
-                    : "hide"
-                ] ?? "hidden",
-            },
-
+            overflow: overflowStyleValue,
             ...(type !== "scroll" ||
             typeof progressTrigger.progressElement !== "boolean" ||
             progressTrigger.progressElement === false
-              ? {
-                  scrollbarWidth: "none",
-                }
+              ? { scrollbarWidth: "none" }
               : {}),
           }}
         >
           {objectsSizeLocal[0] && objectsSizeLocal[1] ? (
             objectsWrapper
           ) : (
-            <ResizeTracker
-              onResize={wrapResize}
-              style={{
-                ...wrapperAlignLocal,
-              }}
-            >
+            <ResizeTracker onResize={wrapResize} style={wrapperAlignLocal}>
               {objectsWrapper}
             </ResizeTracker>
           )}
         </div>
 
-        {edgeGradient &&
-          getEdgeOrArrowData.map(({ positionType, visibility }) => (
-            <Edge
-              key={`edge-${positionType}`}
-              edgeGradient={edgeGradientLocal}
-              visibility={visibility}
-              edgeType={positionType as "left" | "right" | "top" | "bottom"}
-            />
-          ))}
-
-        {progressTrigger.progressElement &&
-          progressTrigger.progressElement !== true &&
-          [
-            {
-              shouldRender:
-                thumbSize < fullHeightOrWidth - scrollBarEdgeHeightOrWidth,
-              direction: direction,
-              thumbSize,
-              thumbSpace,
-              objLengthPerSize: objLengthPerSizeXY,
-              progressReverseIndex: 0,
-            },
-            {
-              shouldRender:
-                direction === "hybrid" &&
-                thumbSizeX < objectsWrapperWidthFull - scrollBarEdgeLocal[0],
-              direction: "x" as const,
-              thumbSize: thumbSizeX,
-              thumbSpace: thumbSpaceX,
-              objLengthPerSize: objLengthPerSize[0],
-              progressReverseIndex: 1,
-            },
-          ]
-            .filter(({ shouldRender }) => shouldRender)
-            .map((args) => (
-              <ScrollBar
-                key={args.direction}
-                type={type}
-                direction={args.direction}
-                progressReverse={
-                  typeof progressReverse === "boolean"
-                    ? progressReverse
-                    : progressReverse[args.progressReverseIndex]
-                }
-                size={sizeWithLimit}
-                progressTrigger={progressTrigger}
-                scrollBarOnHover={scrollBarOnHover}
-                scrollBarEvent={
-                  type === "sliderMenu"
-                    ? smoothScrollLocal
-                    : onMouseDownScrollThumb
-                }
-                thumbSize={args.thumbSize}
-                thumbSpace={args.thumbSpace}
-                objLengthPerSize={args.objLengthPerSize}
-                sliderCheckLocal={sliderCheckLocal}
-                duration={scrollPositionLocal.duration}
-              />
-            ))}
+        {edgesJSX}
+        {scrollBarsJSX}
       </div>
 
-      {progressTrigger.arrows &&
-        getEdgeOrArrowData.map(({ positionType, visibility }) => (
-          <Arrow
-            key={`arrow-${positionType}`}
-            activity={visibility}
-            arrows={arrowsLocal}
-            arrowType={positionType as handleArrowT["arrowType"]}
-            handleArrow={handleArrowLocal}
-            size={
-              direction === "hybrid"
-                ? sizeLocal[0] + arrowsLocal.size * 2
-                : sizeLocal[0]
-            }
-          />
-        ))}
+      {arrowsJSX}
     </div>
   );
 
