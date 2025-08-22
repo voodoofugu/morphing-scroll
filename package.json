@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rollup -c",
     "publish": "cd publish && npm publish",
-    "prepare-publish": "node buildHelper.ts",
+    "prepare-publish": "node buildHelper.js",
     "lint": "eslint src"
   },
   "keywords": [
