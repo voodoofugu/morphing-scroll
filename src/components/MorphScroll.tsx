@@ -312,6 +312,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [0, 0];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollBarEdgeST]);
+  const scrollBarEdgeHeightOrWidth =
+    direction === "x" ? scrollBarEdgeLocal[0] : scrollBarEdgeLocal[1];
 
   const sizeWithLimit = React.useMemo(() => {
     const x = sizeLocal[0] - scrollBarEdgeLocal[0];
@@ -521,31 +523,41 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [thumbMinSize]
   );
 
-  const thumbSize = React.useMemo(() => {
-    if (!progressTrigger.progressElement || !fullHeightOrWidth) return 0;
+  const getThumbSize = React.useCallback(
+    ({ withLimit = true, xSize }: { withLimit?: boolean; xSize?: boolean }) => {
+      if (!progressTrigger.progressElement || !fullHeightOrWidth) return 0;
 
-    return calculateThumbSize(
-      xySizeForThumb,
+      if (!xSize) {
+        return calculateThumbSize(
+          withLimit ? xySizeForThumb : xySize,
+          withLimit
+            ? fullHeightOrWidth - scrollBarEdgeHeightOrWidth
+            : fullHeightOrWidth,
+          thumbMinSizeLocal
+        );
+      }
+
+      return calculateThumbSize(
+        withLimit ? sizeWithLimit[0] : sizeLocal[0],
+        withLimit
+          ? objectsWrapperWidthFull - scrollBarEdgeLocal[0]
+          : objectsWrapperWidthFull,
+        thumbMinSizeLocal
+      );
+    },
+    [
+      progressTriggerST,
       fullHeightOrWidth,
-      thumbMinSizeLocal
-    );
-  }, [xySizeForThumb, fullHeightOrWidth, progressTriggerST, thumbMinSizeLocal]);
-
-  const thumbSizeX = React.useMemo(() => {
-    if (!progressTrigger.progressElement) return 0;
-
-    return calculateThumbSize(
+      xySizeForThumb,
+      scrollBarEdgeHeightOrWidth,
+      scrollBarEdgeLocal[0],
+      xySize,
+      sizeLocal[0],
       sizeWithLimit[0],
       objectsWrapperWidthFull,
-      thumbMinSizeLocal
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    sizeWithLimit[0],
-    objectsWrapperWidthFull,
-    progressTriggerST,
-    thumbMinSizeLocal,
-  ]);
+      thumbMinSizeLocal,
+    ]
+  );
 
   const endObjectsWrapper = React.useMemo(() => {
     if (!xySize) return fullHeightOrWidth;
@@ -944,7 +956,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         numForSliderRef,
         isScrollingRef,
         prevCoordsRef,
-        thumbSize: axisFromAtr === "x" ? thumbSizeX : thumbSize,
+        thumbSize:
+          axisFromAtr === "x"
+            ? getThumbSize({ xSize: true })
+            : getThumbSize({}),
         axisFromAtr,
         duration: scrollPositionLocal.duration,
         scrollBarEdge: scrollBarEdgeLocal,
@@ -957,8 +972,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       progressTrigger.content,
       progressTrigger.progressElement,
       sizeLocal.join(),
-      thumbSize,
-      thumbSizeX,
+      getThumbSize({}),
+      getThumbSize({ xSize: true }),
       scrollPositionLocal.duration,
       smoothScrollLocal,
       mouseOnRefHandle,
@@ -1079,14 +1094,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     scrollSpaceFromRef,
     endObjectsWrapper,
     xySizeForThumb,
-    thumbSize
+    getThumbSize({})
   );
 
   const thumbSpaceX = calculateThumbSpace(
     scrollElementRef.current?.scrollLeft || 0,
     endObjectsWrapperX,
     sizeWithLimit[0],
-    thumbSizeX
+    getThumbSize({ xSize: true })
   );
 
   const onKeyDown = React.useCallback(
@@ -1403,20 +1418,26 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [sizeLocal]
   );
 
+  if (className === "scrollAvatars")
+    console.log("xySizeForThumb", xySizeForThumb);
+  if (className === "scrollAvatars") console.log("thumbSize", getThumbSize({}));
+
   const scrollBarConfigs = React.useMemo(() => {
     const base: any[] = [
       {
-        shouldRender: thumbSize < xySizeForThumb,
+        shouldRender: getThumbSize({ withLimit: false }) < xySize,
         direction,
-        thumbSize,
+        thumbSize: getThumbSize({}),
         thumbSpace,
         objLengthPerSize: objLengthPerSizeXY,
         progressReverseIndex: 0,
       },
       {
-        shouldRender: direction === "hybrid" && thumbSizeX < sizeWithLimit[0],
+        shouldRender:
+          direction === "hybrid" &&
+          getThumbSize({ withLimit: false, xSize: true }) < sizeWithLimit[0],
         direction: "x" as const,
-        thumbSize: thumbSizeX,
+        thumbSize: getThumbSize({ xSize: true }),
         thumbSpace: thumbSpaceX,
         objLengthPerSize: objLengthPerSize[0],
         progressReverseIndex: 1,
@@ -1425,10 +1446,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return base.filter(({ shouldRender }) => shouldRender);
   }, [
-    thumbSize,
+    getThumbSize,
     xySizeForThumb,
     direction,
-    thumbSizeX,
     sizeWithLimit[0],
     thumbSpace,
     thumbSpaceX,
