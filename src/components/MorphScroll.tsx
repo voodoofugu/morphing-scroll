@@ -1064,7 +1064,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (type === "slider") setManagedTask(() => sliderCheckLocal(), 33);
 
       triggerUpdate();
-    }, 6); // убирает просадки ниже 30 FPS
+    }, 6); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
