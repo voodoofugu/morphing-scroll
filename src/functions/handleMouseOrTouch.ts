@@ -165,6 +165,7 @@ function handleMove(args: HandleMoveT) {
       const visibleSize =
         axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
 
+      // для плавности перемещения бегунка при scrollBarEdge
       const visibleSizeWithLimit =
         axis === "x"
           ? scrollElement.clientWidth - args.scrollBarEdge[0]

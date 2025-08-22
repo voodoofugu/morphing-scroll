@@ -1,18 +1,29 @@
+import { clampValue } from "./addFunctions";
+
 function calculateThumbSize(
-  numerator: number,
-  denominator: number,
-  base: number,
+  size: number,
+  objWrapperSize: number,
   thumbMinSize: number
 ) {
-  if (!denominator) return 0;
+  if (!objWrapperSize) return 0;
 
-  const value = Math.round((numerator / denominator) * base);
+  const thumbSize = Math.round((size / objWrapperSize) * size);
 
-  if (!Number.isFinite(value) || value < thumbMinSize) {
-    return thumbMinSize;
-  }
-
-  return value;
+  return clampValue(thumbSize, thumbMinSize, size);
 }
 
-export default calculateThumbSize;
+function calculateThumbSpace(
+  scrollSpace: number,
+  objWrapperSize: number,
+  size: number,
+  thumbSize: number
+) {
+  if (!objWrapperSize) return 0;
+  return clampValue(
+    (scrollSpace / objWrapperSize) * (size - thumbSize),
+    0,
+    size - thumbSize
+  );
+}
+
+export { calculateThumbSize, calculateThumbSpace };
