@@ -6,7 +6,7 @@ import { CONST } from "../constants";
 
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
-  objectsKeys: React.MutableRefObject<{
+  objectsKeys: React.RefObject<{
     loaded: string[];
     empty: string[] | null;
   }>,

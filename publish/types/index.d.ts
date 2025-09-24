@@ -89,6 +89,8 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  * - `progressTrigger`
  * - `progressReverse`
  * - `scrollBarOnHover`
+ * - `scrollBarEdge`
+ * - `thumbMinSize`
  *
  * ##### - OPTIMIZATIONS:
  * - `render`

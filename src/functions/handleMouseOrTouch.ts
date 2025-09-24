@@ -8,7 +8,7 @@ type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
   scrollBar: HTMLDivElement | null;
-  clickedObject: React.MutableRefObject<ClickedT>;
+  clickedObject: React.RefObject<ClickedT>;
   scrollBarOnHover: boolean;
   scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
@@ -31,9 +31,9 @@ type HandleMouseT = {
   ) => void;
   triggerUpdate: () => void;
   scrollElemIndex?: number;
-  numForSliderRef: React.MutableRefObject<number>;
+  numForSliderRef: React.RefObject<number>;
   isScrollingRef: React.RefObject<boolean>;
-  prevCoordsRef: React.MutableRefObject<{
+  prevCoordsRef: React.RefObject<{
     x: number;
     y: number;
     leftover: number;
@@ -117,8 +117,6 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
       { signal }
     );
   }
-
-  document.body.style.cursor = "grabbing";
 }
 
 function handleMove(args: HandleMoveT) {
@@ -267,7 +265,6 @@ function handleUp(args: HandleUpT) {
   // Отменяем все слушатели событий
   args.controller.abort();
 
-  document.body.style.removeProperty("cursor");
   if (["thumb", "slider"].includes(args.clicked)) {
     args.mouseOnEl(args.scrollBar);
   }

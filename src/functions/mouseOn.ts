@@ -5,11 +5,15 @@ const mouseOnEl = (el: HTMLDivElement | null) => {
   if (!el) return;
 
   if (el.style.cursor === "grab") {
+    document.body.style.cursor = "grabbing";
+    document.body.style.userSelect = "none"; // что бы не выделять текст
     el.style.cursor = "grabbing";
-    el.classList.add("active"); // что бы был контроль на мобилках
+    el.classList.add("active"); // что бы был контроль на phones
   } else if (el.style.cursor === "grabbing") {
+    document.body.style.removeProperty("cursor");
+    document.body.style.removeProperty("user-select");
     el.style.cursor = "grab";
-    el.classList.remove("active"); // что бы был контроль на мобилках
+    el.classList.remove("active"); // что бы был контроль на phones
   }
 };
 
