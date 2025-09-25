@@ -1418,10 +1418,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [sizeLocal]
   );
 
-  if (className === "scrollAvatars")
-    console.log("xySizeForThumb", xySizeForThumb);
-  if (className === "scrollAvatars") console.log("thumbSize", getThumbSize({}));
-
   const scrollBarConfigs = React.useMemo(() => {
     const base: any[] = [
       {
