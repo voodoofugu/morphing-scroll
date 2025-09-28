@@ -31,7 +31,7 @@ import {
   calculateThumbSize,
   calculateThumbSpace,
 } from "../functions/calculateThumbSize";
-import { mouseOnEl, mouseOnRef } from "../functions/mouseOn";
+import { mouseOnRef } from "../functions/mouseOn";
 
 import { setManagedTask, clearAllManagedTasks } from "../helpers/taskManager";
 
@@ -946,7 +946,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollStateRef: scrollStateRef.current,
         type,
         scrollBarOnHover,
-        mouseOnEl,
         mouseOnRefHandle,
         triggerUpdate,
         direction,
@@ -981,14 +980,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollBarEdgeLocal.join(),
     ]
   );
+
   const onMouseDownScrollThumb = React.useCallback(
-    (
-      event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
-    ) => {
-      onMouseOrTouchDown(null, event.type, event.target);
+    (event: MouseEvent | TouchEvent) => {
+      onMouseOrTouchDown(null, event.type, event.target as EventTarget);
     },
     [onMouseOrTouchDown]
   );
+
   const onMouseDownWrap = React.useCallback(() => {
     onMouseOrTouchDown("wrapp");
   }, [onMouseOrTouchDown]);
@@ -1078,7 +1077,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (type === "slider") setManagedTask(() => sliderCheckLocal(), 33);
 
-      triggerUpdate();
+      setManagedTask(triggerUpdate, "requestFrame", "triggerUpdate");
     }, 6); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [

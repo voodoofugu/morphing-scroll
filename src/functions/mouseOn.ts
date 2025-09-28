@@ -1,17 +1,24 @@
 import { setManagedTask } from "../helpers/taskManager";
 
 // функция смены курсора
-const mouseOnEl = (el: HTMLDivElement | null) => {
+const mouseOnEl = (
+  el: HTMLDivElement | null,
+  eventType: "mousedown" | "touchstart"
+) => {
   if (!el) return;
 
   if (el.style.cursor === "grab") {
-    document.body.style.cursor = "grabbing";
-    document.body.style.userSelect = "none"; // что бы не выделять текст
+    if (eventType === "mousedown") {
+      document.body.style.cursor = "grabbing";
+    }
+
     el.style.cursor = "grabbing";
     el.classList.add("active"); // что бы был контроль на phones
   } else if (el.style.cursor === "grabbing") {
-    document.body.style.removeProperty("cursor");
-    document.body.style.removeProperty("user-select");
+    if (eventType === "mousedown") {
+      document.body.style.removeProperty("cursor");
+    }
+
     el.style.cursor = "grab";
     el.classList.remove("active"); // что бы был контроль на phones
   }

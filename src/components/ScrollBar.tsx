@@ -11,8 +11,8 @@ type OnCustomScrollFn = (
 type ModifiedProps = Partial<MorphScrollT> & {
   size: number[];
   scrollBarEvent:
-    | React.MouseEventHandler<HTMLDivElement>
-    | React.TouchEventHandler<HTMLDivElement>
+    | ((event: MouseEvent) => void)
+    | ((event: TouchEvent) => void)
     | OnCustomScrollFn;
   thumbSize: number;
   thumbSpace: number;
@@ -35,15 +35,27 @@ const ScrollBar = ({
   sliderCheckLocal,
   duration,
 }: ModifiedProps) => {
-  const eventProps =
-    type !== "sliderMenu"
-      ? {
-          onMouseDown:
-            scrollBarEvent as React.MouseEventHandler<HTMLDivElement>,
-          onTouchStart:
-            scrollBarEvent as React.TouchEventHandler<HTMLDivElement>,
-        }
-      : {};
+  const thumbRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const el = thumbRef.current;
+    if (!el) return;
+
+    const handleStart = (e: MouseEvent | TouchEvent) => {
+      e.preventDefault(); // помогает блокировать интерфейс при перетаскивании
+      e.stopPropagation();
+
+      (scrollBarEvent as (e: MouseEvent | TouchEvent) => void)(e);
+    };
+
+    el.addEventListener("touchstart", handleStart, { passive: false });
+    el.addEventListener("mousedown", handleStart, { passive: false });
+
+    return () => {
+      el.removeEventListener("touchstart", handleStart);
+      el.removeEventListener("mousedown", handleStart);
+    };
+  }, [scrollBarEvent]);
 
   const sliderContent = React.useMemo(() => {
     if (type === "scroll" || !direction) return;
@@ -130,7 +142,7 @@ const ScrollBar = ({
               // убираем "hybrid"
               ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
-            {...eventProps}
+            ref={thumbRef}
             style={{
               height: `${thumbSize}px`,
               willChange: "transform, height", // свойство убирает артефакты во время анимации
@@ -152,7 +164,7 @@ const ScrollBar = ({
             data-direction={
               ["hybrid", "y"].includes(direction!) ? "y" : direction
             }
-            {...eventProps}
+            ref={thumbRef}
             style={{
               position: "absolute",
               display: "flex",

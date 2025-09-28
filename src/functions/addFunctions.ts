@@ -1,5 +1,7 @@
 import React from "react";
 
+import { setManagedTask, clearManagedTask } from "../helpers/taskManager";
+
 import { MorphScrollT } from "../types/types";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
@@ -20,15 +22,17 @@ function smoothScroll(
   targetScroll: number,
   callback?: () => void
 ) {
-  let frameId: number;
-  if (!scrollElement && !targetScroll) return null;
+  if (!scrollElement || targetScroll === undefined || targetScroll === null)
+    return null;
 
   const startTime = performance.now();
-
   const startScrollTop = scrollElement.scrollTop;
   const startScrollLeft = scrollElement.scrollLeft;
 
-  const animate = (currentTime: number) => {
+  const taskId = "smoothScroll"; // можно сделать уникальным через generateId
+
+  const animate = () => {
+    const currentTime = performance.now();
     const timeElapsed = currentTime - startTime;
     const progress = Math.min(timeElapsed / duration, 1);
 
@@ -41,15 +45,20 @@ function smoothScroll(
     }
 
     if (progress < 1) {
-      frameId = requestAnimationFrame(animate);
+      // Перезапланировать следующий кадр
+      setManagedTask(animate, "requestFrame", taskId);
     } else {
+      // Анимация завершена
+      clearManagedTask(taskId, "requestFrame");
       callback?.();
     }
   };
 
-  frameId = requestAnimationFrame(animate);
+  // Запускаем первый кадр
+  setManagedTask(animate, "requestFrame", taskId);
 
-  return () => cancelAnimationFrame(frameId);
+  // Возвращаем функцию для отмены анимации
+  return () => clearManagedTask(taskId, "requestFrame");
 }
 
 const getAllScrollBars = (
