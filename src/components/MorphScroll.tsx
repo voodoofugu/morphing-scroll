@@ -87,10 +87,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     console.error(errorText("progressTrigger"));
 
   // ♦ state
-  const [_, forceUpdate] = React.useState<number>(0); // для принудительного обновления
+  const [_, forceUpdate] = React.useState({}); // для принудительного обновления
 
   const triggerUpdate = () => {
-    forceUpdate((x) => (typeof x === "number" && x < 1000 ? x + 1 : 0));
+    forceUpdate({});
   };
 
   // ♦ refs
