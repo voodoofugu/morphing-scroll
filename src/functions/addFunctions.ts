@@ -20,10 +20,22 @@ function smoothScroll(
   scrollElement: Element,
   duration: number,
   targetScroll: number,
+  firstLoad?: boolean,
   callback?: () => void
 ) {
+  // console.log("firstLoad", firstLoad);
   if (!scrollElement || targetScroll === undefined || targetScroll === null)
     return null;
+
+  // Если это первый рендер — сразу ставим значение без анимации
+  if (firstLoad) {
+    if (direction === "y") {
+      (scrollElement as HTMLElement).scrollTop = targetScroll;
+    } else if (direction === "x") {
+      (scrollElement as HTMLElement).scrollLeft = targetScroll;
+    }
+    return;
+  }
 
   const startTime = performance.now();
   const startScrollTop = scrollElement.scrollTop;

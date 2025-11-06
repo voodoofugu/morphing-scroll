@@ -99,6 +99,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
 
   const firstChildKeyRef = React.useRef<string | null>(null);
+  const firstScroll = React.useRef<boolean>(true);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
     "none"
   );
@@ -135,7 +136,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ stabilize
   const [
-    scrollPositionValueST,
+    scrollPositionST,
     renderST,
     sizeST,
     objectsSizeST,
@@ -147,7 +148,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsKeysEmptyST,
     scrollBarEdgeST,
   ] = stabilizeMany(
-    scrollPosition?.value,
+    scrollPosition,
     render,
     size,
     objectsSize,
@@ -162,19 +163,35 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ default
   const scrollPositionLocal = React.useMemo(() => {
-    return {
-      value:
-        typeof scrollPosition?.value === "number" ||
-        typeof scrollPosition?.value === "string"
-          ? [scrollPosition.value, scrollPosition.value]
-          : scrollPosition?.value ?? [null],
-      duration: scrollPosition?.duration ?? 200,
-    };
+    let value: (number | "end" | null)[] = [null];
+    let duration = 200;
+    let updater: boolean | null = null;
+
+    if (scrollPosition != null) {
+      if (typeof scrollPosition === "number" || scrollPosition === "end") {
+        value = [scrollPosition, scrollPosition];
+      } else if (Array.isArray(scrollPosition)) {
+        value = scrollPosition;
+      } else if (typeof scrollPosition === "object") {
+        const val = scrollPosition.value;
+        if (typeof val === "number" || val === "end") {
+          value = [val, val];
+        } else if (Array.isArray(val)) {
+          value = val;
+        }
+
+        duration = scrollPosition.duration ?? 200;
+        updater = scrollPosition.updater ?? null;
+      }
+    }
+
+    return { value, duration, updater };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrollPositionValueST, scrollPosition?.duration]);
+  }, [scrollPositionST]);
 
   // ♦ variables
-  const edgeGradientDefault = { color: null, size: 40 };
+  const defaultSize = 40;
+  const edgeGradientDefault = { color: null, size: defaultSize };
   const edgeGradientLocal = React.useMemo(() => {
     return typeof edgeGradient === "object"
       ? { ...edgeGradientDefault, ...edgeGradient }
@@ -184,7 +201,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const arrowsLocal = React.useMemo(() => {
     return {
-      ...edgeGradientDefault,
+      size: defaultSize,
+      contentReduce: true,
       ...(typeof progressTrigger.arrows === "object"
         ? progressTrigger.arrows
         : {}),
@@ -264,7 +282,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           receivedScrollSizeRef.current.height,
         ];
 
-    if (!progressTrigger.arrows || !arrowsLocal.size) {
+    if (
+      !progressTrigger.arrows ||
+      !arrowsLocal.size ||
+      !arrowsLocal.contentReduce
+    ) {
       return [x, y, x, y];
     }
 
@@ -287,7 +309,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     sizeST,
     progressTriggerST,
     direction,
-    arrowsLocal.size,
+    arrowsLocal,
     receivedScrollSizeRef.current.height,
     receivedScrollSizeRef.current.width,
   ]);
@@ -788,15 +810,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
+      console.log("firstScroll.current", firstScroll.current);
       return smoothScroll(
         direction,
         scrollEl,
         duration,
         targetScroll,
+        firstScroll.current,
         callback
       );
     },
-    []
+    [firstScroll.current]
   );
 
   const startScrolling = React.useCallback(
@@ -813,6 +837,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         dir,
         scrollPositionLocal.duration
       );
+
       if (cancel) cancelScrolls.push(cancel);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1140,26 +1165,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [emptyElementsST, render?.type, updateLoadedElementsKeysLocal]);
 
   React.useEffect(() => {
-    const animationFrameId = scrollStateRef.current.animationFrameId;
-
-    if (render?.type || isScrolling) {
-      if (isScrolling) {
-        isScrolling(false);
-        triggerUpdate();
-      }
-    }
-
-    sliderCheckLocal();
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      clearAllManagedTasks("timeout");
-    };
-  }, []);
-
-  React.useEffect(() => {
     // wheel вешается вручную что бы выключить дефолтный scroll e.preventDefault()!!!
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
@@ -1204,12 +1209,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     keyDownX.current,
   ]);
 
-  // эффекты для scrollPosition
+  // эффекты прокрутки
   React.useEffect(() => {
     // для "end"
     if (!scrollPositionLocal.value) return;
 
-    const cancelScrolls: (() => void)[] = [];
+    const cancelScrolls: (() => void)[] = []; // будет пуш из startScrolling
     const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
     directions.forEach((dir) => {
@@ -1231,7 +1236,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [
     direction,
     scrollPositionLocal.value.join(),
-    scrollPositionValueST,
+    scrollPositionST,
     endObjectsWrapper,
     endObjectsWrapperX,
     objectsWrapperWidthFull,
@@ -1242,17 +1247,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // для number
     if (!scrollPositionLocal.value) return;
 
-    const cancelScrolls: (() => void)[] = [];
+    const cancelScrolls: (() => void)[] = []; // будет пуш из startScrolling
     const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
     directions.forEach((dir) => {
       const index = dir === "x" ? 0 : 1;
-      if (typeof scrollPositionLocal.value[index] === "number")
-        startScrolling(
-          dir as "x" | "y",
-          scrollPositionLocal.value[index],
-          cancelScrolls
-        );
+      const value = scrollPositionLocal.value[index];
+
+      if (typeof value === "number")
+        startScrolling(dir as "x" | "y", value, cancelScrolls);
     });
 
     return () => {
@@ -1260,12 +1263,35 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    scrollPositionValueST,
-    scrollPosition?.updater,
+    scrollPositionST,
+    scrollPositionLocal.updater,
     direction,
     startScrolling,
     scrollPositionLocal.value.join(),
   ]);
+
+  React.useEffect(() => {
+    const animationFrameId = scrollStateRef.current.animationFrameId;
+
+    if (render?.type || isScrolling) {
+      if (isScrolling) {
+        isScrolling(false);
+        triggerUpdate();
+      }
+    }
+
+    sliderCheckLocal();
+
+    // первая прокрутка
+    firstScroll.current = false;
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      clearAllManagedTasks("timeout");
+    };
+  }, []);
 
   // ♦ contents
   const scrollObjectWrapper = React.useCallback(
@@ -1455,7 +1481,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       height: `${sizeLocal[1]}px`,
     };
 
-    if (progressTrigger.arrows && arrowsLocal.size) {
+    if (
+      progressTrigger.arrows &&
+      arrowsLocal.contentReduce &&
+      arrowsLocal.size
+    ) {
       if (direction === "x") base.left = `${arrowsLocal.size}px`;
       else if (direction === "y") base.top = `${arrowsLocal.size}px`;
       else {
@@ -1465,7 +1495,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     return base;
-  }, [sizeLocal, progressTriggerST, arrowsLocal.size, direction]);
+  }, [sizeLocal, progressTriggerST, arrowsLocal, direction]);
 
   const overflowStyleValue = React.useMemo(() => {
     const map = {
@@ -1484,8 +1514,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [
     objectsWrapperWidthFull,
     objectsWrapperHeightFull,
-    sizeLocal[0],
-    sizeLocal[1],
+    sizeLocal,
     progressTriggerST,
     direction,
   ]);
