@@ -20,15 +20,14 @@ function smoothScroll(
   scrollElement: Element,
   duration: number,
   targetScroll: number,
-  firstLoad?: boolean,
+  firstRender?: boolean,
   callback?: () => void
 ) {
-  // console.log("firstLoad", firstLoad);
   if (!scrollElement || targetScroll === undefined || targetScroll === null)
     return null;
 
   // Если это первый рендер — сразу ставим значение без анимации
-  if (firstLoad) {
+  if (firstRender) {
     if (direction === "y") {
       (scrollElement as HTMLElement).scrollTop = targetScroll;
     } else if (direction === "x") {
@@ -95,45 +94,42 @@ const sliderCheck = (
   sizeLocal: number[],
   direction: Exclude<MorphScrollT["direction"], undefined>
 ) => {
-  function getActiveElem() {
-    const elementsFirst =
-      scrollBars[0]?.querySelectorAll(".ms-slider-element") ?? [];
-    const elementsSecond =
-      scrollBars[1]?.querySelectorAll(".ms-slider-element") ?? [];
+  const elementsFirst =
+    scrollBars[0]?.querySelectorAll(".ms-slider-element") ?? [];
+  const elementsSecond =
+    scrollBars[1]?.querySelectorAll(".ms-slider-element") ?? [];
 
-    function checkActive(
-      elementsArray: NodeListOf<Element>,
-      size: number[],
-      scroll: HTMLDivElement,
-      direction: Exclude<MorphScrollT["direction"], undefined>
-    ) {
-      const scrollPosition =
-        direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
+  function checkActive(
+    elementsArray: NodeListOf<Element>,
+    size: number[],
+    scroll: HTMLDivElement,
+    direction: Exclude<MorphScrollT["direction"], undefined>
+  ) {
+    const scrollPosition =
+      direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
 
-      elementsArray.forEach((element, index) => {
-        const neededSize = direction === "x" ? size[0] : size[1];
-        const isActive =
-          scrollPosition >= neededSize * index &&
-          scrollPosition < neededSize * (index + 1);
+    elementsArray.forEach((element, index) => {
+      const neededSize = direction === "x" ? size[0] : size[1];
+      const isActive =
+        scrollPosition >= neededSize * index &&
+        scrollPosition < neededSize * (index + 1);
 
-        if (isActive) {
-          element.classList.add("active");
-        } else {
-          element.classList.remove("active");
-        }
-      });
-    }
-
-    if (elementsFirst.length > 0) {
-      checkActive(elementsFirst, sizeLocal, scrollEl, direction);
-    }
-
-    if (elementsSecond.length > 0) {
-      checkActive(elementsSecond, sizeLocal, scrollEl, "x");
-    }
+      if (isActive) {
+        element.classList.add("active");
+      } else {
+        element.classList.remove("active");
+      }
+    });
   }
 
-  getActiveElem();
+  if (elementsFirst.length > 0) {
+    checkActive(elementsFirst, sizeLocal, scrollEl, direction);
+  }
+
+  // при "hybrid" direction
+  if (elementsSecond.length > 0) {
+    checkActive(elementsSecond, sizeLocal, scrollEl, "x");
+  }
 };
 
 function getWrapperMinSizeStyle(

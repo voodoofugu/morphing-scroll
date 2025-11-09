@@ -21,7 +21,7 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
       background:
         edgeGradient.color &&
         `linear-gradient(${
-          edgeType === "right" || edgeType === "left" ? "90deg, " : ""
+          edgeType === "right" || edgeType === "left" ? "270deg, " : ""
         }${edgeGradient.color}, transparent)`,
     }),
 
@@ -40,7 +40,7 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
     ...(edgeType ? { [edgeType]: 0 } : {}),
 
     // scale second ms-edge
-    ...(edgeType === "right"
+    ...(edgeType === "left"
       ? {
           transform: "scaleX(-1)",
         }

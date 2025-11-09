@@ -39,7 +39,7 @@ const ScrollBar = ({
 
   React.useEffect(() => {
     const el = thumbRef.current;
-    if (!el) return;
+    if (!el || type === "sliderMenu") return;
 
     const handleStart = (e: MouseEvent | TouchEvent) => {
       e.preventDefault(); // помогает блокировать интерфейс при перетаскивании

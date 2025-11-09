@@ -9,14 +9,25 @@ const mouseOnEl = (
 
   if (el.style.cursor === "grab") {
     if (eventType === "mousedown") {
-      document.body.style.cursor = "grabbing";
+      // document.body.style.cursor = "grabbing";
+
+      // лучше создать стиль для курсора
+      const style = document.createElement("style");
+      style.id = "ms-cursor-lock";
+      style.innerHTML = `* {
+        cursor: grabbing !important;
+      }`;
+      document.head.appendChild(style);
     }
 
     el.style.cursor = "grabbing";
     el.classList.add("active"); // что бы был контроль на phones
   } else if (el.style.cursor === "grabbing") {
     if (eventType === "mousedown") {
-      document.body.style.removeProperty("cursor");
+      // document.body.style.removeProperty("cursor");
+
+      const style = document.getElementById("ms-cursor-lock");
+      if (style) style.remove();
     }
 
     el.style.cursor = "grab";

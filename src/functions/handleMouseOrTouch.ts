@@ -76,6 +76,26 @@ type HandleUpT = Omit<
   clicked: ClickedT;
 };
 
+const cursorClassChange = (
+  eventType: string,
+  clicked: ClickedT,
+  scrollBar: HTMLDivElement | null,
+  objectsWrapperRef: HTMLDivElement | null
+) => {
+  const eventTypeLocal = eventType as "mousedown" | "touchstart";
+  if (["thumb", "slider"].includes(clicked)) {
+    // уточняем кликнутый объект для slider
+    if (clicked === "slider") {
+      mouseOnEl(
+        scrollBar?.closest(".ms-slider") as HTMLDivElement | null,
+        eventTypeLocal
+      );
+    } else mouseOnEl(scrollBar, eventTypeLocal);
+  } else if (clicked === "wrapp") {
+    mouseOnEl(objectsWrapperRef, eventTypeLocal);
+  }
+};
+
 const round4 = (n: number) => (Math.abs(n) < 0.0001 ? 0 : +n.toFixed(4));
 
 const scheduleFlushScroll = (args: HandleMoveT) => {
@@ -183,11 +203,12 @@ const applySlider = (
   args: HandleMoveT,
   delta: { x: number; y: number }
 ) => {
-  if (!args.objectsWrapperRef) return;
+  if (!args.objectsWrapperRef || args.isScrollingRef.current) return;
 
   const reverce = args.type === "slider" && args.clicked === "wrapp" ? -1 : 1;
   const move = delta[axis] * reverce;
-  const pixelsForSwipe = 6;
+
+  const pixelsForSwipe = 20;
   const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
   const extent = axis === "x" ? args.wrapElWH[0] : args.wrapElWH[1];
   const scroll =
@@ -197,15 +218,15 @@ const applySlider = (
 
   args.numForSliderRef.current += Math.abs(move);
 
-  if (
-    args.numForSliderRef.current > pixelsForSwipe &&
-    !args.isScrollingRef.current
-  ) {
-    if (move > 0 && scroll + size < extent) {
-      args.smoothScroll(scroll + size, axis, args.duration);
-    } else if (move < 0 && scroll > 0) {
-      args.smoothScroll(scroll - size, axis, args.duration);
-    }
+  if (args.numForSliderRef.current > pixelsForSwipe) {
+    const nextScroll =
+      move > 0 && scroll + size < extent
+        ? scroll + size
+        : move < 0 && scroll > 0
+        ? scroll - size
+        : null;
+
+    nextScroll && args.smoothScroll(nextScroll, axis, args.duration);
 
     args.numForSliderRef.current = 0;
   }
@@ -278,12 +299,12 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
   };
 
   // меняем курсор и классы
-  const eventType = args.eventType as "mousedown" | "touchstart";
-  if (["thumb", "slider"].includes(args.clicked)) {
-    mouseOnEl(args.scrollBar, eventType);
-  } else if (args.clicked === "wrapp") {
-    mouseOnEl(args.objectsWrapperRef, eventType);
-  }
+  cursorClassChange(
+    args.eventType,
+    args.clicked,
+    args.scrollBar,
+    args.objectsWrapperRef
+  );
 
   if (args.eventType === "mousedown") {
     document.addEventListener("mousemove", (mouseEvent) => onMove(mouseEvent), {
@@ -333,6 +354,7 @@ function handleMove(args: HandleMoveT) {
   args.prevCoordsRef.current = curr;
 
   const handleAxis = (axis: "x" | "y") => {
+    console.log("handleAxis");
     if (args.clicked === "thumb") {
       applyThumbOrWrap(axis, args, delta, prev);
     } else if (args.clicked === "wrapp") {
@@ -349,7 +371,6 @@ function handleMove(args: HandleMoveT) {
   const dir = args.direction || "y";
 
   if (dir === "hybrid") {
-    // handleAxis вызывается дважды
     const targetAxes =
       args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
     targetAxes.forEach((axis) => axis && handleAxis(axis as "x" | "y"));
@@ -365,12 +386,12 @@ function handleUp(args: HandleUpT) {
   args.controller.abort();
 
   // меняем курсор и классы
-  const eventType = args.eventType as "mousedown" | "touchstart";
-  if (["thumb", "slider"].includes(args.clicked)) {
-    mouseOnEl(args.scrollBar, eventType);
-  } else if (args.clicked === "wrapp") {
-    mouseOnEl(args.objectsWrapperRef, eventType);
-  }
+  cursorClassChange(
+    args.eventType,
+    args.clicked,
+    args.scrollBar,
+    args.objectsWrapperRef
+  );
 
   args.clickedObject.current = "none";
 

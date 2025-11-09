@@ -63,6 +63,7 @@ export type MorphScrollT = {
     progressElement?: boolean | React.ReactNode | React.ReactNode[];
     arrows?:
       | boolean
+      | React.ReactNode
       | { size?: number; element?: React.ReactNode; contentReduce?: boolean }; // !!! contentReduce
   };
   progressReverse?: boolean | boolean[];
@@ -71,11 +72,14 @@ export type MorphScrollT = {
   thumbMinSize?: number;
 
   // Optimization
-  render?: {
-    type: "lazy" | "virtual";
-    rootMargin?: number | number[];
-    stopLoadOnScroll?: boolean;
-  };
+  render?:
+    | "lazy"
+    | "virtual"
+    | {
+        type: "lazy" | "virtual";
+        rootMargin?: number | number[];
+        stopLoadOnScroll?: boolean; // позже сократить до loadOnScroll
+      };
   emptyElements?: {
     mode: "clear" | "fallback" | { fallback: React.ReactNode };
     clickTrigger?: { selector: string; delay?: number };
