@@ -224,9 +224,9 @@ const applySlider = (
         ? scroll + size
         : move < 0 && scroll > 0
         ? scroll - size
-        : null;
+        : 0;
 
-    nextScroll && args.smoothScroll(nextScroll, axis, args.duration);
+    args.smoothScroll(nextScroll, axis, args.duration);
 
     args.numForSliderRef.current = 0;
   }
