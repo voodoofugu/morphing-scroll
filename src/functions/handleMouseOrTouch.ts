@@ -34,7 +34,6 @@ type HandleMouseT = {
   triggerUpdate: () => void;
   scrollElemIndex?: number;
   numForSliderRef: React.RefObject<number>;
-  isScrollingRef: React.RefObject<boolean>;
   prevCoordsRef: React.RefObject<{
     x: number;
     y: number;
@@ -168,6 +167,7 @@ const applyThumbOrWrap = (
   }
 
   // лайфхак для масштабирования экрана!!!
+  // при изменённых масштабах для правельного передвижения scroll
   // console.log("scrollElement", scrollElement.clientWidth);
   // console.log("document", document.documentElement.clientWidth);
 
@@ -203,7 +203,7 @@ const applySlider = (
   args: HandleMoveT,
   delta: { x: number; y: number }
 ) => {
-  if (!args.objectsWrapperRef || args.isScrollingRef.current) return;
+  if (!args.objectsWrapperRef) return;
 
   const reverce = args.type === "slider" && args.clicked === "wrapp" ? -1 : 1;
   const move = delta[axis] * reverce;
@@ -216,7 +216,7 @@ const applySlider = (
       ? args.scrollElementRef!.scrollLeft
       : args.scrollElementRef!.scrollTop;
 
-  args.numForSliderRef.current += Math.abs(move);
+  args.numForSliderRef.current += Math.abs(move); // накапливаем значение передвижения
 
   if (args.numForSliderRef.current > pixelsForSwipe) {
     const nextScroll =
@@ -227,10 +227,57 @@ const applySlider = (
         : 0;
 
     args.smoothScroll(nextScroll, axis, args.duration);
-
     args.numForSliderRef.current = 0;
   }
 };
+
+function handleMove(args: HandleMoveT) {
+  const curr = {
+    x:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientX
+        : args.mouseEvent.clientX,
+    y:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientY
+        : args.mouseEvent.clientY,
+    leftover: args.prevCoordsRef.current?.leftover ?? 0,
+  };
+
+  const prev = args.prevCoordsRef.current ?? curr;
+  const delta = {
+    x: curr.x - prev.x,
+    y: curr.y - prev.y,
+  };
+
+  args.prevCoordsRef.current = curr;
+
+  const handleAxis = (axis: "x" | "y") => {
+    if (args.clicked === "thumb") {
+      applyThumbOrWrap(axis, args, delta, prev);
+    } else if (args.clicked === "wrapp") {
+      if (args.type === "slider") {
+        applySlider(axis, args, delta);
+      } else {
+        applyThumbOrWrap(axis, args, delta, prev);
+      }
+    } else if (args.clicked === "slider") {
+      applySlider(axis, args, delta);
+    }
+  };
+
+  const dir = args.direction || "y";
+
+  if (dir === "hybrid") {
+    const targetAxes =
+      args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
+    targetAxes.forEach((axis) => axis && handleAxis(axis as "x" | "y"));
+  } else {
+    handleAxis(dir as "x" | "y");
+  }
+
+  scheduleFlushScroll(args);
+}
 
 function handleMouseOrTouch(args: HandleMouseDownT) {
   // обновление targetScroll заранее
@@ -330,55 +377,6 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
       { signal }
     );
   }
-}
-
-function handleMove(args: HandleMoveT) {
-  const curr = {
-    x:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientX
-        : args.mouseEvent.clientX,
-    y:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientY
-        : args.mouseEvent.clientY,
-    leftover: args.prevCoordsRef.current?.leftover ?? 0,
-  };
-
-  const prev = args.prevCoordsRef.current ?? curr;
-  const delta = {
-    x: curr.x - prev.x,
-    y: curr.y - prev.y,
-  };
-
-  args.prevCoordsRef.current = curr;
-
-  const handleAxis = (axis: "x" | "y") => {
-    console.log("handleAxis");
-    if (args.clicked === "thumb") {
-      applyThumbOrWrap(axis, args, delta, prev);
-    } else if (args.clicked === "wrapp") {
-      if (args.type === "slider") {
-        applySlider(axis, args, delta);
-      } else {
-        applyThumbOrWrap(axis, args, delta, prev);
-      }
-    } else if (args.clicked === "slider") {
-      applySlider(axis, args, delta);
-    }
-  };
-
-  const dir = args.direction || "y";
-
-  if (dir === "hybrid") {
-    const targetAxes =
-      args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
-    targetAxes.forEach((axis) => axis && handleAxis(axis as "x" | "y"));
-  } else {
-    handleAxis(dir as "x" | "y");
-  }
-
-  scheduleFlushScroll(args);
 }
 
 function handleUp(args: HandleUpT) {

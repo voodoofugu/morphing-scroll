@@ -831,6 +831,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       duration: number,
       callback?: () => void
     ) => {
+      if (isScrollingRef.current) return;
+
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
@@ -998,7 +1000,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
         clicked: clickedLocal,
         numForSliderRef,
-        isScrollingRef,
         prevCoordsRef,
         thumbSize:
           axisFromAtr === "x"
@@ -1576,7 +1577,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         activity={visibility}
         arrows={arrowsLocal}
         arrowType={positionType as handleArrowT["arrowType"]}
-        handleArrow={handleArrowLocal ?? handleArrowLocal}
+        handleArrow={handleArrowLocal}
         size={
           direction === "hybrid"
             ? sizeLocal[0] + arrowsLocal.size * 2
