@@ -23,7 +23,6 @@ function smoothScroll(
   firstRender?: boolean,
   callback?: () => void
 ) {
-  console.log("smoothScroll");
   if (!scrollElement || targetScroll === undefined || targetScroll === null)
     return null;
 

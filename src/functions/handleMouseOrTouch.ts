@@ -231,54 +231,6 @@ const applySlider = (
   }
 };
 
-function handleMove(args: HandleMoveT) {
-  const curr = {
-    x:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientX
-        : args.mouseEvent.clientX,
-    y:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientY
-        : args.mouseEvent.clientY,
-    leftover: args.prevCoordsRef.current?.leftover ?? 0,
-  };
-
-  const prev = args.prevCoordsRef.current ?? curr;
-  const delta = {
-    x: curr.x - prev.x,
-    y: curr.y - prev.y,
-  };
-
-  args.prevCoordsRef.current = curr;
-
-  const handleAxis = (axis: "x" | "y") => {
-    if (args.clicked === "thumb") {
-      applyThumbOrWrap(axis, args, delta, prev);
-    } else if (args.clicked === "wrapp") {
-      if (args.type === "slider") {
-        applySlider(axis, args, delta);
-      } else {
-        applyThumbOrWrap(axis, args, delta, prev);
-      }
-    } else if (args.clicked === "slider") {
-      applySlider(axis, args, delta);
-    }
-  };
-
-  const dir = args.direction || "y";
-
-  if (dir === "hybrid") {
-    const targetAxes =
-      args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
-    targetAxes.forEach((axis) => axis && handleAxis(axis as "x" | "y"));
-  } else {
-    handleAxis(dir as "x" | "y");
-  }
-
-  scheduleFlushScroll(args);
-}
-
 function handleMouseOrTouch(args: HandleMouseDownT) {
   // обновление targetScroll заранее
   const scrollElement = args.scrollElementRef;
@@ -353,6 +305,7 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     args.objectsWrapperRef
   );
 
+  // слушатели
   if (args.eventType === "mousedown") {
     document.addEventListener("mousemove", (mouseEvent) => onMove(mouseEvent), {
       passive: false,
@@ -376,6 +329,53 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
       (touchEvent) => handleUp({ ...args, mouseEvent: touchEvent, controller }),
       { signal }
     );
+  }
+}
+
+function handleMove(args: HandleMoveT) {
+  const curr = {
+    x:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientX
+        : args.mouseEvent.clientX,
+    y:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientY
+        : args.mouseEvent.clientY,
+    leftover: args.prevCoordsRef.current?.leftover ?? 0,
+  };
+
+  const prev = args.prevCoordsRef.current ?? curr;
+  const delta = {
+    x: curr.x - prev.x,
+    y: curr.y - prev.y,
+  };
+
+  args.prevCoordsRef.current = curr;
+
+  const handleAxis = (axis: "x" | "y") => {
+    if (args.clicked === "thumb") {
+      applyThumbOrWrap(axis, args, delta, prev);
+      scheduleFlushScroll(args); // только для ползунка!
+    } else if (args.clicked === "wrapp") {
+      if (args.type === "slider") {
+        applySlider(axis, args, delta);
+      } else {
+        applyThumbOrWrap(axis, args, delta, prev);
+      }
+    } else if (args.clicked === "slider") {
+      applySlider(axis, args, delta);
+    }
+  };
+
+  const dir = args.direction || "y";
+
+  if (dir === "hybrid") {
+    const targetAxes =
+      args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
+    targetAxes.forEach((axis) => axis && handleAxis(axis as "x" | "y"));
+  } else {
+    handleAxis(dir as "x" | "y");
   }
 }
 
