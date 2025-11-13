@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setManagedTask, clearManagedTask } from "../helpers/taskManager";
+import { setTask, cancelTask } from "../helpers/taskManager";
 
 import { MorphScrollT } from "../types/types";
 
@@ -57,19 +57,19 @@ function smoothScroll(
 
     if (progress < 1) {
       // Перезапланировать следующий кадр
-      setManagedTask(animate, "requestFrame", taskId);
+      setTask(animate, "requestFrame", taskId);
     } else {
       // Анимация завершена
-      clearManagedTask(taskId, "requestFrame");
+      cancelTask(taskId, "requestFrame");
       callback?.();
     }
   };
 
   // Запускаем первый кадр
-  setManagedTask(animate, "requestFrame", taskId);
+  setTask(animate, "requestFrame", taskId);
 
   // Возвращаем функцию для отмены анимации
-  // return () => clearManagedTask(taskId, "requestFrame");
+  // return () => cancelTask(taskId, "requestFrame");
 }
 
 const getAllScrollBars = (
@@ -200,22 +200,36 @@ function getWrapperAlignStyle(
 function createResizeHandler(
   dataRef: React.RefObject<{ width: number; height: number }>,
   triggerUpdate: () => void,
+  id: string,
   offsetX = 0,
   offsetY = 0
 ) {
-  return (rect: Partial<DOMRectReadOnly>) => {
-    const newSize = {
-      width: (rect.width ?? 0) - offsetX,
-      height: (rect.height ?? 0) - offsetY,
-    };
+  // let lastRect: Partial<DOMRectReadOnly> | null = null;
 
-    if (
-      dataRef.current?.width !== newSize.width ||
-      dataRef.current?.height !== newSize.height
-    ) {
-      dataRef.current = newSize;
-      triggerUpdate();
-    }
+  return (rect: Partial<DOMRectReadOnly>) => {
+    // lastRect = rect;
+
+    setTask(
+      () => {
+        if (!rect) return;
+        const newSize = {
+          width: (rect.width ?? 0) - offsetX,
+          height: (rect.height ?? 0) - offsetY,
+        };
+
+        if (
+          dataRef.current?.width === newSize.width &&
+          dataRef.current?.height === newSize.height
+        )
+          return;
+
+        dataRef.current = newSize;
+        triggerUpdate();
+        // lastRect = null;
+      },
+      "requestFrame",
+      id
+    );
   };
 }
 

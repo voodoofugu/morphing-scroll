@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setManagedTask } from "../helpers/taskManager";
+import { setTask } from "../helpers/taskManager";
 
 import { CONST } from "../constants";
 
@@ -80,7 +80,7 @@ const updateEmptyKeysClick = (
 
   if (parentWrapper) parentWrapper.classList.add("remove");
 
-  setManagedTask(() => {
+  setTask(() => {
     if (parentWrapper) parentWrapper.classList.remove("remove");
     callBack();
   }, clickTrigger.delay || "requestFrame");

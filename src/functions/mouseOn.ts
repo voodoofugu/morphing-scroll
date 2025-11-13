@@ -1,4 +1,4 @@
-import { setManagedTask } from "../helpers/taskManager";
+import { setTask } from "../helpers/taskManager";
 
 // функция смены курсора
 const mouseOnEl = (
@@ -56,7 +56,7 @@ const mouseOnRef = (
       target.classList.remove("hover");
       target.classList.add("leave");
 
-      setManagedTask(() => target.classList.remove("leave"), 200);
+      setTask(() => target.classList.remove("leave"), 200);
     } else {
       target.style.opacity = "1";
       target.classList.add("hover");

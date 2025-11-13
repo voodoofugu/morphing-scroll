@@ -33,7 +33,7 @@ import {
 } from "../functions/calculateThumbSize";
 import { mouseOnRef } from "../functions/mouseOn";
 
-import { setManagedTask, clearAllManagedTasks } from "../helpers/taskManager";
+import { setTask, cancelAllTasks } from "../helpers/taskManager";
 
 import { CONST } from "../constants";
 
@@ -807,21 +807,30 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ functions
   const scrollResize = React.useCallback(
-    createResizeHandler(receivedScrollSizeRef, triggerUpdate),
-    [receivedScrollSizeRef.current.height, receivedScrollSizeRef.current.width]
+    createResizeHandler(
+      receivedScrollSizeRef,
+      triggerUpdate,
+      `scrollResize${id}`
+    ),
+    []
   );
   const wrapResize = React.useCallback(
-    createResizeHandler(receivedWrapSizeRef, triggerUpdate, mLocalX, mLocalY),
-    [
-      receivedWrapSizeRef.current.height,
-      receivedWrapSizeRef.current.width,
+    createResizeHandler(
+      receivedWrapSizeRef,
+      triggerUpdate,
+      `wrapResize${id}`,
       mLocalX,
-      mLocalY,
-    ]
+      mLocalY
+    ),
+    [mLocalX, mLocalY]
   );
   const childResize = React.useCallback(
-    createResizeHandler(receivedChildSizeRef, triggerUpdate),
-    [receivedChildSizeRef.current.height, receivedChildSizeRef.current.width]
+    createResizeHandler(
+      receivedChildSizeRef,
+      triggerUpdate,
+      `childResize${id}`
+    ),
+    []
   );
 
   const smoothScrollLocal = React.useCallback(
@@ -1074,7 +1083,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return;
 
     // ограничение частоты вызова
-    setManagedTask(
+    setTask(
       () =>
         sliderCheck(
           scrollEl,
@@ -1112,7 +1121,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const handleScroll = React.useCallback(() => {
-    setManagedTask(() => {
+    setTask(() => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return;
 
@@ -1121,7 +1130,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       isScrollingRef.current = true;
       isScrolling?.(true);
 
-      setManagedTask(() => {
+      setTask(() => {
         isScrollingRef.current = false;
         isScrolling?.(false);
         updateLoadedElementsKeysLocal();
@@ -1129,7 +1138,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (type !== "scroll") sliderCheckLocal();
 
-      setManagedTask(triggerUpdate, "requestFrame", "triggerUpdate");
+      setTask(triggerUpdate, "requestFrame", "triggerUpdate");
     }, 6); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1317,7 +1326,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-      clearAllManagedTasks("timeout");
+      cancelAllTasks("timeout");
     };
   }, []);
 

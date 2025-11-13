@@ -1,10 +1,6 @@
 // useDebouncedCallback.ts
 import { useRef, useCallback, useEffect } from "react";
-import {
-  setManagedTask,
-  clearManagedTask,
-  clearAllManagedTasks,
-} from "../helpers/taskManager";
+import { setTask, cancelTask, cancelAllTasks } from "../helpers/taskManager";
 
 type DebounceMode = number | "requestFrame";
 type DebouncedFunction<T extends (...args: any[]) => void> = ((
@@ -26,15 +22,15 @@ function useDebouncedCallback<T extends (...args: any[]) => void>(
     ((...args: Parameters<T>) => {
       const currentId = localIdRef.current;
 
-      clearManagedTask(currentId);
-      setManagedTask(() => callback(...args), delay, currentId);
+      cancelTask(currentId);
+      setTask(() => callback(...args), delay, currentId);
     }) as DebouncedFunction<T>,
     [callback, delay]
   );
 
   debounced.cancel = () => {
     const currentId = localIdRef.current;
-    clearManagedTask(currentId);
+    cancelTask(currentId);
   };
 
   // Очистка при размонтировании компонента

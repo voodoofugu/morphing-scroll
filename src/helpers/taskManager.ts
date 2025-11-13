@@ -1,6 +1,6 @@
 // --- Типы ---
 type Task = { id: string; callback: () => void; runAt: number };
-export type TaskMode = "timeout" | "requestFrame";
+type TaskMode = "timeout" | "requestFrame";
 
 // --- Счётчик для авто-ID ---
 let autoIdCounter = 0;
@@ -20,6 +20,17 @@ const state: { timeout: TimeoutState; requestFrame: RafState } = {
   timeout: { tasks: [], timer: null },
   requestFrame: { tasks: [], rafId: null },
 };
+
+function insertTaskSorted(tasks: Task[], task: Task) {
+  let left = 0;
+  let right = tasks.length;
+  while (left < right) {
+    const mid = (left + right) >> 1;
+    if (tasks[mid].runAt < task.runAt) left = mid + 1;
+    else right = mid;
+  }
+  tasks.splice(left, 0, task);
+}
 
 // --- Стратегии планирования ---
 const schedulers = {
@@ -54,6 +65,7 @@ const schedulers = {
       state.timeout.tasks = [];
     },
   },
+
   requestFrame: {
     scheduleNext() {
       const { tasks } = state.requestFrame;
@@ -88,17 +100,18 @@ const schedulers = {
 };
 
 // --- API ---
-const setManagedTask = (
+const setTask = (
   callback: () => void,
   mode: number | "requestFrame",
   id?: string
 ): string => {
   const taskId = id || generateId();
   const modeKey: TaskMode =
-    typeof mode === "string" ? "requestFrame" : "timeout";
+    mode === "requestFrame" ? "requestFrame" : "timeout";
 
-  // убираем задачу с таким же id
-  state[modeKey].tasks = state[modeKey].tasks.filter((t) => t.id !== taskId);
+  // удаляем старую задачу с тем же ID, если ID передан
+  if (id)
+    state[modeKey].tasks = state[modeKey].tasks.filter((t) => t.id !== taskId);
 
   const runAt =
     modeKey === "requestFrame"
@@ -107,27 +120,27 @@ const setManagedTask = (
 
   const task: Task = { id: taskId, callback, runAt };
 
-  // вставляем в отсортированный массив
-  let i = state[modeKey].tasks.length;
-  while (i > 0 && state[modeKey].tasks[i - 1].runAt > task.runAt) i--;
-  state[modeKey].tasks.splice(i, 0, task);
+  // Вставляем задачу в очередь по времени
+  insertTaskSorted(state[modeKey].tasks, task);
 
+  // Запускаем/продолжаем цикл
   schedulers[modeKey].scheduleNext();
 
   return taskId;
 };
 
-const clearManagedTask = (id: string, mode?: TaskMode) => {
+const cancelTask = (id: string, mode?: TaskMode) => {
   const modes = mode ? [mode] : (["timeout", "requestFrame"] as TaskMode[]);
   modes.forEach((m) => {
-    state[m].tasks = state[m].tasks.filter((t) => t.id !== id);
-    schedulers[m].scheduleNext();
+    const tasks = state[m].tasks;
+    state[m].tasks = tasks.filter((t) => t.id !== id);
+    if (state[m].tasks.length > 0) schedulers[m].scheduleNext();
   });
 };
 
-const clearAllManagedTasks = (mode?: TaskMode) => {
+const cancelAllTasks = (mode?: TaskMode) => {
   const modes = mode ? [mode] : (["timeout", "requestFrame"] as TaskMode[]);
   modes.forEach((m) => schedulers[m].clearAll());
 };
 
-export { setManagedTask, clearManagedTask, clearAllManagedTasks };
+export { setTask, cancelTask, cancelAllTasks };
