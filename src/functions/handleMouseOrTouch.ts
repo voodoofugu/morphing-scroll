@@ -97,21 +97,6 @@ const cursorClassChange = (
 
 const round4 = (n: number) => (Math.abs(n) < 0.0001 ? 0 : +n.toFixed(4));
 
-const scheduleFlushScroll = (args: HandleMoveT) => {
-  setManagedTask(
-    () => {
-      const el = args.scrollElementRef;
-      if (!el) return;
-
-      // применяем target / текущие значения (если ещё не установлены)
-      el.scrollLeft = args.scrollStateRef.targetScrollX;
-      el.scrollTop = args.scrollStateRef.targetScrollY;
-    },
-    "requestFrame",
-    "syncScroll" // единый id — перезапишет предыдущие, батчит
-  );
-};
-
 const applyThumbOrWrap = (
   axis: "x" | "y",
   args: HandleMoveT,
@@ -119,13 +104,19 @@ const applyThumbOrWrap = (
   prev: { leftover: number }
 ) => {
   if (!args.scrollElementRef || !args.objectsWrapperRef) return;
+
   let deltaScroll = 0;
-
   const move = axis === "x" ? delta.x : delta.y;
-
   const scrollElement = args.scrollElementRef;
 
   if (args.clicked === "thumb") {
+    const docSize = axis === "x" ? window.innerWidth : window.innerHeight;
+    const elSize =
+      axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
+    // параметр для небольшого уравнивания движение если scroll > window
+    // например когда окно маленькое и интерфейс уменьшен
+    const flexWidth = elSize > docSize ? elSize - docSize : 0; // !!!
+
     const visibleSize =
       axis === "x" ? args.scrollElementWH[0] : args.scrollElementWH[1];
 
@@ -154,22 +145,15 @@ const applyThumbOrWrap = (
     const fullDelta = move * scrollRatio + prev.leftover;
 
     const intDelta = Math.trunc(fullDelta);
-    let newLeftover = fullDelta - intDelta;
-
-    newLeftover = +newLeftover.toFixed(4);
 
     if (args.prevCoordsRef.current) {
       args.prevCoordsRef.current.leftover = round4(fullDelta - intDelta);
     }
     deltaScroll = intDelta;
   } else {
+    // для wrap
     deltaScroll = -move;
   }
-
-  // лайфхак для масштабирования экрана!!!
-  // при изменённых масштабах для правельного передвижения scroll
-  // console.log("scrollElement", scrollElement.clientWidth);
-  // console.log("document", document.documentElement.clientWidth);
 
   if (axis === "x") {
     const prevTarget =
@@ -195,6 +179,15 @@ const applyThumbOrWrap = (
       0,
       Math.min(prevTarget + deltaScroll, maxScroll)
     );
+  }
+
+  // только для перетягивания!
+  if (
+    args.clicked === "thumb" ||
+    (args.clicked === "wrapp" && args.type !== "slider")
+  ) {
+    scrollElement.scrollLeft = args.scrollStateRef.targetScrollX;
+    scrollElement.scrollTop = args.scrollStateRef.targetScrollY;
   }
 };
 
@@ -356,7 +349,6 @@ function handleMove(args: HandleMoveT) {
   const handleAxis = (axis: "x" | "y") => {
     if (args.clicked === "thumb") {
       applyThumbOrWrap(axis, args, delta, prev);
-      scheduleFlushScroll(args); // только для ползунка!
     } else if (args.clicked === "wrapp") {
       if (args.type === "slider") {
         applySlider(axis, args, delta);

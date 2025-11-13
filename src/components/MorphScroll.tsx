@@ -831,8 +831,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       duration: number,
       callback?: () => void
     ) => {
-      if (isScrollingRef.current) return;
-
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 

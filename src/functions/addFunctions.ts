@@ -40,7 +40,7 @@ function smoothScroll(
   const startScrollTop = scrollElement.scrollTop;
   const startScrollLeft = scrollElement.scrollLeft;
 
-  const taskId = "smoothScroll"; // можно сделать уникальным через generateId
+  const taskId = "smoothScroll";
 
   const animate = () => {
     const currentTime = performance.now();
@@ -69,7 +69,7 @@ function smoothScroll(
   setManagedTask(animate, "requestFrame", taskId);
 
   // Возвращаем функцию для отмены анимации
-  return () => clearManagedTask(taskId, "requestFrame");
+  // return () => clearManagedTask(taskId, "requestFrame");
 }
 
 const getAllScrollBars = (

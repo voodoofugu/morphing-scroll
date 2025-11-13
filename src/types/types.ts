@@ -64,7 +64,7 @@ export type MorphScrollT = {
     arrows?:
       | boolean
       | React.ReactNode
-      | { size?: number; element?: React.ReactNode; contentReduce?: boolean }; // !!! contentReduce
+      | { element?: React.ReactNode; size?: number; contentReduce?: boolean }; // !!! contentReduce
   };
   progressReverse?: boolean | boolean[];
   scrollBarOnHover?: boolean;
