@@ -1,7 +1,6 @@
 import { MorphScrollT } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
-import { setTask } from "../helpers/taskManager";
 import { mouseOnEl } from "../functions/mouseOn";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | "none";

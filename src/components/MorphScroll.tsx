@@ -807,29 +807,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ functions
   const scrollResize = React.useCallback(
-    createResizeHandler(
-      receivedScrollSizeRef,
-      triggerUpdate,
-      `scrollResize${id}`
-    ),
+    createResizeHandler(receivedScrollSizeRef, triggerUpdate),
     []
   );
   const wrapResize = React.useCallback(
-    createResizeHandler(
-      receivedWrapSizeRef,
-      triggerUpdate,
-      `wrapResize${id}`,
-      mLocalX,
-      mLocalY
-    ),
+    createResizeHandler(receivedWrapSizeRef, triggerUpdate, mLocalX, mLocalY),
     [mLocalX, mLocalY]
   );
   const childResize = React.useCallback(
-    createResizeHandler(
-      receivedChildSizeRef,
-      triggerUpdate,
-      `childResize${id}`
-    ),
+    createResizeHandler(receivedChildSizeRef, triggerUpdate),
     []
   );
 
@@ -843,13 +829,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
+      const collbackLocal = () => {
+        if (className === "angelImgScroll") console.log("smoothScrollLocal");
+        if (callback) callback();
+      };
+
       return smoothScroll(
         direction,
         scrollEl,
-        duration,
+        firstRender.current ? 0 : duration,
         targetScroll,
-        firstRender.current,
-        callback
+        collbackLocal
       );
     },
     [firstRender.current]

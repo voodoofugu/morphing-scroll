@@ -30,6 +30,7 @@ export type MorphScrollT = {
         value: number | "end" | (number | "end")[];
         duration?: number;
         updater?: boolean;
+        // callback?: (target: HTMLElement) => void; // !!!
       }
     | number
     | "end"

@@ -20,56 +20,57 @@ function smoothScroll(
   scrollElement: Element,
   duration: number,
   targetScroll: number,
-  firstRender?: boolean,
   callback?: () => void
 ) {
   if (!scrollElement || targetScroll === undefined || targetScroll === null)
     return null;
 
-  // Если это первый рендер — сразу ставим значение без анимации
-  if (firstRender) {
-    if (direction === "y") {
+  const taskId = "smoothScroll";
+
+  if (!duration) {
+    if (direction === "y")
       (scrollElement as HTMLElement).scrollTop = targetScroll;
-    } else if (direction === "x") {
+    else if (direction === "x")
       (scrollElement as HTMLElement).scrollLeft = targetScroll;
-    }
+
     return;
   }
 
-  const startTime = performance.now();
-  const startScrollTop = scrollElement.scrollTop;
-  const startScrollLeft = scrollElement.scrollLeft;
+  // !!! не работает
+  setTask(
+    () => {
+      const startTime = performance.now();
+      const startScrollTop = scrollElement.scrollTop;
+      const startScrollLeft = scrollElement.scrollLeft;
 
-  const taskId = "smoothScroll";
+      const animate = () => {
+        const currentTime = performance.now();
+        const timeElapsed = currentTime - startTime;
+        const progress = duration ? Math.min(timeElapsed / duration, 1) : 1;
 
-  const animate = () => {
-    const currentTime = performance.now();
-    const timeElapsed = currentTime - startTime;
-    const progress = Math.min(timeElapsed / duration, 1);
+        if (direction === "y") {
+          scrollElement.scrollTop =
+            startScrollTop + (targetScroll - startScrollTop) * progress;
+        } else if (direction === "x") {
+          scrollElement.scrollLeft =
+            startScrollLeft + (targetScroll - startScrollLeft) * progress;
+        }
 
-    if (direction === "y") {
-      scrollElement.scrollTop =
-        startScrollTop + (targetScroll - startScrollTop) * progress;
-    } else if (direction === "x") {
-      scrollElement.scrollLeft =
-        startScrollLeft + (targetScroll - startScrollLeft) * progress;
-    }
+        // Перезапланировать следующий кадр
+        if (progress < 1) setTask(animate, "requestFrame", taskId);
+        else callback?.();
+      };
 
-    if (progress < 1) {
-      // Перезапланировать следующий кадр
+      // Запускаем первый кадр
       setTask(animate, "requestFrame", taskId);
-    } else {
-      // Анимация завершена
-      cancelTask(taskId, "requestFrame");
-      callback?.();
-    }
-  };
-
-  // Запускаем первый кадр
-  setTask(animate, "requestFrame", taskId);
+    },
+    duration,
+    `animate${taskId}`,
+    "exclusive"
+  );
 
   // Возвращаем функцию для отмены анимации
-  // return () => cancelTask(taskId, "requestFrame");
+  return () => cancelTask(taskId, "requestFrame");
 }
 
 const getAllScrollBars = (
@@ -200,36 +201,31 @@ function getWrapperAlignStyle(
 function createResizeHandler(
   dataRef: React.RefObject<{ width: number; height: number }>,
   triggerUpdate: () => void,
-  id: string,
   offsetX = 0,
   offsetY = 0
 ) {
-  // let lastRect: Partial<DOMRectReadOnly> | null = null;
-
   return (rect: Partial<DOMRectReadOnly>) => {
-    // lastRect = rect;
+    let firstZero = false;
 
-    setTask(
-      () => {
-        if (!rect) return;
-        const newSize = {
-          width: (rect.width ?? 0) - offsetX,
-          height: (rect.height ?? 0) - offsetY,
-        };
+    const newSize = {
+      width: (rect.width ?? 0) - offsetX,
+      height: (rect.height ?? 0) - offsetY,
+    };
 
-        if (
-          dataRef.current?.width === newSize.width &&
-          dataRef.current?.height === newSize.height
-        )
-          return;
+    const zero = newSize.width === 0 && newSize.height === 0;
+    if (zero && !firstZero) {
+      firstZero = true;
+    }
 
-        dataRef.current = newSize;
-        triggerUpdate();
-        // lastRect = null;
-      },
-      "requestFrame",
-      id
-    );
+    if (
+      (dataRef.current?.width === newSize.width &&
+        dataRef.current?.height === newSize.height) ||
+      (zero && firstZero)
+    )
+      return;
+
+    dataRef.current = newSize;
+    triggerUpdate();
   };
 }
 
