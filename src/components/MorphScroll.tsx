@@ -33,7 +33,7 @@ import {
 } from "../functions/calculateThumbSize";
 import { mouseOnRef } from "../functions/mouseOn";
 
-import { setTask, cancelAllTasks } from "../helpers/taskManager";
+import { setTask, cancelTask } from "../helpers/taskManager";
 
 import { CONST } from "../constants";
 
@@ -829,17 +829,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
-      const collbackLocal = () => {
-        if (className === "angelImgScroll") console.log("smoothScrollLocal");
-        if (callback) callback();
-      };
-
       return smoothScroll(
         direction,
         scrollEl,
         firstRender.current ? 0 : duration,
-        targetScroll,
-        collbackLocal
+        targetScroll
       );
     },
     [firstRender.current]
@@ -1316,7 +1310,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-      cancelAllTasks("timeout");
+      cancelTask();
     };
   }, []);
 

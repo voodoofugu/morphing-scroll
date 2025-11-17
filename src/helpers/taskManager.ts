@@ -88,8 +88,8 @@ const schedulers = {
   requestFrame: {
     scheduleNext() {
       const st = state.requestFrame;
-      if (st.rafId !== null) return; // цикл уже идёт
-      if (st.tasks.length === 0) return;
+      // цикл уже идёт
+      if (st.rafId !== null || st.tasks.length === 0) return;
 
       const loop = () => {
         st.rafId = null;
@@ -135,48 +135,21 @@ const setTask = (
   mode: number | "requestFrame",
   id?: string,
   behavior?: "default" | "exclusive"
-): string => {
+): { id: string; mode: "timeout" | "requestFrame" } => {
   const taskId = id || generateId();
   const modeKey: TaskMode =
     mode === "requestFrame" ? "requestFrame" : "timeout";
+  const taskData = { id: taskId, mode: modeKey };
+
+  // обработка 0
+  if (mode === 0) {
+    callback();
+    return taskData;
+  }
+
   const behaviorLocal = behavior || "default";
 
   const st = state[modeKey];
-
-  // --- exclusive ---
-  if (behaviorLocal === "exclusive") {
-    // если задача уже выполняется — игнорируем
-    if (st.running.has(taskId)) return taskId;
-
-    // если задача уже в очереди — игнорируем
-    if (st.tasks.some((t) => t.id === taskId)) return taskId;
-
-    const task: Task = {
-      id: taskId,
-      runAt:
-        modeKey === "requestFrame"
-          ? performance.now()
-          : performance.now() + (mode as number),
-      callback: () => {
-        st.running.add(taskId);
-        try {
-          callback();
-        } finally {
-          st.running.delete(taskId);
-        }
-      },
-    };
-
-    insertTaskSorted(st.tasks, task);
-    schedulers[modeKey].scheduleNext();
-    return taskId;
-  }
-
-  // --- default ---
-  if (id) {
-    st.tasks = st.tasks.filter((t) => t.id !== taskId);
-  }
-
   const runAt =
     modeKey === "requestFrame"
       ? performance.now()
@@ -184,40 +157,87 @@ const setTask = (
 
   const task: Task = {
     id: taskId,
-    callback: () => {
+    runAt,
+    callback: () => {},
+  };
+
+  // --- exclusive ---
+  if (behaviorLocal === "exclusive") {
+    if (st.running.has(taskId) || st.tasks.some((t) => t.id === taskId))
+      return taskData;
+
+    st.running.add(taskId);
+    callback();
+
+    // через delay снимаем блокировку
+    if (modeKey === "requestFrame") {
+      requestAnimationFrame(() => st.running.delete(taskId));
+    } else {
+      if (mode === 0) st.running.delete(taskId);
+      else setTimeout(() => st.running.delete(taskId), mode as number);
+    }
+
+    return taskData;
+  }
+
+  // --- default ---
+  else {
+    if (id) {
+      st.tasks = st.tasks.filter((t) => t.id !== taskId);
+    }
+
+    task.callback = () => {
       st.running.add(taskId);
       try {
         callback();
       } finally {
         st.running.delete(taskId);
       }
-    },
-    runAt,
-  };
+    };
+  }
 
   insertTaskSorted(st.tasks, task);
   schedulers[modeKey].scheduleNext();
 
-  return taskId;
+  return taskData;
 };
 
-const cancelTask = (id: string, mode?: TaskMode) => {
-  const modes = mode ? [mode] : (["timeout", "requestFrame"] as TaskMode[]);
-  modes.forEach((m) => {
-    state[m].running.delete(id);
-    state[m].tasks = state[m].tasks.filter((t) => t.id !== id);
+type CancelTaskData =
+  | { id?: string | string[]; mode: TaskMode | TaskMode[] }
+  | { id?: string | string[]; mode: TaskMode | TaskMode[] }[];
 
-    if (state[m].tasks.length === 0) {
-      schedulers[m].clearAll();
-    } else {
-      schedulers[m].scheduleNext();
+const cancelTask = (taskData?: CancelTaskData) => {
+  if (!taskData) {
+    (["timeout", "requestFrame"] as TaskMode[]).forEach((m) =>
+      schedulers[m].clearAll()
+    );
+    return;
+  }
+
+  const items = Array.isArray(taskData) ? taskData : [taskData];
+
+  items.forEach(({ id, mode }) => {
+    const modes: TaskMode[] = Array.isArray(mode) ? mode : [mode];
+    const ids: string[] = id ? (Array.isArray(id) ? id : [id]) : [];
+
+    // если id нет — просто очищаем mode
+    if (ids.length === 0) {
+      modes.forEach((m) => schedulers[m].clearAll());
+      return;
     }
+
+    // удаляем конкретные id
+    modes.forEach((m) => {
+      ids.forEach((i) => {
+        state[m].running.delete(i);
+        state[m].tasks = state[m].tasks.filter((t) => t.id !== i);
+
+        if (state[m].tasks.length === 0) schedulers[m].clearAll();
+        else schedulers[m].scheduleNext();
+      });
+    });
   });
 };
 
-const cancelAllTasks = (mode?: TaskMode) => {
-  const modes = mode ? [mode] : (["timeout", "requestFrame"] as TaskMode[]);
-  modes.forEach((m) => schedulers[m].clearAll());
-};
-
-export { setTask, cancelTask, cancelAllTasks };
+export { setTask, cancelTask };
+export type { CancelTaskData };

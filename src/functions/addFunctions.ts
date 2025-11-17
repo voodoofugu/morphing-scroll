@@ -19,58 +19,52 @@ function smoothScroll(
   direction: "x" | "y" | undefined,
   scrollElement: Element,
   duration: number,
-  targetScroll: number,
-  callback?: () => void
+  targetScroll: number
 ) {
   if (!scrollElement || targetScroll === undefined || targetScroll === null)
     return null;
 
-  const taskId = "smoothScroll";
-
-  if (!duration) {
-    if (direction === "y")
-      (scrollElement as HTMLElement).scrollTop = targetScroll;
-    else if (direction === "x")
-      (scrollElement as HTMLElement).scrollLeft = targetScroll;
-
-    return;
-  }
+  // if (!duration && targetScroll) {
+  //   if (direction === "y") scrollElement.scrollTop = targetScroll;
+  //   else if (direction === "x") scrollElement.scrollLeft = targetScroll;
+  // }
 
   // !!! не работает
-  setTask(
+  const taskData = setTask(
     () => {
       const startTime = performance.now();
       const startScrollTop = scrollElement.scrollTop;
       const startScrollLeft = scrollElement.scrollLeft;
 
       const animate = () => {
+        console.log("animate");
         const currentTime = performance.now();
         const timeElapsed = currentTime - startTime;
         const progress = duration ? Math.min(timeElapsed / duration, 1) : 1;
 
-        if (direction === "y") {
+        if (direction === "y")
           scrollElement.scrollTop =
             startScrollTop + (targetScroll - startScrollTop) * progress;
-        } else if (direction === "x") {
+        else if (direction === "x")
           scrollElement.scrollLeft =
             startScrollLeft + (targetScroll - startScrollLeft) * progress;
-        }
 
-        // Перезапланировать следующий кадр
-        if (progress < 1) setTask(animate, "requestFrame", taskId);
-        else callback?.();
+        if (progress < 1) {
+          requestAnimationFrame(animate); // <- планируем следующий кадр напрямую
+          // setTask(animate, "requestFrame", "smoothScroll");
+        }
       };
 
-      // Запускаем первый кадр
-      setTask(animate, "requestFrame", taskId);
+      animate(); // запускаем анимацию
     },
     duration,
-    `animate${taskId}`,
+    "smoothScrollBlock",
     "exclusive"
   );
 
   // Возвращаем функцию для отмены анимации
-  return () => cancelTask(taskId, "requestFrame");
+  // return () => cancelTask(taskData);
+  return () => cancelTask({ id: "smoothScroll", mode: "requestFrame" });
 }
 
 const getAllScrollBars = (
