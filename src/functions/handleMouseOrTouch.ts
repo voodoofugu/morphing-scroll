@@ -18,7 +18,7 @@ type HandleMouseT = {
   scrollStateRef: ScrollStateRefT;
   sizeLocal: number[];
   smoothScroll: (
-    targetScrollTop: number,
+    targetScrollTop: number | null,
     direction: "y" | "x",
     duration: number,
     callback?: () => void
@@ -216,10 +216,10 @@ const applySlider = (
         ? scroll + size
         : move < 0 && scroll > 0
         ? scroll - size
-        : 0;
+        : null; // если передать 0 будет loop
 
     args.smoothScroll(nextScroll, axis, args.duration);
-    args.numForSliderRef.current = 0;
+    args.numForSliderRef.current = 0; // сбрасываем
   }
 };
 

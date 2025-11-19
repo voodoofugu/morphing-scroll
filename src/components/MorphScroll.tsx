@@ -201,7 +201,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const arrowsLocal = React.useMemo(() => {
     const arrows = progressTrigger.arrows;
-    const base = { size: defaultSize, contentReduce: true };
+    const base = { size: defaultSize, contentReduce: true, loop: false };
 
     if (React.isValidElement(arrows)) {
       return { ...base, element: arrows };
@@ -820,14 +820,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const smoothScrollLocal = React.useCallback(
-    (targetScroll: number, direction: "y" | "x", duration: number) => {
+    (targetScroll: number | null, direction: "y" | "x", duration: number) => {
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl) return null;
+      if (!scrollEl || targetScroll === null) return null;
 
       return smoothScroll(
         direction,
         scrollEl,
-        firstRender.current ? 0 : duration,
+        firstRender.current ? null : duration,
         targetScroll
       );
     },
@@ -1029,6 +1029,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollSize: sizeLocal,
         smoothScroll: smoothScrollLocal,
         duration: scrollPositionLocal.duration,
+        loop: arrowsLocal.loop,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1038,6 +1039,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       objectsWrapperHeightFull,
       scrollPositionLocal.duration,
       smoothScrollLocal,
+      arrowsLocal.loop,
     ]
   );
 
@@ -1299,7 +1301,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     // первая рендер
-    firstRender.current = false;
+    requestAnimationFrame(() => (firstRender.current = false)); // RAF спасает от двойного вызова smoothScroll в StrictMode
 
     return () => {
       if (animationFrameId) {

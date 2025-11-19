@@ -25,20 +25,22 @@ async function checkScrollReady(el: Element) {
 }
 
 async function smoothScroll(
-  direction: "x" | "y" | undefined,
-  scrollElement: Element,
-  duration: number,
+  direction: "x" | "y",
+  scrollEl: Element,
+  duration: number | null,
   targetScroll: number
 ) {
-  if (!scrollElement || targetScroll === undefined || targetScroll === null)
+  if (!scrollEl || targetScroll === undefined || targetScroll === null)
     return null;
 
-  // !!! пока не работает
-  if (!duration && targetScroll && direction) {
-    await checkScrollReady(scrollElement);
+  const topOrLeft = direction === "y" ? "scrollTop" : "scrollLeft";
+  const startTopOrLeft = scrollEl[topOrLeft];
+  if (startTopOrLeft === targetScroll) return;
 
-    if (direction === "y") scrollElement.scrollTop = targetScroll;
-    else scrollElement.scrollLeft = targetScroll;
+  // первый рендер duration 0 для мгновенного запуска
+  if (duration === null) {
+    await checkScrollReady(scrollEl);
+    scrollEl[topOrLeft] = targetScroll;
 
     return;
   }
@@ -46,20 +48,14 @@ async function smoothScroll(
   const taskData = setTask(
     () => {
       const startTime = performance.now();
-      const startScrollTop = scrollElement.scrollTop;
-      const startScrollLeft = scrollElement.scrollLeft;
 
       const animate = () => {
         const currentTime = performance.now();
         const timeElapsed = currentTime - startTime;
         const progress = duration ? Math.min(timeElapsed / duration, 1) : 1;
 
-        if (direction === "y")
-          scrollElement.scrollTop =
-            startScrollTop + (targetScroll - startScrollTop) * progress;
-        else if (direction === "x")
-          scrollElement.scrollLeft =
-            startScrollLeft + (targetScroll - startScrollLeft) * progress;
+        scrollEl[topOrLeft] =
+          startTopOrLeft + (targetScroll - startTopOrLeft) * progress;
 
         if (progress < 1) {
           requestAnimationFrame(animate); // <- планируем следующий кадр напрямую
@@ -69,7 +65,7 @@ async function smoothScroll(
 
       animate(); // запускаем анимацию
     },
-    duration, // первый рендер присылает "0" для мгновенного запуска
+    duration,
     "smoothScrollBlock",
     "exclusive"
   );

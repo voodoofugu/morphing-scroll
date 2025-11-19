@@ -26,15 +26,15 @@ export type MorphScrollT = {
   type?: "scroll" | "slider" | "sliderMenu";
   direction?: "x" | "y" | "hybrid";
   scrollPosition?:
+    | number
+    | "end"
+    | (number | "end")[]
     | {
         value: number | "end" | (number | "end")[];
         duration?: number;
         updater?: boolean;
         // callback?: (target: HTMLElement) => void; // ! это onScrollValue
-      }
-    | number
-    | "end"
-    | (number | "end")[]; // !!! добавить возможность передачи не объекта
+      }; // !!! возможность передачи не объекта
   onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => void;
 
@@ -65,7 +65,12 @@ export type MorphScrollT = {
     arrows?:
       | boolean
       | React.ReactNode
-      | { element?: React.ReactNode; size?: number; contentReduce?: boolean }; // !!! contentReduce
+      | {
+          element?: React.ReactNode;
+          size?: number;
+          contentReduce?: boolean; // !!! contentReduce (позже изменить дефолтное поведение)
+          loop: boolean; // !!! loop
+        };
   };
   progressReverse?: boolean | boolean[];
   scrollBarOnHover?: boolean;
