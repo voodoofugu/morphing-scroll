@@ -15,7 +15,16 @@ function clampValue(value: number, min = 0, max = Infinity): number {
   return Math.max(min, Math.min(Math.round(value), max));
 }
 
-function smoothScroll(
+async function checkScrollReady(el: Element) {
+  while (
+    el.scrollHeight <= el.clientHeight &&
+    el.scrollWidth <= el.clientWidth
+  ) {
+    await new Promise((r) => requestAnimationFrame(r));
+  }
+}
+
+async function smoothScroll(
   direction: "x" | "y" | undefined,
   scrollElement: Element,
   duration: number,
@@ -24,12 +33,16 @@ function smoothScroll(
   if (!scrollElement || targetScroll === undefined || targetScroll === null)
     return null;
 
-  // if (!duration && targetScroll) {
-  //   if (direction === "y") scrollElement.scrollTop = targetScroll;
-  //   else if (direction === "x") scrollElement.scrollLeft = targetScroll;
-  // }
+  // !!! пока не работает
+  if (!duration && targetScroll && direction) {
+    await checkScrollReady(scrollElement);
 
-  // !!! не работает
+    if (direction === "y") scrollElement.scrollTop = targetScroll;
+    else scrollElement.scrollLeft = targetScroll;
+
+    return;
+  }
+
   const taskData = setTask(
     () => {
       const startTime = performance.now();
@@ -37,7 +50,6 @@ function smoothScroll(
       const startScrollLeft = scrollElement.scrollLeft;
 
       const animate = () => {
-        console.log("animate");
         const currentTime = performance.now();
         const timeElapsed = currentTime - startTime;
         const progress = duration ? Math.min(timeElapsed / duration, 1) : 1;
@@ -57,14 +69,13 @@ function smoothScroll(
 
       animate(); // запускаем анимацию
     },
-    duration,
+    duration, // первый рендер присылает "0" для мгновенного запуска
     "smoothScrollBlock",
     "exclusive"
   );
 
   // Возвращаем функцию для отмены анимации
   // return () => cancelTask(taskData);
-  return () => cancelTask({ id: "smoothScroll", mode: "requestFrame" });
 }
 
 const getAllScrollBars = (

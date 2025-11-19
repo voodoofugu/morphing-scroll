@@ -1,6 +1,5 @@
 // --- Типы ---
 type Task = { id: string; callback: () => void; runAt: number };
-type TaskMode = "timeout" | "requestFrame";
 
 // --- Счётчик для авто-ID ---
 let autoIdCounter = 0;
@@ -12,17 +11,17 @@ interface TimeoutState {
   timer: number | null;
   running: Set<string>;
 }
-interface RafState {
-  tasks: Task[];
-  rafId: number | null;
-  running: Set<string>;
-}
 
-const state: { timeout: TimeoutState; requestFrame: RafState } = {
-  timeout: { tasks: [], timer: null, running: new Set() },
-  requestFrame: { tasks: [], rafId: null, running: new Set() },
+const timeoutState: TimeoutState = {
+  tasks: [],
+  timer: null,
+  running: new Set(),
 };
 
+// --- Таймеры для exclusive ---
+const unlockTimeouts = new Map<string, number>(); // id -> timeoutId
+
+// --- Вставка задачи в отсортированный массив ---
 function insertTaskSorted(tasks: Task[], task: Task) {
   let left = 0;
   let right = tasks.length;
@@ -35,209 +34,141 @@ function insertTaskSorted(tasks: Task[], task: Task) {
 }
 
 // --- Планировщик ---
-const schedulers = {
-  timeout: {
-    scheduleNext() {
-      const st = state.timeout;
-      if (st.timer !== null) {
-        clearTimeout(st.timer);
-        st.timer = null;
-      }
-      if (st.tasks.length === 0) return;
+const timeoutScheduler = {
+  scheduleNext() {
+    if (timeoutState.timer !== null) {
+      clearTimeout(timeoutState.timer);
+      timeoutState.timer = null;
+    }
+    if (timeoutState.tasks.length === 0) return;
+
+    const nextTask = timeoutState.tasks[0];
+    const delay = Math.max(0, nextTask.runAt - performance.now());
+
+    timeoutState.timer = window.setTimeout(() => {
+      timeoutState.timer = null;
 
       const now = performance.now();
-      const nextIndex = st.tasks.findIndex((t) => !st.running.has(t.id));
-      if (nextIndex === -1) return; // нет задач для запуска
+      const due: Task[] = [];
 
-      const nextTask = st.tasks[nextIndex];
-      const delay = Math.max(0, nextTask.runAt - now);
-
-      st.timer = window.setTimeout(() => {
-        st.timer = null;
-
-        // собираем все задачи, которые должны выполниться
-        const due: Task[] = [];
-        while (st.tasks.length && st.tasks[0].runAt <= performance.now()) {
-          const task = st.tasks.shift()!;
-          if (!st.running.has(task.id)) due.push(task);
-        }
-
-        due.forEach((t) => {
-          st.running.add(t.id);
-          try {
-            t.callback();
-          } finally {
-            st.running.delete(t.id);
-          }
-        });
-
-        schedulers.timeout.scheduleNext();
-      }, delay);
-    },
-
-    clearAll() {
-      if (state.timeout.timer !== null) {
-        clearTimeout(state.timeout.timer);
-        state.timeout.timer = null;
+      // забираем все задачи, ready к выполнению
+      while (
+        timeoutState.tasks.length &&
+        timeoutState.tasks[0].runAt <= now &&
+        !timeoutState.running.has(timeoutState.tasks[0].id)
+      ) {
+        due.push(timeoutState.tasks.shift()!);
       }
-      state.timeout.tasks = [];
-      state.timeout.running.clear();
-    },
+
+      due.forEach((t) => {
+        timeoutState.running.add(t.id);
+        try {
+          t.callback();
+        } finally {
+          timeoutState.running.delete(t.id);
+        }
+      });
+
+      timeoutScheduler.scheduleNext();
+    }, delay);
   },
 
-  requestFrame: {
-    scheduleNext() {
-      const st = state.requestFrame;
-      // цикл уже идёт
-      if (st.rafId !== null || st.tasks.length === 0) return;
-
-      const loop = () => {
-        st.rafId = null;
-
-        const now = performance.now();
-        const due: Task[] = [];
-        while (st.tasks.length && st.tasks[0].runAt <= now) {
-          const task = st.tasks.shift()!;
-          if (!st.running.has(task.id)) due.push(task);
-        }
-
-        due.forEach((t) => {
-          st.running.add(t.id);
-          try {
-            t.callback();
-          } finally {
-            st.running.delete(t.id);
-          }
-        });
-
-        if (st.tasks.length > 0) {
-          st.rafId = requestAnimationFrame(loop);
-        }
-      };
-
-      st.rafId = requestAnimationFrame(loop);
-    },
-
-    clearAll() {
-      if (state.requestFrame.rafId !== null) {
-        cancelAnimationFrame(state.requestFrame.rafId);
-        state.requestFrame.rafId = null;
-      }
-      state.requestFrame.tasks = [];
-      state.requestFrame.running.clear();
-    },
+  clearAll() {
+    if (timeoutState.timer !== null) {
+      clearTimeout(timeoutState.timer);
+      timeoutState.timer = null;
+    }
+    timeoutState.tasks = [];
+    timeoutState.running.clear();
   },
 };
 
 // --- API ---
 const setTask = (
   callback: () => void,
-  mode: number | "requestFrame",
+  timer: number,
   id?: string,
   behavior?: "default" | "exclusive"
-): { id: string; mode: "timeout" | "requestFrame" } => {
+): string => {
   const taskId = id || generateId();
-  const modeKey: TaskMode =
-    mode === "requestFrame" ? "requestFrame" : "timeout";
-  const taskData = { id: taskId, mode: modeKey };
 
-  // обработка 0
-  if (mode === 0) {
+  // --- immediate ---
+  if (timer === 0) {
     callback();
-    return taskData;
+    return taskId;
   }
 
   const behaviorLocal = behavior || "default";
+  const runAt = performance.now() + timer;
 
-  const st = state[modeKey];
-  const runAt =
-    modeKey === "requestFrame"
-      ? performance.now()
-      : performance.now() + (mode as number);
+  // --- exclusive ---
+  if (behaviorLocal === "exclusive") {
+    if (
+      timeoutState.running.has(taskId) ||
+      timeoutState.tasks.some((t) => t.id === taskId)
+    )
+      return taskId;
+
+    timeoutState.running.add(taskId);
+    try {
+      callback();
+    } finally {
+      const to = window.setTimeout(() => {
+        timeoutState.running.delete(taskId);
+        unlockTimeouts.delete(taskId);
+      }, timer);
+      unlockTimeouts.set(taskId, to);
+    }
+    return taskId;
+  }
+
+  // --- default ---
+  if (id) {
+    timeoutState.tasks = timeoutState.tasks.filter((t) => t.id !== taskId);
+  }
 
   const task: Task = {
     id: taskId,
     runAt,
-    callback: () => {},
-  };
-
-  // --- exclusive ---
-  if (behaviorLocal === "exclusive") {
-    if (st.running.has(taskId) || st.tasks.some((t) => t.id === taskId))
-      return taskData;
-
-    st.running.add(taskId);
-    callback();
-
-    // через delay снимаем блокировку
-    if (modeKey === "requestFrame") {
-      requestAnimationFrame(() => st.running.delete(taskId));
-    } else {
-      if (mode === 0) st.running.delete(taskId);
-      else setTimeout(() => st.running.delete(taskId), mode as number);
-    }
-
-    return taskData;
-  }
-
-  // --- default ---
-  else {
-    if (id) {
-      st.tasks = st.tasks.filter((t) => t.id !== taskId);
-    }
-
-    task.callback = () => {
-      st.running.add(taskId);
+    callback: () => {
+      timeoutState.running.add(taskId);
       try {
         callback();
       } finally {
-        st.running.delete(taskId);
+        timeoutState.running.delete(taskId);
       }
-    };
-  }
+    },
+  };
 
-  insertTaskSorted(st.tasks, task);
-  schedulers[modeKey].scheduleNext();
+  insertTaskSorted(timeoutState.tasks, task);
+  timeoutScheduler.scheduleNext();
 
-  return taskData;
+  return taskId;
 };
 
-type CancelTaskData =
-  | { id?: string | string[]; mode: TaskMode | TaskMode[] }
-  | { id?: string | string[]; mode: TaskMode | TaskMode[] }[];
-
-const cancelTask = (taskData?: CancelTaskData) => {
+const cancelTask = (taskData?: string | string[]) => {
   if (!taskData) {
-    (["timeout", "requestFrame"] as TaskMode[]).forEach((m) =>
-      schedulers[m].clearAll()
-    );
+    timeoutScheduler.clearAll();
+    unlockTimeouts.forEach((t) => clearTimeout(t));
+    unlockTimeouts.clear();
     return;
   }
 
   const items = Array.isArray(taskData) ? taskData : [taskData];
 
-  items.forEach(({ id, mode }) => {
-    const modes: TaskMode[] = Array.isArray(mode) ? mode : [mode];
-    const ids: string[] = id ? (Array.isArray(id) ? id : [id]) : [];
+  items.forEach((id) => {
+    timeoutState.running.delete(id);
 
-    // если id нет — просто очищаем mode
-    if (ids.length === 0) {
-      modes.forEach((m) => schedulers[m].clearAll());
-      return;
+    const to = unlockTimeouts.get(id);
+    if (to !== undefined) {
+      clearTimeout(to);
+      unlockTimeouts.delete(id);
     }
 
-    // удаляем конкретные id
-    modes.forEach((m) => {
-      ids.forEach((i) => {
-        state[m].running.delete(i);
-        state[m].tasks = state[m].tasks.filter((t) => t.id !== i);
-
-        if (state[m].tasks.length === 0) schedulers[m].clearAll();
-        else schedulers[m].scheduleNext();
-      });
-    });
+    timeoutState.tasks = timeoutState.tasks.filter((t) => t.id !== id);
+    if (timeoutState.tasks.length === 0) timeoutScheduler.clearAll();
+    else timeoutScheduler.scheduleNext();
   });
 };
 
 export { setTask, cancelTask };
-export type { CancelTaskData };

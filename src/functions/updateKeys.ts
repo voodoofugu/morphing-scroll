@@ -83,7 +83,7 @@ const updateEmptyKeysClick = (
   setTask(() => {
     if (parentWrapper) parentWrapper.classList.remove("remove");
     callBack();
-  }, clickTrigger.delay || "requestFrame");
+  }, clickTrigger.delay || 0); // "requestFrame"
 };
 
 export { updateLoadedElementsKeys, updateEmptyKeysClick };

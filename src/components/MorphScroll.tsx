@@ -820,12 +820,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const smoothScrollLocal = React.useCallback(
-    (
-      targetScroll: number,
-      direction: "y" | "x",
-      duration: number,
-      callback?: () => void
-    ) => {
+    (targetScroll: number, direction: "y" | "x", duration: number) => {
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return null;
 
@@ -840,7 +835,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const startScrolling = React.useCallback(
-    (dir: "x" | "y", targetScroll: number, cancelScrolls: (() => void)[]) => {
+    (dir: "x" | "y", targetScroll: number) => {
       if (!firstChildKeyRef.current) {
         firstChildKeyRef.current = validChildrenKeys[0];
       } else if (firstChildKeyRef.current !== validChildrenKeys[0]) {
@@ -848,13 +843,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return;
       }
 
-      const cancel = smoothScrollLocal(
-        targetScroll,
-        dir,
-        scrollPositionLocal.duration
-      );
-
-      if (cancel) cancelScrolls.push(cancel);
+      smoothScrollLocal(targetScroll, dir, scrollPositionLocal.duration);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [validChildrenKeys[0], scrollPositionLocal.duration, smoothScrollLocal]
@@ -1106,23 +1095,40 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const handleScroll = React.useCallback(() => {
     setTask(() => {
+      const mainEl = customScrollRef.current;
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl) return;
+      if (!mainEl || !scrollEl) return;
 
+      const allArrows = progressTrigger.arrows
+        ? mainEl.getElementsByClassName("ms-arrow-box")
+        : null;
+
+      // уведомляем о прокрутке пропс
       onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
       isScrollingRef.current = true;
       isScrolling?.(true);
+      // блокируем стрелки (помогает от лишних вызовов)
+      allArrows &&
+        Array.from(allArrows).forEach((arrow) => {
+          if (arrow instanceof HTMLElement) arrow.style.pointerEvents = "none";
+        });
 
       setTask(() => {
         isScrollingRef.current = false;
         isScrolling?.(false);
         updateLoadedElementsKeysLocal();
+        // разблокируем стрелки
+        allArrows &&
+          Array.from(allArrows).forEach((arrow) => {
+            if (arrow instanceof HTMLElement)
+              arrow.style.removeProperty("pointer-events");
+          });
       }, 200);
 
       if (type !== "scroll") sliderCheckLocal();
 
-      setTask(triggerUpdate, "requestFrame", "triggerUpdate");
+      requestAnimationFrame(triggerUpdate); // "requestFrame"
     }, 6); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1237,7 +1243,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // для "end"
     if (!scrollPositionLocal.value) return;
 
-    const cancelScrolls: (() => void)[] = []; // будет пуш из startScrolling
     const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
     directions.forEach((dir) => {
@@ -1247,14 +1252,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (value === "end")
         startScrolling(
           dir as "x" | "y",
-          dir === "x" ? endObjectsWrapperX : endObjectsWrapper,
-          cancelScrolls
+          dir === "x" ? endObjectsWrapperX : endObjectsWrapper
         );
     });
-
-    return () => {
-      cancelScrolls.forEach((fn) => fn());
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     direction,
@@ -1270,20 +1270,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // для number
     if (!scrollPositionLocal.value) return;
 
-    const cancelScrolls: (() => void)[] = []; // будет пуш из startScrolling
     const directions = direction === "hybrid" ? ["x", "y"] : [direction];
 
     directions.forEach((dir) => {
       const index = dir === "x" ? 0 : 1;
       const value = scrollPositionLocal.value[index];
 
-      if (typeof value === "number")
-        startScrolling(dir as "x" | "y", value, cancelScrolls);
+      if (typeof value === "number") startScrolling(dir as "x" | "y", value);
     });
 
-    return () => {
-      cancelScrolls.forEach((fn) => fn());
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     scrollPositionST,
