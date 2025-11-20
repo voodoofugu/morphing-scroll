@@ -1197,7 +1197,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [emptyElementsST, renderLocal.type, updateLoadedElementsKeysLocal]);
 
   React.useEffect(() => {
-    // wheel вешается вручную что бы выключить дефолтный scroll e.preventDefault()!
+    if (matchMedia("(pointer: coarse)").matches) return; // при touch устроиствах выключаем
+
+    // wheel вешается вручную что бы выключить scroll e.preventDefault()!
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
