@@ -941,7 +941,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
       eventType: string = "mousedown",
-      clickedSBar?: EventTarget
+      clickedBar?: HTMLElement
     ) => {
       const clickedLocal = clicked
         ? clicked
@@ -958,16 +958,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
       let axisFromAtr: "x" | "y" | null = null;
-      if (clickedSBar) {
-        const el = clickedSBar as HTMLElement;
-        axisFromAtr = el.getAttribute("data-direction") as "x" | "y";
+      if (clickedBar) {
+        axisFromAtr = clickedBar
+          .closest(".ms-bar")
+          ?.getAttribute("data-direction") as "x" | "y";
       }
 
       handleMouseOrTouch({
         eventType,
         scrollElementRef: scrollElementRef.current,
         objectsWrapperRef: objectsWrapperRef.current,
-        scrollBar: (clickedSBar as HTMLDivElement) || null,
+        scrollBar: (clickedBar as HTMLDivElement) || null,
         clickedObject: clickedObject,
         scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
@@ -1009,7 +1010,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const onMouseDownScrollThumb = React.useCallback(
     (event: MouseEvent | TouchEvent) => {
-      onMouseOrTouchDown(null, event.type, event.target as EventTarget);
+      onMouseOrTouchDown(null, event.type, event.target as HTMLElement);
     },
     [onMouseOrTouchDown]
   );

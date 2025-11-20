@@ -35,7 +35,34 @@ const ScrollBar = ({
   sliderCheckLocal,
   duration,
 }: ModifiedProps) => {
+  const scrollBarRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
+
+  // добавление прокрутки по колесом по thumb
+  React.useEffect(() => {
+    if (matchMedia("(pointer: coarse)").matches) return; // при touch устроиствах выключаем
+
+    const el = scrollBarRef.current;
+    if (!el) return;
+
+    const axis = el.getAttribute("data-direction") === "y" ? "y" : "x";
+
+    let prev = el.previousElementSibling as HTMLElement | null;
+    while (prev && !prev.classList.contains("ms-element")) {
+      prev = prev.previousElementSibling as HTMLElement | null;
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault(); // верхний элемент не скроллим
+      prev?.scrollBy({
+        ...(axis === "y" ? { top: e.deltaY } : { left: e.deltaY }),
+        behavior: "auto", // обязательно auto, иначе будут глюки
+      });
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
   React.useEffect(() => {
     const el = thumbRef.current;
@@ -106,6 +133,8 @@ const ScrollBar = ({
       {type === "scroll" ? (
         <div
           className="ms-bar"
+          ref={scrollBarRef}
+          data-direction={["hybrid", "y"].includes(direction!) ? "y" : "x"}
           style={{
             position: "absolute",
             width: "fit-content",
@@ -138,10 +167,6 @@ const ScrollBar = ({
         >
           <div
             className="ms-thumb"
-            data-direction={
-              // убираем "hybrid"
-              ["hybrid", "y"].includes(direction!) ? "y" : direction
-            }
             ref={thumbRef}
             style={{
               height: `${thumbSize}px`,
@@ -161,9 +186,6 @@ const ScrollBar = ({
         progressTrigger?.progressElement && (
           <div
             className="ms-slider"
-            data-direction={
-              ["hybrid", "y"].includes(direction!) ? "y" : direction
-            }
             ref={thumbRef}
             style={{
               position: "absolute",
