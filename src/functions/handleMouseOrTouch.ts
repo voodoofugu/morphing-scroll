@@ -2,6 +2,8 @@ import { MorphScrollT } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
 import { mouseOnEl } from "../functions/mouseOn";
+import { cancelTask } from "../helpers/taskManager";
+import { clampValue } from "./addFunctions";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | "none";
 
@@ -22,7 +24,7 @@ type HandleMouseT = {
     direction: "y" | "x",
     duration: number,
     callback?: () => void
-  ) => void;
+  ) => Promise<string | null | undefined> | null;
   mouseOnRefHandle: (
     event:
       | React.MouseEvent<HTMLDivElement>
@@ -42,6 +44,7 @@ type HandleMouseT = {
   axisFromAtr: "x" | "y" | null;
   duration: number;
   scrollBarEdge: number[];
+  rafID: React.RefObject<number>;
 };
 
 type HandleMouseDownT = HandleMouseT & {
@@ -61,14 +64,7 @@ type HandleMoveT = Omit<
   wrapElWH: number[];
 };
 
-type HandleUpT = Omit<
-  HandleMouseT,
-  | "scrollElementRef"
-  | "scrollStateRef"
-  | "direction"
-  | "smoothScroll"
-  | "sizeLocal"
-> & {
+type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
   mouseEvent: MouseEvent | TouchEvent;
   controller: AbortController;
   clicked: ClickedT;
@@ -109,21 +105,19 @@ const applyThumbOrWrap = (
   const scrollElement = args.scrollElementRef;
 
   if (args.clicked === "thumb") {
-    const docSize = axis === "x" ? window.innerWidth : window.innerHeight;
-    const elSize =
-      axis === "x" ? scrollElement.clientWidth : scrollElement.clientHeight;
     // параметр для небольшого уравнивания движение если scroll > window
-    // например когда окно маленькое и интерфейс уменьшен
-    const flexWidth = elSize > docSize ? elSize - docSize : 0; // !!!
+    const docSize = axis === "x" ? window.innerWidth : window.innerHeight;
+    const wh = axis === "x" ? 0 : 1;
 
     const visibleSize =
       axis === "x" ? args.scrollElementWH[0] : args.scrollElementWH[1];
 
     // для плавности перемещения бегунка при scrollBarEdge
-    const visibleSizeWithLimit =
-      axis === "x"
-        ? args.scrollElementWH[0] - args.scrollBarEdge[0]
-        : args.scrollElementWH[1] - args.scrollBarEdge[1];
+    const visibleSizeWithLimit = clampValue(
+      args.scrollElementWH[wh] - args.scrollBarEdge[wh],
+      0,
+      docSize
+    );
 
     // не забываем прибавить margin
     const objectsWrapperSize =
@@ -190,40 +184,50 @@ const applyThumbOrWrap = (
   }
 };
 
+const pixelsForSwipe = 20;
 const applySlider = (
   axis: "x" | "y",
   args: HandleMoveT,
   delta: { x: number; y: number }
 ) => {
-  if (!args.objectsWrapperRef) return;
+  const el = args.scrollElementRef as HTMLDivElement;
+  if (!el) return;
 
   const reverce = args.type === "slider" && args.clicked === "wrapp" ? -1 : 1;
   const move = delta[axis] * reverce;
 
-  const pixelsForSwipe = 20;
   const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
   const extent = axis === "x" ? args.wrapElWH[0] : args.wrapElWH[1];
-  const scroll =
-    axis === "x"
-      ? args.scrollElementRef!.scrollLeft
-      : args.scrollElementRef!.scrollTop;
+  const topOrLeft = axis === "y" ? "scrollTop" : "scrollLeft";
+  const scroll = el[topOrLeft];
 
-  args.numForSliderRef.current += Math.abs(move); // накапливаем значение передвижения
+  args.numForSliderRef.current += move; // накапливаем значение передвижения
 
-  if (args.numForSliderRef.current > pixelsForSwipe) {
-    const nextScroll =
-      move > 0 && scroll + size < extent
-        ? scroll + size
-        : move < 0 && scroll > 0
-        ? scroll - size
-        : null; // если передать 0 будет loop
+  if (args.clicked === "wrapp") {
+    el[topOrLeft] += move;
+  } else {
+    if (Math.abs(args.numForSliderRef.current) > pixelsForSwipe) {
+      const nextScroll =
+        move > 0 && scroll + size < extent
+          ? scroll + size
+          : move < 0 && scroll > 0
+          ? scroll - size
+          : null; // если передать 0 будет loop
 
-    args.smoothScroll(nextScroll, axis, args.duration);
-    args.numForSliderRef.current = 0; // сбрасываем
+      args.numForSliderRef.current = 0; // сбрасываем
+      args.smoothScroll(nextScroll, axis, args.duration);
+    }
   }
 };
 
 function handleMouseOrTouch(args: HandleMouseDownT) {
+  // удаляем RAF и задачу слайдера
+  if (args.rafID.current) {
+    cancelAnimationFrame(args.rafID.current);
+    args.rafID.current = NaN;
+    cancelTask("smoothScrollBlock");
+  }
+
   // обновление targetScroll заранее
   const scrollElement = args.scrollElementRef;
   if (scrollElement) {
@@ -399,6 +403,45 @@ function handleUp(args: HandleUpT) {
     if (!isChildOfScrollContent) {
       args.mouseOnRefHandle(args.mouseEvent);
     }
+  }
+
+  // логика для слайдера
+  if (args.clicked === "wrapp" && args.type === "slider") {
+    const el = args.scrollElementRef as HTMLDivElement;
+    if (!el) return;
+
+    const acc = args.numForSliderRef.current;
+    const topOrLeft = args.direction === "y" ? "scrollTop" : "scrollLeft";
+    const heightOrWidth =
+      args.direction === "y" ? el.clientHeight : el.clientWidth;
+
+    const getNextScroll = (math: "ceil" | "floor") => {
+      return heightOrWidth * Math[math](el[topOrLeft] / heightOrWidth);
+    };
+
+    if (Math.abs(acc) > pixelsForSwipe) {
+      const nextScroll =
+        acc > 0 ? getNextScroll("ceil") : getNextScroll("floor");
+
+      args.smoothScroll(
+        nextScroll,
+        args.direction === "y" ? "y" : "x",
+        args.duration
+      );
+    }
+    // возврат если < pixelsForSwipe
+    else {
+      const nextScroll =
+        acc > 0 ? getNextScroll("floor") : getNextScroll("ceil");
+
+      args.smoothScroll(
+        nextScroll,
+        args.direction === "y" ? "y" : "x",
+        args.duration
+      );
+    }
+
+    args.numForSliderRef.current = 0; // сбрасываем
   }
 
   args.prevCoordsRef.current = null;

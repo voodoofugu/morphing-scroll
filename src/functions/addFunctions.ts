@@ -28,7 +28,8 @@ async function smoothScroll(
   direction: "x" | "y",
   scrollEl: Element,
   duration: number | null,
-  targetScroll: number
+  targetScroll: number,
+  rafID: React.RefObject<number>
 ) {
   if (!scrollEl || targetScroll === undefined || targetScroll === null)
     return null;
@@ -45,7 +46,7 @@ async function smoothScroll(
     return;
   }
 
-  const taskData = setTask(
+  setTask(
     () => {
       const startTime = performance.now();
 
@@ -58,8 +59,7 @@ async function smoothScroll(
           startTopOrLeft + (targetScroll - startTopOrLeft) * progress;
 
         if (progress < 1) {
-          requestAnimationFrame(animate); // <- планируем следующий кадр напрямую
-          // setTask(animate, "requestFrame", "smoothScroll");
+          rafID.current = requestAnimationFrame(animate);
         }
       };
 
@@ -69,9 +69,6 @@ async function smoothScroll(
     "smoothScrollBlock",
     "exclusive"
   );
-
-  // Возвращаем функцию для отмены анимации
-  // return () => cancelTask(taskData);
 }
 
 const getAllScrollBars = (

@@ -123,6 +123,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     leftover: number;
   } | null>(null);
   const keyDownX = React.useRef<boolean>(false);
+  const rafID = React.useRef<number>(NaN);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -828,7 +829,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         direction,
         scrollEl,
         firstRender.current ? null : duration,
-        targetScroll
+        targetScroll,
+        rafID
       );
     },
     [firstRender.current]
@@ -989,6 +991,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         axisFromAtr,
         duration: scrollPositionLocal.duration,
         scrollBarEdge: scrollBarEdgeLocal,
+        rafID,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1102,31 +1105,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const scrollEl = scrollElementRef.current;
       if (!mainEl || !scrollEl) return;
 
-      const allArrows = progressTrigger.arrows
-        ? mainEl.getElementsByClassName("ms-arrow-box")
-        : null;
-
       // уведомляем о прокрутке пропс
       onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
       isScrollingRef.current = true;
       isScrolling?.(true);
-      // блокируем стрелки (помогает от лишних вызовов)
-      allArrows &&
-        Array.from(allArrows).forEach((arrow) => {
-          if (arrow instanceof HTMLElement) arrow.style.pointerEvents = "none";
-        });
 
       setTask(() => {
         isScrollingRef.current = false;
         isScrolling?.(false);
         updateLoadedElementsKeysLocal();
-        // разблокируем стрелки
-        allArrows &&
-          Array.from(allArrows).forEach((arrow) => {
-            if (arrow instanceof HTMLElement)
-              arrow.style.removeProperty("pointer-events");
-          });
       }, 200);
 
       if (type !== "scroll") sliderCheckLocal();
@@ -1583,6 +1571,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     handleArrowLocal,
     sizeLocal[0],
     direction,
+    isScrollingRef.current,
   ]);
 
   const scrollBarsJSX = React.useMemo(() => {
