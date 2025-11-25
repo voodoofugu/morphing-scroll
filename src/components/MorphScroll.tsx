@@ -196,6 +196,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const edgeGradientLocal = React.useMemo(() => {
     return typeof edgeGradient === "object"
       ? { ...edgeGradientDefault, ...edgeGradient }
+      : typeof edgeGradient === "string"
+      ? { color: edgeGradient, size: defaultSize }
       : edgeGradientDefault;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edgeGradient]);

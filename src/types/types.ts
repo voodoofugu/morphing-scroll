@@ -53,7 +53,7 @@ export type MorphScrollT = {
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
   elementsAlign?: "start" | "center" | "end";
   elementsDirection?: "row" | "column";
-  edgeGradient?: boolean | { color?: string; size?: number };
+  edgeGradient?: boolean | string | { color?: string; size?: number }; // !!! поддержка строки
 
   // Progress Bar
   progressTrigger: {
