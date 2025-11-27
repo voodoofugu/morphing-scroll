@@ -184,7 +184,6 @@ const applyThumbOrWrap = (
   }
 };
 
-const pixelsForSwipe = 20;
 const applySlider = (
   axis: "x" | "y",
   args: HandleMoveT,
@@ -206,7 +205,13 @@ const applySlider = (
   if (args.clicked === "wrapp") {
     el[topOrLeft] += move;
   } else {
-    if (Math.abs(args.numForSliderRef.current) > pixelsForSwipe) {
+    // улучшение слайдера !!!
+    const sliderElSize =
+      el.closest(".ms-content")?.querySelector(".ms-slider-element.active")?.[
+        axis === "x" ? "clientWidth" : "clientHeight"
+      ] || 1;
+
+    if (Math.abs(args.numForSliderRef.current) > sliderElSize) {
       const nextScroll =
         move > 0 && scroll + size < extent
           ? scroll + size
@@ -215,7 +220,7 @@ const applySlider = (
           : null; // если передать 0 будет loop
 
       args.numForSliderRef.current = 0; // сбрасываем
-      args.smoothScroll(nextScroll, axis, args.duration);
+      args.smoothScroll(nextScroll, axis, 10);
     }
   }
 };
@@ -419,7 +424,7 @@ function handleUp(args: HandleUpT) {
       return heightOrWidth * Math[math](el[topOrLeft] / heightOrWidth);
     };
 
-    if (Math.abs(acc) > pixelsForSwipe) {
+    if (Math.abs(acc) > 20) {
       const nextScroll =
         acc > 0 ? getNextScroll("ceil") : getNextScroll("floor");
 
@@ -429,7 +434,7 @@ function handleUp(args: HandleUpT) {
         args.duration
       );
     }
-    // возврат если < pixelsForSwipe
+    // возврат если < 20
     else {
       const nextScroll =
         acc > 0 ? getNextScroll("floor") : getNextScroll("ceil");
