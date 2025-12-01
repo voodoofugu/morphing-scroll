@@ -40,7 +40,8 @@ const ScrollBar = ({
 
   // добавление прокрутки по колесом по thumb
   React.useEffect(() => {
-    if (matchMedia("(pointer: coarse)").matches) return; // при touch устроиствах выключаем
+    if (matchMedia("(pointer: coarse)").matches || !progressTrigger?.wheel)
+      return; // при touch устроиствах выключаем
 
     const el = scrollBarRef.current;
     if (!el) return;

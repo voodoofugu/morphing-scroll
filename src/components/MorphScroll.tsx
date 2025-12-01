@@ -1097,6 +1097,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [emptyElementsST, updateLoadedElementsKeysLocal]
   );
 
+  // для обработки onScrollValue
   const handleScroll = React.useCallback(() => {
     setTask(() => {
       const mainEl = customScrollRef.current;
@@ -1117,7 +1118,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (type !== "scroll") sliderCheckLocal();
 
-      requestAnimationFrame(triggerUpdate); // "requestFrame"
+      requestAnimationFrame(triggerUpdate);
     }, 6); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1189,8 +1190,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
-    const preventScroll = (e: Event) => e.preventDefault();
-
     const directionWithPriority =
       direction === "hybrid" &&
       typeof progressTrigger.wheel === "object" &&
@@ -1209,16 +1208,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : directionWithPriority;
 
     const wheelHandler = (e: WheelEvent) => {
-      preventScroll(e);
+      e.preventDefault();
       handleWheel(e, scrollStateRef.current, directionLocal);
     };
-    // если wheel не включен, то так же запрещаем scroll
-    const handler = progressTrigger.wheel ? wheelHandler : preventScroll;
 
-    scrollEl.addEventListener("wheel", handler, { passive: false });
+    progressTrigger.wheel &&
+      scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
 
     return () => {
-      scrollEl.removeEventListener("wheel", handler);
+      scrollEl.removeEventListener("wheel", wheelHandler);
     };
   }, [
     direction,
@@ -1300,30 +1298,30 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, []);
 
-  // установка слушателей
+  // установка слушателей нажатия на обертку
   React.useEffect(() => {
-    const el = scrollElementRef.current;
-    if (!el) return;
+    const scrollEl = scrollElementRef.current;
+    if (!scrollEl) return;
 
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
     const eventType = isMobile ? "touchstart" : "mousedown";
+    if (eventType === "touchstart" && type !== "slider") return;
+
     const handler = (e: MouseEvent | TouchEvent) => {
       if (e.type === "touchstart") {
-        if (type !== "slider") return;
-        el.style.touchAction = "none"; // только для слайдера (сейчас!!!)
-      }
-
-      if (el.style.touchAction) el.style.removeProperty("touch-action");
+        scrollEl.style.touchAction = "none"; // только для слайдера (сейчас!!!)
+      } else if (scrollEl.style.touchAction)
+        scrollEl.style.removeProperty("touch-action");
 
       e.preventDefault();
       onMouseOrTouchDown("wrapp", e.type);
     };
 
-    el.addEventListener(eventType, handler, { passive: true });
+    scrollEl.addEventListener(eventType, handler, { passive: true });
 
     return () => {
-      el.removeEventListener(eventType, handler);
-      el.style.removeProperty("touch-action");
+      scrollEl.removeEventListener(eventType, handler);
+      scrollEl.style.removeProperty("touch-action");
     };
   }, [type]);
 

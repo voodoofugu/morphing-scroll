@@ -198,7 +198,7 @@ const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
   const move = args.clicked === "wrapp" ? -delta[axis] : delta[axis];
   const topOrLeft = axis === "y" ? "scrollTop" : "scrollLeft";
 
-  // логика для thumb
+  // --- логика для thumb ---
   if (args.clicked === "thumb") {
     applyThumb(axis, args, move, prev);
     return;
@@ -206,21 +206,23 @@ const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
 
   args.type === "slider" && (args.numForSliderRef.current += move); // накапливаем значение
 
-  // логика для wrapp
+  // --- логика для wrapp ---
   if (args.clicked === "wrapp") {
     el[topOrLeft] += move;
     return;
   }
 
-  // логика для sliderThumb
+  // --- логика для sliderThumb ---
   const wh = axis === "x" ? 0 : 1;
   const scroll = el[topOrLeft];
 
   // основа для передвижения размер элемента slider
   const sliderElSize =
-    el.closest(".ms-content")?.querySelector(".ms-slider-element.active")?.[
-      axis === "x" ? "clientWidth" : "clientHeight"
-    ] || 1;
+    el
+      .closest(".ms-content")
+      ?.querySelector(".ms-slider-element.active")
+      ?.getBoundingClientRect()[axis === "x" ? "width" : "height"] || 1;
+  // getBoundingClientRect помогает избежать проблем с масштабированием
 
   // запуск smoothScroll
   if (Math.abs(args.numForSliderRef.current) >= sliderElSize) {
@@ -237,7 +239,6 @@ const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
 };
 
 function handleMouseOrTouch(args: HandleMouseDownT) {
-  console.log("handleMouseOrTouch");
   // удаляем RAF и задачу слайдера
   if (args.rafID.current) {
     cancelAnimationFrame(args.rafID.current);
