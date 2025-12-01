@@ -92,60 +92,52 @@ const cursorClassChange = (
 
 const round4 = (n: number) => (Math.abs(n) < 0.0001 ? 0 : +n.toFixed(4));
 
-const applyThumbOrWrap = (
+const applyThumb = (
   axis: "x" | "y",
   args: HandleMoveT,
-  delta: { x: number; y: number },
+  move: number,
   prev: { leftover: number }
 ) => {
   if (!args.scrollElementRef || !args.objectsWrapperRef) return;
 
-  let deltaScroll = 0;
-  const move = axis === "x" ? delta.x : delta.y;
   const scrollElement = args.scrollElementRef;
 
-  if (args.clicked === "thumb") {
-    // параметр для небольшого уравнивания движение если scroll > window
-    const docSize = axis === "x" ? window.innerWidth : window.innerHeight;
-    const wh = axis === "x" ? 0 : 1;
+  // параметр для небольшого уравнивания движение если scroll > window
+  const docSize = axis === "x" ? window.innerWidth : window.innerHeight;
 
-    const visibleSize =
-      axis === "x" ? args.scrollElementWH[0] : args.scrollElementWH[1];
+  const visibleSize =
+    axis === "x" ? args.scrollElementWH[0] : args.scrollElementWH[1];
 
-    // для плавности перемещения бегунка при scrollBarEdge
-    const visibleSizeWithLimit = clampValue(
-      args.scrollElementWH[wh] - args.scrollBarEdge[wh],
-      0,
-      docSize
-    );
+  // для плавности перемещения бегунка при scrollBarEdge
+  const wh = axis === "x" ? 0 : 1;
+  const visibleSizeWithLimit = clampValue(
+    args.scrollElementWH[wh] - args.scrollBarEdge[wh],
+    0,
+    docSize
+  );
 
-    // не забываем прибавить margin
-    const objectsWrapperSize =
-      axis === "x"
-        ? args.objectsWrapperWH[0] +
-          args.marginObjectsWrapperLR[0] +
-          args.marginObjectsWrapperLR[1]
-        : args.objectsWrapperWH[1] +
-          args.marginObjectsWrapperTB[0] +
-          args.marginObjectsWrapperTB[1];
+  // не забываем прибавить margin
+  const objectsWrapperSize =
+    axis === "x"
+      ? args.objectsWrapperWH[0] +
+        args.marginObjectsWrapperLR[0] +
+        args.marginObjectsWrapperLR[1]
+      : args.objectsWrapperWH[1] +
+        args.marginObjectsWrapperTB[0] +
+        args.marginObjectsWrapperTB[1];
 
-    const maxThumbPos = visibleSizeWithLimit - args.thumbSize;
-    const scrollableSize = objectsWrapperSize - visibleSize;
+  const maxThumbPos = visibleSizeWithLimit - args.thumbSize;
+  const scrollableSize = objectsWrapperSize - visibleSize;
 
-    if (maxThumbPos <= 0 || scrollableSize <= 0) return;
+  if (maxThumbPos <= 0 || scrollableSize <= 0) return;
 
-    const scrollRatio = scrollableSize / maxThumbPos;
-    const fullDelta = move * scrollRatio + prev.leftover;
+  const scrollRatio = scrollableSize / maxThumbPos;
+  const fullDelta = move * scrollRatio + prev.leftover;
 
-    const intDelta = Math.trunc(fullDelta);
+  const intDelta = Math.trunc(fullDelta);
 
-    if (args.prevCoordsRef.current) {
-      args.prevCoordsRef.current.leftover = round4(fullDelta - intDelta);
-    }
-    deltaScroll = intDelta;
-  } else {
-    // для wrap
-    deltaScroll = -move;
+  if (args.prevCoordsRef.current) {
+    args.prevCoordsRef.current.leftover = round4(fullDelta - intDelta);
   }
 
   if (axis === "x") {
@@ -158,7 +150,7 @@ const applyThumbOrWrap = (
 
     args.scrollStateRef.targetScrollX = Math.max(
       0,
-      Math.min(prevTarget + deltaScroll, maxScroll)
+      Math.min(prevTarget + intDelta, maxScroll)
     );
   } else {
     const prevTarget =
@@ -170,62 +162,82 @@ const applyThumbOrWrap = (
 
     args.scrollStateRef.targetScrollY = Math.max(
       0,
-      Math.min(prevTarget + deltaScroll, maxScroll)
+      Math.min(prevTarget + intDelta, maxScroll)
     );
   }
 
-  // только для перетягивания!
-  if (
-    args.clicked === "thumb" ||
-    (args.clicked === "wrapp" && args.type !== "slider")
-  ) {
-    scrollElement.scrollLeft = args.scrollStateRef.targetScrollX;
-    scrollElement.scrollTop = args.scrollStateRef.targetScrollY;
-  }
+  // для перетягивания
+  scrollElement.scrollLeft = args.scrollStateRef.targetScrollX;
+  scrollElement.scrollTop = args.scrollStateRef.targetScrollY;
 };
 
-const applySlider = (
-  axis: "x" | "y",
-  args: HandleMoveT,
-  delta: { x: number; y: number }
-) => {
+const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
   const el = args.scrollElementRef as HTMLDivElement;
   if (!el) return;
 
-  const reverce = args.type === "slider" && args.clicked === "wrapp" ? -1 : 1;
-  const move = delta[axis] * reverce;
+  const curr = {
+    x:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientX
+        : args.mouseEvent.clientX,
+    y:
+      "touches" in args.mouseEvent
+        ? args.mouseEvent.touches[0].clientY
+        : args.mouseEvent.clientY,
+    leftover: args.prevCoordsRef.current?.leftover ?? 0,
+  };
 
-  const size = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
-  const extent = axis === "x" ? args.wrapElWH[0] : args.wrapElWH[1];
+  const prev = args.prevCoordsRef.current ?? curr;
+  const delta = {
+    x: curr.x - prev.x,
+    y: curr.y - prev.y,
+  };
+
+  args.prevCoordsRef.current = curr;
+
+  const move = args.clicked === "wrapp" ? -delta[axis] : delta[axis];
   const topOrLeft = axis === "y" ? "scrollTop" : "scrollLeft";
-  const scroll = el[topOrLeft];
 
-  args.numForSliderRef.current += move; // накапливаем значение передвижения
+  // логика для thumb
+  if (args.clicked === "thumb") {
+    applyThumb(axis, args, move, prev);
+    return;
+  }
 
+  args.type === "slider" && (args.numForSliderRef.current += move); // накапливаем значение
+
+  // логика для wrapp
   if (args.clicked === "wrapp") {
     el[topOrLeft] += move;
-  } else {
-    // улучшение слайдера !!!
-    const sliderElSize =
-      el.closest(".ms-content")?.querySelector(".ms-slider-element.active")?.[
-        axis === "x" ? "clientWidth" : "clientHeight"
-      ] || 1;
+    return;
+  }
 
-    if (Math.abs(args.numForSliderRef.current) > sliderElSize) {
-      const nextScroll =
-        move > 0 && scroll + size < extent
-          ? scroll + size
-          : move < 0 && scroll > 0
-          ? scroll - size
-          : null; // если передать 0 будет loop
+  // логика для sliderThumb
+  const wh = axis === "x" ? 0 : 1;
+  const scroll = el[topOrLeft];
 
-      args.numForSliderRef.current = 0; // сбрасываем
-      args.smoothScroll(nextScroll, axis, 10);
-    }
+  // основа для передвижения размер элемента slider
+  const sliderElSize =
+    el.closest(".ms-content")?.querySelector(".ms-slider-element.active")?.[
+      axis === "x" ? "clientWidth" : "clientHeight"
+    ] || 1;
+
+  // запуск smoothScroll
+  if (Math.abs(args.numForSliderRef.current) >= sliderElSize) {
+    const nextScroll =
+      move > 0 && scroll + args.sizeLocal[wh] < args.wrapElWH[wh]
+        ? scroll + args.sizeLocal[wh]
+        : move < 0 && scroll > 0
+        ? scroll - args.sizeLocal[wh]
+        : null; // если передать 0 будет loop
+
+    args.numForSliderRef.current = 0; // сбрасываем
+    args.smoothScroll(nextScroll, axis, 10);
   }
 };
 
 function handleMouseOrTouch(args: HandleMouseDownT) {
+  console.log("handleMouseOrTouch");
   // удаляем RAF и задачу слайдера
   if (args.rafID.current) {
     cancelAnimationFrame(args.rafID.current);
@@ -334,48 +346,16 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
 }
 
 function handleMove(args: HandleMoveT) {
-  const curr = {
-    x:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientX
-        : args.mouseEvent.clientX,
-    y:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientY
-        : args.mouseEvent.clientY,
-    leftover: args.prevCoordsRef.current?.leftover ?? 0,
-  };
-
-  const prev = args.prevCoordsRef.current ?? curr;
-  const delta = {
-    x: curr.x - prev.x,
-    y: curr.y - prev.y,
-  };
-
-  args.prevCoordsRef.current = curr;
-
-  const handleAxis = (axis: "x" | "y") => {
-    if (args.clicked === "thumb") {
-      applyThumbOrWrap(axis, args, delta, prev);
-    } else if (args.clicked === "wrapp") {
-      if (args.type === "slider") {
-        applySlider(axis, args, delta);
-      } else {
-        applyThumbOrWrap(axis, args, delta, prev);
-      }
-    } else if (args.clicked === "slider") {
-      applySlider(axis, args, delta);
-    }
-  };
-
   const dir = args.direction || "y";
 
   if (dir === "hybrid") {
     const targetAxes =
       args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
-    targetAxes.forEach((axis) => axis && handleAxis(axis as "x" | "y"));
+    targetAxes.forEach(
+      (axis) => axis && motionHandler(axis as "x" | "y", args)
+    );
   } else {
-    handleAxis(dir as "x" | "y");
+    motionHandler(dir, args);
   }
 }
 
@@ -411,7 +391,7 @@ function handleUp(args: HandleUpT) {
   }
 
   // логика для слайдера
-  if (args.clicked === "wrapp" && args.type === "slider") {
+  if (args.type === "slider") {
     const el = args.scrollElementRef as HTMLDivElement;
     if (!el) return;
 

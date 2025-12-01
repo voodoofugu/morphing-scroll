@@ -1020,10 +1020,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [onMouseOrTouchDown]
   );
 
-  const onMouseDownWrap = React.useCallback(() => {
-    onMouseOrTouchDown("wrapp");
-  }, [onMouseOrTouchDown]);
-
   const handleArrowLocal = React.useCallback(
     (arrowType: handleArrowT["arrowType"]) => {
       if (!scrollElementRef.current) return;
@@ -1303,6 +1299,33 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       cancelTask();
     };
   }, []);
+
+  // установка слушателей
+  React.useEffect(() => {
+    const el = scrollElementRef.current;
+    if (!el) return;
+
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+    const eventType = isMobile ? "touchstart" : "mousedown";
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (e.type === "touchstart") {
+        if (type !== "slider") return;
+        el.style.touchAction = "none"; // только для слайдера (сейчас!!!)
+      }
+
+      if (el.style.touchAction) el.style.removeProperty("touch-action");
+
+      e.preventDefault();
+      onMouseOrTouchDown("wrapp", e.type);
+    };
+
+    el.addEventListener(eventType, handler, { passive: true });
+
+    return () => {
+      el.removeEventListener(eventType, handler);
+      el.style.removeProperty("touch-action");
+    };
+  }, [type]);
 
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {
@@ -1627,7 +1650,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     <div
       className="ms-objects-wrapper"
       ref={objectsWrapperRef}
-      onMouseDown={onMouseDownWrap}
       style={wrapperStyle}
     >
       {validChildrenKeys.map(renderChild)}
