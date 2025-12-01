@@ -169,7 +169,8 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <details><summary><b><code>scrollPosition</code></b>: <em>Scroll position and additional options.</em></summary><br /><ul><div>
 <b>Type:</b><br />
-{<br />
+number | "end" | (number | "end")[]
+| {<br />
 <ul>
   value: number | "end" | (number | "end")[];<br />
   duration?: number;<br />
@@ -180,29 +181,26 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 <b>Default:</b><br />
 { duration: 200; updater: false }<br />
 <br />
-<b>Description:</b> <em><br />
+<b>Description:</b><em><br />
 This parameter allows you to set custom scroll values.<br />
 <br />
 <code>value</code>:<br />
 <ul>
-  <li><mark>number</mark> - Sets the scroll position to a specific value.</li>
-  <li><mark>"end"</mark> - Scrolls to the bottom of the list upon loading, which is useful for scenarios like chat message lists. When new elements are appended to the list, the scroll position will update automatically. However, to prevent unwanted scrolling when adding elements to the beginning of the list, this property will not trigger.</li>
+  <li><b>number</b> - Sets position to a specific value.</li>
+  <li><b>"end"</b> - Sets position to the end of the list.</li>
 </ul>
 You can also provide an array of two values to specific positions ( e.g., [ x, y ] axes ) for hybrid directions.</code>.<br />
 <br />
 <code>duration</code>:<br />
-This property determines the animation speed for scrolling in <b>ms</b>.<br />
+property determines the animation speed for scrolling in <b>ms</b>.<br />
 <br />
 <code>updater</code>:<br />
-This property is a helper for the <code>value</code> property. When setting the same scroll value repeatedly (e.g., clicking a button to scroll to the top), React does not register the update. To force an update, toggle updater within setState, e.g.,<br />
-<code>setScroll((prev) => ({ ...prev, value: 0, updater: <b>!prev.updater</b> }))</code></em><br />
+property is a helper for the <code>value</code>. When setting the same scroll value repeatedly, React does not register the update and you can use it to force an update</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props}
-  scrollPosition={{ value: 100; duration: 100 }}
->
+<MorphScroll {...props} scrollPosition={100}>
   {children}
 </MorphScroll>
 ```
@@ -501,21 +499,21 @@ This parameter changes the order of the provided elements based on the provided 
 
 <details><summary><b><code>edgeGradient</code></b>: <em>Gradient overlay at the edges of the scroll area.</em></summary><br /><ul><div>
 <b>Type:</b><br />
-boolean | { color?: string; size?: number }<br />
+boolean | string | { color?: string; size?: number }<br />
 <br />
 <b>Default:</b><br />
 { size: 40 }<br />
 <br />
 <b>Description:</b> <em><br />
-This parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
+parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
 <br />
 <code>color</code>:<br />
-The property accepts any valid color format.
+property accepts any valid color format.
 If you provide it, the library will generate a gradient transitioning from the custom color to transparent.
-If you provide just <mark>true</mark>, the edge elements will have no color, allowing for custom styling via CSS classes.<br />
+If you provide just <b>true</b>, the edge elements will have no color, allowing for custom styling via CSS class <code>.ms-edge</code>.<br />
 <br />
 <code>size</code>:<br />
-The property changes the height for horizontal and width for vertical <b>.ms-edge</b>.</em><br />
+property changes the height of the edges for the horizontal and the width of the edges for the vertical.</em><br />
 <br />
 <b>Example:</b>
 

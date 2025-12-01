@@ -83,11 +83,15 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  scrollPosition?: {
-    value: number | "end" | (number | "end")[];
-    duration?: number;
-    updater?: boolean;
-  };
+  scrollPosition?:
+    | number
+    | "end"
+    | (number | "end")[]
+    | {
+        value: number | "end" | (number | "end")[];
+        duration?: number;
+        updater?: boolean;
+      };
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Callback for scroll value.
@@ -294,13 +298,13 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   edgeGradient={{ color: "rgba(0,0,0,0.4)"}}
+   *   edgeGradient="rgba(0,0,0,0.4)"
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  edgeGradient?: boolean | { color?: string; size?: number };
+  edgeGradient?: boolean | string | { color?: string; size?: number };
 
   // Progress Bar
   /**---

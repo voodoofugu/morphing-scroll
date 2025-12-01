@@ -33,8 +33,8 @@ export type MorphScrollT = {
         value: number | "end" | (number | "end")[];
         duration?: number;
         updater?: boolean;
-        // callback?: (target: HTMLElement) => void; // ! это onScrollValue
-      }; // !!! возможность передачи не объекта
+        // callback?: (left: number, top: number) => void; // onScrollValue
+      };
   onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => void;
 
