@@ -57,8 +57,8 @@ type HandleMoveT = Omit<
 > & {
   mouseEvent: MouseEvent | TouchEvent;
   clicked: ClickedT;
-  marginObjectsWrapperLR: number[];
-  marginObjectsWrapperTB: number[];
+  fullMarginObjectsWrapperX: number;
+  fullMarginObjectsWrapperY: number;
   scrollElementWH: number[];
   objectsWrapperWH: number[];
   wrapElWH: number[];
@@ -98,6 +98,7 @@ const applyThumb = (
   move: number,
   prev: { leftover: number }
 ) => {
+  console.log("applyThumb");
   if (!args.scrollElementRef || !args.objectsWrapperRef) return;
 
   const scrollElement = args.scrollElementRef;
@@ -118,13 +119,10 @@ const applyThumb = (
 
   // не забываем прибавить margin
   const objectsWrapperSize =
-    axis === "x"
-      ? args.objectsWrapperWH[0] +
-        args.marginObjectsWrapperLR[0] +
-        args.marginObjectsWrapperLR[1]
-      : args.objectsWrapperWH[1] +
-        args.marginObjectsWrapperTB[0] +
-        args.marginObjectsWrapperTB[1];
+    args.objectsWrapperWH[wh] +
+    args[
+      axis === "x" ? "fullMarginObjectsWrapperX" : "fullMarginObjectsWrapperY"
+    ];
 
   const maxThumbPos = visibleSizeWithLimit - args.thumbSize;
   const scrollableSize = objectsWrapperSize - visibleSize;
@@ -217,11 +215,12 @@ const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
   const scroll = el[topOrLeft];
 
   // основа для передвижения размер элемента slider
-  const sliderElSize =
+  const sliderElSize = Math.round(
     el
       .closest(".ms-content")
       ?.querySelector(".ms-slider-element.active")
-      ?.getBoundingClientRect()[axis === "x" ? "width" : "height"] || 1;
+      ?.getBoundingClientRect()[axis === "x" ? "width" : "height"] || 1
+  );
   // getBoundingClientRect помогает избежать проблем с масштабированием используя видимый размер
 
   // запуск smoothScroll
@@ -254,22 +253,18 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
   }
 
   // получение некоторых данных заранее при клике
-  let marginObjectsWrapperLR: number[] = [],
-    marginObjectsWrapperTB: number[] = [],
+  let fullMarginObjectsWrapperX: number = 0,
+    fullMarginObjectsWrapperY: number = 0,
     scrollElementWH: number[] = [],
     objectsWrapperWH: number[] = [],
     wrapElWH: number[] = [];
 
   if (args.clicked === "thumb") {
     const styles = getComputedStyle(args.objectsWrapperRef!);
-    marginObjectsWrapperLR = [
-      parseFloat(styles.marginLeft),
-      parseFloat(styles.marginRight),
-    ];
-    marginObjectsWrapperTB = [
-      parseFloat(styles.marginTop),
-      parseFloat(styles.marginBottom),
-    ];
+    fullMarginObjectsWrapperX =
+      parseFloat(styles.marginLeft) + parseFloat(styles.marginRight);
+    fullMarginObjectsWrapperY =
+      parseFloat(styles.marginTop) + parseFloat(styles.marginBottom);
 
     scrollElementWH = [
       args.scrollElementRef!.clientWidth,
@@ -303,8 +298,8 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     handleMove({
       ...args,
       mouseEvent: e,
-      marginObjectsWrapperLR,
-      marginObjectsWrapperTB,
+      fullMarginObjectsWrapperX,
+      fullMarginObjectsWrapperY,
       scrollElementWH,
       objectsWrapperWH,
       wrapElWH,
@@ -352,7 +347,6 @@ function handleMove(args: HandleMoveT) {
   if (dir === "hybrid") {
     const targetAxes =
       args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
-    console.log("args.axisFromAtr", args.axisFromAtr);
     targetAxes.forEach(
       (axis) => axis && motionHandler(axis as "x" | "y", args)
     );
