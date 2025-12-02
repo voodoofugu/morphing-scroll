@@ -57,11 +57,12 @@ type HandleMoveT = Omit<
 > & {
   mouseEvent: MouseEvent | TouchEvent;
   clicked: ClickedT;
-  fullMarginObjectsWrapperX: number;
-  fullMarginObjectsWrapperY: number;
+  fullMarginX: number;
+  fullMarginY: number;
   scrollElementWH: number[];
   objectsWrapperWH: number[];
   wrapElWH: number[];
+  visualDiff: number[];
 };
 
 type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
@@ -69,6 +70,11 @@ type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
   controller: AbortController;
   clicked: ClickedT;
 };
+
+function getVisualToLayoutScale(el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  return [rect.width / el.clientWidth, rect.height / el.clientHeight];
+}
 
 const cursorClassChange = (
   eventType: string,
@@ -90,86 +96,80 @@ const cursorClassChange = (
   }
 };
 
-const round4 = (n: number) => (Math.abs(n) < 0.0001 ? 0 : +n.toFixed(4));
-
 const applyThumb = (
   axis: "x" | "y",
   args: HandleMoveT,
   move: number,
-  prev: { leftover: number }
+  prev: { leftover: number },
+  visualDiff: number[]
 ) => {
-  console.log("applyThumb");
   if (!args.scrollElementRef || !args.objectsWrapperRef) return;
 
-  const scrollElement = args.scrollElementRef;
-
-  // параметр для небольшого уравнивания движение если scroll > window
-  const docSize = axis === "x" ? window.innerWidth : window.innerHeight;
-
-  const visibleSize =
-    axis === "x" ? args.scrollElementWH[0] : args.scrollElementWH[1];
-
-  // для плавности перемещения бегунка при scrollBarEdge
+  const scrollEl = args.scrollElementRef;
   const wh = axis === "x" ? 0 : 1;
-  const visibleSizeWithLimit = clampValue(
-    args.scrollElementWH[wh] - args.scrollBarEdge[wh],
-    0,
-    docSize
-  );
+  if (!Number.isFinite(visualDiff[wh])) return;
 
   // не забываем прибавить margin
   const objectsWrapperSize =
     args.objectsWrapperWH[wh] +
-    args[
-      axis === "x" ? "fullMarginObjectsWrapperX" : "fullMarginObjectsWrapperY"
-    ];
+    args[axis === "x" ? "fullMarginX" : "fullMarginY"];
 
-  const maxThumbPos = visibleSizeWithLimit - args.thumbSize;
-  const scrollableSize = objectsWrapperSize - visibleSize;
+  const maxThumbPos =
+    (args.scrollElementWH[wh] - args.scrollBarEdge[wh] - args.thumbSize) *
+    visualDiff[wh];
+  const scrollableSize = objectsWrapperSize - args.scrollElementWH[wh];
 
   if (maxThumbPos <= 0 || scrollableSize <= 0) return;
 
   const scrollRatio = scrollableSize / maxThumbPos;
   const fullDelta = move * scrollRatio + prev.leftover;
-
   const intDelta = Math.trunc(fullDelta);
 
   if (args.prevCoordsRef.current) {
-    args.prevCoordsRef.current.leftover = round4(fullDelta - intDelta);
+    args.prevCoordsRef.current.leftover = fullDelta - intDelta;
   }
 
   if (axis === "x") {
     const prevTarget =
       typeof args.scrollStateRef.targetScrollX === "number"
         ? args.scrollStateRef.targetScrollX
-        : scrollElement.scrollLeft;
+        : scrollEl.scrollLeft;
 
-    const maxScroll = scrollElement.scrollWidth - scrollElement.clientWidth;
-
-    args.scrollStateRef.targetScrollX = Math.max(
+    const maxScroll = scrollEl.scrollWidth - scrollEl.clientWidth;
+    args.scrollStateRef.targetScrollX = clampValue(
+      prevTarget + intDelta,
       0,
-      Math.min(prevTarget + intDelta, maxScroll)
+      maxScroll
     );
   } else {
     const prevTarget =
       typeof args.scrollStateRef.targetScrollY === "number"
         ? args.scrollStateRef.targetScrollY
-        : scrollElement.scrollTop;
+        : scrollEl.scrollTop;
 
-    const maxScroll = scrollElement.scrollHeight - scrollElement.clientHeight;
+    const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
 
-    args.scrollStateRef.targetScrollY = Math.max(
+    args.scrollStateRef.targetScrollY = clampValue(
+      prevTarget + intDelta,
       0,
-      Math.min(prevTarget + intDelta, maxScroll)
+      maxScroll
     );
   }
 
   // для перетягивания
-  scrollElement.scrollLeft = args.scrollStateRef.targetScrollX;
-  scrollElement.scrollTop = args.scrollStateRef.targetScrollY;
+  if (scrollEl.scrollLeft !== args.scrollStateRef.targetScrollX) {
+    scrollEl.scrollLeft = args.scrollStateRef.targetScrollX;
+  }
+  if (scrollEl.scrollTop !== args.scrollStateRef.targetScrollY) {
+    scrollEl.scrollTop = args.scrollStateRef.targetScrollY;
+  }
 };
 
-const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
+const motionHandler = (
+  axis: "x" | "y",
+  visualDiff: number[],
+  args: HandleMoveT
+) => {
   const el = args.scrollElementRef as HTMLDivElement;
   if (!el) return;
 
@@ -198,20 +198,21 @@ const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
 
   // --- логика для thumb ---
   if (args.clicked === "thumb") {
-    applyThumb(axis, args, move, prev);
+    applyThumb(axis, args, move, prev, visualDiff);
     return;
   }
 
   args.type === "slider" && (args.numForSliderRef.current += move); // накапливаем значение
+  const wh = axis === "x" ? 0 : 1;
 
   // --- логика для wrapp ---
   if (args.clicked === "wrapp") {
-    el[topOrLeft] += move;
+    if (!Number.isFinite(visualDiff[wh])) return;
+    el[topOrLeft] += move / visualDiff[wh];
     return;
   }
 
   // --- логика для sliderThumb ---
-  const wh = axis === "x" ? 0 : 1;
   const scroll = el[topOrLeft];
 
   // основа для передвижения размер элемента slider
@@ -253,18 +254,24 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
   }
 
   // получение некоторых данных заранее при клике
-  let fullMarginObjectsWrapperX: number = 0,
-    fullMarginObjectsWrapperY: number = 0,
+  let fullMarginX: number = 0,
+    fullMarginY: number = 0,
     scrollElementWH: number[] = [],
     objectsWrapperWH: number[] = [],
-    wrapElWH: number[] = [];
+    wrapElWH: number[] = [],
+    visualDiff: number[] = [];
 
   if (args.clicked === "thumb") {
     const styles = getComputedStyle(args.objectsWrapperRef!);
-    fullMarginObjectsWrapperX =
-      parseFloat(styles.marginLeft) + parseFloat(styles.marginRight);
-    fullMarginObjectsWrapperY =
-      parseFloat(styles.marginTop) + parseFloat(styles.marginBottom);
+    const getMrg = (dir: "x" | "y") => {
+      const toNum = (value: string) => parseFloat(value);
+      if (dir === "x")
+        return toNum(styles.marginLeft) + toNum(styles.marginRight);
+      else return toNum(styles.marginTop) + toNum(styles.marginBottom);
+    };
+
+    fullMarginX = getMrg("x");
+    fullMarginY = getMrg("y");
 
     scrollElementWH = [
       args.scrollElementRef!.clientWidth,
@@ -282,6 +289,9 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
       args.objectsWrapperRef!.clientHeight,
     ];
   }
+
+  if (["scroll", "slider"].includes(args.type!))
+    visualDiff = getVisualToLayoutScale(args.scrollElementRef!);
   // --------------------------------------------
 
   const controller = new AbortController();
@@ -298,11 +308,12 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     handleMove({
       ...args,
       mouseEvent: e,
-      fullMarginObjectsWrapperX,
-      fullMarginObjectsWrapperY,
+      fullMarginX,
+      fullMarginY,
       scrollElementWH,
       objectsWrapperWH,
       wrapElWH,
+      visualDiff,
     });
   };
 
@@ -314,31 +325,17 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     args.objectsWrapperRef
   );
 
-  // слушатели
-  if (args.eventType === "mousedown") {
-    document.addEventListener("mousemove", (mouseEvent) => onMove(mouseEvent), {
-      passive: false,
-      signal,
-    });
+  // pointer слушатели для универсальности
+  document.addEventListener("pointermove", (mouseEvent) => onMove(mouseEvent), {
+    passive: false,
+    signal,
+  });
 
-    document.addEventListener(
-      "mouseup",
-      (mouseEvent) => handleUp({ ...args, mouseEvent, controller }),
-      { signal }
-    );
-  } else if (args.eventType === "touchstart") {
-    // слушатели для тапа
-    document.addEventListener("touchmove", (touchEvent) => onMove(touchEvent), {
-      passive: false,
-      signal,
-    });
-
-    document.addEventListener(
-      "touchend",
-      (touchEvent) => handleUp({ ...args, mouseEvent: touchEvent, controller }),
-      { signal }
-    );
-  }
+  document.addEventListener(
+    "pointerup",
+    (mouseEvent) => handleUp({ ...args, mouseEvent, controller }),
+    { signal }
+  );
 }
 
 function handleMove(args: HandleMoveT) {
@@ -348,10 +345,10 @@ function handleMove(args: HandleMoveT) {
     const targetAxes =
       args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
     targetAxes.forEach(
-      (axis) => axis && motionHandler(axis as "x" | "y", args)
+      (axis) => axis && motionHandler(axis as "x" | "y", args.visualDiff, args)
     );
   } else {
-    motionHandler(dir, args);
+    motionHandler(dir, args.visualDiff, args);
   }
 }
 

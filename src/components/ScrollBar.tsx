@@ -69,6 +69,9 @@ const ScrollBar = ({
     const el = thumbRef.current;
     if (!el || type === "sliderMenu") return;
 
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+    const eventType = isMobile ? "touchstart" : "mousedown";
+
     const handleStart = (e: MouseEvent | TouchEvent) => {
       e.preventDefault(); // помогает блокировать интерфейс при перетаскивании
       e.stopPropagation();
@@ -76,12 +79,10 @@ const ScrollBar = ({
       (scrollBarEvent as (e: MouseEvent | TouchEvent) => void)(e);
     };
 
-    el.addEventListener("touchstart", handleStart, { passive: false });
-    el.addEventListener("mousedown", handleStart, { passive: false });
+    el.addEventListener(eventType, handleStart, { passive: false });
 
     return () => {
-      el.removeEventListener("touchstart", handleStart);
-      el.removeEventListener("mousedown", handleStart);
+      el.removeEventListener(eventType, handleStart);
     };
   }, [scrollBarEvent]);
 
