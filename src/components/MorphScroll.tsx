@@ -1317,7 +1317,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       onMouseOrTouchDown("wrapp", e.type);
     };
 
-    scrollEl.addEventListener(eventType, handler, { passive: true });
+    scrollEl.addEventListener(eventType, handler, { passive: false });
 
     return () => {
       scrollEl.removeEventListener(eventType, handler);

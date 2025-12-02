@@ -222,7 +222,7 @@ const motionHandler = (axis: "x" | "y", args: HandleMoveT) => {
       .closest(".ms-content")
       ?.querySelector(".ms-slider-element.active")
       ?.getBoundingClientRect()[axis === "x" ? "width" : "height"] || 1;
-  // getBoundingClientRect помогает избежать проблем с масштабированием
+  // getBoundingClientRect помогает избежать проблем с масштабированием используя видимый размер
 
   // запуск smoothScroll
   if (Math.abs(args.numForSliderRef.current) >= sliderElSize) {
@@ -352,6 +352,7 @@ function handleMove(args: HandleMoveT) {
   if (dir === "hybrid") {
     const targetAxes =
       args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
+    console.log("args.axisFromAtr", args.axisFromAtr);
     targetAxes.forEach(
       (axis) => axis && motionHandler(axis as "x" | "y", args)
     );
