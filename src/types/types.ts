@@ -53,7 +53,7 @@ export type MorphScrollT = {
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
   elementsAlign?: "start" | "center" | "end";
   elementsDirection?: "row" | "column";
-  edgeGradient?: boolean | string | { color?: string; size?: number }; // !!! поддержка строки
+  edgeGradient?: boolean | string | { color?: string; size?: number };
 
   // Progress Bar
   progressTrigger: {
@@ -68,8 +68,8 @@ export type MorphScrollT = {
       | {
           element?: React.ReactNode;
           size?: number;
-          contentReduce?: boolean; // !!! contentReduce (позже изменить дефолтное поведение)
-          loop: boolean; // !!! loop
+          contentReduce?: boolean;
+          loop?: boolean;
         };
   };
   progressReverse?: boolean | boolean[];
@@ -87,7 +87,8 @@ export type MorphScrollT = {
         stopLoadOnScroll?: boolean; // позже сократить до loadOnScroll
       };
   emptyElements?: {
-    mode: "clear" | "fallback" | { fallback: React.ReactNode };
+    // может переименовать mode
+    mode: "clear" | "fallback" | { fallback: React.ReactNode }; // !!! упростить до "clear" | "fallback" | React.ReactNode
     clickTrigger?: { selector: string; delay?: number };
   };
   suspending?: boolean;

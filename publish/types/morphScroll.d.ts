@@ -312,10 +312,10 @@ type MorphScrollT = {
    * Triggers for the scroll progress.
    * ___
    * @description
-   * - `wheel`: *Triggered by mouse wheel scroll*
-   * - `content`: *Triggered by content click and drag*
-   * - `progressElement`: *Triggered by provided progress element*
-   * - `arrows`: *Triggered by arrow button click*
+   * - `wheel`: *allow to scroll by mouse wheel*
+   * - `content`: *allow to scroll by content drag*
+   * - `progressElement`: *add custom progress element*
+   * - `arrows`: *add custom arrows*
    *
    * @note
    * - *`progressElement` can be thumb or slider, use props `type`*
@@ -336,7 +336,15 @@ type MorphScrollT = {
       | { changeDirection?: boolean; changeDirectionKey?: string };
     content?: boolean;
     progressElement?: boolean | React.ReactNode;
-    arrows?: boolean | { size?: number; element?: React.ReactNode };
+    arrows?:
+      | boolean
+      | React.ReactNode
+      | {
+          element?: React.ReactNode;
+          size?: number;
+          contentReduce?: boolean;
+          loop?: boolean;
+        };
   };
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
@@ -426,17 +434,20 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   render={{ type: "virtual" }}
+   *   render="virtual"
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  render?: {
-    type: "lazy" | "virtual";
-    rootMargin?: number | number[];
-    stopLoadOnScroll?: boolean;
-  };
+  render?:
+    | "lazy"
+    | "virtual"
+    | {
+        type: "lazy" | "virtual";
+        rootMargin?: number | number[];
+        stopLoadOnScroll?: boolean;
+      };
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Handling of empty scroll elements.
