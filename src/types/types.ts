@@ -57,6 +57,7 @@ export type MorphScrollT = {
 
   // Progress Bar
   progressTrigger: {
+    // !!! добавить "wheel" | "content" | "arrows"
     wheel?:
       | boolean
       | { changeDirection?: boolean; changeDirectionKey?: string };

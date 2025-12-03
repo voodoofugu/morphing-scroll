@@ -67,9 +67,9 @@ type MorphScrollT = {
    * @default { duration: 200; updater: false }
    *
    * @description
-   * - `value`: *Scroll position value*
-   * - `duration`: *Duration of the scroll animation*
-   * - `updater`: *Helper to force an update when setting the same scroll value repeatedly*
+   * - `value`: *scroll position value*
+   * - `duration`: *dDuration of the scroll animation*
+   * - `updater`: *helper to force an update when setting the same scroll value repeatedly*
    *
    * @note
    * `value` property can be an array of two values for hybrid directions
@@ -97,8 +97,8 @@ type MorphScrollT = {
    * Callback for scroll value.
    * ___
    * @description
-   * - `left`: *Current scroll position on the x-axis*
-   * - `top`: *Current scroll position on the y-axis*
+   * - `left`: *current scroll position on the x-axis*
+   * - `top`: *current scroll position on the y-axis*
    *
    * @example
    * ```tsx
@@ -423,10 +423,10 @@ type MorphScrollT = {
    * Rendering strategy for performance optimization.
    * ___
    * @description
-   * - `"lazy"`: *Does not deleted content when it leaves the viewport*
-   * - `"virtual"`: *Deletes content when it leaves the viewport*
-   * - `rootMargin`: *Distance for loading from the root element*
-   * - `stopLoadOnScroll`: *Stops loading content when scrolling*
+   * - `"lazy"`: *does not deleted content when it leaves the viewport*
+   * - `"virtual"`: *deletes content when it leaves the viewport*
+   * - `rootMargin`: *distance for loading from the root element*
+   * - `stopLoadOnScroll`: *stops loading content when scrolling*
    *
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
@@ -453,9 +453,9 @@ type MorphScrollT = {
    * Handling of empty scroll elements.
    * ___
    * @description
-   * - `"clear"`: *Removes empty elements from the DOM*
-   * - `fallback`: *Replaces empty elements with a fallback element*
-   * - `clickTrigger`: *Start clearing elements when passed selector is clicked*
+   * - `"clear"`: *removes empty elements from the DOM*
+   * - `fallback`: *replaces empty elements with a fallback element*
+   * - `clickTrigger`: *start clearing elements when passed selector is clicked*
    *
    * @example
    * ```tsx
