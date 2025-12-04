@@ -59,7 +59,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-<details><b>MorphScroll</b>: <em>main component of the library responsible for displaying your data.</em></summary>
+<details><summary><h4><b>MorphScroll</b></h4>: <em>main component of the library responsible for displaying your data.</em></summary>
 
 - #### Props:
 
