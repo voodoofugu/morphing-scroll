@@ -59,7 +59,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-<details><summary><h4><b>MorphScroll</b></h4>: <em>main component of the library responsible for displaying your data.</em></summary>
+<details><summary><b>MorphScroll</b>: <em>main component of the library responsible for displaying your data</em></summary>
 
 - #### Props:
 
@@ -874,9 +874,7 @@ It will be used when:
 
 <h2></h2>
 
-#### ♦ ResizeTracker
-
-`ResizeTracker` is a React component that monitors changes to an element’s size. It provides updated dimensions via a render-prop function whenever the observed element is resized.
+<details><summary><b>ResizeTracker</b>: <em>component that monitors changes to an element’s size</em></summary>
 
 - #### Props:
 
@@ -989,11 +987,11 @@ The function receives an object containing the updated size properties.</em><br 
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
+</details>
+
 <h2></h2>
 
-#### ♦ IntersectionTracker
-
-`IntersectionTracker` is a React component for tracking the intersection of an element with the viewport.
+<details><summary><b>IntersectionTracker</b>: <em>component for tracking the intersection of an element with the viewport</em></summary>
 
 - #### Props:
 
@@ -1175,6 +1173,8 @@ the <code>IntersectionObserverEntry</code> object provides details about the int
 - #### Link:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+
+</details>
 
 </div></ul>
 
