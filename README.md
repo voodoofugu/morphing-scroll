@@ -7,9 +7,6 @@
 - [About](#-about-)
 - [Installation](#-installation-)
 - [API](#-api-)
-  - [MorphScroll](#-morphscroll)
-  - [Resizetracker](#-resizetracker)
-  - [Intersectiontracker](#-intersectiontracker)
 - [License](#-license-)
 
 <h2></h2>
@@ -62,7 +59,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-<details><b><h4>MorphScroll</h4></b></summary>
+<details><b>MorphScroll</b></summary>
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
