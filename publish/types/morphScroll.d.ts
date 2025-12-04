@@ -462,7 +462,7 @@ type MorphScrollT = {
    * <MorphScroll {...props}
    *   emptyElements={{
    *     mode: "clear",
-   *     clickTrigger: { selector: ".close-button" }
+   *     clickTrigger: ".close-button"
    *   }}
    * >
    *   {children}
@@ -471,7 +471,7 @@ type MorphScrollT = {
    */
   emptyElements?: {
     mode: "clear" | "fallback" | { fallback: React.ReactNode };
-    clickTrigger?: { selector: string; delay?: number };
+    clickTrigger?: string | { selector: string; delay?: number };
   };
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)

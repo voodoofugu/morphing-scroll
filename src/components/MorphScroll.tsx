@@ -1075,6 +1075,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const updateLoadedElementsKeysLocal = React.useCallback(() => {
     if (!customScrollRef.current) return;
+
     updateLoadedElementsKeys(
       customScrollRef.current,
       objectsKeys,
@@ -1086,12 +1087,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const updateEmptyKeysClickLocal = React.useCallback(
     (event: React.MouseEvent) => {
-      if (emptyElements?.clickTrigger)
-        updateEmptyKeysClick(
-          event,
-          emptyElements.clickTrigger,
-          updateLoadedElementsKeysLocal
-        );
+      if (!emptyElements?.clickTrigger) return;
+
+      updateEmptyKeysClick(
+        event,
+        emptyElements.clickTrigger,
+        updateLoadedElementsKeysLocal
+      );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [emptyElementsST, updateLoadedElementsKeysLocal]
@@ -1359,9 +1361,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         children
       );
 
-      const onClickHandler =
-        emptyElements?.clickTrigger?.selector && updateEmptyKeysClickLocal;
-
       return (
         <div
           key={key}
@@ -1372,7 +1371,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             : {})}
           className="ms-object-box"
           style={wrapStyle}
-          onClick={onClickHandler as React.MouseEventHandler}
+          onClick={updateEmptyKeysClickLocal}
         >
           {content}
         </div>

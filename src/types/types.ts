@@ -73,8 +73,8 @@ export type MorphScrollT = {
           loop?: boolean;
         };
   };
-  progressReverse?: boolean | boolean[];
-  scrollBarOnHover?: boolean;
+  progressReverse?: boolean | boolean[]; // <new> переименовать в progressBarReverse или progressBarPosition
+  scrollBarOnHover?: boolean; // <new> добавить префикс ms- к классам "hover" и "leave"
   scrollBarEdge?: number | number[];
   thumbMinSize?: number;
 
@@ -85,12 +85,12 @@ export type MorphScrollT = {
     | {
         type: "lazy" | "virtual";
         rootMargin?: number | number[];
-        stopLoadOnScroll?: boolean; // позже сократить до loadOnScroll
+        stopLoadOnScroll?: boolean; // <new> позже сократить до loadOnScroll
       };
   emptyElements?: {
     // может переименовать mode
-    mode: "clear" | "fallback" | { fallback: React.ReactNode }; // !!! упростить до "clear" | "fallback" | React.ReactNode
-    clickTrigger?: { selector: string; delay?: number };
+    mode: "clear" | "fallback" | { fallback: React.ReactNode }; // <new> упростить до "clear" | "fallback" | React.ReactNode
+    clickTrigger?: string | { selector: string; delay?: number }; // <new> добавить префикс ms- к класс "remove"
   };
   suspending?: boolean;
   fallback?: React.ReactNode;

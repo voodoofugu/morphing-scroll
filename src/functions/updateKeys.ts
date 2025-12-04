@@ -69,12 +69,15 @@ const updateLoadedElementsKeys = (
 
 const updateEmptyKeysClick = (
   event: React.MouseEvent,
-  clickTrigger: { selector: string; delay?: number },
+  clickTrigger: string | { selector: string; delay?: number },
   callBack: () => void
 ) => {
+  const { selector, delay = 0 } =
+    typeof clickTrigger === "string"
+      ? { selector: clickTrigger }
+      : clickTrigger;
   const target = event.target as HTMLElement;
-  const closeSelector = target.closest(clickTrigger.selector);
-  if (!closeSelector) return;
+  if (!target.closest(selector)) return;
 
   const parentWrapper = target.closest<HTMLElement>(`[${CONST.WRAP_ATR}]`);
 
@@ -83,7 +86,7 @@ const updateEmptyKeysClick = (
   setTask(() => {
     if (parentWrapper) parentWrapper.classList.remove("remove");
     callBack();
-  }, clickTrigger.delay || 0); // "requestFrame"
+  }, delay);
 };
 
 export { updateLoadedElementsKeys, updateEmptyKeysClick };

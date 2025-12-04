@@ -62,7 +62,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-#### ♦ MorphScroll
+<details><b><h4>MorphScroll</h4></b></summary>
 
 `MorphScroll` is the main component of the library responsible for displaying your data.
 
@@ -72,7 +72,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 ##### **GENERAL SETTINGS**:
 
-<details><summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br /><ul><div>
+<details><summary><b><code>className</code></b>: <em>additional classes.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 string<br />
 <br />
@@ -91,7 +91,7 @@ allows you to add additional classes to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>children</code></b>: <em>Custom user content.</em></summary><br /><ul><div>
+<details><summary><b><code>children</code></b>: <em>custom user content.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -112,7 +112,7 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 ##### **SCROLL SETTINGS**:
 
-<details><summary><b><code>type</code></b>: <em>Type of progress element.</em></summary><br /><ul><div>
+<details><summary><b><code>type</code></b>: <em>type of progress element.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 "scroll" | "slider" | "sliderMenu"<br />
 <br />
@@ -142,7 +142,7 @@ defines how the provided <code>progressElement</code> behaves within <code>progr
 
 <h2></h2>
 
-<details><summary><b><code>direction</code></b>: <em>Scrolling direction.</em></summary><br /><ul><div>
+<details><summary><b><code>direction</code></b>: <em>scrolling direction.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 "x" | "y" | "hybrid"<br />
 <br />
@@ -167,9 +167,9 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <h2></h2>
 
-<details><summary><b><code>scrollPosition</code></b>: <em>Scroll position and additional options.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollPosition</code></b>: <em>scroll position and additional options.</em></summary><br /><ul><div>
 <b>Type:</b><br />
-number | "end" | (number | "end")[]
+number | "end" | (number | "end")[]<br />
 | {<br />
 <ul>
   value: number | "end" | (number | "end")[];<br />
@@ -189,7 +189,7 @@ allows you to set custom scroll values.<br />
   <li><b>number</b> - Sets position to a specific value.</li>
   <li><b>"end"</b> - Sets position to the end of the list.</li>
 </ul>
-You can also provide an array of two values to specific positions ( e.g., [ x, y ] axes ) for hybrid directions.</code>.<br />
+You can also provide an array of two values to specific positions ( e.g., [ x, y ] axes ) for hybrid directions.</code><br />
 <br />
 <code>duration</code>:<br />
 property determines the animation speed for scrolling in <b>ms</b>.<br />
@@ -211,7 +211,7 @@ property is a helper for the <code>value</code>. When setting the same scroll va
 
 <h2></h2>
 
-<details><summary><b><code>onScrollValue</code></b>: <em>Callback for scroll value.</em></summary><br /><ul><div>
+<details><summary><b><code>onScrollValue</code></b>: <em>callback for scroll value.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 ( left: number, top: number ) => void<br />
 <br />
@@ -234,7 +234,7 @@ accepts a callback function that is triggered on every scroll event. The callbac
   
 <h2></h2>
 
-<details><summary><b><code>isScrolling</code></b>: <em>Callback function for scroll status.</em></summary><br /><ul><div>
+<details><summary><b><code>isScrolling</code></b>: <em>callback function for scroll status.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 ( motion: boolean ) => void<br />
 <br />
@@ -267,14 +267,16 @@ number | number[] | "auto"<br />
 <b>Description:</b><em><br />
 sets the width and height of the <code>MorphScroll</code>.<br />
 <br />
-<b>number</b> - Sets a fixed size in pixels. It can be 1 number if you want to set the same width and height, or an array of 2 numbers.<br />
+<code>number</code>:<br />
+sets a fixed size in pixels. It can be 1 number if you want to set the same width and height, or an array of 2 numbers.<br />
 <br />
-<b>"auto"</b> - Adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
+<code>"auto"</code>:<br />
+adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} size={[100, 400]}>
+<MorphScroll {...props} size={100}>
   {children}
 </MorphScroll>
 ```
@@ -288,24 +290,28 @@ sets the width and height of the <code>MorphScroll</code>.<br />
 <details><summary><b><code>objectsSize</code></b>: <em>[width, height] dimension of cells for each object.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | "size" | "firstChild" | "none"<br />
-| (number | "size" | "firstChild" | "none")[]<br />
+| ( number | "size" | "firstChild" | "none" )[]<br />
 <br />
 <b>Default:</b><br />
-If you don't provide any value, the default value will be taken from <code>size</code><br />
+If you don't provide any value, the default value will be taken from <code>size</code>.<br />
 <br />
 <b>Description:</b><em><br />
 defines the <b>[width, height]</b> of cells for each of your objects.<br />
 <br />
-<b>number</b> - Sets a fixed size for your custom objects.<br />
+<code>number</code>:<br />
+sets a fixed size for your custom objects.<br />
 <br />
-<b>"size"</b> - The dimensions will be taken from <code>size</code>.<br />
+<code>"size"</code>:<br />
+the dimensions will be taken from <code>size</code>.<br />
 <br />
-<b>"firstChild"</b> - Creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
+<code>"firstChild"</code>:<br />
+creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
-<b>"none"</b> - Cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+<code>"none"</code>:<br />
+cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
 <br />
-<b>undefined</b> - If no value is provided, the default behavior is partially inferred from the <code>size</code> prop:
+If no value is provided, the default behavior is partially inferred from the <code>size</code> prop:
 <ul>
   <li>When <code>direction="x"</code>, the height from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["size", "none"]</code>.</li>
   <li>When <code>direction="y"</code>, the width from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["none", "size"]</code>.</li>
@@ -320,7 +326,7 @@ This can be useful if you want to change the size of objects in your list dynami
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} objectsSize={[80, 80]}>
+<MorphScroll {...props} objectsSize={[70, 100]}>
   {children}
 </MorphScroll>
 ```
@@ -331,7 +337,7 @@ This can be useful if you want to change the size of objects in your list dynami
 
 <h2></h2>
 
-<details><summary><b><code>crossCount</code></b>: <em>Number of cells in each direction.</em></summary><br /><ul><div>
+<details><summary><b><code>crossCount</code></b>: <em>number of cells in each direction.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number<br />
 <br />
@@ -347,7 +353,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} crossCount={3}>
+<MorphScroll {...props} crossCount={2}>
   {children}
 </MorphScroll>
 ```
@@ -358,7 +364,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 
 <h2></h2>
 
-<details><summary><b><code>gap</code></b>: <em>Gap between cells.</em></summary><br /><ul><div>
+<details><summary><b><code>gap</code></b>: <em>gap between cells.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -366,7 +372,7 @@ number | number[]<br />
 allows you to set spacing in pixels between list items for rows and columns.<br />
 <br />
 ✦ Note:<br />
-It can be 1 number or an array of 2 numbers.</em><br />
+it can be 1 number or an array of 2 numbers.</em><br />
 <br />
 <b>Example:</b>
 
@@ -382,7 +388,7 @@ It can be 1 number or an array of 2 numbers.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>wrapperMargin</code></b>: <em>Margin for the <b>.ms-objects-wrapper</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>wrapperMargin</code></b>: <em>margin for the <b>.ms-objects-wrapper</b>.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -390,7 +396,7 @@ number | number[]<br />
 defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area.<br />
 <br />
 ✦ Note:<br />
-Can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
+can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
 <br />
 <b>Example:</b>
 
@@ -406,7 +412,7 @@ Can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>wrapperMinSize</code></b>: <em>Minimum height or width of the <b>.ms-objects-wrapper</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>wrapperMinSize</code></b>: <em>minimum height or width of the <b>.ms-objects-wrapper</b>.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | "full" | (number | "full")[]<br />
 <br />
@@ -414,7 +420,7 @@ number | "full" | (number | "full")[]<br />
 defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
 <br />
 ✦ Note:<br />
-Can be used as 1 value, or an array of 2 values.</em><br />
+can be used as 1 value, or an array of 2 values.</em><br />
 <br />
 <b>Example:</b>
 
@@ -435,16 +441,19 @@ Can be used as 1 value, or an array of 2 values.</em><br />
 "start" | "center" | "end"<br />
 | ("start" | "center" | "end")[]<br />
 <br />
+<b>Default:</b><br />
+"start"<br />
+<br />
 <b>Description:</b><em><br />
 aligns the <b>.ms-objects-wrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
 <br />
 ✦ Note:<br />
-Use 1 value to align one or both axes, or an array of 2 values to align both axes.</em><br />
+use 1 value to align one or both axes, or an array of 2 values to align both axes.</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} wrapperAlign={["center", "center"]}>
+<MorphScroll {...props} wrapperAlign="center">
   {children}
 </MorphScroll>
 ```
@@ -455,9 +464,12 @@ Use 1 value to align one or both axes, or an array of 2 values to align both axe
 
 <h2></h2>
 
-<details><summary><b><code>elementsAlign</code></b>: <em>Aligns the objects inside <code>MorphScroll</code>.</em></summary><br /><ul><div>
+<details><summary><b><code>elementsAlign</code></b>: <em>aligns the objects inside <code>MorphScroll</code>.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 "start" | "center" | "end"<br />
+<br />
+<b>Default:</b><br />
+"start"<br />
 <br />
 <b>Example:</b>
 
@@ -473,7 +485,7 @@ Use 1 value to align one or both axes, or an array of 2 values to align both axe
 
 <h2></h2>
 
-<details><summary><b><code>elementsDirection</code></b>: <em>Direction of the provided elements.</em></summary><br /><ul><div>
+<details><summary><b><code>elementsDirection</code></b>: <em>direction of the provided elements.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 "row" | "column"<br />
 <br />
@@ -497,7 +509,7 @@ changes the order of the provided elements based on the provided value.</em><br 
 
 <h2></h2>
 
-<details><summary><b><code>edgeGradient</code></b>: <em>Gradient overlay at the edges of the scroll area.</em></summary><br /><ul><div>
+<details><summary><b><code>edgeGradient</code></b>: <em>gradient overlay at the edges of the scroll area.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean | string | { color?: string; size?: number }<br />
 <br />
@@ -534,7 +546,7 @@ property changes the height of the edges for the horizontal and the width of the
 
 ##### **PROGRESSBAR**:
 
-<details><summary><b><code>progressTrigger</code></b>: <em>Triggers for the scroll progress.</em></summary><br /><ul><div>
+<details><summary><b><code>progressTrigger</code></b>: <em>triggers for the scroll progress.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 {<br />
   <ul> 
@@ -560,46 +572,38 @@ property changes the height of the edges for the horizontal and the width of the
 this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
 <br />
 <code><b>wheel</b></code>:<br />
+determines whether the progress bar responds to mouse wheel scrolling<br />
+<br />
+If you use <code>direction="hybrid"</code>, you can use:<br />
 <ul>
-  determines whether the progress bar responds to mouse wheel scrolling.<br />
-  If you use <code>direction="hybrid"</code>, you can use:<br />
-  <ul>
-    <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.<br />
-    Useful when <code>direction="hybrid"</code>.</li><br />
-    <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key (default: <b>"KeyX"</b>).<br />
-    To disable this behavior, pass an empty string.<br />
-    <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a><br />
-    Useful when <code>direction="hybrid"</code>.</li>
-  </ul>
+  <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li><br />
+  <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key (default: <b>"KeyX"</b>).<br />
+  To disable this behavior, pass an empty string.<br />
+  <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
 </ul>
 <br />
 <code><b>content</b></code>:<br />
-<ul>
-  enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-</ul>
+enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 <br />
 <code><b>progressElement</b></code>:<br />
+determines how the scroll progress is managed<br />
+<br />
 <ul>
-  determines how the scroll progress is managed.<br />
-  <br />
-  <ul>
-    <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-    <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
-    <li>When using <code>type="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
-  </ul>
+  <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
+  <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
+  <li>When using <code>type="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
 <code><b>arrows</b></code>:<br />
+allows you to add custom arrows to the progress bar<br />
+<br />
 <ul>
-  allows you to add custom arrows to the progress bar.<br />
-  <ul>
-    <li><code>element</code>: the custom arrow element.</li><br />
-    <li><code>size</code>: adds a custom size to the arrow.</li><br />
-    <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
-    <li><code>loop</code>: enables infinite scrolling.</li>
-  </ul>
-  You can either specify a <code>size</code> for the arrows and provide a custom element.
+  <li><code>element</code>: the custom arrow element.</li><br />
+  <li><code>size</code>: adds a custom size to the arrow.</li><br />
+  <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
+  <li><code>loop</code>: enables infinite scrolling.</li>
 </ul>
+You can either specify a <code>size</code> for the arrows and provide a custom element.
 <br />
 ✦ Note:<br />
 <ul>
@@ -624,7 +628,7 @@ this is one of the most important properties, allowing you to define how users i
 
 <h2></h2>
 
-<details><summary><b><code>progressReverse</code></b>: <em>Reverse your progress bar position.</em></summary><br /><ul><div>
+<details><summary><b><code>progressReverse</code></b>: <em>reverse your progress bar position.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean | boolean[]<br />
 <br />
@@ -632,13 +636,10 @@ boolean | boolean[]<br />
 false<br />
 <br />
 <b>Description:</b><em><br />
-this parameter changes the position of the progress bar based on the direction property.<br />
+this parameter changes the position of the progress bar in the opposite direction and depends on the <code>direction</code> property.<br />
 <br />
-<ul>
-  <li>If <code>direction="x"</code>, the progress bar appears on the left by default and moves to the right when set to <b>true</b>.</li>
-  <li>If <code>direction="y"</code>, the progress bar appears at the bottom by default and moves to the top when set to <b>true</b>.</li>
-  <li>If <code>direction="hybrid"</code>, both horizontal and vertical progress bars are used with the same logic as above. And in this case, you can also pass an array of booleans to control each bar individually.</li>
-</ul></em><br />
+✦ Note:<br />
+use it like an array to set different values for each direction when using <code>direction="hybrid"</code>.</em><br />
 <br />
 <b>Example:</b>
 
@@ -654,7 +655,7 @@ this parameter changes the position of the progress bar based on the direction p
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarOnHover</code></b>: <em>Progress bar hover visibility.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollBarOnHover</code></b>: <em>progress bar hover visibility.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -679,7 +680,7 @@ When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when 
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarEdge</code></b>: <em>Scroll bar margin at its edges.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollBarEdge</code></b>: <em>scroll bar margin at its edges.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -688,7 +689,7 @@ defines the margin (in pixels) applied to the edges of the scroll bar, effective
 If you use <code>direction="hybrid"</code>, you can also pass an array of numbers to control each bar individually.<br />
 <br />
 ✦ Note:<br />
-This parameter is only used when <code>type="scroll"</code> is set.</em><br />
+this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 <br />
 <b>Example:</b>
 
@@ -704,7 +705,7 @@ This parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>thumbMinSize</code></b>: <em>Scroll bar thumb minimum size.</em></summary><br /><ul><div>
+<details><summary><b><code>thumbMinSize</code></b>: <em>scroll bar thumb minimum size.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number<br />
 <br />
@@ -715,7 +716,7 @@ number<br />
 if the scrollable content is long, this option sets the minimum size (in pixels) of the scroll bar thumb automatically.<br />
 <br />
 ✦ Note:<br />
-This parameter is only used when <code>type="scroll"</code> is set.</em><br />
+this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 <br />
 <b>Example:</b>
 
@@ -733,7 +734,7 @@ This parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 ##### **OPTIMIZATIONS**:
 
-<details><summary><b><code>render</code></b>: <em>Rendering strategy for performance optimization.</em></summary><br /><ul><div>
+<details><summary><b><code>render</code></b>: <em>rendering strategy for performance optimization.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 "lazy" | "virtual"<br />
 | {<br />
@@ -750,15 +751,15 @@ When used, a container is created for each scrollable object, and its absolute p
 <br />
 <code>type</code>:<br />
 <ul>
-  <li>With <b>"lazy"</b>, content is not deleted when it leaves the viewport.</li>
-  <li>With <b>"virtual"</b>, content is deleted when it leaves the viewport.</li>
+  <li><b>"lazy"</b> - content is not deleted when it leaves the viewport.</li>
+  <li><b>"virtual"</b> - content is deleted when it leaves the viewport.</li>
 </ul>
 <br />
 <code>rootMargin</code>:<br />
-This property controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It is the distance for loading from the root element ( <b>.ms-element</b> ) in pixels.<br />
+controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It is the distance for loading from the root element ( <b>.ms-element</b> ) in pixels.<br />
 <br />
 <code>stopLoadOnScroll</code>:<br />
-This property controls whether to stop loading content when scrolling.<br />
+controls whether to stop loading content when scrolling.<br />
 <br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />
@@ -777,17 +778,17 @@ This property controls whether to stop loading content when scrolling.<br />
 
 <h2></h2>
 
-<details><summary><b><code>emptyElements</code></b>: <em>Handling of empty scroll elements.</em></summary><br /><ul><div>
+<details><summary><b><code>emptyElements</code></b>: <em>handling of empty scroll elements.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 {<br />
 <ul>
   mode: "clear" | "fallback" | { fallback: React.ReactNode };<br />
-  clickTrigger?: { selector: string; delay?: number };<br />
+  clickTrigger?: string | { selector: string; delay?: number };<br />
 </ul>
 }<br />
 <br />
 <b>Description:</b><em><br />
-this option will allow you to delete or replace empty list items during the first rendering, or to start this process by clicking.<br />
+this option will allow you to delete or replace empty list items during the first rendering, or to start this process by clicking<br />
 <br />
 <code>mode</code>:<br />
 <ul>
@@ -804,7 +805,7 @@ In case if elements are removed via a click action, use this option. It accepts 
   <li>The cleanup runs on the initial render, when the number of elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
   <li>If you use <code>clickTrigger</code>:<br />
   - consider increasing <code>delay</code>, since the cleanup may run before removal.<br />
-  - the wrapper <code>ms-object-box</code> also gets the <code>remove</code> class, which you can use e.g. for fade-out animations.</li>
+  - the wrapper <code>.ms-object-box</code> also gets the <code>remove</code> class, which you can use e.g. for fade-out animations.</li>
 </ul></em>
 <br />
 <b>Example:</b>
@@ -814,7 +815,7 @@ In case if elements are removed via a click action, use this option. It accepts 
   {...props}
   emptyElements={{
     mode: "clear",
-    clickTrigger: { selector: ".close-button" },
+    clickTrigger: ".close-button",
   }}
 >
   {children}
@@ -827,7 +828,7 @@ In case if elements are removed via a click action, use this option. It accepts 
 
 <h2></h2>
 
-<details><summary><b><code>suspending</code></b>: <em>Adds React Suspense.</em></summary><br /><ul><div>
+<details><summary><b><code>suspending</code></b>: <em>adds React Suspense.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -835,7 +836,7 @@ boolean<br />
 false<br />
 <br />
 <b>Description:</b><em><br />
-adds React Suspense to the MorphScroll component for asynchronous rendering.</em><br />
+adds React Suspense to the MorphScroll component for async rendering.</em><br />
 <br />
 <b>Example:</b>
 
@@ -849,12 +850,13 @@ adds React Suspense to the MorphScroll component for asynchronous rendering.</em
 
 <h2></h2>
 
-<details><summary><b><code>fallback</code></b>: <em>Fallback element.</em></summary><br /><ul><div>
+<details><summary><b><code>fallback</code></b>: <em>fallback element.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
 <b>Description:</b><em><br />
 sets the fallback element to display during loading or placeholder.<br />
+<br />
 It will be used when:
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
@@ -873,6 +875,7 @@ It will be used when:
 </div></ul></details>
   
 </div></ul>
+</details>
 
 <h2></h2>
 
@@ -884,7 +887,7 @@ It will be used when:
 
 <ul><div>
 
-<details><summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br /><ul><div>
+<details><summary><b><code>className</code></b>: <em>additional classes.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 string<br />
 <br />
@@ -901,7 +904,7 @@ allows you to add additional classes to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>children</code></b>: <em>Custom user content.</em></summary><br /><ul><div>
+<details><summary><b><code>children</code></b>: <em>custom user content.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -918,7 +921,7 @@ allows you to add custom content to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>style</code></b>: <em>Applies inline styles to the container.</em></summary><br /><ul><div>
+<details><summary><b><code>style</code></b>: <em>applies inline styles to the container.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 React.CSSProperties<br />
 <br />
@@ -932,7 +935,7 @@ React.CSSProperties<br />
 
 <h2></h2>
 
-<details><summary><b><code>measure</code></b>: <em>Defines the measurement strategy.</em></summary><br /><ul><div>
+<details><summary><b><code>measure</code></b>: <em>defines the measurement strategy.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 "inner" | "outer" | "all"<br />
 <br />
@@ -961,7 +964,7 @@ Be cautious when overriding styles via the <code>style</code> prop, as it may in
 
 <h2></h2>
 
-<details><summary><b><code>onResize</code></b>: <em>Callback triggered on size changes.</em></summary><br /><ul><div>
+<details><summary><b><code>onResize</code></b>: <em>callback triggered on size changes.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 (rect: Partial<DOMRectReadOnly>) => void<br />
 <br />
@@ -1001,7 +1004,7 @@ The function receives an object containing the updated size properties.</em><br 
 
 <ul><div>
 
-<details><summary><b><code>className</code></b>: <em>Additional classes.</em></summary><br /><ul><div>
+<details><summary><b><code>className</code></b>: <em>additional classes.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 string<br />
 <br />
@@ -1018,7 +1021,7 @@ allows you to add additional classes to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>children</code></b>: <em>Custom user content.</em></summary><br /><ul><div>
+<details><summary><b><code>children</code></b>: <em>custom user content.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -1032,7 +1035,7 @@ React.ReactNode<br />
 
 <h2></h2>
 
-<details><summary><b><code>style</code></b>: <em>Applies inline styles to the container.</em></summary><br /><ul><div>
+<details><summary><b><code>style</code></b>: <em>applies inline styles to the container.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 React.CSSProperties<br />
 <br />
@@ -1048,7 +1051,7 @@ React.CSSProperties<br />
 
 <h2></h2>
 
-<details><summary><b><code>root</code></b>: <em>Defines the observation area.</em></summary><br /><ul><div>
+<details><summary><b><code>root</code></b>: <em>defines the observation area.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 Element | null<br />
 <br />
@@ -1071,7 +1074,7 @@ If provided, it must be an ancestor of the observed element.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>rootMargin</code></b>: <em>Sets the margin around the root element.</em></summary><br /><ul><div>
+<details><summary><b><code>rootMargin</code></b>: <em>sets the margin around the root element.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -1079,7 +1082,7 @@ number | number[]<br />
 defines an offset around the root element, expanding or shrinking the observed area.<br />
 <br />
 ✦ Note:<br />
-It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers.</em><br />
+it can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1091,7 +1094,7 @@ It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 
 
 <h2></h2>
 
-<details><summary><b><code>threshold</code></b>: <em>Defines when the callback <code>onIntersection</code> and content visibility should be triggered.</em></summary><br /><ul><div>
+<details><summary><b><code>threshold</code></b>: <em>defines when the callback <code>onIntersection</code> and content visibility should be triggered.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -1117,7 +1120,7 @@ specifies at what percentage of the observed element’s visibility the callback
 
 <h2></h2>
 
-<details><summary><b><code>visibleContent</code></b>: <em>Makes all elements always visible.</em></summary><br /><ul><div>
+<details><summary><b><code>visibleContent</code></b>: <em>makes all elements always visible.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -1138,7 +1141,7 @@ This is useful for testing purposes or when using the <code>onIntersection</code
 
 <h2></h2>
 
-<details><summary><b><code>onIntersection</code></b>: <em>Callback function triggered when the element becomes visible.</em></summary><br /><ul><div>
+<details><summary><b><code>onIntersection</code></b>: <em>callback function triggered when the element becomes visible.</em></summary><br /><ul><div>
 <b>Type:</b><br />
 (entry: IntersectionObserverEntry) => void<br />
 <br />
@@ -1146,7 +1149,7 @@ This is useful for testing purposes or when using the <code>onIntersection</code
 callback function that is called when the observed element enters or leaves the viewport or the area defined by the <code>root</code> property. This can be used to load new list items for <code>MorphScroll</code>.<br />
 <br />
 ✦ Note:<br />
-The <code>IntersectionObserverEntry</code> object provides details about the intersection state, including:<br />
+the <code>IntersectionObserverEntry</code> object provides details about the intersection state, including:<br />
 <ul>
   <li><code>boundingClientRect</code>: The bounding rectangle of the element relative to the viewport.</li>
   <li><code>intersectionRatio</code>: The percentage of the element that is visible in the viewport.</li>
