@@ -18,11 +18,11 @@ export type IntersectionTrackerT = {
 };
 
 export type MorphScrollT = {
-  // General Settings
+  // — General Settings —
   className?: string;
   children?: React.ReactNode;
 
-  // Scroll Settings
+  // — Scroll Settings —
   type?: "scroll" | "slider" | "sliderMenu";
   direction?: "x" | "y" | "hybrid";
   scrollPosition?:
@@ -38,7 +38,7 @@ export type MorphScrollT = {
   onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => void;
 
-  // Visual Settings
+  // — Visual Settings —
   size: number | number[] | "auto";
   objectsSize?:
     | number
@@ -54,8 +54,6 @@ export type MorphScrollT = {
   elementsAlign?: "start" | "center" | "end";
   elementsDirection?: "row" | "column";
   edgeGradient?: boolean | string | { color?: string; size?: number };
-
-  // Progress Bar
   progressTrigger: {
     // !!! добавить "wheel" | "content" | "arrows"
     wheel?:
@@ -78,7 +76,7 @@ export type MorphScrollT = {
   scrollBarEdge?: number | number[];
   thumbMinSize?: number;
 
-  // Optimization
+  // — Optimization —
   render?:
     | "lazy"
     | "virtual"

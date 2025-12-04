@@ -1,5 +1,5 @@
 type MorphScrollT = {
-  // General Settings
+  // — General Settings —
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom class name.
@@ -27,7 +27,7 @@ type MorphScrollT = {
    * */
   children?: React.ReactNode;
 
-  // Scroll Settings
+  // — Scroll Settings —
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Type of progress element.
@@ -125,7 +125,7 @@ type MorphScrollT = {
    */
   isScrolling?: (motion: boolean) => void;
 
-  // Visual Settings
+  // — Visual Settings —
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * `[width, height]` dimension of `MorphScroll`.
@@ -305,8 +305,6 @@ type MorphScrollT = {
    * ```
    */
   edgeGradient?: boolean | string | { color?: string; size?: number };
-
-  // Progress Bar
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Triggers for the scroll progress.
@@ -417,7 +415,7 @@ type MorphScrollT = {
    */
   thumbMinSize?: number;
 
-  // Optimization
+  // — Optimization —
   /**---
    * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Rendering strategy for performance optimization.

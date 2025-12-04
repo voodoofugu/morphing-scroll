@@ -65,9 +65,9 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-##### **GENERAL SETTINGS**:
+##### **— GENERAL SETTINGS —**:
 
-<details><summary><b><code>className</code></b>: <em>additional classes.</em></summary><br /><ul><div>
+<details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 string<br />
 <br />
@@ -86,7 +86,7 @@ allows you to add additional classes to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>children</code></b>: <em>custom user content.</em></summary><br /><ul><div>
+<details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -105,9 +105,9 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 <h2></h2>
 
-##### **SCROLL SETTINGS**:
+##### **— SCROLL SETTINGS —**:
 
-<details><summary><b><code>type</code></b>: <em>type of progress element.</em></summary><br /><ul><div>
+<details><summary><b><code>type</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 "scroll" | "slider" | "sliderMenu"<br />
 <br />
@@ -137,7 +137,7 @@ defines how the provided <code>progressElement</code> behaves within <code>progr
 
 <h2></h2>
 
-<details><summary><b><code>direction</code></b>: <em>scrolling direction.</em></summary><br /><ul><div>
+<details><summary><b><code>direction</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 "x" | "y" | "hybrid"<br />
 <br />
@@ -162,7 +162,7 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <h2></h2>
 
-<details><summary><b><code>scrollPosition</code></b>: <em>scroll position and additional options.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollPosition</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | "end" | (number | "end")[]<br />
 | {<br />
@@ -206,7 +206,7 @@ property is a helper for the <code>value</code>. When setting the same scroll va
 
 <h2></h2>
 
-<details><summary><b><code>onScrollValue</code></b>: <em>callback for scroll value.</em></summary><br /><ul><div>
+<details><summary><b><code>onScrollValue</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 ( left: number, top: number ) => void<br />
 <br />
@@ -229,7 +229,7 @@ accepts a callback function that is triggered on every scroll event. The callbac
   
 <h2></h2>
 
-<details><summary><b><code>isScrolling</code></b>: <em>callback function for scroll status.</em></summary><br /><ul><div>
+<details><summary><b><code>isScrolling</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 ( motion: boolean ) => void<br />
 <br />
@@ -253,7 +253,7 @@ accepts a callback function that is triggered whenever the scroll status changes
 
 <h2></h2>
 
-##### **VISUAL SETTINGS**:
+##### **— VISUAL SETTINGS —**:
 
 <details><summary><b><code>size</code> REQUIRED</b>: <em>[width, height] dimension of <b>MorphScroll</b>.</em></summary><br /><ul><div>
 <b>Type:</b><br />
@@ -282,7 +282,7 @@ adds the <code>ResizeTracker</code> component to measure the width and height of
 
 <h2></h2>
 
-<details><summary><b><code>objectsSize</code></b>: <em>[width, height] dimension of cells for each object.</em></summary><br /><ul><div>
+<details><summary><b><code>objectsSize</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | "size" | "firstChild" | "none"<br />
 | ( number | "size" | "firstChild" | "none" )[]<br />
@@ -332,7 +332,7 @@ If no value is provided, the default behavior is partially inferred from the <co
 
 <h2></h2>
 
-<details><summary><b><code>crossCount</code></b>: <em>number of cells in each direction.</em></summary><br /><ul><div>
+<details><summary><b><code>crossCount</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number<br />
 <br />
@@ -359,7 +359,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 
 <h2></h2>
 
-<details><summary><b><code>gap</code></b>: <em>gap between cells.</em></summary><br /><ul><div>
+<details><summary><b><code>gap</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -383,7 +383,7 @@ it can be 1 number or an array of 2 numbers.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>wrapperMargin</code></b>: <em>margin for the <b>.ms-objects-wrapper</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>wrapperMargin</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -407,7 +407,7 @@ can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>wrapperMinSize</code></b>: <em>minimum height or width of the <b>.ms-objects-wrapper</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>wrapperMinSize</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | "full" | (number | "full")[]<br />
 <br />
@@ -431,7 +431,7 @@ can be used as 1 value, or an array of 2 values.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>wrapperAlign</code></b>: <em>[horizontal, vertical] aligns your content when it is smaller than the <code>size</code>.</em></summary><br /><ul><div> 
+<details><summary><b><code>wrapperAlign</code></b></summary><br /><ul><div> 
 <b>Type:</b><br />
 "start" | "center" | "end"<br />
 | ("start" | "center" | "end")[]<br />
@@ -459,7 +459,7 @@ use 1 value to align one or both axes, or an array of 2 values to align both axe
 
 <h2></h2>
 
-<details><summary><b><code>elementsAlign</code></b>: <em>aligns the objects inside <code>MorphScroll</code>.</em></summary><br /><ul><div>
+<details><summary><b><code>elementsAlign</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 "start" | "center" | "end"<br />
 <br />
@@ -480,7 +480,7 @@ use 1 value to align one or both axes, or an array of 2 values to align both axe
 
 <h2></h2>
 
-<details><summary><b><code>elementsDirection</code></b>: <em>direction of the provided elements.</em></summary><br /><ul><div>
+<details><summary><b><code>elementsDirection</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 "row" | "column"<br />
 <br />
@@ -504,7 +504,7 @@ changes the order of the provided elements based on the provided value.</em><br 
 
 <h2></h2>
 
-<details><summary><b><code>edgeGradient</code></b>: <em>gradient overlay at the edges of the scroll area.</em></summary><br /><ul><div>
+<details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean | string | { color?: string; size?: number }<br />
 <br />
@@ -539,9 +539,7 @@ property changes the height of the edges for the horizontal and the width of the
 
 <h2></h2>
 
-##### **PROGRESSBAR**:
-
-<details><summary><b><code>progressTrigger</code></b>: <em>triggers for the scroll progress.</em></summary><br /><ul><div>
+<details><summary><b><code>progressTrigger</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 {<br />
   <ul> 
@@ -623,7 +621,7 @@ You can either specify a <code>size</code> for the arrows and provide a custom e
 
 <h2></h2>
 
-<details><summary><b><code>progressReverse</code></b>: <em>reverse your progress bar position.</em></summary><br /><ul><div>
+<details><summary><b><code>progressReverse</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean | boolean[]<br />
 <br />
@@ -650,7 +648,7 @@ use it like an array to set different values for each direction when using <code
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarOnHover</code></b>: <em>progress bar hover visibility.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollBarOnHover</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -675,7 +673,7 @@ When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when 
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarEdge</code></b>: <em>scroll bar margin at its edges.</em></summary><br /><ul><div>
+<details><summary><b><code>scrollBarEdge</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -700,7 +698,7 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>thumbMinSize</code></b>: <em>scroll bar thumb minimum size.</em></summary><br /><ul><div>
+<details><summary><b><code>thumbMinSize</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number<br />
 <br />
@@ -727,9 +725,9 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <h2></h2>
 
-##### **OPTIMIZATIONS**:
+##### **— OPTIMIZATIONS —**:
 
-<details><summary><b><code>render</code></b>: <em>rendering strategy for performance optimization.</em></summary><br /><ul><div>
+<details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 "lazy" | "virtual"<br />
 | {<br />
@@ -773,7 +771,7 @@ controls whether to stop loading content when scrolling.<br />
 
 <h2></h2>
 
-<details><summary><b><code>emptyElements</code></b>: <em>handling of empty scroll elements.</em></summary><br /><ul><div>
+<details><summary><b><code>emptyElements</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 {<br />
 <ul>
@@ -823,7 +821,7 @@ In case if elements are removed via a click action, use this option. It accepts 
 
 <h2></h2>
 
-<details><summary><b><code>suspending</code></b>: <em>adds React Suspense.</em></summary><br /><ul><div>
+<details><summary><b><code>suspending</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -845,7 +843,7 @@ adds React Suspense to the MorphScroll component for async rendering.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>fallback</code></b>: <em>fallback element.</em></summary><br /><ul><div>
+<details><summary><b><code>fallback</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -880,7 +878,7 @@ It will be used when:
 
 <ul><div>
 
-<details><summary><b><code>className</code></b>: <em>additional classes.</em></summary><br /><ul><div>
+<details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 string<br />
 <br />
@@ -897,7 +895,7 @@ allows you to add additional classes to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>children</code></b>: <em>custom user content.</em></summary><br /><ul><div>
+<details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -914,7 +912,7 @@ allows you to add custom content to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>style</code></b>: <em>applies inline styles to the container.</em></summary><br /><ul><div>
+<details><summary><b><code>style</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 React.CSSProperties<br />
 <br />
@@ -928,7 +926,7 @@ React.CSSProperties<br />
 
 <h2></h2>
 
-<details><summary><b><code>measure</code></b>: <em>defines the measurement strategy.</em></summary><br /><ul><div>
+<details><summary><b><code>measure</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 "inner" | "outer" | "all"<br />
 <br />
@@ -957,7 +955,7 @@ Be cautious when overriding styles via the <code>style</code> prop, as it may in
 
 <h2></h2>
 
-<details><summary><b><code>onResize</code></b>: <em>callback triggered on size changes.</em></summary><br /><ul><div>
+<details><summary><b><code>onResize</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 (rect: Partial<DOMRectReadOnly>) => void<br />
 <br />
@@ -997,7 +995,7 @@ The function receives an object containing the updated size properties.</em><br 
 
 <ul><div>
 
-<details><summary><b><code>className</code></b>: <em>additional classes.</em></summary><br /><ul><div>
+<details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 string<br />
 <br />
@@ -1014,7 +1012,7 @@ allows you to add additional classes to the component.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>children</code></b>: <em>custom user content.</em></summary><br /><ul><div>
+<details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 React.ReactNode<br />
 <br />
@@ -1028,7 +1026,7 @@ React.ReactNode<br />
 
 <h2></h2>
 
-<details><summary><b><code>style</code></b>: <em>applies inline styles to the container.</em></summary><br /><ul><div>
+<details><summary><b><code>style</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 React.CSSProperties<br />
 <br />
@@ -1044,7 +1042,7 @@ React.CSSProperties<br />
 
 <h2></h2>
 
-<details><summary><b><code>root</code></b>: <em>defines the observation area.</em></summary><br /><ul><div>
+<details><summary><b><code>root</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 Element | null<br />
 <br />
@@ -1067,7 +1065,7 @@ If provided, it must be an ancestor of the observed element.</em><br />
 
 <h2></h2>
 
-<details><summary><b><code>rootMargin</code></b>: <em>sets the margin around the root element.</em></summary><br /><ul><div>
+<details><summary><b><code>rootMargin</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -1087,7 +1085,7 @@ it can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 
 
 <h2></h2>
 
-<details><summary><b><code>threshold</code></b>: <em>defines when the callback <code>onIntersection</code> and content visibility should be triggered.</em></summary><br /><ul><div>
+<details><summary><b><code>threshold</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[]<br />
 <br />
@@ -1113,7 +1111,7 @@ specifies at what percentage of the observed element’s visibility the callback
 
 <h2></h2>
 
-<details><summary><b><code>visibleContent</code></b>: <em>makes all elements always visible.</em></summary><br /><ul><div>
+<details><summary><b><code>visibleContent</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 boolean<br />
 <br />
@@ -1134,7 +1132,7 @@ This is useful for testing purposes or when using the <code>onIntersection</code
 
 <h2></h2>
 
-<details><summary><b><code>onIntersection</code></b>: <em>callback function triggered when the element becomes visible.</em></summary><br /><ul><div>
+<details><summary><b><code>onIntersection</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
 (entry: IntersectionObserverEntry) => void<br />
 <br />
