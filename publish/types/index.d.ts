@@ -5,9 +5,9 @@ import IntersectionTrackerT from "./intersectionTracker";
 import MorphScrollT from "./morphScroll";
 
 /** ---
- * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) ResizeTracker component
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ResizeTracker component
  *
- * ---
  * ### Props:
  * - `className`
  * - `children`
@@ -17,11 +17,9 @@ import MorphScrollT from "./morphScroll";
  *
  * _More information in props or links!_
  *
- * ---
  * ### Returns:
  * _React component._
  *
- * ---
  * ### Links:
  * [ResizeTracker Documentation](https://www.npmjs.com/package/morphing-scroll#-resizetracker)
  *
@@ -30,9 +28,9 @@ import MorphScrollT from "./morphScroll";
 declare const ResizeTracker: React.FC<ResizeTrackerT>;
 
 /** ---
- * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) IntersectionTracker component
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * IntersectionTracker component
  *
- * ---
  * ### Props:
  * - `className`
  * - `children`
@@ -45,11 +43,9 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
  *
  * _More information in props or links!_
  *
- * ---
  * ### Returns:
  * _React component._
  *
- * ---
  * ### Links:
  * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll#-intersectiontracker)
  *
@@ -58,9 +54,9 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
 declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
 /** ---
- * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) MorphScroll component
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * MorphScroll component
  *
- * ---
  * ### Props:
  * ##### - GENERAL SETTINGS:
  * - `className`
@@ -100,11 +96,9 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  *
  * _More information in props or links!_
  *
- * ---
  * ### Returns:
  * _React component._
  *
- * ---
  * ### Links:
  * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll#-morphscroll)
  */
@@ -112,9 +106,9 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 declare const MorphScroll: React.FC<MorphScrollT>;
 
 /** ---
- * ### ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png) Morph - all content of the library
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * Morph - all content of the library
  *
- * ---
  * ### Returns:
  * - `ResizeTracker`: *component that monitors changes to an element’s size.*
  * - `IntersectionTracker`: *component for tracking the intersection of an element with the viewport.*

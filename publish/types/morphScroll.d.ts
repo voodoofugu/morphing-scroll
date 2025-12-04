@@ -1,9 +1,9 @@
 type MorphScrollT = {
   // — General Settings —
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   *
    * Custom class name.
-   * ___
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -15,9 +15,8 @@ type MorphScrollT = {
    * */
   className?: string;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom user content.
-   * ___
    * @example
    * ```tsx
    * <MorphScroll {...props} >
@@ -29,9 +28,8 @@ type MorphScrollT = {
 
   // — Scroll Settings —
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Type of progress element.
-   * ___
    * @default "scroll"
    *
    * @example
@@ -45,9 +43,8 @@ type MorphScrollT = {
    */
   type?: "scroll" | "slider" | "sliderMenu";
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Scrolling direction.
-   * ___
    * @default "y"
    *
    * @example
@@ -61,9 +58,8 @@ type MorphScrollT = {
    */
   direction?: "x" | "y" | "hybrid";
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Scroll position value and additional options.
-   * ___
    * @default { duration: 200; updater: false }
    *
    * @description
@@ -93,9 +89,8 @@ type MorphScrollT = {
         updater?: boolean;
       };
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Callback for scroll value.
-   * ___
    * @description
    * - `left`: *current scroll position on the x-axis*
    * - `top`: *current scroll position on the y-axis*
@@ -111,9 +106,8 @@ type MorphScrollT = {
    */
   onScrollValue?: (left: number, top: number) => void;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Callback for scroll status.
-   * ___
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -127,11 +121,10 @@ type MorphScrollT = {
 
   // — Visual Settings —
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * `[width, height]` dimension of `MorphScroll`.
    *
    * **REQUIRED**
-   * ___
    * @description
    * - `number` *sets the width and height, can be an array of 2 numbers*
    * - `"auto"` *for automatic resizing based on the parent element*
@@ -147,9 +140,8 @@ type MorphScrollT = {
    */
   size: number | number[] | "auto";
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * [width, height] dimension of cells for each object.
-   * ___
    * @default [width, height] from size
    *
    * @description
@@ -174,7 +166,7 @@ type MorphScrollT = {
     | "none"
     | (number | "size" | "firstChild" | "none")[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Number of cells in each direction.
    *___
    * @example
@@ -188,9 +180,8 @@ type MorphScrollT = {
    */
   crossCount?: number;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Gap between cells.
-   * ___
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
    *
@@ -205,9 +196,8 @@ type MorphScrollT = {
    */
   gap?: number | number[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Margin for the* `.ms-objects-wrapper`.
-   * ___
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
    *
@@ -222,9 +212,8 @@ type MorphScrollT = {
    */
   wrapperMargin?: number | number[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Minimum height or width of the `.ms-objects-wrapper`.
-   * ___
    * @description
    * - `number` *sets the min-size*
    * - `"full"` *min-size is equal to property `size`*
@@ -243,7 +232,7 @@ type MorphScrollT = {
    */
   wrapperMinSize?: number | "full" | (number | "full")[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * [horizontal, vertical] aligns your content when it is smaller than the `size`.
    *___
    * @note
@@ -260,9 +249,8 @@ type MorphScrollT = {
    */
   wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Aligns the objects inside `MorphScroll`.
-   * ___
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -274,9 +262,8 @@ type MorphScrollT = {
    */
   elementsAlign?: "start" | "center" | "end";
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Direction of the provided elements.
-   * ___
    * @default "row"
    *
    * @example
@@ -290,9 +277,8 @@ type MorphScrollT = {
    */
   elementsDirection?: "row" | "column";
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Gradient overlay at the edges of the scroll area.
-   * ___
    * @default { size: 40 }
    *
    * @example
@@ -306,9 +292,8 @@ type MorphScrollT = {
    */
   edgeGradient?: boolean | string | { color?: string; size?: number };
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Triggers for the scroll progress.
-   * ___
    * @description
    * - `wheel`: *allow to scroll by mouse wheel*
    * - `content`: *allow to scroll by content drag*
@@ -345,9 +330,8 @@ type MorphScrollT = {
         };
   };
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Reverse your progress bar position.
-   * ___
    * @default false
    *
    * @note
@@ -364,9 +348,8 @@ type MorphScrollT = {
    */
   progressReverse?: boolean | boolean[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Progress bar hover visibility.
-   * ___
    * @default false
    *
    * @example
@@ -380,9 +363,8 @@ type MorphScrollT = {
    */
   scrollBarOnHover?: boolean;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Scroll bar margin at its edges.
-   * ___
    * @note
    * - *Used when: `type="scroll"`*
    * - *When `direction="hybrid"` you can set an array of values*
@@ -398,9 +380,8 @@ type MorphScrollT = {
    */
   scrollBarEdge?: number | number[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Scroll bar thumb minimum size.
-   * ___
    * @note
    * *Used when: `type="scroll"`*
    *
@@ -417,9 +398,8 @@ type MorphScrollT = {
 
   // — Optimization —
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Rendering strategy for performance optimization.
-   * ___
    * @description
    * - `"lazy"`: *does not deleted content when it leaves the viewport*
    * - `"virtual"`: *deletes content when it leaves the viewport*
@@ -447,9 +427,8 @@ type MorphScrollT = {
         stopLoadOnScroll?: boolean;
       };
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Handling of empty scroll elements.
-   * ___
    * @description
    * - `"clear"`: *removes empty elements from the DOM*
    * - `fallback`: *replaces empty elements with a fallback element*
@@ -472,9 +451,8 @@ type MorphScrollT = {
     clickTrigger?: string | { selector: string; delay?: number };
   };
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Enables React Suspense for children.
-   * ___
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -486,9 +464,8 @@ type MorphScrollT = {
    */
   suspending?: boolean;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Fallback element to display during loading or placeholder.
-   * ___
    * @note
    * *Used when:*
    * - *`suspending === true`*

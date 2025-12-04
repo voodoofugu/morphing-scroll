@@ -65,7 +65,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-##### **— GENERAL SETTINGS —**:
+###### **— GENERAL SETTINGS —**
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
@@ -105,7 +105,7 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 <h2></h2>
 
-##### **— SCROLL SETTINGS —**:
+###### **— SCROLL SETTINGS —**
 
 <details><summary><b><code>type</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
@@ -253,9 +253,9 @@ accepts a callback function that is triggered whenever the scroll status changes
 
 <h2></h2>
 
-##### **— VISUAL SETTINGS —**:
+###### **— VISUAL SETTINGS —**
 
-<details><summary><b><code>size</code> REQUIRED</b>: <em>[width, height] dimension of <b>MorphScroll</b>.</em></summary><br /><ul><div>
+<details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
 <b>Type:</b><br />
 number | number[] | "auto"<br />
 <br />
@@ -725,7 +725,7 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <h2></h2>
 
-##### **— OPTIMIZATIONS —**:
+###### **— OPTIMIZATIONS —**
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
@@ -749,7 +749,7 @@ When used, a container is created for each scrollable object, and its absolute p
 </ul>
 <br />
 <code>rootMargin</code>:<br />
-controls the threshold for loading content. It can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers. It is the distance for loading from the root element ( <b>.ms-element</b> ) in pixels.<br />
+controls the threshold for loading content. It can be a single number or an array of 2 or 4 numbers. It is the distance for loading from the root element ( <b>.ms-element</b> ) in pixels.<br />
 <br />
 <code>stopLoadOnScroll</code>:<br />
 controls whether to stop loading content when scrolling.<br />
@@ -791,7 +791,7 @@ this option will allow you to delete or replace empty list items during the firs
 </ul>
 <br />
 <code>clickTrigger</code>:<br />
-In case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <b>ms</b> ) to wait before removing the elements.<br />
+in case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <b>ms</b> ) to wait before removing the elements.<br />
 <br />
 ✦ Note:<br />
 <ul>
@@ -981,7 +981,7 @@ The function receives an object containing the updated size properties.</em><br 
 
 </div></ul>
 
-- #### Link:
+- #### Links:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
@@ -1168,7 +1168,7 @@ the <code>IntersectionObserverEntry</code> object provides details about the int
 
 </div></ul>
 
-- #### Link:
+- #### Links:
 
   [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 

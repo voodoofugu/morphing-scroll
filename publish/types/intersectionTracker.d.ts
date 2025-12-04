@@ -1,8 +1,7 @@
 type IntersectionTrackerT = {
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom class name.
-   * ___
    * @example
    * ```tsx
    * <IntersectionTracker
@@ -14,9 +13,8 @@ type IntersectionTrackerT = {
    */
   className?: string;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom user content.
-   * ___
    * @example
    * ```tsx
    * <IntersectionTracker>
@@ -26,9 +24,8 @@ type IntersectionTrackerT = {
    * */
   children?: React.ReactNode;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Custom inline styles.
-   * ___
    * @example
    * ```tsx
    * <IntersectionTracker
@@ -40,9 +37,8 @@ type IntersectionTrackerT = {
    */
   style?: React.CSSProperties;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * The root element for `IntersectionObserver`.
-   * ___
    * @default document viewport
    *
    * @example
@@ -56,9 +52,8 @@ type IntersectionTrackerT = {
    */
   root?: Element | null;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * The margin for the root element of the `IntersectionObserver`.
-   * ___
    * @note
    * *It can be 1 number or an array of 2 or 4 numbers*
    *
@@ -73,9 +68,8 @@ type IntersectionTrackerT = {
    */
   rootMargin?: number | number[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Visibility threshold for triggering intersection events.
-   * ___
    * @note
    * *A value between `0` (out of view) and `1` (fully visible) can be single or an array*
    *
@@ -90,9 +84,8 @@ type IntersectionTrackerT = {
    */
   threshold?: number | number[];
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Renders children regardless of their visibility in the viewport.
-   * ___
    * @default false
    *
    * @example
@@ -106,9 +99,8 @@ type IntersectionTrackerT = {
    */
   visibleContent?: boolean;
   /**---
-   * ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * Callback function triggered when `threshold` is met.
-   * ___
    *
    * @example
    * ```tsx
