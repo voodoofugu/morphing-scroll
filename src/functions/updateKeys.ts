@@ -6,7 +6,7 @@ import { CONST } from "../constants";
 
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
-  objectsKeys: React.RefObject<{
+  objectsKeys: React.MutableRefObject<{
     loaded: string[];
     empty: string[] | null;
   }>,
@@ -45,11 +45,11 @@ const updateLoadedElementsKeys = (
     return { allIds, emptyKeysRaw };
   })();
 
-  const mergedLoadedObjects = new Set(objectsKeys.current.loaded);
+  const mergedLoadedObjects = new Set(objectsKeys.current?.loaded);
   allIds.forEach((id) => mergedLoadedObjects.add(id));
 
   let emptyKeys = null;
-  if (objectsKeys.current.empty) {
+  if (objectsKeys.current?.empty) {
     const mergedEmptyKeys = new Set(objectsKeys.current.empty);
     emptyKeysRaw.forEach((id) => mergedEmptyKeys.add(id));
     emptyKeys = Array.from(mergedEmptyKeys);

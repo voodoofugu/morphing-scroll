@@ -12,7 +12,7 @@ type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
   scrollBar: HTMLDivElement | null;
-  clickedObject: React.RefObject<ClickedT>;
+  clickedObject: React.MutableRefObject<ClickedT>;
   scrollBarOnHover: boolean;
   scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
@@ -34,8 +34,8 @@ type HandleMouseT = {
   ) => void;
   triggerUpdate: () => void;
   scrollElemIndex?: number;
-  numForSliderRef: React.RefObject<number>;
-  prevCoordsRef: React.RefObject<{
+  numForSliderRef: React.MutableRefObject<number>;
+  prevCoordsRef: React.MutableRefObject<{
     x: number;
     y: number;
     leftover: number;
@@ -44,7 +44,7 @@ type HandleMouseT = {
   axisFromAtr: "x" | "y" | null;
   duration: number;
   scrollBarEdge: number[];
-  rafID: React.RefObject<number>;
+  rafID: React.MutableRefObject<number>;
 };
 
 type HandleMouseDownT = HandleMouseT & {

@@ -29,7 +29,7 @@ async function smoothScroll(
   scrollEl: Element,
   duration: number | null,
   targetScroll: number,
-  rafID: React.RefObject<number>
+  rafID: React.MutableRefObject<number>
 ) {
   if (!scrollEl || targetScroll === undefined || targetScroll === null)
     return null;
@@ -74,7 +74,7 @@ async function smoothScroll(
 const getAllScrollBars = (
   type: Exclude<MorphScrollT["type"], undefined>,
   customScrollRef: HTMLDivElement | null,
-  scrollBarsRef: React.RefObject<[] | NodeListOf<Element>>
+  scrollBarsRef: React.MutableRefObject<[] | NodeListOf<Element>>
 ) => {
   if (!customScrollRef) return;
 
@@ -197,7 +197,7 @@ function getWrapperAlignStyle(
 }
 
 function createResizeHandler(
-  dataRef: React.RefObject<{ width: number; height: number }>,
+  dataRef: React.MutableRefObject<{ width: number; height: number }>,
   triggerUpdate: () => void,
   offsetX = 0,
   offsetY = 0
