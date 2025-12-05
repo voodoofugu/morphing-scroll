@@ -1,7 +1,8 @@
 type ResizeTrackerT = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Custom class name.
+   * ### ***className***:
+   * set a custom class name.
    * @example
    * ```tsx
    * <ResizeTracker
@@ -14,7 +15,8 @@ type ResizeTrackerT = {
   className?: string;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Custom user content.
+   * ### ***children***:
+   * add custom user content.
    * @example
    * ```tsx
    * <ResizeTracker>
@@ -25,7 +27,8 @@ type ResizeTrackerT = {
   children: React.ReactNode;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Custom inline styles.
+   * ### ***style***:
+   * set custom inline styles.
    * @example
    * ```tsx
    * <ResizeTracker
@@ -38,14 +41,13 @@ type ResizeTrackerT = {
   style?: React.CSSProperties;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Defines size measurement behavior.
+   * ### ***measure***:
+   * defines size measurement behavior.
    * @description
    * - `inner`: *Fits content*
    * - `outer`: *Fills parent*
    * - `all`: *Combines both*
-   *
    * @default "inner"
-   *
    * @example
    * ```tsx
    * <ResizeTracker
@@ -58,14 +60,13 @@ type ResizeTrackerT = {
   measure?: "inner" | "outer" | "all";
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * Callback on dimension change.
-   * @description
-   * *`rect` is the dimensions of the container*
-   *
+   * ### ***onResize***:
+   * callback on dimension change.
+   * @param rect is the dimensions of the container.
    * @example
    * ```tsx
    * <ResizeTracker
-   *  onResize={(rect) => console.log(rect)}
+   *  onResize={(rect) => console.log("Resized:", rect)}
    * >
    *   {children}
    * </ResizeTracker>
