@@ -5,7 +5,6 @@ const CONST = {
   SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation
   DEBOUNCE_DELAY: 33, // Debounce delay for frequent operations (ms)
   SCROLL_END_DELAY: 200, // Delay before marking scroll as ended (ms)
-  RAF_DELAY: 6, // requestAnimationFrame delay for FPS optimization (ms)
 };
 
 export default CONST;

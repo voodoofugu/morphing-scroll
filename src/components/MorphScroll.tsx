@@ -1107,27 +1107,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // для обработки onScrollValue
   const handleScroll = React.useCallback(() => {
+    const mainEl = customScrollRef.current;
+    const scrollEl = scrollElementRef.current;
+    if (!mainEl || !scrollEl) return;
+
+    // уведомляем о прокрутке пропс
+    onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
+
+    isScrollingRef.current = true;
+    isScrolling?.(true);
+
     setTask(() => {
-      const mainEl = customScrollRef.current;
-      const scrollEl = scrollElementRef.current;
-      if (!mainEl || !scrollEl) return;
+      isScrollingRef.current = false;
+      isScrolling?.(false);
+      updateLoadedElementsKeysLocal();
+    }, CONST.SCROLL_END_DELAY);
 
-      // уведомляем о прокрутке пропс
-      onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
+    if (type !== "scroll") sliderCheckLocal();
 
-      isScrollingRef.current = true;
-      isScrolling?.(true);
-
-      setTask(() => {
-        isScrollingRef.current = false;
-        isScrolling?.(false);
-        updateLoadedElementsKeysLocal();
-      }, CONST.SCROLL_END_DELAY);
-
-      if (type !== "scroll") sliderCheckLocal();
-
-      requestAnimationFrame(triggerUpdate);
-    }, CONST.RAF_DELAY); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
+    requestAnimationFrame(triggerUpdate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
