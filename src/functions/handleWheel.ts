@@ -1,5 +1,6 @@
 import { clampValue } from "./addFunctions";
 import type { MorphScrollT } from "../types/types";
+import CONST from "../constants";
 
 export type ScrollStateRefT = {
   targetScrollY: number;
@@ -29,14 +30,14 @@ export default function handleWheel(
     stateRef.targetScrollX = clampValue(
       stateRef.targetScrollX + e.deltaY, // используем deltaY вместо deltaX, так как на deltaX не срабатывает onScroll
       0,
-      scrollEl.scrollWidth - scrollEl.clientWidth + 2 // почему-то нужно прибавить 2
+      scrollEl.scrollWidth - scrollEl.clientWidth + CONST.SCROLL_OFFSET
     );
   } else {
     // ограничиваем значение
     stateRef.targetScrollY = clampValue(
       stateRef.targetScrollY + e.deltaY,
       0,
-      scrollEl.scrollHeight - scrollEl.clientHeight + 2 // почему-то нужно прибавить 2
+      scrollEl.scrollHeight - scrollEl.clientHeight + CONST.SCROLL_OFFSET
     );
   }
 
@@ -47,26 +48,32 @@ export default function handleWheel(
   }
 
   function animateScroll() {
-    const lerpFactor = 0.4;
     let diff = 0;
 
     if (direction === "x") {
       scrollEl.scrollLeft +=
-        (stateRef.targetScrollX - scrollEl.scrollLeft) * lerpFactor;
+        (stateRef.targetScrollX - scrollEl.scrollLeft) * CONST.LERP_FACTOR;
 
       diff = Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX);
     } else {
       scrollEl.scrollTop +=
-        (stateRef.targetScrollY - scrollEl.scrollTop) * lerpFactor;
+        (stateRef.targetScrollY - scrollEl.scrollTop) * CONST.LERP_FACTOR;
 
       diff = Math.abs(scrollEl.scrollTop - stateRef.targetScrollY);
     }
 
     // Остановка анимации, если разница в позициях мала
     // осторожнее с diff иначе будет зацикливаться
-    if (diff > 2.5) {
+    if (diff > CONST.DIFF_THRESHOLD) {
       stateRef.animationFrameId = requestAnimationFrame(animateScroll);
     } else {
+      // Устанавливаем точное целевое значение
+      if (direction === "x") {
+        scrollEl.scrollLeft = stateRef.targetScrollX;
+      } else {
+        scrollEl.scrollTop = stateRef.targetScrollY;
+      }
+
       stateRef.animating = false;
       if (stateRef.animationFrameId !== null) {
         cancelAnimationFrame(stateRef.animationFrameId);

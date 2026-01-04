@@ -35,7 +35,7 @@ import { mouseOnRef } from "../functions/mouseOn";
 
 import { setTask, cancelTask } from "../helpers/taskManager";
 
-import { CONST } from "../constants";
+import CONST from "../constants";
 
 const MorphScroll: React.FC<MorphScrollT> = ({
   // General Settings
@@ -80,7 +80,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ errors
   const errorText = (propName: string) =>
-    `Prop "${propName}" is not provided\nMorphScroll〈♦${id}〉`;
+    `Prop "${propName}" is not provided\nmorph-scroll ${id}`;
 
   if (!size) throw new Error(errorText("size"));
   if (Object.keys(progressTrigger).length === 0)
@@ -496,11 +496,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const childsGap = !objectsPerDirection[0]
       ? 0
       : objectsPerDirection[0] * gapY - gapY;
-    const neededObj =
-      direction === "x" ? objectsPerDirection[1] : objectsPerDirection[0];
+    // neededObj нужен для распределение объектов, точнее для crossCount
+    const neededObj = objectsPerDirection[direction === "x" ? 1 : 0];
+    // если детей меньше чем neededObj, то считаем по ним так как crossCount в этом случае не имеет смысла
+    const neededObjWithChildCount =
+      validChildrenKeys.length < neededObj
+        ? validChildrenKeys.length
+        : neededObj;
 
     return objectsSizeLocal[0]
-      ? (objectsSizeLocal[0] + gapY) * neededObj - gapY
+      ? (objectsSizeLocal[0] + gapY) * neededObjWithChildCount - gapY
       : !renderLocal.type
       ? receivedWrapSizeRef.current.width
       : receivedChildSizeRef.current.width + childsGap;
@@ -513,6 +518,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     receivedWrapSizeRef.current.width,
     receivedChildSizeRef.current.width,
     renderLocal.type,
+    validChildrenKeys.length,
   ]);
 
   const objectsWrapperHeight = React.useMemo(() => {
@@ -1055,7 +1061,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (
       !scrollContentRef.current ||
       !scrollEl ||
-      scrollBarsRef.current.length === 0
+      scrollBarsRef.current?.length === 0
     )
       return;
 
@@ -1068,7 +1074,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           sizeLocal,
           direction
         ),
-      33
+      CONST.DEBOUNCE_DELAY
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sizeLocal.join(), direction, scrollElementRef, scrollContentRef, type]);
@@ -1116,12 +1122,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         isScrollingRef.current = false;
         isScrolling?.(false);
         updateLoadedElementsKeysLocal();
-      }, 200);
+      }, CONST.SCROLL_END_DELAY);
 
       if (type !== "scroll") sliderCheckLocal();
 
       requestAnimationFrame(triggerUpdate);
-    }, 6); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
+    }, CONST.RAF_DELAY); // помогло убрать просадки FPS ниже 30 из 120 на mack и 20 из 60 на windows
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
@@ -1293,9 +1299,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     requestAnimationFrame(() => (firstRender.current = false)); // RAF спасает от двойного вызова smoothScroll в StrictMode
 
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (scrollStateRef.current.animationFrameId)
+        cancelAnimationFrame(scrollStateRef.current.animationFrameId);
+      if (rafID.current) cancelAnimationFrame(rafID.current);
       cancelTask();
     };
   }, []);
@@ -1315,7 +1322,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       } else if (scrollEl.style.touchAction)
         scrollEl.style.removeProperty("touch-action");
 
-      e.preventDefault();
+      // e.preventDefault(); //! это убивает возможность работы с контентом внутри scroll (drag)
       onMouseOrTouchDown("wrapp", e.type);
     };
 
@@ -1655,7 +1662,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const content = (
     <div
-      morph-scroll={`〈♦${id}〉`}
+      morph-scroll={`${id}`}
       className={className}
       ref={customScrollRef}
       style={containerStyle}

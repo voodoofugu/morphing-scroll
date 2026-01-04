@@ -2,7 +2,7 @@ import React from "react";
 
 import { setTask } from "../helpers/taskManager";
 
-import { CONST } from "../constants";
+import CONST from "../constants";
 
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,

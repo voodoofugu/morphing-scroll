@@ -48,10 +48,10 @@ const mouseOnRef = (
   if (!el) return;
   const childs = el.querySelectorAll(`.${childClass}`);
 
-  childs.forEach((child, i) => {
+  childs.forEach((child) => {
     const target = child as HTMLElement;
 
-    if (["mouseleave", "mouseup", "touchend"].includes(event.type)) {
+    if (["mouseleave", "pointerup"].includes(event.type)) {
       target.style.opacity = "0";
       target.classList.remove("hover");
       target.classList.add("leave");
