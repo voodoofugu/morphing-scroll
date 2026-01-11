@@ -1,5 +1,5 @@
 const CONST = {
-  WRAP_ATR: "wrap-id",
+  WRAP_ATR: "wrap-id", // Attribute for identifying scroll wrappers
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
   SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation

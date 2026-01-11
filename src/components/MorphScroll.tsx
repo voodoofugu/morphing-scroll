@@ -21,6 +21,7 @@ import {
   createResizeHandler,
   stabilizeMany,
   getStyleAlign,
+  isTouchDevice,
 } from "../functions/addFunctions";
 import handleArrow, { handleArrowT } from "../functions/handleArrow";
 import {
@@ -98,6 +99,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
 
+  const controllerRef = React.useRef<AbortController | null>(null);
+  const isTouchedRef = React.useRef<boolean>(isTouchDevice());
   const firstChildKeyRef = React.useRef<string | null>(null);
   const firstRender = React.useRef<boolean>(true);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
@@ -870,7 +873,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         objectsSizing[0] && objectsSizing[0] !== "none"
           ? `${objectsWrapperWidth}px`
           : "fit-content",
-      ...(progressTrigger.content && { cursor: "grab" }),
       ...(gap && !renderLocal.type && { gap: `${gapX}px ${gapY}px` }),
       ...(wrapperMinSize &&
         getWrapperMinSizeStyle(
@@ -938,7 +940,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (!scrollBarOnHover) return;
       const func = () => mouseOnRef(scrollContentRef.current, "ms-bar", event);
 
-      if (event.type === "mouseleave") {
+      if (event.type === "mouseleave" || event.type === "touchend") {
+        // помогает при зажатом clickedObject не терять бегунок из видимости
         !["thumb", "slider", "wrapp"].includes(clickedObject.current) && func();
       } else {
         func();
@@ -950,36 +953,49 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const onMouseOrTouchDown = React.useCallback(
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
-      eventType: string = "mousedown",
-      clickedBar?: HTMLElement
+      event: PointerEvent,
+      checkClickedBar?: boolean
     ) => {
+      isTouchedRef.current = isTouchDevice(); // уточняем девайс
       const clickedLocal = clicked
         ? clicked
         : type === "scroll"
         ? "thumb"
         : "slider";
 
+      const target = event.target as HTMLElement;
+      const pointerId = event.pointerId;
+
+      // проверка на интерактивные элементы на них не скроллим
       if (
-        (clicked === "wrapp" && !progressTrigger.content) ||
-        (["thumb", "slider"].includes(clickedLocal) &&
-          !progressTrigger.progressElement)
+        target.closest(
+          `
+          [data-no-scroll],
+          [draggable="true"],
+          [contenteditable],
+          input, textarea, select,
+          button,
+          a
+        `
+        )
       )
         return;
 
       getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
       let axisFromAtr: "x" | "y" | null = null;
-      if (clickedBar) {
-        axisFromAtr = clickedBar
+      if (checkClickedBar) {
+        axisFromAtr = target
           .closest(".ms-bar")
           ?.getAttribute("data-direction") as "x" | "y";
       }
 
+      clickedObject.current = clickedLocal;
+
       handleMouseOrTouch({
-        eventType,
         scrollElementRef: scrollElementRef.current,
         objectsWrapperRef: objectsWrapperRef.current,
-        scrollBar: (clickedBar as HTMLDivElement) || null,
-        clickedObject: clickedObject,
+        target,
+        clickedObject,
         scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
         type,
@@ -989,7 +1005,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         direction,
         smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
-        clicked: clickedLocal,
         numForSliderRef,
         prevCoordsRef,
         thumbSize:
@@ -1000,14 +1015,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         duration: scrollPositionLocal.duration,
         scrollBarEdge: scrollBarEdgeLocal,
         rafID,
+        controllerRef,
+        isTouched: isTouchedRef.current,
+        pointerId, // решает проблему нескольких жестов (пальцев)
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       direction,
       type,
-      progressTrigger.content,
-      progressTrigger.progressElement,
       sizeLocal.join(),
       getThumbSize({}),
       getThumbSize({ xSize: true }),
@@ -1019,9 +1035,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     ]
   );
 
-  const onMouseDownScrollThumb = React.useCallback(
-    (event: MouseEvent | TouchEvent) => {
-      onMouseOrTouchDown(null, event.type, event.target as HTMLElement);
+  const onMoveScrollThumb = React.useCallback(
+    (event: PointerEvent) => {
+      onMouseOrTouchDown(null, event, true);
     },
     [onMouseOrTouchDown]
   );
@@ -1190,7 +1206,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [emptyElementsST, renderLocal.type, updateLoadedElementsKeysLocal]);
 
   React.useEffect(() => {
-    if (matchMedia("(pointer: coarse)").matches) return; // при touch устроиствах выключаем
+    if (isTouchedRef.current) return; // при touch устроиствах выключаем
 
     // wheel вешается вручную что бы выключить scroll e.preventDefault()!
     const scrollEl = scrollElementRef.current;
@@ -1305,32 +1321,31 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, []);
 
-  // установка слушателей нажатия на обертку
+  // установка слушателя нажатия на обертку
   React.useEffect(() => {
     const scrollEl = scrollElementRef.current;
     if (!scrollEl) return;
 
-    const isMobile = window.matchMedia("(pointer: coarse)").matches;
-    const eventType = isMobile ? "touchstart" : "mousedown";
-    if (eventType === "touchstart" && type !== "slider") return;
-
-    const handler = (e: MouseEvent | TouchEvent) => {
-      if (e.type === "touchstart") {
-        scrollEl.style.touchAction = "none"; // только для слайдера (сейчас!!!)
-      } else if (scrollEl.style.touchAction)
-        scrollEl.style.removeProperty("touch-action");
-
-      // e.preventDefault(); //! это убивает возможность работы с контентом внутри scroll (drag)
-      onMouseOrTouchDown("wrapp", e.type);
+    const handler = (event: PointerEvent) => {
+      onMouseOrTouchDown("wrapp", event);
     };
 
-    scrollEl.addEventListener(eventType, handler, { passive: false });
+    // сложное условие...
+    if (
+      progressTrigger.content ||
+      (!progressTrigger.content &&
+        isTouchedRef.current &&
+        progressTrigger.wheel)
+    ) {
+      if (progressTrigger.progressElement === true) return;
+
+      scrollEl.addEventListener("pointerdown", handler);
+    }
 
     return () => {
-      scrollEl.removeEventListener(eventType, handler);
-      scrollEl.style.removeProperty("touch-action");
+      scrollEl.removeEventListener("pointerdown", handler);
     };
-  }, [type]);
+  }, [progressTriggerST]);
 
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {
@@ -1551,7 +1566,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
     return (
       map[
-        progressTrigger.wheel || progressTrigger.content ? direction : "hide"
+        progressTrigger.wheel || (progressTrigger.content && type === "scroll")
+          ? direction
+          : "hide"
       ] ?? "hidden"
     );
   }, [
@@ -1624,13 +1641,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           progressTrigger={progressTrigger}
           scrollBarOnHover={scrollBarOnHover}
           scrollBarEvent={
-            type === "sliderMenu" ? smoothScrollLocal : onMouseDownScrollThumb
+            type === "sliderMenu" ? smoothScrollLocal : onMoveScrollThumb
           }
           thumbSize={args.thumbSize}
           thumbSpace={args.thumbSpace}
           objLengthPerSize={args.objLengthPerSize}
           sliderCheckLocal={sliderCheckLocal}
           duration={scrollPositionLocal.duration}
+          isTouched={isTouchedRef.current}
         />
       );
     });
@@ -1643,7 +1661,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     progressTrigger,
     scrollBarOnHover,
     smoothScrollLocal,
-    onMouseDownScrollThumb,
+    onMoveScrollThumb,
     sliderCheckLocal,
     scrollPositionLocal.duration,
   ]);
@@ -1672,7 +1690,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         onMouseLeave={mouseOnRefHandle}
         onTouchStart={mouseOnRefHandle}
         onTouchEnd={mouseOnRefHandle}
-        style={contentBoxStyle}
+        style={{
+          ...contentBoxStyle,
+          // блокируем touch (тут что бы захватить thumb)
+          ...(isTouchedRef && {
+            touchAction: "none",
+            transform: "translateZ(0)", // помогает оптимизировать отображение рендера браузера (иначе каша из пикселей)
+          }),
+        }}
       >
         <div
           className="ms-element"
@@ -1685,12 +1710,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             height: "100%",
             outline: "none",
             ...wrapperAlignLocal,
-            overflow: overflowStyleValue,
-            ...(type !== "scroll" ||
-            typeof progressTrigger.progressElement !== "boolean" ||
+            ...(typeof progressTrigger.progressElement !== "boolean" ||
             progressTrigger.progressElement === false
-              ? { scrollbarWidth: "none" }
-              : {}),
+              ? {
+                  scrollbarWidth: "none",
+                  overflow: "hidden",
+                }
+              : { overflow: overflowStyleValue }),
+            ...(progressTrigger.content && { cursor: "grab" }),
           }}
         >
           {objectsSizeLocal[0] && objectsSizeLocal[1] ? (

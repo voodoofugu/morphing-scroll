@@ -1,17 +1,13 @@
 import { setTask } from "../helpers/taskManager";
 
 // функция смены курсора
-const mouseOnEl = (
-  el: HTMLDivElement | null,
-  eventType: "mousedown" | "touchstart"
-) => {
+const mouseOnEl = (el: HTMLElement | null) => {
   if (!el) return;
+  const isTouched = window.matchMedia("(pointer: coarse)").matches;
 
   if (el.style.cursor === "grab") {
-    if (eventType === "mousedown") {
-      // document.body.style.cursor = "grabbing";
-
-      // лучше создать стиль для курсора
+    if (!isTouched) {
+      // лучше создать тег стиля для курсора
       const style = document.createElement("style");
       style.id = "ms-cursor-lock";
       style.innerHTML = `* {
@@ -23,9 +19,7 @@ const mouseOnEl = (
     el.style.cursor = "grabbing";
     el.classList.add("active"); // что бы был контроль на phones
   } else if (el.style.cursor === "grabbing") {
-    if (eventType === "mousedown") {
-      // document.body.style.removeProperty("cursor");
-
+    if (!isTouched) {
       const style = document.getElementById("ms-cursor-lock");
       if (style) style.remove();
     }
@@ -51,7 +45,7 @@ const mouseOnRef = (
   childs.forEach((child) => {
     const target = child as HTMLElement;
 
-    if (["mouseleave", "pointerup"].includes(event.type)) {
+    if (["mouseleave", "touchend", "pointerup"].includes(event.type)) {
       target.style.opacity = "0";
       target.classList.remove("hover");
       target.classList.add("leave");

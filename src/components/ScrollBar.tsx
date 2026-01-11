@@ -10,15 +10,13 @@ type OnCustomScrollFn = (
 
 type ModifiedProps = Partial<MorphScrollT> & {
   size: number[];
-  scrollBarEvent:
-    | ((event: MouseEvent) => void)
-    | ((event: TouchEvent) => void)
-    | OnCustomScrollFn;
+  scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
   sliderCheckLocal: () => void;
   duration: number;
+  isTouched: boolean;
 };
 
 const ScrollBar = ({
@@ -34,14 +32,14 @@ const ScrollBar = ({
   objLengthPerSize,
   sliderCheckLocal,
   duration,
+  isTouched,
 }: ModifiedProps) => {
   const scrollBarRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
 
   // добавление прокрутки по колесом по thumb
   React.useEffect(() => {
-    if (matchMedia("(pointer: coarse)").matches || !progressTrigger?.wheel)
-      return; // при touch устроиствах выключаем
+    if (isTouched || !progressTrigger?.wheel) return; // при touch устроиствах прокрутку не используем
 
     const el = scrollBarRef.current;
     if (!el) return;
@@ -55,6 +53,7 @@ const ScrollBar = ({
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault(); // верхний элемент не скроллим
+
       prev?.scrollBy({
         ...(axis === "y" ? { top: e.deltaY } : { left: e.deltaY }),
         behavior: "auto", // обязательно auto, иначе будут глюки
@@ -69,20 +68,17 @@ const ScrollBar = ({
     const el = thumbRef.current;
     if (!el || type === "sliderMenu") return;
 
-    const isMobile = window.matchMedia("(pointer: coarse)").matches;
-    const eventType = isMobile ? "touchstart" : "mousedown";
-
-    const handleStart = (e: MouseEvent | TouchEvent) => {
+    const handleStart = (e: PointerEvent) => {
       e.preventDefault(); // помогает блокировать интерфейс при перетаскивании
       e.stopPropagation();
 
-      (scrollBarEvent as (e: MouseEvent | TouchEvent) => void)(e);
+      (scrollBarEvent as (e: PointerEvent) => void)(e);
     };
 
-    el.addEventListener(eventType, handleStart, { passive: false });
+    el.addEventListener("pointerdown", handleStart, { passive: false });
 
     return () => {
-      el.removeEventListener(eventType, handleStart);
+      el.removeEventListener("pointerdown", handleStart);
     };
   }, [scrollBarEvent]);
 

@@ -8,10 +8,9 @@ import { clampValue } from "./addFunctions";
 type ClickedT = "thumb" | "slider" | "wrapp" | "none";
 
 type HandleMouseT = {
-  eventType: string;
   scrollElementRef: HTMLDivElement | null;
   objectsWrapperRef: HTMLDivElement | null;
-  scrollBar: HTMLDivElement | null;
+  target: HTMLElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
   scrollBarOnHover: boolean;
   scrollContentRef: HTMLDivElement | null;
@@ -33,7 +32,6 @@ type HandleMouseT = {
       | TouchEvent
   ) => void;
   triggerUpdate: () => void;
-  scrollElemIndex?: number;
   numForSliderRef: React.MutableRefObject<number>;
   prevCoordsRef: React.MutableRefObject<{
     x: number;
@@ -45,10 +43,9 @@ type HandleMouseT = {
   duration: number;
   scrollBarEdge: number[];
   rafID: React.MutableRefObject<number>;
-};
-
-type HandleMouseDownT = HandleMouseT & {
-  clicked: ClickedT;
+  controllerRef: React.MutableRefObject<AbortController | null>;
+  isTouched: boolean; // !!! не используется
+  pointerId: number;
 };
 
 type HandleMoveT = Omit<
@@ -56,7 +53,6 @@ type HandleMoveT = Omit<
   "controller" | "scrollBarOnHover" | "scrollContentRef" | "mouseOnRefHandle"
 > & {
   mouseEvent: MouseEvent | TouchEvent;
-  clicked: ClickedT;
   fullMarginX: number;
   fullMarginY: number;
   scrollElementWH: number[];
@@ -67,8 +63,6 @@ type HandleMoveT = Omit<
 
 type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
   mouseEvent: MouseEvent | TouchEvent;
-  controller: AbortController;
-  clicked: ClickedT;
 };
 
 function getVisualToLayoutScale(el: HTMLElement) {
@@ -77,22 +71,17 @@ function getVisualToLayoutScale(el: HTMLElement) {
 }
 
 const cursorClassChange = (
-  eventType: string,
   clicked: ClickedT,
-  scrollBar: HTMLDivElement | null,
-  objectsWrapperRef: HTMLDivElement | null
+  target: HTMLElement | null,
+  scrollElementRef: HTMLDivElement | null
 ) => {
-  const eventTypeLocal = eventType as "mousedown" | "touchstart";
   if (["thumb", "slider"].includes(clicked)) {
     // уточняем кликнутый объект для slider
     if (clicked === "slider") {
-      mouseOnEl(
-        scrollBar?.closest(".ms-slider") as HTMLDivElement | null,
-        eventTypeLocal
-      );
-    } else mouseOnEl(scrollBar, eventTypeLocal);
+      mouseOnEl(target?.closest(".ms-slider") as HTMLDivElement | null);
+    } else mouseOnEl(target);
   } else if (clicked === "wrapp") {
-    mouseOnEl(objectsWrapperRef, eventTypeLocal);
+    mouseOnEl(scrollElementRef);
   }
 };
 
@@ -173,72 +162,98 @@ const motionHandler = (
   const el = args.scrollElementRef as HTMLDivElement;
   if (!el) return;
 
-  const curr = {
-    x:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientX
-        : args.mouseEvent.clientX,
-    y:
-      "touches" in args.mouseEvent
-        ? args.mouseEvent.touches[0].clientY
-        : args.mouseEvent.clientY,
-    leftover: args.prevCoordsRef.current?.leftover ?? 0,
+  // --- безопасное получение координат ---
+  const getPoint = (e: TouchEvent | MouseEvent) => {
+    if ("changedTouches" in e) {
+      const t = e.changedTouches[0];
+      if (!t) return null;
+      return { x: t.clientX, y: t.clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
   };
 
-  const prev = args.prevCoordsRef.current ?? curr;
+  const point = getPoint(args.mouseEvent);
+  if (!point) return;
+
+  // --- инициализация предыдущей точки ---
+  if (!args.prevCoordsRef.current) {
+    args.prevCoordsRef.current = {
+      x: point.x,
+      y: point.y,
+      leftover: 0,
+    };
+    return;
+  }
+
+  const prev = args.prevCoordsRef.current;
+
   const delta = {
-    x: curr.x - prev.x,
-    y: curr.y - prev.y,
+    x: point.x - prev.x,
+    y: point.y - prev.y,
   };
 
-  args.prevCoordsRef.current = curr;
+  args.prevCoordsRef.current = {
+    x: point.x,
+    y: point.y,
+    leftover: prev.leftover,
+  };
 
-  const move = args.clicked === "wrapp" ? -delta[axis] : delta[axis];
+  const move =
+    args.clickedObject.current === "wrapp" ? -delta[axis] : delta[axis];
+
   const topOrLeft = axis === "y" ? "scrollTop" : "scrollLeft";
+  const wh = axis === "x" ? 0 : 1;
 
   // --- логика для thumb ---
-  if (args.clicked === "thumb") {
+  if (args.clickedObject.current === "thumb") {
     applyThumb(axis, args, move, prev, visualDiff);
     return;
   }
 
-  args.type === "slider" && (args.numForSliderRef.current += move); // накапливаем значение
-  const wh = axis === "x" ? 0 : 1;
+  // --- slider: накопление движения ---
+  if (args.type === "slider") {
+    args.numForSliderRef.current += move;
+  }
 
   // --- логика для wrapp ---
-  if (args.clicked === "wrapp") {
-    if (!Number.isFinite(visualDiff[wh])) return;
-    el[topOrLeft] += move / visualDiff[wh];
+  if (args.clickedObject.current === "wrapp") {
+    const diff = visualDiff[wh];
+
+    if (!Number.isFinite(diff) || diff === 0) {
+      // важно: сбрасываем состояние, иначе жест «залипнет»
+      args.prevCoordsRef.current = null;
+      return;
+    }
+
+    el[topOrLeft] += move / diff;
     return;
   }
 
   // --- логика для sliderThumb ---
   const scroll = el[topOrLeft];
 
-  // основа для передвижения размер элемента slider
   const sliderElSize = Math.round(
     el
       .closest(".ms-content")
       ?.querySelector(".ms-slider-element.active")
       ?.getBoundingClientRect()[axis === "x" ? "width" : "height"] || 1
   );
-  // getBoundingClientRect помогает избежать проблем с масштабированием используя видимый размер
 
-  // запуск smoothScroll
-  if (Math.abs(args.numForSliderRef.current) >= sliderElSize) {
-    const nextScroll =
-      move > 0 && scroll + args.sizeLocal[wh] < args.wrapElWH[wh]
-        ? scroll + args.sizeLocal[wh]
-        : move < 0 && scroll > 0
-        ? scroll - args.sizeLocal[wh]
-        : null; // если передать 0 будет loop
+  if (Math.abs(args.numForSliderRef.current) < sliderElSize) return;
 
-    args.numForSliderRef.current = 0; // сбрасываем
-    args.smoothScroll(nextScroll, axis, 10);
-  }
+  const nextScroll =
+    move > 0 && scroll + args.sizeLocal[wh] < args.wrapElWH[wh]
+      ? scroll + args.sizeLocal[wh]
+      : move < 0 && scroll > 0
+      ? scroll - args.sizeLocal[wh]
+      : null;
+
+  args.numForSliderRef.current = 0;
+
+  args.smoothScroll(nextScroll, axis, 10);
 };
 
-function handleMouseOrTouch(args: HandleMouseDownT) {
+function handleMouseOrTouch(args: HandleMouseT) {
   // удаляем RAF и задачу слайдера
   if (args.rafID.current) {
     cancelAnimationFrame(args.rafID.current);
@@ -249,6 +264,8 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
   // обновление targetScroll заранее
   const scrollElement = args.scrollElementRef;
   if (scrollElement) {
+    scrollElement.setPointerCapture(args.pointerId);
+
     args.scrollStateRef.targetScrollX = scrollElement.scrollLeft;
     args.scrollStateRef.targetScrollY = scrollElement.scrollTop;
   }
@@ -261,7 +278,7 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     wrapElWH: number[] = [],
     visualDiff: number[] = [];
 
-  if (args.clicked === "thumb") {
+  if (args.clickedObject.current === "thumb") {
     const styles = getComputedStyle(args.objectsWrapperRef!);
     const getMrg = (dir: "x" | "y") => {
       const toNum = (value: string) => parseFloat(value);
@@ -294,17 +311,7 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
     visualDiff = getVisualToLayoutScale(args.scrollElementRef!);
   // --------------------------------------------
 
-  const controller = new AbortController();
-  const { signal } = controller;
-
-  args.clickedObject.current = args.clicked;
-  args.triggerUpdate();
-
   const onMove = (e: TouchEvent | MouseEvent) => {
-    if ("touches" in e) {
-      e.preventDefault();
-    }
-
     handleMove({
       ...args,
       mouseEvent: e,
@@ -319,23 +326,47 @@ function handleMouseOrTouch(args: HandleMouseDownT) {
 
   // меняем курсор и классы
   cursorClassChange(
-    args.eventType,
-    args.clicked,
-    args.scrollBar,
-    args.objectsWrapperRef
+    args.clickedObject.current,
+    args.target,
+    args.scrollElementRef
   );
 
-  // pointer слушатели для универсальности
-  document.addEventListener("pointermove", (mouseEvent) => onMove(mouseEvent), {
-    passive: false,
-    signal,
-  });
+  // слушатели для движения и отжатия
+  args.controllerRef.current?.abort(); // отменяем предыдущие слушатели
+  const controller = new AbortController();
+  args.controllerRef.current = controller;
+  const { signal } = controller;
 
-  document.addEventListener(
-    "pointerup",
-    (mouseEvent) => handleUp({ ...args, mouseEvent, controller }),
-    { signal }
+  scrollElement?.addEventListener(
+    "touchmove",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    { signal, passive: false }
   );
+
+  scrollElement?.addEventListener(
+    "pointermove",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.pointerId !== args.pointerId) return;
+      onMove(e);
+    },
+    { signal, passive: false }
+  );
+
+  const endHandler = (e: PointerEvent) => {
+    if (e.pointerId !== args.pointerId) return;
+
+    args.scrollElementRef?.releasePointerCapture(args.pointerId);
+    handleUp({ ...args, mouseEvent: e as any });
+  };
+  // Регистрируем оба типа end/cancel-событий, чтобы не пропустить окончание жеста
+  scrollElement?.addEventListener("pointerup", endHandler, { signal });
+  scrollElement?.addEventListener("pointercancel", endHandler, { signal });
 }
 
 function handleMove(args: HandleMoveT) {
@@ -343,7 +374,7 @@ function handleMove(args: HandleMoveT) {
 
   if (dir === "hybrid") {
     const targetAxes =
-      args.clicked === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
+      args.clickedObject.current === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
     targetAxes.forEach(
       (axis) => axis && motionHandler(axis as "x" | "y", args.visualDiff, args)
     );
@@ -353,15 +384,21 @@ function handleMove(args: HandleMoveT) {
 }
 
 function handleUp(args: HandleUpT) {
-  // Отменяем все слушатели событий
-  args.controller.abort();
+  args.controllerRef.current?.abort(); // удаляем слушатели
+
+  // Восстанавливаем скролл страницы для iOS Safari
+  try {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+  } catch (e) {
+    // noop
+  }
 
   // меняем курсор и классы
   cursorClassChange(
-    args.eventType,
-    args.clicked,
-    args.scrollBar,
-    args.objectsWrapperRef
+    args.clickedObject.current,
+    args.target,
+    args.scrollElementRef
   );
 
   args.clickedObject.current = "none";
@@ -370,6 +407,7 @@ function handleUp(args: HandleUpT) {
     let target = args.mouseEvent.target as HTMLElement | null;
     let isChildOfScrollContent = false;
 
+    // проверка относится ли объект по которому был handleUp к scrollContentRef
     while (target && target !== document.body) {
       if (target === args.scrollContentRef) {
         isChildOfScrollContent = true;
@@ -379,6 +417,7 @@ function handleUp(args: HandleUpT) {
     }
 
     if (!isChildOfScrollContent) {
+      // если объект не относится к scrollContentRef то запускаем mouseOnRefHandle
       args.mouseOnRefHandle(args.mouseEvent);
     }
   }
@@ -419,7 +458,8 @@ function handleUp(args: HandleUpT) {
       );
     }
 
-    args.numForSliderRef.current = 0; // сбрасываем
+    // сбрасываем
+    args.numForSliderRef.current = 0;
   }
 
   args.prevCoordsRef.current = null;

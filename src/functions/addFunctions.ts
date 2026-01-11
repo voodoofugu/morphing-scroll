@@ -265,6 +265,12 @@ function stabilizeMany(...args: unknown[]): string[] {
   return args.map(stabilizeObject);
 }
 
+const isTouchDevice = () => {
+  return typeof window !== "undefined"
+    ? window.matchMedia?.("(pointer: coarse)").matches ?? false
+    : false;
+};
+
 export {
   objectsPerSize,
   clampValue,
@@ -276,4 +282,5 @@ export {
   createResizeHandler,
   stabilizeMany,
   getStyleAlign,
+  isTouchDevice,
 };
