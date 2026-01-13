@@ -1,4 +1,4 @@
-export type handleArrowT = {
+type handleArrowT = {
   arrowType: "left" | "right" | "top" | "bottom";
   scrollElement: Element;
   wrapSize: number[];
@@ -57,3 +57,4 @@ const handleArrow = ({
 };
 
 export default handleArrow;
+export type { handleArrowT };

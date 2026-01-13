@@ -51,6 +51,7 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
         ...arrowsStyle,
       }}
       onClick={() => handleArrow(arrowType)}
+      // onPointerUp={}
     >
       {arrows.element}
     </div>

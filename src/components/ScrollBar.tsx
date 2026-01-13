@@ -52,15 +52,13 @@ const ScrollBar = ({
     }
 
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault(); // верхний элемент не скроллим
-
       prev?.scrollBy({
         ...(axis === "y" ? { top: e.deltaY } : { left: e.deltaY }),
         behavior: "auto", // обязательно auto, иначе будут глюки
       });
     };
 
-    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("wheel", onWheel);
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
@@ -69,13 +67,10 @@ const ScrollBar = ({
     if (!el || type === "sliderMenu") return;
 
     const handleStart = (e: PointerEvent) => {
-      e.preventDefault(); // помогает блокировать интерфейс при перетаскивании
-      e.stopPropagation();
-
       (scrollBarEvent as (e: PointerEvent) => void)(e);
     };
 
-    el.addEventListener("pointerdown", handleStart, { passive: false });
+    el.addEventListener("pointerdown", handleStart);
 
     return () => {
       el.removeEventListener("pointerdown", handleStart);
@@ -168,7 +163,7 @@ const ScrollBar = ({
             ref={thumbRef}
             style={{
               height: `${thumbSize}px`,
-              willChange: "transform, height", // свойство убирает артефакты во время анимации
+              // willChange: "transform, height", // свойство убирает артефакты во время анимации
               transform: `translateY(${thumbSpace}px)`,
               ...(progressTrigger?.progressElement && {
                 cursor: "grab",

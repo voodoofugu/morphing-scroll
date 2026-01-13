@@ -999,8 +999,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
         type,
-        scrollBarOnHover,
-        mouseOnRefHandle,
         triggerUpdate,
         direction,
         smoothScroll: smoothScrollLocal,
@@ -1029,8 +1027,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       getThumbSize({ xSize: true }),
       scrollPositionLocal.duration,
       smoothScrollLocal,
-      mouseOnRefHandle,
-      scrollBarOnHover,
       scrollBarEdgeLocal.join(),
     ]
   );
@@ -1692,10 +1688,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         onTouchEnd={mouseOnRefHandle}
         style={{
           ...contentBoxStyle,
-          // блокируем touch (тут что бы захватить thumb)
-          ...(isTouchedRef && {
-            touchAction: "none",
-            transform: "translateZ(0)", // помогает оптимизировать отображение рендера браузера (иначе каша из пикселей)
+          // блокируем touch оставляя только zoom (тут что бы захватить thumb)
+          transform: "translateZ(0)", // помогает оптимизировать отображение
+          ...(isTouchedRef.current && {
+            touchAction: "pinch-zoom",
           }),
         }}
       >

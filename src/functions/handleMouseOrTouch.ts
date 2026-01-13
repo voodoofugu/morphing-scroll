@@ -12,7 +12,6 @@ type HandleMouseT = {
   objectsWrapperRef: HTMLDivElement | null;
   target: HTMLElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
-  scrollBarOnHover: boolean;
   scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
   direction: MorphScrollT["direction"];
@@ -24,13 +23,6 @@ type HandleMouseT = {
     duration: number,
     callback?: () => void
   ) => Promise<string | null | undefined> | null;
-  mouseOnRefHandle: (
-    event:
-      | React.MouseEvent<HTMLDivElement>
-      | React.TouchEvent<HTMLDivElement>
-      | MouseEvent
-      | TouchEvent
-  ) => void;
   triggerUpdate: () => void;
   numForSliderRef: React.MutableRefObject<number>;
   prevCoordsRef: React.MutableRefObject<{
@@ -52,7 +44,7 @@ type HandleMoveT = Omit<
   HandleMouseT,
   "controller" | "scrollBarOnHover" | "scrollContentRef" | "mouseOnRefHandle"
 > & {
-  mouseEvent: MouseEvent | TouchEvent;
+  mouseEvent: PointerEvent;
   fullMarginX: number;
   fullMarginY: number;
   scrollElementWH: number[];
@@ -311,7 +303,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
     visualDiff = getVisualToLayoutScale(args.scrollElementRef!);
   // --------------------------------------------
 
-  const onMove = (e: TouchEvent | MouseEvent) => {
+  const onMove = (e: PointerEvent) => {
     handleMove({
       ...args,
       mouseEvent: e,
@@ -402,25 +394,6 @@ function handleUp(args: HandleUpT) {
   );
 
   args.clickedObject.current = "none";
-
-  if (args.scrollBarOnHover) {
-    let target = args.mouseEvent.target as HTMLElement | null;
-    let isChildOfScrollContent = false;
-
-    // проверка относится ли объект по которому был handleUp к scrollContentRef
-    while (target && target !== document.body) {
-      if (target === args.scrollContentRef) {
-        isChildOfScrollContent = true;
-        break;
-      }
-      target = target.parentNode as HTMLElement | null;
-    }
-
-    if (!isChildOfScrollContent) {
-      // если объект не относится к scrollContentRef то запускаем mouseOnRefHandle
-      args.mouseOnRefHandle(args.mouseEvent);
-    }
-  }
 
   // логика для слайдера
   if (args.type === "slider") {
