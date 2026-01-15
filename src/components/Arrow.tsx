@@ -10,6 +10,10 @@ type ArrowT = {
 };
 
 const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
+  // refs
+  const arrowRef = React.useRef<HTMLDivElement | null>(null);
+
+  // constants
   const arrowsStyle: React.CSSProperties = {
     position: "absolute",
     display: "flex",
@@ -44,14 +48,28 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
         }),
   };
 
+  // effects
+  React.useEffect(() => {
+    const el = arrowRef.current;
+    if (!el) return;
+
+    const handlerClick = () => handleArrow(arrowType);
+
+    el.addEventListener("click", handlerClick);
+
+    return () => {
+      el.removeEventListener("click", handlerClick);
+    };
+  }, [handleArrow, arrowType]);
+
+  // render
   return (
     <div
       className={`ms-arrow-box ${arrowType}${activity ? " active" : ""}`}
+      ref={arrowRef}
       style={{
         ...arrowsStyle,
       }}
-      onClick={() => handleArrow(arrowType)}
-      // onPointerUp={}
     >
       {arrows.element}
     </div>

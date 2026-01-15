@@ -103,9 +103,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const isTouchedRef = React.useRef<boolean>(isTouchDevice());
   const firstChildKeyRef = React.useRef<string | null>(null);
   const firstRender = React.useRef<boolean>(true);
-  const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | "none">(
-    "none"
-  );
+  const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | null>(null);
   // ключи объектов, которые когда либо были загружены
   const objectsKeys = React.useRef<{
     loaded: string[];
@@ -126,7 +124,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     leftover: number;
   } | null>(null);
   const keyDownX = React.useRef<boolean>(false);
-  const rafID = React.useRef<number>(NaN);
+  const rafID = React.useRef({
+    x: 0,
+    y: 0,
+  });
+  const velocityRef = React.useRef({
+    x: 0,
+    y: 0,
+    t: performance.now(),
+  });
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -930,22 +936,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ events
   const mouseOnRefHandle = React.useCallback(
-    (
-      event:
-        | React.MouseEvent<HTMLDivElement>
-        | React.TouchEvent<HTMLDivElement>
-        | MouseEvent
-        | TouchEvent
-    ) => {
+    (event: PointerEvent | MouseEvent) => {
       if (!scrollBarOnHover) return;
-      const func = () => mouseOnRef(scrollContentRef.current, "ms-bar", event);
 
-      if (event.type === "mouseleave" || event.type === "touchend") {
-        // помогает при зажатом clickedObject не терять бегунок из видимости
-        !["thumb", "slider", "wrapp"].includes(clickedObject.current) && func();
-      } else {
-        func();
-      }
+      mouseOnRef(scrollContentRef.current, "ms-bar", event);
     },
     [scrollBarOnHover]
   );
@@ -1016,6 +1010,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         controllerRef,
         isTouched: isTouchedRef.current,
         pointerId, // решает проблему нескольких жестов (пальцев)
+        velocityRef,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1312,7 +1307,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       if (scrollStateRef.current.animationFrameId)
         cancelAnimationFrame(scrollStateRef.current.animationFrameId);
-      if (rafID.current) cancelAnimationFrame(rafID.current);
+      (["x", "y"] as const).forEach((axis) => {
+        const id = rafID.current[axis];
+        if (id) {
+          cancelAnimationFrame(id);
+          rafID.current[axis] = 0;
+        }
+      });
       cancelTask();
     };
   }, []);
@@ -1342,6 +1343,33 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollEl.removeEventListener("pointerdown", handler);
     };
   }, [progressTriggerST]);
+
+  // установка слушателя нажатия на scrollContentRef
+  React.useEffect(() => {
+    const el = scrollContentRef.current;
+    if (!el) return;
+
+    const handler = (e: PointerEvent | MouseEvent) => {
+      mouseOnRefHandle(e);
+    };
+
+    if (isTouchedRef.current) {
+      el.addEventListener("pointerdown", handler);
+      el.addEventListener("pointerup", handler);
+      el.addEventListener("pointercancel", handler);
+    } else {
+      el.addEventListener("mouseenter", handler);
+      el.addEventListener("mouseleave", handler);
+    }
+
+    return () => {
+      el.removeEventListener("pointerdown", handler);
+      el.removeEventListener("pointerup", handler);
+      el.removeEventListener("pointercancel", handler);
+      el.removeEventListener("mouseenter", handler);
+      el.removeEventListener("mouseleave", handler);
+    };
+  }, []);
 
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {
@@ -1611,7 +1639,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     handleArrowLocal,
     sizeLocal[0],
     direction,
-    isScrollingRef.current,
   ]);
 
   const scrollBarsJSX = React.useMemo(() => {
@@ -1682,10 +1709,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       <div
         className="ms-content"
         ref={scrollContentRef}
-        onMouseEnter={mouseOnRefHandle}
-        onMouseLeave={mouseOnRefHandle}
-        onTouchStart={mouseOnRefHandle}
-        onTouchEnd={mouseOnRefHandle}
         style={{
           ...contentBoxStyle,
           // блокируем touch оставляя только zoom (тут что бы захватить thumb)

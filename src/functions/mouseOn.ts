@@ -33,27 +33,23 @@ const mouseOnEl = (el: HTMLElement | null) => {
 const mouseOnRef = (
   el: HTMLDivElement | null,
   childClass: string,
-  event:
-    | React.MouseEvent<HTMLDivElement>
-    | React.TouchEvent<HTMLDivElement>
-    | MouseEvent
-    | TouchEvent
+  event: PointerEvent | MouseEvent
 ) => {
   if (!el) return;
   const childs = el.querySelectorAll(`.${childClass}`);
 
   childs.forEach((child) => {
-    const target = child as HTMLElement;
+    const scrollBar = child as HTMLElement;
 
-    if (["mouseleave", "touchend", "pointerup"].includes(event.type)) {
-      target.style.opacity = "0";
-      target.classList.remove("hover");
-      target.classList.add("leave");
+    if (["mouseleave", "pointerup", "pointercancel"].includes(event.type)) {
+      scrollBar.style.opacity = "0";
+      scrollBar.classList.remove("hover");
+      scrollBar.classList.add("leave");
 
-      setTask(() => target.classList.remove("leave"), 200);
+      setTask(() => scrollBar.classList.remove("leave"), 200);
     } else {
-      target.style.opacity = "1";
-      target.classList.add("hover");
+      scrollBar.style.opacity = "1";
+      scrollBar.classList.add("hover");
     }
   });
 };

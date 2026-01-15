@@ -29,7 +29,10 @@ async function smoothScroll(
   scrollEl: Element,
   duration: number | null,
   targetScroll: number,
-  rafID: React.MutableRefObject<number>
+  rafID: React.MutableRefObject<{
+    x: number;
+    y: number;
+  }>
 ) {
   if (!scrollEl || targetScroll === undefined || targetScroll === null)
     return null;
@@ -59,7 +62,7 @@ async function smoothScroll(
           startTopOrLeft + (targetScroll - startTopOrLeft) * progress;
 
         if (progress < 1) {
-          rafID.current = requestAnimationFrame(animate);
+          rafID.current[direction] = requestAnimationFrame(animate);
         }
       };
 

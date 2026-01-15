@@ -3,9 +3,10 @@ import { ScrollStateRefT } from "./handleWheel";
 
 import { mouseOnEl } from "../functions/mouseOn";
 import { cancelTask } from "../helpers/taskManager";
+import startInertiaScroll from "../helpers/startInertiaScroll";
 import { clampValue } from "./addFunctions";
 
-type ClickedT = "thumb" | "slider" | "wrapp" | "none";
+type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
 type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
@@ -34,17 +35,25 @@ type HandleMouseT = {
   axisFromAtr: "x" | "y" | null;
   duration: number;
   scrollBarEdge: number[];
-  rafID: React.MutableRefObject<number>;
+  rafID: React.MutableRefObject<{
+    x: number;
+    y: number;
+  }>;
   controllerRef: React.MutableRefObject<AbortController | null>;
   isTouched: boolean; // !!! не используется
   pointerId: number;
+  velocityRef: React.MutableRefObject<{
+    x: number;
+    y: number;
+    t: number;
+  }>;
 };
 
 type HandleMoveT = Omit<
   HandleMouseT,
   "controller" | "scrollBarOnHover" | "scrollContentRef" | "mouseOnRefHandle"
 > & {
-  mouseEvent: PointerEvent;
+  event: PointerEvent;
   fullMarginX: number;
   fullMarginY: number;
   scrollElementWH: number[];
@@ -54,7 +63,7 @@ type HandleMoveT = Omit<
 };
 
 type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
-  mouseEvent: MouseEvent | TouchEvent;
+  event: PointerEvent;
 };
 
 function getVisualToLayoutScale(el: HTMLElement) {
@@ -67,6 +76,8 @@ const cursorClassChange = (
   target: HTMLElement | null,
   scrollElementRef: HTMLDivElement | null
 ) => {
+  if (!clicked) return;
+
   if (["thumb", "slider"].includes(clicked)) {
     // уточняем кликнутый объект для slider
     if (clicked === "slider") {
@@ -154,17 +165,8 @@ const motionHandler = (
   const el = args.scrollElementRef as HTMLDivElement;
   if (!el) return;
 
-  // --- безопасное получение координат ---
-  const getPoint = (e: TouchEvent | MouseEvent) => {
-    if ("changedTouches" in e) {
-      const t = e.changedTouches[0];
-      if (!t) return null;
-      return { x: t.clientX, y: t.clientY };
-    }
-    return { x: e.clientX, y: e.clientY };
-  };
-
-  const point = getPoint(args.mouseEvent);
+  // --- получение координат ---
+  const point = { x: args.event.clientX, y: args.event.clientY };
   if (!point) return;
 
   // --- инициализация предыдущей точки ---
@@ -183,6 +185,18 @@ const motionHandler = (
     x: point.x - prev.x,
     y: point.y - prev.y,
   };
+
+  // логика для плавного скроллинга пальцем
+  if (args.isTouched) {
+    const now = performance.now();
+    const dt = Math.max(now - args.velocityRef.current.t, 8); // защита от 0
+
+    args.velocityRef.current = {
+      x: (point.x - prev.x) / dt,
+      y: (point.y - prev.y) / dt,
+      t: now,
+    };
+  }
 
   args.prevCoordsRef.current = {
     x: point.x,
@@ -247,11 +261,14 @@ const motionHandler = (
 
 function handleMouseOrTouch(args: HandleMouseT) {
   // удаляем RAF и задачу слайдера
-  if (args.rafID.current) {
-    cancelAnimationFrame(args.rafID.current);
-    args.rafID.current = NaN;
-    cancelTask("smoothScrollBlock");
-  }
+  (["x", "y"] as const).forEach((axis) => {
+    const id = args.rafID.current[axis];
+    if (id) {
+      cancelAnimationFrame(id);
+      args.rafID.current[axis] = 0;
+    }
+  });
+  cancelTask("smoothScrollBlock");
 
   // обновление targetScroll заранее
   const scrollElement = args.scrollElementRef;
@@ -306,7 +323,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   const onMove = (e: PointerEvent) => {
     handleMove({
       ...args,
-      mouseEvent: e,
+      event: e,
       fullMarginX,
       fullMarginY,
       scrollElementWH,
@@ -330,33 +347,21 @@ function handleMouseOrTouch(args: HandleMouseT) {
   const { signal } = controller;
 
   scrollElement?.addEventListener(
-    "touchmove",
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    },
-    { signal, passive: false }
-  );
-
-  scrollElement?.addEventListener(
     "pointermove",
     (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
       if (e.pointerId !== args.pointerId) return;
       onMove(e);
     },
-    { signal, passive: false }
+    { signal }
   );
 
   const endHandler = (e: PointerEvent) => {
     if (e.pointerId !== args.pointerId) return;
 
     args.scrollElementRef?.releasePointerCapture(args.pointerId);
-    handleUp({ ...args, mouseEvent: e as any });
+    handleUp({ ...args, event: e as any });
   };
-  // Регистрируем оба типа end/cancel-событий, чтобы не пропустить окончание жеста
+
   scrollElement?.addEventListener("pointerup", endHandler, { signal });
   scrollElement?.addEventListener("pointercancel", endHandler, { signal });
 }
@@ -364,27 +369,17 @@ function handleMouseOrTouch(args: HandleMouseT) {
 function handleMove(args: HandleMoveT) {
   const dir = args.direction || "y";
 
-  if (dir === "hybrid") {
-    const targetAxes =
-      args.clickedObject.current === "wrapp" ? ["x", "y"] : [args.axisFromAtr];
-    targetAxes.forEach(
+  if (dir === "hybrid" && args.clickedObject.current === "wrapp") {
+    ["x", "y"].forEach(
       (axis) => axis && motionHandler(axis as "x" | "y", args.visualDiff, args)
     );
   } else {
-    motionHandler(dir, args.visualDiff, args);
+    args.axisFromAtr && motionHandler(args.axisFromAtr, args.visualDiff, args);
   }
 }
 
 function handleUp(args: HandleUpT) {
   args.controllerRef.current?.abort(); // удаляем слушатели
-
-  // Восстанавливаем скролл страницы для iOS Safari
-  try {
-    document.body.style.overflow = "";
-    document.documentElement.style.overflow = "";
-  } catch (e) {
-    // noop
-  }
 
   // меняем курсор и классы
   cursorClassChange(
@@ -392,8 +387,6 @@ function handleUp(args: HandleUpT) {
     args.target,
     args.scrollElementRef
   );
-
-  args.clickedObject.current = "none";
 
   // логика для слайдера
   if (args.type === "slider") {
@@ -435,8 +428,35 @@ function handleUp(args: HandleUpT) {
     args.numForSliderRef.current = 0;
   }
 
+  // --- inertia scroll for touch ---
+  if (args.isTouched && args.type === "scroll") {
+    const el = args.scrollElementRef;
+    if (!el) return;
+
+    const MIN_VELOCITY = 0.02; // px/ms
+    const inertLogic = (axis: "x" | "y") => {
+      const vel = args.velocityRef.current[axis];
+
+      if (Math.abs(vel) > MIN_VELOCITY) {
+        startInertiaScroll({
+          el,
+          axis,
+          velocity: (args.clickedObject.current === "thumb" ? vel : -vel) * 16, // переводим в px/frame
+          rafID: args.rafID,
+        });
+      }
+    };
+
+    if (args.direction === "hybrid" && args.clickedObject.current === "wrapp") {
+      ["x", "y"].forEach((el) => {
+        inertLogic(el as "x" | "y");
+      });
+    } else args.axisFromAtr && inertLogic(args.axisFromAtr);
+  }
+
   args.prevCoordsRef.current = null;
   args.triggerUpdate(); // for update ref only
+  args.clickedObject.current = null;
 }
 
 export default handleMouseOrTouch;
