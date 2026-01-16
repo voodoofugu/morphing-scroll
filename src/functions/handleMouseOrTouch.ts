@@ -40,7 +40,7 @@ type HandleMouseT = {
     y: number;
   }>;
   controllerRef: React.MutableRefObject<AbortController | null>;
-  isTouched: boolean; // !!! не используется
+  isTouched: boolean;
   pointerId: number;
   velocityRef: React.MutableRefObject<{
     x: number;
@@ -198,12 +198,6 @@ const motionHandler = (
     };
   }
 
-  args.prevCoordsRef.current = {
-    x: point.x,
-    y: point.y,
-    leftover: prev.leftover,
-  };
-
   const move =
     args.clickedObject.current === "wrapp" ? -delta[axis] : delta[axis];
 
@@ -299,10 +293,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
     fullMarginX = getMrg("x");
     fullMarginY = getMrg("y");
 
-    scrollElementWH = [
-      args.scrollElementRef!.clientWidth,
-      args.scrollElementRef!.clientHeight,
-    ];
+    scrollElementWH = [scrollElement!.clientWidth, scrollElement!.clientHeight];
 
     objectsWrapperWH = [
       args.objectsWrapperRef!.clientWidth,
@@ -317,7 +308,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   }
 
   if (["scroll", "slider"].includes(args.type!))
-    visualDiff = getVisualToLayoutScale(args.scrollElementRef!);
+    visualDiff = getVisualToLayoutScale(scrollElement!);
   // --------------------------------------------
 
   const onMove = (e: PointerEvent) => {
@@ -334,11 +325,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   };
 
   // меняем курсор и классы
-  cursorClassChange(
-    args.clickedObject.current,
-    args.target,
-    args.scrollElementRef
-  );
+  cursorClassChange(args.clickedObject.current, args.target, scrollElement);
 
   // слушатели для движения и отжатия
   args.controllerRef.current?.abort(); // отменяем предыдущие слушатели
@@ -358,7 +345,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   const endHandler = (e: PointerEvent) => {
     if (e.pointerId !== args.pointerId) return;
 
-    args.scrollElementRef?.releasePointerCapture(args.pointerId);
+    scrollElement?.releasePointerCapture(args.pointerId);
     handleUp({ ...args, event: e as any });
   };
 
@@ -369,12 +356,32 @@ function handleMouseOrTouch(args: HandleMouseT) {
 function handleMove(args: HandleMoveT) {
   const dir = args.direction || "y";
 
-  if (dir === "hybrid" && args.clickedObject.current === "wrapp") {
-    ["x", "y"].forEach(
-      (axis) => axis && motionHandler(axis as "x" | "y", args.visualDiff, args)
-    );
+  if (dir === "hybrid") {
+    if (["wrapp", "slider"].includes(args.clickedObject.current!)) {
+      ["x", "y"].forEach(
+        (axis) =>
+          axis && motionHandler(axis as "x" | "y", args.visualDiff, args)
+      );
+    } else {
+      args.axisFromAtr &&
+        motionHandler(args.axisFromAtr, args.visualDiff, args);
+    }
   } else {
-    args.axisFromAtr && motionHandler(args.axisFromAtr, args.visualDiff, args);
+    motionHandler(
+      args.axisFromAtr ? args.axisFromAtr : dir,
+      args.visualDiff,
+      args
+    );
+  }
+
+  // единое обновление prevCoordsRef
+  const point = { x: args.event.clientX, y: args.event.clientY };
+  if (args.prevCoordsRef.current) {
+    args.prevCoordsRef.current = {
+      x: point.x,
+      y: point.y,
+      leftover: args.prevCoordsRef.current.leftover,
+    };
   }
 }
 

@@ -935,15 +935,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   // ♦ events
-  const mouseOnRefHandle = React.useCallback(
-    (event: PointerEvent | MouseEvent) => {
-      if (!scrollBarOnHover) return;
-
-      mouseOnRef(scrollContentRef.current, "ms-bar", event);
-    },
-    [scrollBarOnHover]
-  );
-
   const onMouseOrTouchDown = React.useCallback(
     (
       clicked: "thumb" | "slider" | "wrapp" | null,
@@ -1084,7 +1075,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       CONST.DEBOUNCE_DELAY
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sizeLocal.join(), direction, scrollElementRef, scrollContentRef, type]);
+  }, [sizeLocal.join(), direction, type]);
 
   const updateLoadedElementsKeysLocal = React.useCallback(() => {
     if (!customScrollRef.current) return;
@@ -1347,10 +1338,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // установка слушателя нажатия на scrollContentRef
   React.useEffect(() => {
     const el = scrollContentRef.current;
-    if (!el) return;
+    if (!el || !scrollBarOnHover) return;
 
     const handler = (e: PointerEvent | MouseEvent) => {
-      mouseOnRefHandle(e);
+      mouseOnRef(scrollContentRef.current, "ms-bar", e);
     };
 
     if (isTouchedRef.current) {
@@ -1369,13 +1360,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       el.removeEventListener("mouseenter", handler);
       el.removeEventListener("mouseleave", handler);
     };
-  }, []);
+  }, [scrollBarOnHover]);
 
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {
     if (type === "scroll") return;
     sliderCheckLocal();
-  }, [sizeLocal.join()]);
+  }, [type, sliderCheckLocal, sizeLocal.join()]);
 
   // ♦ contents
   const scrollObjectWrapper = React.useCallback(
