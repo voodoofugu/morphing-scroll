@@ -6,6 +6,8 @@ import { cancelTask } from "../helpers/taskManager";
 import startInertiaScroll from "../helpers/startInertiaScroll";
 import { clampValue } from "./addFunctions";
 
+import CONST from "../../src/constants";
+
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
 type HandleMouseT = {
@@ -46,6 +48,8 @@ type HandleMouseT = {
     x: number;
     y: number;
     t: number;
+    distX: number;
+    distY: number;
   }>;
 };
 
@@ -54,16 +58,17 @@ type HandleMoveT = Omit<
   "controller" | "scrollBarOnHover" | "scrollContentRef" | "mouseOnRefHandle"
 > & {
   event: PointerEvent;
-  fullMarginX: number;
-  fullMarginY: number;
+  fullMargin: number[];
   scrollElementWH: number[];
   objectsWrapperWH: number[];
   wrapElWH: number[];
   visualDiff: number[];
+  thumbRatio: number;
 };
 
 type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
   event: PointerEvent;
+  thumbRatio: number;
 };
 
 function getVisualToLayoutScale(el: HTMLElement) {
@@ -74,17 +79,18 @@ function getVisualToLayoutScale(el: HTMLElement) {
 const cursorClassChange = (
   clicked: ClickedT,
   target: HTMLElement | null,
-  scrollElementRef: HTMLDivElement | null
+  scrollElementRef: HTMLDivElement | null,
+  mode: "start" | "end" = "start"
 ) => {
   if (!clicked) return;
 
   if (["thumb", "slider"].includes(clicked)) {
     // уточняем кликнутый объект для slider
     if (clicked === "slider") {
-      mouseOnEl(target?.closest(".ms-slider") as HTMLDivElement | null);
-    } else mouseOnEl(target);
+      mouseOnEl(target?.closest(".ms-slider") as HTMLDivElement | null, mode);
+    } else mouseOnEl(target, mode);
   } else if (clicked === "wrapp") {
-    mouseOnEl(scrollElementRef);
+    mouseOnEl(scrollElementRef, mode);
   }
 };
 
@@ -93,28 +99,12 @@ const applyThumb = (
   args: HandleMoveT,
   move: number,
   prev: { leftover: number },
-  visualDiff: number[]
+  thumbRatio: number
 ) => {
   if (!args.scrollElementRef || !args.objectsWrapperRef) return;
 
   const scrollEl = args.scrollElementRef;
-  const wh = axis === "x" ? 0 : 1;
-  if (!Number.isFinite(visualDiff[wh])) return;
-
-  // не забываем прибавить margin
-  const objectsWrapperSize =
-    args.objectsWrapperWH[wh] +
-    args[axis === "x" ? "fullMarginX" : "fullMarginY"];
-
-  const maxThumbPos =
-    (args.scrollElementWH[wh] - args.scrollBarEdge[wh] - args.thumbSize) *
-    visualDiff[wh];
-  const scrollableSize = objectsWrapperSize - args.scrollElementWH[wh];
-
-  if (maxThumbPos <= 0 || scrollableSize <= 0) return;
-
-  const scrollRatio = scrollableSize / maxThumbPos;
-  const fullDelta = move * scrollRatio + prev.leftover;
+  const fullDelta = move * thumbRatio + prev.leftover;
   const intDelta = Math.trunc(fullDelta);
 
   if (args.prevCoordsRef.current) {
@@ -159,6 +149,7 @@ const applyThumb = (
 
 const motionHandler = (
   axis: "x" | "y",
+  thumbRatio: number,
   visualDiff: number[],
   args: HandleMoveT
 ) => {
@@ -189,13 +180,20 @@ const motionHandler = (
   // логика для плавного скроллинга пальцем
   if (args.isTouched) {
     const now = performance.now();
-    const dt = Math.max(now - args.velocityRef.current.t, 8); // защита от 0
 
-    args.velocityRef.current = {
-      x: (point.x - prev.x) / dt,
-      y: (point.y - prev.y) / dt,
-      t: now,
-    };
+    if (!args.velocityRef.current.t) {
+      args.velocityRef.current.t = now;
+    } else {
+      const dt = Math.max(now - args.velocityRef.current.t, 8);
+
+      args.velocityRef.current = {
+        x: args.velocityRef.current.x * 0.8 + (delta.x / dt) * 0.2,
+        y: args.velocityRef.current.y * 0.8 + (delta.y / dt) * 0.2,
+        t: now,
+        distX: (args.velocityRef.current.distX ?? 0) + Math.abs(delta.x),
+        distY: (args.velocityRef.current.distY ?? 0) + Math.abs(delta.y),
+      };
+    }
   }
 
   const move =
@@ -206,7 +204,7 @@ const motionHandler = (
 
   // --- логика для thumb ---
   if (args.clickedObject.current === "thumb") {
-    applyThumb(axis, args, move, prev, visualDiff);
+    applyThumb(axis, args, move, prev, thumbRatio);
     return;
   }
 
@@ -273,9 +271,17 @@ function handleMouseOrTouch(args: HandleMouseT) {
     args.scrollStateRef.targetScrollY = scrollElement.scrollTop;
   }
 
+  // reset inertia state for new gesture
+  args.velocityRef.current = {
+    x: 0,
+    y: 0,
+    t: 0,
+    distX: 0,
+    distY: 0,
+  };
+
   // получение некоторых данных заранее при клике
-  let fullMarginX: number = 0,
-    fullMarginY: number = 0,
+  let fullMargin: number[] = [],
     scrollElementWH: number[] = [],
     objectsWrapperWH: number[] = [],
     wrapElWH: number[] = [],
@@ -290,9 +296,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
       else return toNum(styles.marginTop) + toNum(styles.marginBottom);
     };
 
-    fullMarginX = getMrg("x");
-    fullMarginY = getMrg("y");
-
+    fullMargin = [getMrg("x"), getMrg("y")];
     scrollElementWH = [scrollElement!.clientWidth, scrollElement!.clientHeight];
 
     objectsWrapperWH = [
@@ -311,16 +315,32 @@ function handleMouseOrTouch(args: HandleMouseT) {
     visualDiff = getVisualToLayoutScale(scrollElement!);
   // --------------------------------------------
 
+  // получаем thumbRatio
+  let thumbRatio = 1;
+  if (args.clickedObject.current === "thumb" && args.axisFromAtr) {
+    const wh = args.axisFromAtr === "x" ? 0 : 1;
+    const maxThumbPos =
+      (scrollElementWH[wh] - args.scrollBarEdge[wh] - args.thumbSize) *
+      visualDiff[wh];
+    const objectsWrapperSize = objectsWrapperWH[wh] + fullMargin[wh]; // не забываем прибавить margin
+    const scrollableSize = objectsWrapperSize - scrollElementWH[wh];
+    thumbRatio = scrollableSize / maxThumbPos;
+    // защита
+    if (!Number.isFinite(thumbRatio) || thumbRatio <= 0) {
+      thumbRatio = 1;
+    }
+  }
+
   const onMove = (e: PointerEvent) => {
     handleMove({
       ...args,
       event: e,
-      fullMarginX,
-      fullMarginY,
+      fullMargin,
       scrollElementWH,
       objectsWrapperWH,
       wrapElWH,
       visualDiff,
+      thumbRatio,
     });
   };
 
@@ -346,7 +366,11 @@ function handleMouseOrTouch(args: HandleMouseT) {
     if (e.pointerId !== args.pointerId) return;
 
     scrollElement?.releasePointerCapture(args.pointerId);
-    handleUp({ ...args, event: e as any });
+    handleUp({
+      ...args,
+      event: e as any,
+      thumbRatio,
+    });
   };
 
   scrollElement?.addEventListener("pointerup", endHandler, { signal });
@@ -358,17 +382,17 @@ function handleMove(args: HandleMoveT) {
 
   if (dir === "hybrid") {
     if (["wrapp", "slider"].includes(args.clickedObject.current!)) {
-      ["x", "y"].forEach(
-        (axis) =>
-          axis && motionHandler(axis as "x" | "y", args.visualDiff, args)
+      (["x", "y"] as const).forEach((axis) =>
+        motionHandler(axis, args.thumbRatio, args.visualDiff, args)
       );
     } else {
       args.axisFromAtr &&
-        motionHandler(args.axisFromAtr, args.visualDiff, args);
+        motionHandler(args.axisFromAtr, args.thumbRatio, args.visualDiff, args);
     }
   } else {
     motionHandler(
       args.axisFromAtr ? args.axisFromAtr : dir,
+      args.thumbRatio,
       args.visualDiff,
       args
     );
@@ -392,7 +416,8 @@ function handleUp(args: HandleUpT) {
   cursorClassChange(
     args.clickedObject.current,
     args.target,
-    args.scrollElementRef
+    args.scrollElementRef,
+    "end"
   );
 
   // логика для слайдера
@@ -436,34 +461,64 @@ function handleUp(args: HandleUpT) {
   }
 
   // --- inertia scroll for touch ---
-  if (args.isTouched && args.type === "scroll") {
+  if (
+    args.isTouched &&
+    args.type === "scroll" &&
+    args.clickedObject.current !== "slider"
+  ) {
     const el = args.scrollElementRef;
     if (!el) return;
 
-    const MIN_VELOCITY = 0.02; // px/ms
     const inertLogic = (axis: "x" | "y") => {
-      const vel = args.velocityRef.current[axis];
+      // умножаем velocity на thumbRatio для правильного передвижение по thumb
+      const vel = args.velocityRef.current[axis] * args.thumbRatio;
+      const dist =
+        axis === "x"
+          ? args.velocityRef.current.distX
+          : args.velocityRef.current.distY;
 
-      if (Math.abs(vel) > MIN_VELOCITY) {
+      const now = performance.now();
+      const dtFromLastMove = now - args.velocityRef.current.t; // убираем скроллинг при резком отпускании пальца
+
+      if (
+        dtFromLastMove < CONST.INERTIA_RELEASE_TIMEOUT &&
+        Math.abs(vel) > CONST.MIN_VELOCITY &&
+        dist > CONST.MIN_DISTANCE
+      ) {
         startInertiaScroll({
           el,
           axis,
-          velocity: (args.clickedObject.current === "thumb" ? vel : -vel) * 16, // переводим в px/frame
+          velocity:
+            (args.clickedObject.current === "thumb" ? vel : -vel) *
+            CONST.INERTIA_FRAME_SCALE, // переводим в px/frame
           rafID: args.rafID,
         });
       }
     };
 
-    if (args.direction === "hybrid" && args.clickedObject.current === "wrapp") {
-      ["x", "y"].forEach((el) => {
-        inertLogic(el as "x" | "y");
-      });
-    } else args.axisFromAtr && inertLogic(args.axisFromAtr);
+    if (args.direction === "hybrid") {
+      if (args.clickedObject.current === "wrapp") {
+        (["x", "y"] as const).forEach((el) => inertLogic(el));
+      } else {
+        inertLogic(args.axisFromAtr!);
+      }
+    } else {
+      inertLogic(args.axisFromAtr ? args.axisFromAtr : args.direction!);
+    }
   }
 
+  // сбрасываем
   args.prevCoordsRef.current = null;
-  args.triggerUpdate(); // for update ref only
   args.clickedObject.current = null;
+  args.velocityRef.current = {
+    x: 0,
+    y: 0,
+    t: 0,
+    distX: 0,
+    distY: 0,
+  };
+  // обновляем
+  args.triggerUpdate();
 }
 
 export default handleMouseOrTouch;

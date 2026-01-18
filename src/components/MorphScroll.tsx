@@ -131,7 +131,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const velocityRef = React.useRef({
     x: 0,
     y: 0,
-    t: performance.now(),
+    t: 0,
+    distX: 0, // дистанция для границы запуска конца touch анимации
+    distY: 0,
   });
 
   function useSizeRef() {
@@ -1115,15 +1117,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     isScrollingRef.current = true;
     isScrolling?.(true);
 
-    setTask(() => {
-      isScrollingRef.current = false;
-      isScrolling?.(false);
-      updateLoadedElementsKeysLocal();
-    }, CONST.SCROLL_END_DELAY);
+    // сводим к одному вызову через setTask
+    setTask(
+      () => {
+        isScrollingRef.current = false;
+        isScrolling?.(false);
+        updateLoadedElementsKeysLocal();
+      },
+      CONST.SCROLL_END_DELAY,
+      "isScrolling"
+    );
 
     if (type !== "scroll") sliderCheckLocal();
 
-    requestAnimationFrame(triggerUpdate);
+    requestAnimationFrame(triggerUpdate); // main updater!
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
@@ -1341,7 +1348,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (!el || !scrollBarOnHover) return;
 
     const handler = (e: PointerEvent | MouseEvent) => {
-      mouseOnRef(scrollContentRef.current, "ms-bar", e);
+      mouseOnRef(scrollContentRef.current, "ms-bar", e, isScrollingRef);
     };
 
     if (isTouchedRef.current) {
