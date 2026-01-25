@@ -11,12 +11,12 @@ export type ScrollStateRefT = {
 
 export default function handleWheel(
   e: WheelEvent,
+  scrollEl: HTMLElement,
   stateRef: ScrollStateRefT,
-  direction: MorphScrollT["direction"]
+  direction: MorphScrollT["direction"],
 ) {
-  const currentObject = e.target as HTMLElement;
-  const scrollEl = currentObject.closest(".ms-element") as HTMLDivElement;
-  if (!scrollEl.matches(":focus")) scrollEl.focus();
+  // TODO пока работа с клавишами не реализована
+  // if (!scrollEl.matches(":focus")) scrollEl.focus(); // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
 
   // Устанавливаем начальные значения
   if (!stateRef.animating) {
@@ -30,14 +30,14 @@ export default function handleWheel(
     stateRef.targetScrollX = clampValue(
       stateRef.targetScrollX + e.deltaY, // используем deltaY вместо deltaX, так как на deltaX не срабатывает onScroll
       0,
-      scrollEl.scrollWidth - scrollEl.clientWidth + CONST.SCROLL_OFFSET
+      scrollEl.scrollWidth - scrollEl.clientWidth + CONST.SCROLL_OFFSET,
     );
   } else {
     // ограничиваем значение
     stateRef.targetScrollY = clampValue(
       stateRef.targetScrollY + e.deltaY,
       0,
-      scrollEl.scrollHeight - scrollEl.clientHeight + CONST.SCROLL_OFFSET
+      scrollEl.scrollHeight - scrollEl.clientHeight + CONST.SCROLL_OFFSET,
     );
   }
 

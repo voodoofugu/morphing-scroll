@@ -55,7 +55,7 @@ export type MorphScrollT = {
   elementsDirection?: "row" | "column";
   edgeGradient?: boolean | string | { color?: string; size?: number };
   progressTrigger: {
-    // !!! добавить "wheel" | "content" | "arrows"
+    // TODO добавить "wheel" | "content" | "arrows"
     wheel?:
       | boolean
       | { changeDirection?: boolean; changeDirectionKey?: string };

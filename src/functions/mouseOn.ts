@@ -40,7 +40,7 @@ const mouseOnRef = (
   el: HTMLDivElement | null,
   childClass: string,
   event: PointerEvent | MouseEvent,
-  isScrolling?: React.MutableRefObject<boolean> // через Ref ну такое, но работает
+  isScrolling?: React.MutableRefObject<boolean>, // через Ref ну такое, но работает
 ) => {
   if (!el) return;
   const childs = el.querySelectorAll(`.${childClass}`);
@@ -48,15 +48,21 @@ const mouseOnRef = (
   childs.forEach((child) => {
     const scrollBar = child as HTMLElement;
 
-    if (["mouseleave", "pointerup", "pointercancel"].includes(event.type)) {
+    if (
+      ["mouseleave", "mouseup", "pointerup", "pointercancel"].includes(
+        event.type,
+      )
+    ) {
       const removeLOgic = () => {
         scrollBar.style.opacity = "0";
         scrollBar.classList.remove("hover");
         scrollBar.classList.add("leave");
 
+        cancelTask("removeLOgic");
         setTask(() => scrollBar.classList.remove("leave"), 200, "removeLOgic");
       };
 
+      // проверка для отмены если анимация прокрутки ещё продолжается
       if (isScrolling?.current) {
         // петля для проверки не закончилась ли анимация скроллинга
         let loopCounter = 0; // для защиты
@@ -84,9 +90,11 @@ const mouseOnRef = (
         cancelTask("checkLoop");
         checkLoop();
         return;
-      } // проверка для отмены если анимация прокрутки ещё продолжается
+      }
+
       removeLOgic();
     } else {
+      cancelTask("checkLoop");
       scrollBar.style.opacity = "1";
       scrollBar.classList.add("hover");
     }

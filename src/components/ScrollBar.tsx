@@ -1,11 +1,13 @@
 import React from "react";
 import { MorphScrollT } from "../types/types";
 
+import handleWheel, { ScrollStateRefT } from "../functions/handleWheel";
+
 type OnCustomScrollFn = (
   targetScrollTop: number,
   direction: "y" | "x",
   duration: number,
-  callback?: () => void
+  callback?: () => void,
 ) => void;
 
 type ModifiedProps = Partial<MorphScrollT> & {
@@ -17,6 +19,8 @@ type ModifiedProps = Partial<MorphScrollT> & {
   sliderCheckLocal: () => void;
   duration: number;
   isTouched: boolean;
+  scrollStateRef: ScrollStateRefT;
+  scrollEl: React.RefObject<HTMLDivElement | null>;
 };
 
 const ScrollBar = ({
@@ -33,50 +37,14 @@ const ScrollBar = ({
   sliderCheckLocal,
   duration,
   isTouched,
+  scrollStateRef,
+  scrollEl,
 }: ModifiedProps) => {
+  // - refs -
   const scrollBarRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
 
-  // добавление прокрутки по колесом по thumb
-  React.useEffect(() => {
-    if (isTouched || !progressTrigger?.wheel) return; // при touch устроиствах прокрутку не используем
-
-    const el = scrollBarRef.current;
-    if (!el) return;
-
-    const axis = el.getAttribute("data-direction") === "y" ? "y" : "x";
-
-    let prev = el.previousElementSibling as HTMLElement | null;
-    while (prev && !prev.classList.contains("ms-element")) {
-      prev = prev.previousElementSibling as HTMLElement | null;
-    }
-
-    const onWheel = (e: WheelEvent) => {
-      prev?.scrollBy({
-        ...(axis === "y" ? { top: e.deltaY } : { left: e.deltaY }),
-        behavior: "auto", // обязательно auto, иначе будут глюки
-      });
-    };
-
-    el.addEventListener("wheel", onWheel);
-    return () => el.removeEventListener("wheel", onWheel);
-  }, []);
-
-  React.useEffect(() => {
-    const el = thumbRef.current;
-    if (!el || type === "sliderMenu") return;
-
-    const handleStart = (e: PointerEvent) => {
-      (scrollBarEvent as (e: PointerEvent) => void)(e);
-    };
-
-    el.addEventListener("pointerdown", handleStart);
-
-    return () => {
-      el.removeEventListener("pointerdown", handleStart);
-    };
-  }, [scrollBarEvent]);
-
+  // - vars -
   const sliderContent = React.useMemo(() => {
     if (type === "scroll" || !direction) return;
 
@@ -99,7 +67,7 @@ const ScrollBar = ({
                   neededSize * index,
                   axis,
                   duration,
-                  sliderCheckLocal
+                  sliderCheckLocal,
                 );
               }
             : undefined
@@ -121,13 +89,54 @@ const ScrollBar = ({
     sliderCheckLocal,
   ]);
 
+  const dataDirection = React.useMemo(() => {
+    return ["hybrid", "y"].includes(direction!) ? "y" : "x";
+  }, [duration]);
+
+  // - effects -
+  React.useEffect(() => {
+    // добавление прокрутки по колесом по thumb
+    if (isTouched || !progressTrigger?.wheel) return; // при touch устроиствах прокрутку не используем
+
+    const el = scrollBarRef.current;
+    if (!el) return;
+
+    let prev = el.previousElementSibling as HTMLElement | null;
+    while (prev && !prev.classList.contains("ms-element")) {
+      prev = prev.previousElementSibling as HTMLElement | null;
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      handleWheel(e, scrollEl.current!, scrollStateRef, dataDirection);
+    };
+
+    el.addEventListener("wheel", onWheel);
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  React.useEffect(() => {
+    const el = thumbRef.current;
+    if (!el || type === "sliderMenu") return;
+
+    const handleStart = (e: PointerEvent) => {
+      (scrollBarEvent as (e: PointerEvent) => void)(e);
+    };
+
+    el.addEventListener("pointerdown", handleStart);
+
+    return () => {
+      el.removeEventListener("pointerdown", handleStart);
+    };
+  }, [scrollBarEvent]);
+
+  // - render -
   return (
     <React.Fragment>
       {type === "scroll" ? (
         <div
           className="ms-bar"
           ref={scrollBarRef}
-          data-direction={["hybrid", "y"].includes(direction!) ? "y" : "x"}
+          data-direction={dataDirection}
           style={{
             position: "absolute",
             width: "fit-content",

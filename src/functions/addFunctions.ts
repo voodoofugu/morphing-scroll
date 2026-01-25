@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setTask } from "../helpers/taskManager";
+import { setTask, cancelTask } from "../helpers/taskManager";
 
 import { MorphScrollT } from "../types/types";
 
@@ -32,7 +32,7 @@ async function smoothScroll(
   rafID: React.MutableRefObject<{
     x: number;
     y: number;
-  }>
+  }>,
 ) {
   if (!scrollEl || targetScroll === undefined || targetScroll === null)
     return null;
@@ -70,19 +70,19 @@ async function smoothScroll(
     },
     duration,
     "smoothScrollBlock",
-    "exclusive"
+    "exclusive",
   );
 }
 
 const getAllScrollBars = (
   type: Exclude<MorphScrollT["type"], undefined>,
   customScrollRef: HTMLDivElement | null,
-  scrollBarsRef: React.MutableRefObject<[] | NodeListOf<Element>>
+  scrollBarsRef: React.MutableRefObject<[] | NodeListOf<Element>>,
 ) => {
   if (!customScrollRef) return;
 
   const bars = customScrollRef.querySelectorAll(
-    `.${type === "scroll" ? "ms-thumb" : "ms-slider"}`
+    `.${type === "scroll" ? "ms-thumb" : "ms-slider"}`,
   );
 
   if (bars.length > 0) {
@@ -94,7 +94,7 @@ const sliderCheck = (
   scrollEl: HTMLDivElement,
   scrollBars: NodeListOf<Element>,
   sizeLocal: number[],
-  direction: Exclude<MorphScrollT["direction"], undefined>
+  direction: Exclude<MorphScrollT["direction"], undefined>,
 ) => {
   const elementsFirst =
     scrollBars[0]?.querySelectorAll(".ms-slider-element") ?? [];
@@ -105,7 +105,7 @@ const sliderCheck = (
     elementsArray: NodeListOf<Element>,
     size: number[],
     scroll: HTMLDivElement,
-    direction: Exclude<MorphScrollT["direction"], undefined>
+    direction: Exclude<MorphScrollT["direction"], undefined>,
   ) {
     const scrollPosition =
       direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
@@ -139,7 +139,7 @@ function getWrapperMinSizeStyle(
   direction: Exclude<MorphScrollT["direction"], undefined>,
   sizeLocal: number[],
   mLocalX: number,
-  mLocalY: number
+  mLocalY: number,
 ): React.CSSProperties {
   const resolveSize = (value: number | "full", axis: "x" | "y"): number =>
     value === "full"
@@ -172,15 +172,15 @@ const getStyleAlign = (algin: "start" | "center" | "end" | undefined) =>
     ? algin === "start"
       ? "flex-start"
       : algin === "center"
-      ? "center"
-      : "flex-end"
+        ? "center"
+        : "flex-end"
     : undefined;
 
 function getWrapperAlignStyle(
   wrapperAlign: Exclude<MorphScrollT["wrapperAlign"], undefined>,
   sizeLocal: number[],
   objectsWrapperWidthFull: number,
-  objectsWrapperHeightFull: number
+  objectsWrapperHeightFull: number,
 ): React.CSSProperties {
   const [verticalAlign, horizontalAlign = "start"] =
     typeof wrapperAlign === "string"
@@ -203,7 +203,7 @@ function createResizeHandler(
   dataRef: React.MutableRefObject<{ width: number; height: number }>,
   triggerUpdate: () => void,
   offsetX = 0,
-  offsetY = 0
+  offsetY = 0,
 ) {
   return (rect: Partial<DOMRectReadOnly>) => {
     let firstZero = false;
@@ -251,7 +251,7 @@ function stabilizeObject(obj: unknown): string {
       value.forEach(traverse);
     } else if (typeof value === "object") {
       const entries = Object.entries(value as object).sort(([a], [b]) =>
-        a.localeCompare(b)
+        a.localeCompare(b),
       );
       for (const [, val] of entries) {
         traverse(val);
@@ -270,7 +270,7 @@ function stabilizeMany(...args: unknown[]): string[] {
 
 const isTouchDevice = () => {
   return typeof window !== "undefined"
-    ? window.matchMedia?.("(pointer: coarse)").matches ?? false
+    ? (window.matchMedia?.("(pointer: coarse)").matches ?? false)
     : false;
 };
 
