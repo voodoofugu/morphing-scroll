@@ -35,70 +35,64 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
   }
 };
 
-// функция видимости для бегунка при hover
-const mouseOnRef = (
-  el: HTMLDivElement | null,
-  childClass: string,
-  event: PointerEvent | MouseEvent,
-  isScrolling?: React.MutableRefObject<boolean>, // через Ref ну такое, но работает
-) => {
-  if (!el) return;
-  const childs = el.querySelectorAll(`.${childClass}`);
+type HoverHandlerT = {
+  el: HTMLDivElement | null;
+  event?: PointerEvent | MouseEvent;
+  isScrolling?: React.MutableRefObject<boolean>;
+};
 
+const removeLOgic = (scrollBar: HTMLElement) => {
+  scrollBar.style.opacity = "0";
+  scrollBar.classList.remove("hover");
+  scrollBar.classList.add("leave");
+
+  cancelTask("removeLOgic");
+  setTask(() => scrollBar.classList.remove("leave"), 200, "removeLOgic");
+};
+
+// функция видимости для бегунка при hover
+const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
+  if (!el) return;
+
+  const childs = el.querySelectorAll(".ms-bar");
+
+  // отмена для removeOnly
+  if (!event) {
+    childs.forEach((child) => {
+      removeLOgic(child as HTMLElement);
+    });
+    return;
+  }
+
+  // forEach потому-что scrollBar может быть не один
   childs.forEach((child) => {
     const scrollBar = child as HTMLElement;
 
+    // - исчезновение -
     if (
       ["mouseleave", "mouseup", "pointerup", "pointercancel"].includes(
         event.type,
       )
     ) {
-      const removeLOgic = () => {
-        scrollBar.style.opacity = "0";
-        scrollBar.classList.remove("hover");
-        scrollBar.classList.add("leave");
-
-        cancelTask("removeLOgic");
-        setTask(() => scrollBar.classList.remove("leave"), 200, "removeLOgic");
-      };
+      if (event.type === "mouseleave")
+        // логика для скрытия/появления при прокрутки
+        scrollBar.removeAttribute("data-mouse-hover");
 
       // проверка для отмены если анимация прокрутки ещё продолжается
-      if (isScrolling?.current) {
-        // петля для проверки не закончилась ли анимация скроллинга
-        let loopCounter = 0; // для защиты
-        const checkLoop = () => {
-          const cancel = () => {
-            removeLOgic();
-            cancelTask("checkLoop");
-          };
+      if (isScrolling?.current) return;
 
-          if (loopCounter > 100) {
-            cancel();
-            return;
-          }
-
-          loopCounter += 1;
-
-          if (!isScrolling.current) {
-            cancel();
-            return;
-          }
-
-          setTask(() => checkLoop(), 200, "checkLoop");
-        };
-
-        cancelTask("checkLoop");
-        checkLoop();
-        return;
-      }
-
-      removeLOgic();
-    } else {
-      cancelTask("checkLoop");
-      scrollBar.style.opacity = "1";
-      scrollBar.classList.add("hover");
+      removeLOgic(scrollBar);
+      return;
     }
+
+    // - появление -
+    if (event.type === "mouseenter")
+      // логика для скрытия/появления при прокрутки
+      scrollBar.setAttribute("data-mouse-hover", "");
+    cancelTask("checkLoop");
+    scrollBar.style.opacity = "1";
+    scrollBar.classList.add("hover");
   });
 };
 
-export { mouseOnEl, mouseOnRef };
+export { mouseOnEl, hoverHandler };

@@ -71,8 +71,8 @@ export type MorphScrollT = {
           loop?: boolean;
         };
   };
-  progressReverse?: boolean | boolean[]; // <new> переименовать в progressBarReverse или progressBarPosition
-  scrollBarOnHover?: boolean; // <new> добавить префикс ms- к классам "hover" и "leave"
+  progressReverse?: boolean | boolean[]; // TODO переименовать в progressBarReverse или progressBarPosition
+  scrollBarOnHover?: boolean; // TODO добавить префикс ms- к "hover" и "leave" / расширить до {hover: boolean, duration: number}
   scrollBarEdge?: number | number[];
   thumbMinSize?: number;
 

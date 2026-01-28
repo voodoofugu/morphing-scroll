@@ -32,7 +32,7 @@ import {
   calculateThumbSize,
   calculateThumbSpace,
 } from "../functions/calculateThumbSize";
-import { mouseOnRef } from "../functions/mouseOn";
+import { hoverHandler } from "../functions/mouseOn";
 
 import { setTask, cancelTask } from "../helpers/taskManager";
 
@@ -1107,12 +1107,39 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     isScrollingRef.current = true;
     isScrolling?.(true);
 
+    const scrollBar = scrollContentRef.current?.querySelector(".ms-bar") as
+      | HTMLElement
+      | null
+      | undefined;
+    if (scrollBarOnHover && scrollBar) {
+      // доп логика что-бы показать скрытый scrollBar
+      if (!scrollBar.classList.contains("hover")) {
+        scrollBar.classList.add("hover");
+        scrollBar.style.opacity = "1";
+      }
+    }
+
     // сводим к одному вызову через setTask
     setTask(
       () => {
         isScrollingRef.current = false;
         isScrolling?.(false);
         updateLoadedElementsKeysLocal();
+
+        if (
+          scrollBarOnHover &&
+          scrollBar &&
+          !clickedObject.current &&
+          !scrollBar.hasAttribute("data-mouse-hover")
+        ) {
+          hoverHandler({ el: scrollContentRef.current });
+
+          // доп логика что-бы показать скрытый scrollBar
+          if (scrollBar.classList.contains("hover")) {
+            scrollBar.classList.remove("hover");
+            scrollBar.style.opacity = "0";
+          }
+        }
       },
       CONST.SCROLL_END_DELAY,
       "isScrolling",
@@ -1337,16 +1364,20 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const el = scrollContentRef.current;
     if (!el || !scrollBarOnHover) return;
 
-    const handler = (e: PointerEvent | MouseEvent) => {
+    const handler = (event: PointerEvent | MouseEvent) => {
       // динамический mouseup в таком виде помог решить проблему с исчезновением и залипанием thumb
-      if (e.type === "mouseenter")
+      if (event.type === "mouseenter")
         document.removeEventListener("mouseup", handler);
-      if (e.type === "mouseleave" && clickedObject.current) {
+      if (event.type === "mouseleave" && clickedObject.current) {
         document.addEventListener("mouseup", handler);
         return;
       }
 
-      mouseOnRef(scrollContentRef.current, "ms-bar", e, isScrollingRef);
+      hoverHandler({
+        el: scrollContentRef.current,
+        event,
+        isScrolling: isScrollingRef,
+      });
     };
 
     if (isTouchedRef.current) {
