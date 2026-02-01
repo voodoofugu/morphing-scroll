@@ -42,12 +42,18 @@ type HoverHandlerT = {
 };
 
 const removeLOgic = (scrollBar: HTMLElement) => {
+  const direction = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
+
   scrollBar.style.opacity = "0";
   scrollBar.classList.remove("hover");
   scrollBar.classList.add("leave");
 
-  cancelTask("removeLOgic");
-  setTask(() => scrollBar.classList.remove("leave"), 200, "removeLOgic");
+  cancelTask(`removeLOgic${direction}`);
+  setTask(
+    () => scrollBar.classList.remove("leave"),
+    200,
+    `removeLOgic${direction}`,
+  );
 };
 
 // функция видимости для бегунка при hover

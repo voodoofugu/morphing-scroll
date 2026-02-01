@@ -12,6 +12,13 @@ type ClickedT = "thumb" | "slider" | "wrapp" | null;
 let checkMove = 0;
 let checkSliderThumbSize = 0;
 let abortController: AbortController | undefined;
+let velocity = {
+  x: 0,
+  y: 0,
+  t: 0,
+  distX: 0, // дистанция для границы запуска конца touch анимации
+  distY: 0,
+};
 
 type HandleMouseT = {
   scrollElementRef: HTMLDivElement | null;
@@ -45,13 +52,6 @@ type HandleMouseT = {
   }>;
   isTouched: boolean;
   pointerId: number;
-  velocityRef: React.MutableRefObject<{
-    x: number;
-    y: number;
-    t: number;
-    distX: number;
-    distY: number;
-  }>;
 };
 
 type HandleMoveT = Omit<
@@ -188,17 +188,17 @@ const motionHandler = (
   if (args.isTouched) {
     const now = performance.now();
 
-    if (!args.velocityRef.current.t) {
-      args.velocityRef.current.t = now;
+    if (!velocity.t) {
+      velocity.t = now;
     } else {
-      const dt = Math.max(now - args.velocityRef.current.t, 8);
+      const dt = Math.max(now - velocity.t, 8);
 
-      args.velocityRef.current = {
-        x: args.velocityRef.current.x * 0.8 + (delta.x / dt) * 0.2,
-        y: args.velocityRef.current.y * 0.8 + (delta.y / dt) * 0.2,
+      velocity = {
+        x: velocity.x * 0.8 + (delta.x / dt) * 0.2,
+        y: velocity.y * 0.8 + (delta.y / dt) * 0.2,
         t: now,
-        distX: (args.velocityRef.current.distX ?? 0) + Math.abs(delta.x),
-        distY: (args.velocityRef.current.distY ?? 0) + Math.abs(delta.y),
+        distX: (velocity.distX ?? 0) + Math.abs(delta.x),
+        distY: (velocity.distY ?? 0) + Math.abs(delta.y),
       };
     }
   }
@@ -272,7 +272,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   args.scrollStateRef.targetScrollY = el.scrollTop;
 
   // reset inertia state for new gesture
-  args.velocityRef.current = {
+  velocity = {
     x: 0,
     y: 0,
     t: 0,
@@ -477,14 +477,11 @@ function handleUp(args: HandleUpT) {
   ) {
     const inertLogic = (axis: "x" | "y") => {
       // умножаем velocity на thumbRatio для правильного передвижение по thumb
-      const vel = args.velocityRef.current[axis] * args.thumbRatio;
-      const dist =
-        axis === "x"
-          ? args.velocityRef.current.distX
-          : args.velocityRef.current.distY;
+      const vel = velocity[axis] * args.thumbRatio;
+      const dist = axis === "x" ? velocity.distX : velocity.distY;
 
       const now = performance.now();
-      const dtFromLastMove = now - args.velocityRef.current.t; // убираем скроллинг при резком отпускании пальца
+      const dtFromLastMove = now - velocity.t; // убираем скроллинг при резком отпускании пальца
 
       if (
         dtFromLastMove < CONST.INERTIA_RELEASE_TIMEOUT &&
@@ -517,17 +514,17 @@ function handleUp(args: HandleUpT) {
   el.releasePointerCapture(args.pointerId);
   args.prevCoordsRef.current = null;
   args.clickedObject.current = null;
-  args.velocityRef.current = {
+  velocity = {
     x: 0,
     y: 0,
     t: 0,
     distX: 0,
     distY: 0,
   };
-  // обновляем
-  args.triggerUpdate();
   checkMove = 0;
   checkSliderThumbSize = 0;
+  // обновляем
+  args.triggerUpdate();
 }
 
 export default handleMouseOrTouch;

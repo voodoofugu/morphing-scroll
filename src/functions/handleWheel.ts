@@ -15,8 +15,7 @@ export default function handleWheel(
   stateRef: ScrollStateRefT,
   direction: MorphScrollT["direction"],
 ) {
-  // TODO пока работа с клавишами не реализована
-  // if (!scrollEl.matches(":focus")) scrollEl.focus(); // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
+  if (!scrollEl.matches(":focus")) scrollEl.focus(); // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
 
   // Устанавливаем начальные значения
   if (!stateRef.animating) {

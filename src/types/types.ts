@@ -33,7 +33,7 @@ export type MorphScrollT = {
         value: number | "end" | (number | "end")[];
         duration?: number;
         updater?: boolean;
-        // callback?: (left: number, top: number) => void; // onScrollValue
+        // callback?: (left: number, top: number) => void; // ! это onScrollValue
       };
   onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => void;

@@ -35,6 +35,10 @@ import {
 import { hoverHandler } from "../functions/mouseOn";
 
 import { setTask, cancelTask } from "../helpers/taskManager";
+import {
+  findFirstVisibleIndex,
+  findLastVisibleIndex,
+} from "../helpers/findIndex";
 
 import CONST from "../constants";
 
@@ -103,6 +107,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const firstChildKeyRef = React.useRef<string | null>(null);
   const firstRender = React.useRef<boolean>(true);
   const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | null>(null);
+  const scrollRafRef = React.useRef<number | null>(null);
   // ключи объектов, которые когда либо были загружены
   const objectsKeys = React.useRef<{
     loaded: string[];
@@ -125,13 +130,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const rafID = React.useRef({
     x: 0,
     y: 0,
-  });
-  const velocityRef = React.useRef({
-    x: 0,
-    y: 0,
-    t: 0,
-    distX: 0, // дистанция для границы запуска конца touch анимации
-    distY: 0,
   });
 
   function useSizeRef() {
@@ -993,7 +991,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         rafID,
         isTouched: isTouchedRef.current,
         pointerId: event.pointerId, // решает проблему нескольких жестов (пальцев)
-        velocityRef,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1147,7 +1144,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     if (type !== "scroll") sliderCheckLocal();
 
-    requestAnimationFrame(triggerUpdate); // main updater!
+    // оптимизация обновлений с помощью scrollRafRef
+    if (scrollRafRef.current) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      triggerUpdate(); // main updater!
+      scrollRafRef.current = null;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
@@ -1155,6 +1157,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
     sliderCheckLocal,
     updateLoadedElementsKeysLocal,
+    scrollBarOnHover,
   ]);
 
   // высчитываем сдвиг scroll и ограничиваем его
@@ -1173,7 +1176,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const onKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: KeyboardEvent) => {
+      if (keyDownX.current) return; // ранний выход
+
       const keyName =
         typeof progressTrigger.wheel === "object" &&
         typeof progressTrigger.wheel.changeDirectionKey === "string"
@@ -1188,9 +1193,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [direction, JSON.stringify(progressTrigger.wheel)],
+    [direction, `${progressTrigger.wheel}`],
   );
-  const onKeyUp = React.useCallback((e: React.KeyboardEvent) => {
+  const onKeyUp = React.useCallback((e: KeyboardEvent) => {
     if (keyDownX.current) {
       // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
       e.stopPropagation();
@@ -1200,6 +1205,37 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, []);
 
   // ♦ effects
+  React.useEffect(() => {
+    // эффект для нажатия клавиш
+    if (isTouchedRef.current && direction === "hybrid" && progressTrigger.wheel)
+      return;
+
+    const wrapper = objectsWrapperRef.current;
+    const scrollEl = scrollElementRef.current;
+    if (!wrapper || !scrollEl) return;
+
+    if (
+      wrapper.clientWidth! > scrollEl.clientWidth! &&
+      wrapper.clientHeight! > scrollEl.clientHeight!
+    ) {
+      scrollEl.addEventListener("keydown", onKeyDown);
+      scrollEl.addEventListener("keyup", onKeyUp);
+    }
+
+    return () => {
+      scrollEl.removeEventListener("keydown", onKeyDown);
+      scrollEl.removeEventListener("keyup", onKeyUp);
+    };
+  }, [
+    direction,
+    `${progressTrigger.wheel}`,
+    // дополнительно при изменении размеров
+    sizeST,
+    objectsSizeST,
+    // обновляем при изменении количества детей
+    validChildrenKeys.join(),
+  ]);
+
   React.useEffect(() => {
     // единоразовый запуск проверки ключей
     if (emptyElements || renderLocal.type) {
@@ -1308,12 +1344,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   React.useEffect(() => {
     const animationFrameId = scrollStateRef.current.animationFrameId;
 
-    if (renderLocal.type || isScrolling) {
-      if (isScrolling) {
-        isScrolling(false);
-        triggerUpdate();
-      }
-    }
+    if (renderLocal.type || isScrolling) if (isScrolling) isScrolling(false);
 
     // первая рендер
     requestAnimationFrame(() => (firstRender.current = false)); // RAF спасает от двойного вызова smoothScroll в StrictMode
@@ -1329,7 +1360,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           rafID.current[axis] = 0;
         }
       });
-      cancelTask();
+
+      cancelTask(); // очищаем таски
     };
   }, []);
 
@@ -1461,11 +1493,25 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     ],
   );
 
+  const childrenArray = React.useMemo(
+    () =>
+      React.Children.toArray(children).flatMap(
+        filterValidChildren,
+      ) as React.ReactElement[],
+    [children, filterValidChildren],
+  );
+
+  const childrenMap = React.useMemo(() => {
+    const m = new Map<string, React.ReactElement>();
+    childrenArray.forEach((ch) => {
+      if (React.isValidElement(ch) && ch.key != null) m.set(String(ch.key), ch);
+    });
+    return m;
+  }, [childrenArray]);
+
   const renderChild = (key: string, index: number) => {
     // ищем реальный child по ключу
-    const child = React.Children.toArray(children).find(
-      (child) => React.isValidElement(child) && child.key === key,
-    ) as React.ReactElement | undefined;
+    const child = childrenMap.get(key);
 
     // обработка детей для render
     const childRenderOnScroll =
@@ -1706,15 +1752,54 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     });
   };
 
-  const objectsWrapper = (
-    <div
-      className="ms-objects-wrapper"
-      ref={objectsWrapperRef}
-      style={wrapperStyle}
-    >
-      {validChildrenKeys.map(renderChild)}
-    </div>
-  );
+  // objects wrapper - рендерим только видимые элементы при виртуализации
+  const objectsWrapper = (() => {
+    if (!renderLocal.type) {
+      return (
+        <div
+          className="ms-objects-wrapper"
+          ref={objectsWrapperRef}
+          style={wrapperStyle}
+        >
+          {validChildrenKeys.map(renderChild)}
+        </div>
+      );
+    }
+
+    const data = memoizedChildrenData;
+    const scrollPos =
+      direction === "x"
+        ? scrollElementRef.current?.scrollLeft || 0
+        : scrollElementRef.current?.scrollTop || 0;
+    const mRoot = direction === "x" ? mRootX : mRootY;
+    const overscan = 2; // буфер по элементам
+
+    const startIdx = Math.max(
+      0,
+      findFirstVisibleIndex(direction, data, scrollPos - mRoot) - overscan,
+    );
+    const endIdx = Math.min(
+      data.length - 1,
+      findLastVisibleIndex(direction, data, scrollPos + xySize + mRoot) +
+        overscan,
+    );
+
+    const visibleKeys =
+      startIdx <= endIdx ? validChildrenKeys.slice(startIdx, endIdx + 1) : [];
+
+    return (
+      <div
+        className="ms-objects-wrapper"
+        ref={objectsWrapperRef}
+        style={wrapperStyle}
+      >
+        {visibleKeys.map((key, i) => {
+          const idx = startIdx + i;
+          return renderChild(key, idx);
+        })}
+      </div>
+    );
+  })();
 
   const content = (
     <div
@@ -1739,8 +1824,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           className="ms-element"
           ref={scrollElementRef}
           onScroll={handleScroll}
-          onKeyDown={onKeyDown}
-          onKeyUp={onKeyUp}
+          tabIndex={0} // ! для работы событий onKeyDown и onKeyUp
           style={{
             width: "100%",
             height: "100%",
