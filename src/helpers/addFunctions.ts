@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setTask, cancelTask } from "../helpers/taskManager";
+import { setTask, cancelTask } from "./taskManager";
 
 import { MorphScrollT } from "../types/types";
 

@@ -1,4 +1,4 @@
-import { setTask, cancelTask } from "../helpers/taskManager";
+import { setTask, cancelTask } from "./taskManager";
 
 // функция смены курсора
 const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {

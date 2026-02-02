@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setTask } from "../helpers/taskManager";
+import { setTask } from "./taskManager";
 
 import CONST from "../constants";
 
@@ -11,7 +11,7 @@ const updateLoadedElementsKeys = (
     empty: string[] | null;
   }>,
   callBack: () => void,
-  renderType?: "lazy" | "virtual"
+  renderType?: "lazy" | "virtual",
 ) => {
   const { allIds, emptyKeysRaw } = (() => {
     const allIds: string[] = [];
@@ -28,7 +28,7 @@ const updateLoadedElementsKeys = (
           }
           return NodeFilter.FILTER_SKIP;
         },
-      }
+      },
     );
 
     let currentNode = walker.nextNode();
@@ -70,7 +70,7 @@ const updateLoadedElementsKeys = (
 const updateEmptyKeysClick = (
   event: React.MouseEvent,
   clickTrigger: string | { selector: string; delay?: number },
-  callBack: () => void
+  callBack: () => void,
 ) => {
   const { selector, delay = 0 } =
     typeof clickTrigger === "string"

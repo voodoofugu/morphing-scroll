@@ -1,11 +1,11 @@
 import { MorphScrollT } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
-import { mouseOnEl } from "../functions/mouseOn";
-import startInertiaScroll from "../helpers/startInertiaScroll";
+import { mouseOnEl } from "./mouseOn";
+import startInertiaScroll from "./startInertiaScroll";
 import { clampValue } from "./addFunctions";
 
-import CONST from "../../src/constants";
+import CONST from "../constants";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 

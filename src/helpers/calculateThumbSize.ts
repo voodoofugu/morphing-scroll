@@ -3,7 +3,7 @@ import { clampValue } from "./addFunctions";
 function calculateThumbSize(
   size: number,
   objWrapperSize: number,
-  thumbMinSize: number
+  thumbMinSize: number,
 ) {
   if (!objWrapperSize) return 0;
 
@@ -16,13 +16,13 @@ function calculateThumbSpace(
   scrollSpace: number,
   objWrapperSize: number,
   size: number,
-  thumbSize: number
+  thumbSize: number,
 ) {
   if (!objWrapperSize) return 0;
   return clampValue(
     (scrollSpace / objWrapperSize) * (size - thumbSize),
     0,
-    size - thumbSize
+    size - thumbSize,
   );
 }
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { MorphScrollT } from "../types/types";
 
-import handleWheel, { ScrollStateRefT } from "../functions/handleWheel";
+import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 
 type OnCustomScrollFn = (
   targetScrollTop: number,
