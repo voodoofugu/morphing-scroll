@@ -3,6 +3,8 @@ import { MorphScrollT } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 
 import useIdent from "../hooks/useIdent";
+import useScheduleUpdate from "../hooks/useScheduleUpdate";
+import useUpdate from "../hooks/useUpdate";
 
 import ResizeTracker from "./ResizeTracker";
 import ScrollBar from "./ScrollBar";
@@ -42,6 +44,8 @@ import {
 
 import CONST from "../constants";
 
+let layoutVersion = 0;
+
 const MorphScroll: React.FC<MorphScrollT> = ({
   // General Settings
   className,
@@ -79,9 +83,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   suspending = false,
   fallback,
 }) => {
+  layoutVersion++; // TODO версия обновлений
+
   // ♦ hooks
+  const triggerUpdate = useUpdate();
   // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
   const id = useIdent();
+  const rafUpdate = useScheduleUpdate();
 
   // ♦ errors
   const errorText = (propName: string) =>
@@ -90,10 +98,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   if (!size) throw new Error(errorText("size"));
   if (Object.keys(progressTrigger).length === 0)
     console.error(errorText("progressTrigger"));
-
-  // ♦ state
-  const [, forceUpdate] = React.useState({}); // для принудительного обновления
-  const triggerUpdate = () => forceUpdate({});
 
   // ♦ refs
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -365,8 +369,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [0, 0];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollBarEdgeST]);
-  const scrollBarEdgeHeightOrWidth =
-    direction === "x" ? scrollBarEdgeLocal[0] : scrollBarEdgeLocal[1];
 
   const sizeMinusEdge = React.useMemo(() => {
     const x = sizeLocal[0] - scrollBarEdgeLocal[0];
@@ -375,9 +377,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return [x, y];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollBarEdgeLocal.join(), sizeLocal[0], sizeLocal[1]]);
-
-  const xySizeForThumb =
-    direction === "x" ? sizeMinusEdge[0] : sizeMinusEdge[1];
 
   const objectsSizing = React.useMemo(
     () =>
@@ -583,67 +582,78 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const getThumbSize = React.useCallback(
-    ({
-      withLimit = true,
-      dir = "x",
-    }: {
-      withLimit?: boolean;
-      dir?: "x" | "y" | "auto";
-    }) => {
+    (dir: "x" | "y") => {
       if (!progressTrigger.progressElement || !fullHeightOrWidth) return 0;
 
       if (dir === "x") {
         return calculateThumbSize(
-          withLimit ? sizeMinusEdge[0] : sizeLocal[0],
-          withLimit
-            ? objectsWrapperWidthFull - scrollBarEdgeLocal[0]
-            : objectsWrapperWidthFull,
+          sizeLocal[0],
+          objectsWrapperWidthFull,
           thumbMinSizeLocal,
         );
-      } else if (dir === "y")
+      } else
         return calculateThumbSize(
-          withLimit ? sizeMinusEdge[1] : sizeLocal[1],
-          withLimit
-            ? objectsWrapperHeightFull - scrollBarEdgeLocal[1]
-            : objectsWrapperHeightFull,
-          thumbMinSizeLocal,
-        );
-      else
-        return calculateThumbSize(
-          withLimit ? xySizeForThumb : xySize,
-          withLimit
-            ? fullHeightOrWidth - scrollBarEdgeHeightOrWidth
-            : fullHeightOrWidth,
+          sizeLocal[1],
+          objectsWrapperHeightFull,
           thumbMinSizeLocal,
         );
     },
     [
       progressTriggerST,
       fullHeightOrWidth,
-      xySizeForThumb,
-      scrollBarEdgeHeightOrWidth,
-      scrollBarEdgeLocal[0],
-      xySize,
       sizeLocal[0],
-      sizeMinusEdge[0],
+      sizeLocal[1],
       objectsWrapperWidthFull,
       thumbMinSizeLocal,
     ],
   );
 
-  const endObjectsWrapper = React.useMemo(() => {
-    if (!xySize) return fullHeightOrWidth;
-    return (
-      fullHeightOrWidth - xySize // in scroll vindow
-    );
-  }, [fullHeightOrWidth, xySize]);
-  const endObjectsWrapperX = React.useMemo(() => {
-    if (!sizeLocal[0]) return objectsWrapperWidthFull;
-    return (
-      objectsWrapperWidthFull - sizeLocal[0] // in scroll vindow
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectsWrapperWidthFull, sizeLocal[0]]);
+  const thumbSizeMemo = React.useMemo(
+    () => ({
+      x: direction !== "y" ? getThumbSize("x") : 0,
+      y: direction !== "x" ? getThumbSize("y") : 0,
+    }),
+    [getThumbSize, direction],
+  );
+
+  const endObjectsWrapper = React.useMemo(
+    () => ({
+      w: !sizeLocal[0]
+        ? objectsWrapperWidthFull
+        : objectsWrapperWidthFull - sizeLocal[0],
+      h: !sizeLocal[1]
+        ? objectsWrapperHeightFull
+        : objectsWrapperHeightFull - sizeLocal[1],
+    }),
+    [
+      objectsWrapperWidthFull,
+      objectsWrapperHeightFull,
+      sizeLocal[0],
+      sizeLocal[1],
+    ],
+  );
+
+  // высчитываем сдвиг scroll и ограничиваем его (memo не нужен)
+  const thumbSpace = {
+    x:
+      direction !== "y"
+        ? calculateThumbSpace(
+            scrollElementRef.current?.scrollLeft || 0,
+            endObjectsWrapper.w,
+            sizeMinusEdge[0],
+            thumbSizeMemo.x,
+          )
+        : 0,
+    y:
+      direction !== "x"
+        ? calculateThumbSpace(
+            scrollElementRef.current?.scrollTop || 0,
+            endObjectsWrapper.h,
+            sizeMinusEdge[1],
+            thumbSizeMemo.y,
+          )
+        : 0,
+  };
 
   // делим на группы
   const splitIndices = React.useCallback(() => {
@@ -994,8 +1004,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
         prevCoordsRef,
-        thumbSize:
-          axisFromAtr === "x" ? getThumbSize({}) : getThumbSize({ dir: "y" }),
+        thumbSize: axisFromAtr === "x" ? thumbSizeMemo.x : thumbSizeMemo.y,
         axisFromAtr,
         duration: scrollPositionLocal.duration,
         scrollBarEdge: scrollBarEdgeLocal,
@@ -1009,11 +1018,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       direction,
       type,
       sizeLocal.join(),
-      getThumbSize({}),
-      getThumbSize({ dir: "y" }),
       scrollPositionLocal.duration,
       smoothScrollLocal,
       scrollBarEdgeLocal.join(),
+      thumbSizeMemo.x,
+      thumbSizeMemo.y,
     ],
   );
 
@@ -1155,12 +1164,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     if (type !== "scroll") sliderCheckLocal();
 
-    // оптимизация обновлений с помощью scrollRafRef
-    if (scrollRafRef.current) return;
-    scrollRafRef.current = requestAnimationFrame(() => {
-      triggerUpdate(); // main updater!
-      scrollRafRef.current = null;
-    });
+    // оптимизированные обновления
+    rafUpdate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
@@ -1170,21 +1175,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     updateLoadedElementsKeysLocal,
     scrollBarOnHover,
   ]);
-
-  // высчитываем сдвиг scroll и ограничиваем его
-  const thumbSpace = calculateThumbSpace(
-    scrollSpaceFromRef,
-    endObjectsWrapper,
-    xySizeForThumb,
-    getThumbSize({ dir: "auto" }),
-  );
-
-  const thumbSpaceX = calculateThumbSpace(
-    scrollElementRef.current?.scrollLeft || 0,
-    endObjectsWrapperX,
-    sizeMinusEdge[0],
-    getThumbSize({ dir: "x" }),
-  );
 
   const onKeyDown = React.useCallback(
     (e: KeyboardEvent) => {
@@ -1316,7 +1306,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (value === "end")
         startScrolling(
           dir as "x" | "y",
-          dir === "x" ? endObjectsWrapperX : endObjectsWrapper,
+          dir === "x" ? endObjectsWrapper.w : endObjectsWrapper.h,
         );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1324,8 +1314,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction,
     scrollPositionLocal.value.join(),
     scrollPositionST,
-    endObjectsWrapper,
-    endObjectsWrapperX,
+    endObjectsWrapper.w,
+    endObjectsWrapper.h,
     objectsWrapperWidthFull,
     objectsWrapperHeightFull,
     // startScrolling, <-- добавление вызывает некорректный auto scroll так как первый ребёнок перестаёт меняться а full размеры нет
@@ -1606,65 +1596,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [sizeLocal],
   );
 
-  const scrollBarConfigs = React.useMemo(() => {
-    const dir = direction !== "hybrid" ? direction : "y";
-
-    const base: any[] = [
-      {
-        shouldRender: getThumbSize({ withLimit: false, dir }) < xySize,
-        direction,
-        thumbSize: getThumbSize({ dir }),
-        thumbSpace,
-        objLengthPerSize: objLengthPerSizeXY,
-        progressReverseIndex: 0,
-      },
-      {
-        shouldRender:
-          direction === "hybrid" &&
-          getThumbSize({ withLimit: false, dir: "x" }) < sizeMinusEdge[0],
-        direction: "x" as const,
-        thumbSize: getThumbSize({ dir: "x" }),
-        thumbSpace: thumbSpaceX,
-        objLengthPerSize: objLengthPerSize[0],
-        progressReverseIndex: 1,
-      },
-    ];
-
-    return base.filter(({ shouldRender }) => shouldRender);
-  }, [
-    getThumbSize,
-    xySizeForThumb,
-    direction,
-    sizeMinusEdge[0],
-    thumbSpace,
-    thumbSpaceX,
-    objLengthPerSizeXY,
-    objLengthPerSize,
-  ]);
-
-  const contentBoxStyle = React.useMemo(() => {
-    const base: any = {
-      position: "relative",
-      width: `${sizeLocal[0]}px`,
-      height: `${sizeLocal[1]}px`,
-    };
-
-    if (
-      progressTrigger.arrows &&
-      arrowsLocal.contentReduce &&
-      arrowsLocal.size
-    ) {
-      if (direction === "x") base.left = `${arrowsLocal.size}px`;
-      else if (direction === "y") base.top = `${arrowsLocal.size}px`;
-      else {
-        base.top = `${arrowsLocal.size}px`;
-        base.left = `${arrowsLocal.size}px`;
-      }
-    }
-
-    return base;
-  }, [sizeLocal, progressTriggerST, arrowsLocal, direction]);
-
   const overflowStyleValue = React.useMemo(() => {
     const map = {
       x: objectsWrapperWidthFull > sizeLocal[0] ? "scroll hidden" : "hidden",
@@ -1727,6 +1658,34 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction,
   ]);
 
+  const scrollBarConfigs = () => {
+    const base: any[] = [
+      {
+        shouldRender:
+          (direction !== "x"
+            ? thumbSizeMemo.y - scrollBarEdgeLocal[1]
+            : thumbSizeMemo.x - scrollBarEdgeLocal[0]) < xySize,
+        direction,
+        thumbSize: direction !== "x" ? thumbSizeMemo.y : thumbSizeMemo.x,
+        thumbSpace: direction !== "x" ? thumbSpace.y : thumbSpace.x,
+        objLengthPerSize: objLengthPerSizeXY,
+        progressReverseIndex: 0,
+      },
+      {
+        shouldRender:
+          direction === "hybrid" &&
+          thumbSizeMemo.x - scrollBarEdgeLocal[0] < sizeMinusEdge[0],
+        direction: "x" as const,
+        thumbSize: thumbSizeMemo.x,
+        thumbSpace: thumbSpace.x,
+        objLengthPerSize: objLengthPerSize[0],
+        progressReverseIndex: 1,
+      },
+    ];
+
+    return base.filter(({ shouldRender }) => shouldRender);
+  };
+
   const scrollBarsJSX = () => {
     if (
       !progressTrigger.progressElement ||
@@ -1734,7 +1693,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     )
       return null;
 
-    return scrollBarConfigs.map((args) => {
+    return scrollBarConfigs().map((args) => {
       const progressReverseValue =
         typeof progressReverse === "boolean"
           ? progressReverse
@@ -1813,6 +1772,29 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       </div>
     );
   })();
+
+  const contentBoxStyle = React.useMemo(() => {
+    const base: any = {
+      position: "relative",
+      width: `${sizeLocal[0]}px`,
+      height: `${sizeLocal[1]}px`,
+    };
+
+    if (
+      progressTrigger.arrows &&
+      arrowsLocal.contentReduce &&
+      arrowsLocal.size
+    ) {
+      if (direction === "x") base.left = `${arrowsLocal.size}px`;
+      else if (direction === "y") base.top = `${arrowsLocal.size}px`;
+      else {
+        base.top = `${arrowsLocal.size}px`;
+        base.left = `${arrowsLocal.size}px`;
+      }
+    }
+
+    return base;
+  }, [sizeLocal, progressTriggerST, arrowsLocal, direction]);
 
   const content = (
     <div
