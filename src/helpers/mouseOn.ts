@@ -36,7 +36,7 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
 };
 
 type HoverHandlerT = {
-  el: HTMLDivElement | null;
+  el: HTMLElement | null;
   event?: PointerEvent | MouseEvent;
   isScrolling?: React.MutableRefObject<boolean>;
 };
@@ -60,45 +60,33 @@ const removeLOgic = (scrollBar: HTMLElement) => {
 const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
   if (!el) return;
 
-  const childs = el.querySelectorAll(".ms-bar");
-
   // отмена для removeOnly
   if (!event) {
-    childs.forEach((child) => {
-      removeLOgic(child as HTMLElement);
-    });
+    removeLOgic(el);
+    return;
+  }
+  // - исчезновение -
+  if (
+    ["mouseleave", "mouseup", "pointerup", "pointercancel"].includes(event.type)
+  ) {
+    if (event.type === "mouseleave")
+      // логика для скрытия/появления при прокрутки
+      el.removeAttribute("data-mouse-hover");
+
+    // проверка для отмены если анимация прокрутки ещё продолжается
+    if (isScrolling?.current) return;
+
+    removeLOgic(el);
     return;
   }
 
-  // forEach потому-что scrollBar может быть не один
-  childs.forEach((child) => {
-    const scrollBar = child as HTMLElement;
-
-    // - исчезновение -
-    if (
-      ["mouseleave", "mouseup", "pointerup", "pointercancel"].includes(
-        event.type,
-      )
-    ) {
-      if (event.type === "mouseleave")
-        // логика для скрытия/появления при прокрутки
-        scrollBar.removeAttribute("data-mouse-hover");
-
-      // проверка для отмены если анимация прокрутки ещё продолжается
-      if (isScrolling?.current) return;
-
-      removeLOgic(scrollBar);
-      return;
-    }
-
-    // - появление -
-    if (event.type === "mouseenter")
-      // логика для скрытия/появления при прокрутки
-      scrollBar.setAttribute("data-mouse-hover", "");
-    cancelTask("checkLoop");
-    scrollBar.style.opacity = "1";
-    scrollBar.classList.add("hover");
-  });
+  // - появление -
+  if (event.type === "mouseenter")
+    // логика для скрытия/появления при прокрутки
+    el.setAttribute("data-mouse-hover", "");
+  cancelTask("checkLoop");
+  el.style.opacity = "1";
+  el.classList.add("hover");
 };
 
 export { mouseOnEl, hoverHandler };

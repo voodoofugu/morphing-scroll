@@ -44,8 +44,6 @@ import {
 
 import CONST from "../constants";
 
-let layoutVersion = 0;
-
 const MorphScroll: React.FC<MorphScrollT> = ({
   // General Settings
   className,
@@ -83,13 +81,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   suspending = false,
   fallback,
 }) => {
-  layoutVersion++; // TODO версия обновлений
-
   // ♦ hooks
   const triggerUpdate = useUpdate();
   // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
   const id = useIdent();
-  const rafUpdate = useScheduleUpdate();
+  const rafUpdate = useScheduleUpdate({ reRender: true });
 
   // ♦ errors
   const errorText = (propName: string) =>
@@ -985,7 +981,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       let axisFromAtr: "x" | "y" | null = null;
       if (checkClickedBar) {
         axisFromAtr = target
-          .closest(".ms-bar")
+          .closest(type === "scroll" ? ".ms-bar" : ".ms-slider")
           ?.getAttribute("data-direction") as "x" | "y";
       }
 
@@ -1010,7 +1006,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollBarEdge: scrollBarEdgeLocal,
         rafID,
         isTouched: isTouchedRef.current,
-        pointerId: event.pointerId, // решает проблему нескольких жестов (пальцев)
+        pointerId: event.pointerId,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1114,9 +1110,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // для обработки onScrollValue
   const handleScroll = React.useCallback(() => {
+    const el = scrollContentRef.current;
     const mainEl = customScrollRef.current;
     const scrollEl = scrollElementRef.current;
-    if (!mainEl || !scrollEl) return;
+    if (!el || !mainEl || !scrollEl) return;
 
     // уведомляем о прокрутке пропс
     onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
@@ -1124,16 +1121,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     isScrollingRef.current = true;
     isScrolling?.(true);
 
-    const scrollBar = scrollContentRef.current?.querySelector(".ms-bar") as
-      | HTMLElement
-      | null
-      | undefined;
-    if (scrollBarOnHover && scrollBar) {
+    const scrollOrSlider: HTMLElement[] = Array.from(
+      el?.querySelectorAll(type === "scroll" ? ".ms-bar" : ".ms-slider"),
+    );
+
+    if (scrollBarOnHover) {
       // доп логика что-бы показать скрытый scrollBar
-      if (!scrollBar.classList.contains("hover")) {
-        scrollBar.classList.add("hover");
-        scrollBar.style.opacity = "1";
-      }
+      scrollOrSlider.map((el) => {
+        if (!el.classList.contains("hover")) {
+          el.classList.add("hover");
+          el.style.opacity = "1";
+        }
+      });
     }
 
     // сводим к одному вызову через setTask
@@ -1143,19 +1142,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         isScrolling?.(false);
         updateLoadedElementsKeysLocal();
 
-        if (
-          scrollBarOnHover &&
-          scrollBar &&
-          !clickedObject.current &&
-          !scrollBar.hasAttribute("data-mouse-hover")
-        ) {
-          hoverHandler({ el: scrollContentRef.current });
+        if (scrollBarOnHover && scrollOrSlider && !clickedObject.current) {
+          scrollOrSlider.map((el) => {
+            if (el.hasAttribute("data-mouse-hover")) return;
 
-          // доп логика что-бы показать скрытый scrollBar
-          if (scrollBar.classList.contains("hover")) {
-            scrollBar.classList.remove("hover");
-            scrollBar.style.opacity = "0";
-          }
+            hoverHandler({ el });
+
+            if (!el.classList.contains("hover")) {
+              el.classList.add("hover");
+              el.style.opacity = "1";
+            }
+
+            // доп логика что-бы показать скрытый scrollOrSlider
+            if (el.classList.contains("hover")) {
+              el.classList.remove("hover");
+              el.style.opacity = "0";
+            }
+          });
         }
       },
       CONST.SCROLL_END_DELAY,
@@ -1165,7 +1168,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (type !== "scroll") sliderCheckLocal();
 
     // оптимизированные обновления
-    rafUpdate();
+    rafUpdate(); // main updater
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     onScrollValue,
@@ -1390,12 +1393,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       scrollEl.removeEventListener("pointerdown", handler);
     };
-  }, [progressTriggerST]);
+  }, [progressTriggerST, onMouseOrTouchDown]);
 
   // установка слушателя нажатия на scrollContentRef
   React.useEffect(() => {
     const el = scrollContentRef.current;
     if (!el || !scrollBarOnHover) return;
+
+    const scrollOrSlider: HTMLElement[] = Array.from(
+      el?.querySelectorAll(type === "scroll" ? ".ms-bar" : ".ms-slider"),
+    );
 
     const handler = (event: PointerEvent | MouseEvent) => {
       // динамический mouseup в таком виде помог решить проблему с исчезновением и залипанием thumb
@@ -1406,30 +1413,39 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return;
       }
 
-      hoverHandler({
-        el: scrollContentRef.current,
-        event,
-        isScrolling: isScrollingRef,
+      scrollOrSlider.map((el) => {
+        hoverHandler({
+          el,
+          event,
+          isScrolling: isScrollingRef,
+        });
       });
     };
 
-    if (isTouchedRef.current) {
-      el.addEventListener("pointerdown", handler);
-      el.addEventListener("pointerup", handler);
-      el.addEventListener("pointercancel", handler);
-    } else {
-      el.addEventListener("mouseenter", handler);
-      el.addEventListener("mouseleave", handler);
-    }
+    scrollOrSlider.map((el) => {
+      if (isTouchedRef.current) {
+        el.addEventListener("pointerdown", handler);
+        el.addEventListener("pointerup", handler);
+        el.addEventListener("pointercancel", handler);
+      } else {
+        el.addEventListener("mouseenter", handler);
+        el.addEventListener("mouseleave", handler);
+      }
+    });
 
     return () => {
-      el.removeEventListener("pointerdown", handler);
-      el.removeEventListener("pointerup", handler);
-      el.removeEventListener("pointercancel", handler);
-      el.removeEventListener("mouseenter", handler);
-      el.removeEventListener("mouseleave", handler);
+      if (scrollOrSlider) {
+        scrollOrSlider.map((el) => {
+          el.removeEventListener("pointerdown", handler);
+          el.removeEventListener("pointerup", handler);
+          el.removeEventListener("pointercancel", handler);
+
+          el.removeEventListener("mouseenter", handler);
+          el.removeEventListener("mouseleave", handler);
+        });
+      }
     };
-  }, [scrollBarOnHover]);
+  }, [scrollBarOnHover, type]);
 
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {

@@ -177,7 +177,6 @@ const ScrollBar = ({
               ...(progressTrigger?.progressElement && {
                 cursor: "grab",
               }),
-              transition: "height 0.05s ease-in-out", // небольшая анимация для плавности при resize
             }}
           >
             {progressTrigger?.progressElement}
@@ -189,6 +188,7 @@ const ScrollBar = ({
           <div
             className="ms-slider"
             ref={thumbRef}
+            data-direction={dataDirection}
             style={{
               position: "absolute",
               display: "flex",
