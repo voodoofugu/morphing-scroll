@@ -4,13 +4,17 @@ import { ScrollStateRefT } from "./handleWheel";
 import { mouseOnEl } from "./mouseOn";
 import startInertiaScroll from "./startInertiaScroll";
 import { clampValue } from "./addFunctions";
+import { cancelTask } from "./taskManager";
 
 import CONST from "../constants";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
 let checkMove = 0;
-let checkSliderThumbSize = 0;
+let checkSliderThumbSize = {
+  x: 0,
+  y: 0,
+};
 let abortController: AbortController | undefined;
 let velocity = {
   x: 0,
@@ -209,7 +213,7 @@ const motionHandler = (
   const topOrLeft = axis === "y" ? "scrollTop" : "scrollLeft";
   const wh = axis === "x" ? 0 : 1;
   // обновление предыдущих координат, важно делать заранее
-  if (args.type === "slider") checkSliderThumbSize += move;
+  if (args.type === "slider") checkSliderThumbSize[axis] += move;
 
   // --- логика для thumb ---
   if (args.clickedObject.current === "thumb" && args.type !== "slider") {
@@ -237,7 +241,8 @@ const motionHandler = (
   // проверка если checkSliderThumbSize меньше размера элемента thumb слайдера
   if (
     args.sliderElSize &&
-    Math.abs(checkSliderThumbSize) < args.sliderElSize[axis === "x" ? 0 : 1]
+    Math.abs(checkSliderThumbSize[axis]) <
+      args.sliderElSize[axis === "x" ? 0 : 1]
   )
     return;
 
@@ -248,7 +253,7 @@ const motionHandler = (
         ? scroll - args.sizeLocal[wh]
         : null;
 
-  checkSliderThumbSize = 0; // обязательно сбрасываем
+  checkSliderThumbSize[axis] = 0; // обязательно сбрасываем
 
   // быстрое движение для слайдера по thumb длящееся 10мс
   args.smoothScroll(nextScroll, axis, 10);
@@ -262,6 +267,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
       cancelAnimationFrame(id);
       args.rafID.current[axis] = 0;
     }
+    // cancelTask(`smoothScrollBlock${axis}`);
   });
 
   // обновление targetScroll заранее
@@ -437,35 +443,57 @@ function handleUp(args: HandleUpT) {
   // логика для слайдера
   if (args.type === "slider") {
     const acc = checkSliderThumbSize;
-    const topOrLeft = args.direction === "y" ? "scrollTop" : "scrollLeft";
-    const heightOrWidth =
-      args.direction === "y" ? el.clientHeight : el.clientWidth;
 
-    const getNextScroll = (math: "ceil" | "floor") => {
-      return heightOrWidth * Math[math](el[topOrLeft] / heightOrWidth);
-    };
+    // TODO
+    // if (acc.x === 0 && acc.y === 0) {
+    //   ["x", "y"].forEach((dir) => {
+    //     const heightOrWidth = dir === "y" ? el.clientHeight : el.clientWidth;
+    //     const getNextScroll = (math: "ceil" | "floor") => {
+    //       return (
+    //         heightOrWidth *
+    //         Math[math](
+    //           el[dir === "y" ? "scrollTop" : "scrollLeft"] / heightOrWidth,
+    //         )
+    //       );
+    //     };
 
-    // запас 20px для перелистывания
-    if (Math.abs(acc) > 20) {
-      const nextScroll =
-        acc > 0 ? getNextScroll("ceil") : getNextScroll("floor");
+    //     // console.log('getNextScroll("ceil")', getNextScroll("ceil"));
+    //     args.smoothScroll(
+    //       getNextScroll("ceil"),
+    //       dir as "x" | "y",
+    //       args.duration,
+    //     );
+    //   });
+    // } else
+    // проходимся по разным осям
+    for (const [dir, value] of Object.entries(acc)) {
+      // убираем запуск для двух осей если нужна одна
+      if (value !== 0) {
+        const heightOrWidth = dir === "y" ? el.clientHeight : el.clientWidth;
+        const getNextScroll = (math: "ceil" | "floor") => {
+          return (
+            heightOrWidth *
+            Math[math](
+              el[dir === "y" ? "scrollTop" : "scrollLeft"] / heightOrWidth,
+            )
+          );
+        };
 
-      args.smoothScroll(
-        nextScroll,
-        args.direction === "y" ? "y" : "x",
-        args.duration,
-      );
-    }
-    // возврат если < 20
-    else {
-      const nextScroll =
-        acc > 0 ? getNextScroll("floor") : getNextScroll("ceil");
-
-      args.smoothScroll(
-        nextScroll,
-        args.direction === "y" ? "y" : "x",
-        args.duration,
-      );
+        // запас 20px для перелистывания
+        if (Math.abs(value) > 20)
+          args.smoothScroll(
+            getNextScroll(value > 0 ? "ceil" : "floor"),
+            dir as "x" | "y",
+            args.duration,
+          );
+        // возврат если < 20
+        else
+          args.smoothScroll(
+            getNextScroll(value > 0 ? "floor" : "ceil"),
+            dir as "x" | "y",
+            args.duration,
+          );
+      }
     }
   }
 
@@ -522,7 +550,10 @@ function handleUp(args: HandleUpT) {
     distY: 0,
   };
   checkMove = 0;
-  checkSliderThumbSize = 0;
+  checkSliderThumbSize = {
+    x: 0,
+    y: 0,
+  };
   // обновляем
   args.triggerUpdate();
 }

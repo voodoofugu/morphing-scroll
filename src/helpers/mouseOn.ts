@@ -36,57 +36,55 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
 };
 
 type HoverHandlerT = {
-  el: HTMLElement | null;
-  event?: PointerEvent | MouseEvent;
+  el: HTMLElement | HTMLElement[];
+  event: PointerEvent | MouseEvent;
   isScrolling?: React.MutableRefObject<boolean>;
 };
 
-const removeLOgic = (scrollBar: HTMLElement) => {
-  const direction = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
+const removeHover = (scrollBar: HTMLElement) => {
+  if (scrollBar.hasAttribute("data-mouse-hover")) return;
+
+  const dir = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
 
   scrollBar.style.opacity = "0";
   scrollBar.classList.remove("hover");
   scrollBar.classList.add("leave");
 
-  cancelTask(`removeLOgic${direction}`);
-  setTask(
-    () => scrollBar.classList.remove("leave"),
-    200,
-    `removeLOgic${direction}`,
-  );
+  cancelTask(`remove${dir}`);
+  setTask(() => scrollBar.classList.remove("leave"), 200, `remove${dir}`);
+};
+
+const addHover = (scrollBar: HTMLElement) => {
+  scrollBar.style.opacity = "1";
+  scrollBar.classList.add("hover");
 };
 
 // функция видимости для бегунка при hover
 const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
-  if (!el) return;
+  const logic = (el: HTMLElement) => {
+    // - исчезновение -
+    if (
+      ["mouseleave", "mouseup", "pointerup", "pointercancel"].includes(
+        event.type,
+      )
+    ) {
+      if (event.type === "mouseleave") el.removeAttribute("data-mouse-hover"); // скрытия/появления при прокрутки
 
-  // отмена для removeOnly
-  if (!event) {
-    removeLOgic(el);
-    return;
-  }
-  // - исчезновение -
-  if (
-    ["mouseleave", "mouseup", "pointerup", "pointercancel"].includes(event.type)
-  ) {
-    if (event.type === "mouseleave")
-      // логика для скрытия/появления при прокрутки
-      el.removeAttribute("data-mouse-hover");
+      // проверка для отмены если анимация прокрутки ещё продолжается
+      if (isScrolling?.current) return;
 
-    // проверка для отмены если анимация прокрутки ещё продолжается
-    if (isScrolling?.current) return;
+      removeHover(el);
+      return;
+    }
 
-    removeLOgic(el);
-    return;
-  }
+    // - появление -
+    if (event.type === "mouseenter") el.setAttribute("data-mouse-hover", ""); // скрытия/появления при прокрутки
+    addHover(el);
+  };
 
-  // - появление -
-  if (event.type === "mouseenter")
-    // логика для скрытия/появления при прокрутки
-    el.setAttribute("data-mouse-hover", "");
-  cancelTask("checkLoop");
-  el.style.opacity = "1";
-  el.classList.add("hover");
+  if (Array.isArray(el)) {
+    el.map((el) => logic(el));
+  } else logic(el);
 };
 
-export { mouseOnEl, hoverHandler };
+export { mouseOnEl, hoverHandler, removeHover, addHover };

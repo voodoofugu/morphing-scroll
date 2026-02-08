@@ -88,7 +88,7 @@ const setTask = (
   callback: () => void,
   timer: number,
   id?: string,
-  behavior?: "default" | "exclusive"
+  behavior?: "default" | "exclusive",
 ): string => {
   const taskId = id || generateId();
 

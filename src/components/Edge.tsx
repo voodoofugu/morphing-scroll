@@ -14,18 +14,35 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
 
   const edgeStyle: React.CSSProperties = {
     position: "absolute",
+    [edgeType]: 0,
     pointerEvents: "none",
-    transition: "opacity 0.1s ease-in-out",
+    transition: "opacity 0.2s ease-in-out",
 
     ...(edgeGradient.color && {
       background:
         edgeGradient.color &&
         `linear-gradient(${
-          edgeType === "right" || edgeType === "left" ? "270deg, " : ""
+          ["left", "right"].includes(edgeType) ? "270deg, " : ""
         }${edgeGradient.color}, transparent)`,
     }),
+    // TODO заменить
+    // ...(edgeGradient.color && {
+    //   background:
+    //     edgeGradient.color &&
+    //     `linear-gradient(${
+    //       edgeType === "top"
+    //         ? ""
+    //         : edgeType === "right"
+    //           ? "270deg, "
+    //           : edgeType === "bottom"
+    //             ? "360deg, "
+    //             : edgeType === "left"
+    //               ? "90deg, "
+    //               : ""
+    //     }${edgeGradient.color}, transparent)`,
+    // }),
 
-    ...(edgeType === "right" || edgeType === "left"
+    ...(["left", "right"].includes(edgeType)
       ? {
           height: "100%",
           width: `${edgeGradient.size}px`,
@@ -37,16 +54,14 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
           left: 0,
         }),
 
-    ...(edgeType ? { [edgeType]: 0 } : {}),
-
-    // scale second ms-edge
+    // TODO удалить
     ...(edgeType === "left"
       ? {
           transform: "scaleX(-1)",
         }
       : edgeType === "bottom"
-      ? { transform: "scaleY(-1)" }
-      : {}),
+        ? { transform: "scaleY(-1)" }
+        : {}),
   };
 
   return (

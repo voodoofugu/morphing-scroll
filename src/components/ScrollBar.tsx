@@ -129,16 +129,24 @@ const ScrollBar = ({
     };
   }, [scrollBarEvent]);
 
+  const commonStyles: React.CSSProperties = {
+    position: "absolute",
+    ...(scrollBarOnHover && {
+      opacity: 0,
+      transition: "opacity 0.2s ease-in-out",
+    }),
+  };
+
   // - render -
   return (
     <React.Fragment>
       {type === "scroll" ? (
         <div
-          className="ms-bar"
+          className={`ms-bar ms-${dataDirection}`}
           ref={scrollBarRef}
-          data-direction={dataDirection}
+          data-direction={dataDirection} // доп логика
           style={{
-            position: "absolute",
+            ...commonStyles,
             width: "fit-content",
             ...(direction === "x"
               ? {
@@ -161,10 +169,6 @@ const ScrollBar = ({
             ...(!progressTrigger?.progressElement !== false && {
               pointerEvents: "none",
             }),
-            ...(scrollBarOnHover && {
-              opacity: 0,
-              transition: "opacity 0.1s ease-in-out",
-            }),
           }}
         >
           <div
@@ -186,18 +190,14 @@ const ScrollBar = ({
         objLengthPerSize > 1 &&
         progressTrigger?.progressElement && (
           <div
-            className="ms-slider"
+            className={`ms-slider ms-${dataDirection}`}
             ref={thumbRef}
-            data-direction={dataDirection}
+            data-direction={dataDirection} // доп логика
             style={{
-              position: "absolute",
+              ...commonStyles,
               display: "flex",
               ...(type === "slider" && {
                 cursor: "grab",
-              }),
-              ...(scrollBarOnHover && {
-                opacity: 0,
-                transition: "opacity 0.1s ease-in-out",
               }),
               ...(direction === "x"
                 ? {

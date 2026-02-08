@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setTask, cancelTask } from "./taskManager";
+import { setTask } from "./taskManager";
 
 import { MorphScrollT } from "../types/types";
 
@@ -66,10 +66,10 @@ async function smoothScroll(
         }
       };
 
-      animate(); // запускаем анимацию
+      animate(); // запускаем
     },
     duration,
-    "smoothScrollBlock",
+    `smoothScrollBlock${direction}`,
     "exclusive",
   );
 }
