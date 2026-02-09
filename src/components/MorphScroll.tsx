@@ -3,7 +3,6 @@ import { MorphScrollT } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 
 import useIdent from "../hooks/useIdent";
-import useRAF from "../hooks/useRAF";
 import useUpdate from "../hooks/useUpdate";
 
 import ResizeTracker from "./ResizeTracker";
@@ -41,6 +40,7 @@ import {
   findFirstVisibleIndex,
   findLastVisibleIndex,
 } from "../helpers/findIndex";
+import createSchedulerRAF from "../helpers/createSchedulerRAF";
 
 import CONST from "../constants";
 
@@ -83,9 +83,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 }) => {
   // ♦ hooks
   const triggerUpdate = useUpdate();
-  const scheduleRAF = useRAF();
   // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
   const id = useIdent();
+
+  // ♦ helpers
+  const raf = createSchedulerRAF();
+  const triggerRAF = () => raf.schedule(triggerUpdate); // по-кадрово оптимизированный triggerUpdate
+
+  const rafScrollAnim = createSchedulerRAF();
 
   // ♦ errors
   const errorText = (propName: string) =>
@@ -126,10 +131,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     leftover: number;
   } | null>(null);
   const keyDownX = React.useRef<boolean>(false);
-  const rafID = React.useRef({
-    x: 0,
-    y: 0,
-  });
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -838,15 +839,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ functions
   const scrollResize = React.useCallback(
-    createResizeHandler(receivedScrollSizeRef, triggerUpdate),
+    createResizeHandler(receivedScrollSizeRef, triggerRAF),
     [],
   );
   const wrapResize = React.useCallback(
-    createResizeHandler(receivedWrapSizeRef, triggerUpdate, mLocalX, mLocalY),
+    createResizeHandler(receivedWrapSizeRef, triggerRAF, mLocalX, mLocalY),
     [mLocalX, mLocalY],
   );
   const childResize = React.useCallback(
-    createResizeHandler(receivedChildSizeRef, triggerUpdate),
+    createResizeHandler(receivedChildSizeRef, triggerRAF),
     [],
   );
 
@@ -860,7 +861,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollEl,
         firstRender.current ? null : duration,
         targetScroll,
-        rafID,
+        rafScrollAnim.schedule,
       );
     },
     [firstRender.current],
@@ -991,7 +992,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
         type,
-        triggerUpdate,
+        triggerUpdate: triggerRAF,
         direction,
         smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
@@ -1000,7 +1001,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         axisFromAtr,
         duration: scrollPositionLocal.duration,
         scrollBarEdge: scrollBarEdgeLocal,
-        rafID,
+        rafScrollAnim,
         isTouched: isTouchedRef.current,
         pointerId: event.pointerId,
       });
@@ -1084,7 +1085,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     updateLoadedElementsKeys(
       customScrollRef.current,
       objectsKeys,
-      triggerUpdate,
+      triggerRAF,
       renderLocal.type,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1154,7 +1155,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     );
 
     // по-кадровое обновление
-    scheduleRAF(() => {
+    raf.schedule(() => {
       if (type !== "scroll") sliderCheckLocal();
       triggerUpdate(); // main updater
     });
@@ -1182,7 +1183,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
         e.stopPropagation();
         keyDownX.current = true;
-        triggerUpdate();
+        triggerRAF();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1193,7 +1194,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
       e.stopPropagation();
       keyDownX.current = false;
-      triggerUpdate();
+      triggerRAF();
     }
   }, []);
 
@@ -1346,13 +1347,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       if (scrollStateRef.current.animationFrameId)
         cancelAnimationFrame(scrollStateRef.current.animationFrameId);
-      (["x", "y"] as const).forEach((axis) => {
-        const id = rafID.current[axis];
-        if (id) {
-          cancelAnimationFrame(id);
-          rafID.current[axis] = 0;
-        }
-      });
+
+      rafScrollAnim.cancel();
 
       // использование может убивает финал прокрутки
       // cancelTask(); // очищаем таски

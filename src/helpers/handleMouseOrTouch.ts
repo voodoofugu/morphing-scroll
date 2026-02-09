@@ -31,7 +31,7 @@ type HandleMouseT = {
   clickedObject: React.MutableRefObject<ClickedT>;
   scrollContentRef: HTMLDivElement | null;
   type: MorphScrollT["type"];
-  direction: MorphScrollT["direction"];
+  direction: "x" | "y" | "hybrid";
   scrollStateRef: ScrollStateRefT;
   sizeLocal: number[];
   smoothScroll: (
@@ -50,10 +50,10 @@ type HandleMouseT = {
   axisFromAtr: "x" | "y" | null;
   duration: number;
   scrollBarEdge: number[];
-  rafID: React.MutableRefObject<{
-    x: number;
-    y: number;
-  }>;
+  rafScrollAnim: {
+    schedule: (fn: () => void) => void;
+    cancel: () => void;
+  };
   isTouched: boolean;
   pointerId: number;
 };
@@ -262,12 +262,8 @@ const motionHandler = (
 function handleMouseOrTouch(args: HandleMouseT) {
   // удаляем RAF и задачу слайдера
   (["x", "y"] as const).forEach((axis) => {
-    const id = args.rafID.current[axis];
-    if (id) {
-      cancelAnimationFrame(id);
-      args.rafID.current[axis] = 0;
-    }
-    // cancelTask(`smoothScrollBlock${axis}`);
+    args.rafScrollAnim.cancel();
+    cancelTask(`smoothScrollBlock${axis}`); // обязательно убираем анимацию
   });
 
   // обновление targetScroll заранее
@@ -442,59 +438,30 @@ function handleUp(args: HandleUpT) {
 
   // логика для слайдера
   if (args.type === "slider") {
-    const acc = checkSliderThumbSize;
+    const acc = checkSliderThumbSize; // размеры передвижения
 
-    // TODO
-    // if (acc.x === 0 && acc.y === 0) {
-    //   ["x", "y"].forEach((dir) => {
-    //     const heightOrWidth = dir === "y" ? el.clientHeight : el.clientWidth;
-    //     const getNextScroll = (math: "ceil" | "floor") => {
-    //       return (
-    //         heightOrWidth *
-    //         Math[math](
-    //           el[dir === "y" ? "scrollTop" : "scrollLeft"] / heightOrWidth,
-    //         )
-    //       );
-    //     };
+    const runScroll = (dir: "x" | "y", math: "ceil" | "floor") => {
+      const size = dir === "y" ? el.clientHeight : el.clientWidth;
+      const scrollPos = el[dir === "y" ? "scrollTop" : "scrollLeft"];
 
-    //     // console.log('getNextScroll("ceil")', getNextScroll("ceil"));
-    //     args.smoothScroll(
-    //       getNextScroll("ceil"),
-    //       dir as "x" | "y",
-    //       args.duration,
-    //     );
-    //   });
-    // } else
-    // проходимся по разным осям
-    for (const [dir, value] of Object.entries(acc)) {
-      // убираем запуск для двух осей если нужна одна
-      if (value !== 0) {
-        const heightOrWidth = dir === "y" ? el.clientHeight : el.clientWidth;
-        const getNextScroll = (math: "ceil" | "floor") => {
-          return (
-            heightOrWidth *
-            Math[math](
-              el[dir === "y" ? "scrollTop" : "scrollLeft"] / heightOrWidth,
-            )
-          );
-        };
+      const next = size * Math[math](scrollPos / size);
 
-        // запас 20px для перелистывания
-        if (Math.abs(value) > 20)
-          args.smoothScroll(
-            getNextScroll(value > 0 ? "ceil" : "floor"),
-            dir as "x" | "y",
-            args.duration,
-          );
-        // возврат если < 20
-        else
-          args.smoothScroll(
-            getNextScroll(value > 0 ? "floor" : "ceil"),
-            dir as "x" | "y",
-            args.duration,
-          );
-      }
-    }
+      args.smoothScroll(next, dir, args.duration);
+    };
+
+    const resolveScroll = (dir: "x" | "y", value: number) => {
+      if (Math.abs(value) > 20) runScroll(dir, value > 0 ? "ceil" : "floor");
+      else runScroll(dir, value > 0 ? "floor" : "ceil");
+    };
+
+    if (acc.x === 0 && acc.y === 0) {
+      if (args.direction === "hybrid")
+        (["x", "y"] as const).forEach((dir) => runScroll(dir, "ceil"));
+      else runScroll(args.direction, "ceil");
+    } else
+      (Object.entries(acc) as ["x" | "y", number][]).forEach(([dir, value]) => {
+        if (value !== 0) resolveScroll(dir, value);
+      });
   }
 
   // --- inertia scroll for touch ---
@@ -522,7 +489,7 @@ function handleUp(args: HandleUpT) {
           velocity:
             (args.clickedObject.current === "thumb" ? vel : -vel) *
             CONST.INERTIA_FRAME_SCALE, // переводим в px/frame
-          rafID: args.rafID,
+          rafSchedule: args.rafScrollAnim.schedule,
         });
       }
     };

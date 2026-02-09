@@ -4,13 +4,10 @@ type InertiaArgs = {
   el: HTMLDivElement;
   axis: "x" | "y";
   velocity: number;
-  rafID: React.MutableRefObject<{
-    x: number;
-    y: number;
-  }>;
+  rafSchedule: (fn: () => void) => void;
 };
 
-function startInertiaScroll({ el, axis, velocity, rafID }: InertiaArgs) {
+function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
   // --- нормализация и усиление начальной скорости ---
   const sign = Math.sign(velocity);
   let v0 = Math.abs(velocity);
@@ -58,10 +55,10 @@ function startInertiaScroll({ el, axis, velocity, rafID }: InertiaArgs) {
     }
 
     el[prop] = next;
-    rafID.current[axis] = requestAnimationFrame(step);
+    rafSchedule(step);
   };
 
-  rafID.current[axis] = requestAnimationFrame(step);
+  rafSchedule(step);
 }
 
 export default startInertiaScroll;
