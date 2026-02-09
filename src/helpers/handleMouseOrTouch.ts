@@ -450,6 +450,7 @@ function handleUp(args: HandleUpT) {
     };
 
     const resolveScroll = (dir: "x" | "y", value: number) => {
+      // запас 20px для перелистывания
       if (Math.abs(value) > 20) runScroll(dir, value > 0 ? "ceil" : "floor");
       else runScroll(dir, value > 0 ? "floor" : "ceil");
     };
