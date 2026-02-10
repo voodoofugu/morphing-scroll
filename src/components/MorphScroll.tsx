@@ -267,7 +267,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const mLocalY = mT + mB;
   const mLocalX = mL + mR;
 
-  const [gapX, gapY] = React.useMemo(() => {
+  const gapLocal = React.useMemo(() => {
     if (typeof gap === "number") {
       return [gap, gap];
     }
@@ -430,8 +430,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const objectSize = isHorizontal
-      ? objectsSizeLocal[1] + gapY
-      : objectsSizeLocal[0] + gapX;
+      ? objectsSizeLocal[1] + gapLocal[1]
+      : objectsSizeLocal[0] + gapLocal[0];
 
     const neededMaxSize =
       direction === "hybrid"
@@ -482,8 +482,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     elementsDirection,
-    gapY,
-    gapX,
+    gapLocal[0],
+    gapLocal[1],
     objectsSizeLocal.join(),
     validChildrenKeys.length,
     direction,
@@ -494,7 +494,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsWrapperWidth = React.useMemo(() => {
     const childsGap = !objectsPerDirection[0]
       ? 0
-      : objectsPerDirection[0] * gapY - gapY;
+      : objectsPerDirection[0] * gapLocal[1] - gapLocal[1];
     // neededObj нужен для распределение объектов, точнее для crossCount
     const neededObj = objectsPerDirection[direction === "x" ? 1 : 0];
     // если детей меньше чем neededObj, то считаем по ним так как crossCount в этом случае не имеет смысла
@@ -504,7 +504,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : neededObj;
 
     return objectsSizeLocal[0]
-      ? (objectsSizeLocal[0] + gapY) * neededObjWithChildCount - gapY
+      ? (objectsSizeLocal[0] + gapLocal[1]) * neededObjWithChildCount -
+          gapLocal[1]
       : !renderLocal.type
         ? receivedWrapSizeRef.current.width
         : receivedChildSizeRef.current.width + childsGap;
@@ -513,7 +514,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction,
     objectsSizeLocal[0],
     objectsPerDirection.join(),
-    gapY,
+    gapLocal[1],
     receivedWrapSizeRef.current.width,
     receivedChildSizeRef.current.width,
     renderLocal.type,
@@ -522,12 +523,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const objectsWrapperHeight = React.useMemo(() => {
     const childsGap =
-      objectsPerDirection[1] < 1 ? 1 : objectsPerDirection[0] * gapX - gapX;
+      objectsPerDirection[1] < 1
+        ? 1
+        : objectsPerDirection[0] * gapLocal[0] - gapLocal[0];
 
     return objectsSizeLocal[1]
       ? direction === "x"
-        ? (objectsSizeLocal[1] + gapX) * objectsPerDirection[0] - gapX
-        : (objectsSizeLocal[1] + gapX) * objectsPerDirection[1] - gapX
+        ? (objectsSizeLocal[1] + gapLocal[0]) * objectsPerDirection[0] -
+          gapLocal[0]
+        : (objectsSizeLocal[1] + gapLocal[0]) * objectsPerDirection[1] -
+          gapLocal[0]
       : !renderLocal.type
         ? receivedWrapSizeRef.current.height // on "fit-content"
         : receivedChildSizeRef.current.height + childsGap;
@@ -536,7 +541,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction,
     objectsSizeLocal[1],
     objectsPerDirection.join(),
-    gapX,
+    gapLocal[0],
     receivedWrapSizeRef.current.height,
     receivedChildSizeRef.current.height,
     renderLocal.type,
@@ -715,12 +720,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (elementsAlign === "center") {
         alignSpaceLeft =
-          ((objectsSizeLocal[0] + gapY) *
+          ((objectsSizeLocal[0] + gapLocal[1]) *
             (objectsPerDirection[0] - lastChildsInDirection)) /
           2;
       } else if (elementsAlign === "end") {
         alignSpaceLeft =
-          (objectsSizeLocal[0] + gapY) *
+          (objectsSizeLocal[0] + gapLocal[1]) *
           (objectsPerDirection[0] - lastChildsInDirection);
       }
     }
@@ -759,7 +764,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const alignLocal = direction === "x" ? align : 0;
 
         return indexTop > 0
-          ? alignLocal + (objectsSizeLocal[1] + gapX) * indexTop
+          ? alignLocal + (objectsSizeLocal[1] + gapLocal[0]) * indexTop
           : alignLocal;
       })(
         objectsPerDirection[0] > 1 || ["hybrid", "x"].includes(direction)
@@ -777,7 +782,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         const alignLocal = direction === "x" ? 0 : align;
 
         return indexLeft > 0
-          ? alignLocal + (objectsSizeLocal[0] + gapY) * indexLeft
+          ? alignLocal + (objectsSizeLocal[0] + gapLocal[1]) * indexLeft
           : alignLocal;
       })(
         objectsPerDirection[0] === 1 && direction === "x"
@@ -799,8 +804,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     direction,
     objectsPerDirection[0],
     objectsSizeLocal.join(),
-    gapX,
-    gapY,
+    gapLocal[0],
+    gapLocal[1],
     renderLocal.type,
     elementsDirection,
     elementsAlign,
@@ -893,7 +898,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         objectsSizing[0] && objectsSizing[0] !== "none"
           ? `${objectsWrapperWidth}px`
           : "fit-content",
-      ...(gap && !renderLocal.type && { gap: `${gapX}px ${gapY}px` }),
+      ...(gap &&
+        !renderLocal.type && { gap: `${gapLocal[0]}px ${gapLocal[1]}px` }),
       ...(wrapperMinSize &&
         getWrapperMinSizeStyle(
           wrapperMinSize,
@@ -933,7 +939,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     wrapperMargin,
     wrapperAlignST,
     wrapperMinSizeST,
-    [mT, mR, mB, mL, mLocalX, mLocalY, gapX, gapY].join(),
+    [mT, mR, mB, mL, mLocalX, mLocalY, gapLocal[0], gapLocal[1]].join(),
     sizeLocal.join(),
     gapST,
     objectsSizing[1],
@@ -1004,6 +1010,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         rafScrollAnim,
         isTouched: isTouchedRef.current,
         pointerId: event.pointerId,
+        gap: gapLocal,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1016,6 +1023,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollBarEdgeLocal.join(),
       thumbSizeMemo.x,
       thumbSizeMemo.y,
+      gapLocal.join(),
     ],
   );
 
@@ -1038,6 +1046,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         smoothScroll: smoothScrollLocal,
         duration: scrollPositionLocal.duration,
         loop: arrowsLocal.loop,
+        gap: gapLocal,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1048,6 +1057,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollPositionLocal.duration,
       smoothScrollLocal,
       arrowsLocal.loop,
+      gapLocal.join(),
     ],
   );
 

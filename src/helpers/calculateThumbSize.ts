@@ -1,4 +1,4 @@
-import { clampValue } from "./addFunctions";
+import clampValue from "./clampValue";
 
 function calculateThumbSize(
   size: number,

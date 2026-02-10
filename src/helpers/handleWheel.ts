@@ -1,4 +1,4 @@
-import { clampValue } from "./addFunctions";
+import clampValue from "./clampValue";
 import type { MorphScrollT } from "../types/types";
 import CONST from "../constants";
 

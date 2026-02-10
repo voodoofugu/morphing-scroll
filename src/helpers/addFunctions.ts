@@ -11,10 +11,6 @@ function objectsPerSize(availableSize: number, objectSize: number): number {
   return objects;
 }
 
-function clampValue(value: number, min = 0, max = Infinity): number {
-  return Math.max(min, Math.min(Math.round(value), max));
-}
-
 async function checkScrollReady(el: Element) {
   while (
     el.scrollHeight <= el.clientHeight &&
@@ -271,7 +267,6 @@ const isTouchDevice = () => {
 
 export {
   objectsPerSize,
-  clampValue,
   smoothScroll,
   getAllScrollBars,
   sliderCheck,

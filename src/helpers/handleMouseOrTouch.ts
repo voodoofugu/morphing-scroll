@@ -3,7 +3,7 @@ import { ScrollStateRefT } from "./handleWheel";
 
 import { mouseOnEl } from "./mouseOn";
 import startInertiaScroll from "./startInertiaScroll";
-import { clampValue } from "./addFunctions";
+import clampValue from "./clampValue";
 import { cancelTask } from "./taskManager";
 
 import CONST from "../constants";
@@ -56,6 +56,7 @@ type HandleMouseT = {
   };
   isTouched: boolean;
   pointerId: number;
+  gap: number[];
 };
 
 type HandleMoveT = Omit<
@@ -246,11 +247,22 @@ const motionHandler = (
   )
     return;
 
+  // правильное обновление перемещения
+  const getNewPosition = (delta: 1 | -1) => {
+    const clientSize = el[axis === "x" ? "clientWidth" : "clientHeight"];
+    const step = clientSize + args.gap[wh];
+
+    const page = Math.floor(Math.max(0, scroll) / step);
+    const nextPage = page + delta;
+
+    return step * nextPage;
+  };
+
   const nextScroll =
     move > 0 && scroll + args.sizeLocal[wh] < args.wrapElWH[wh]
-      ? scroll + args.sizeLocal[wh]
+      ? getNewPosition(1)
       : move < 0 && scroll > 0
-        ? scroll - args.sizeLocal[wh]
+        ? getNewPosition(-1)
         : null;
 
   checkSliderThumbSize[axis] = 0; // обязательно сбрасываем
@@ -437,28 +449,34 @@ function handleUp(args: HandleUpT) {
   cursorClassChange(args.clickedObject.current, args.target, el, "end");
 
   // логика для слайдера
-  if (args.type === "slider") {
+  if (args.type === "slider" && args.clickedObject.current !== "thumb") {
     const acc = checkSliderThumbSize; // размеры передвижения
 
-    const runScroll = (dir: "x" | "y", math: "ceil" | "floor") => {
-      const size = dir === "y" ? el.clientHeight : el.clientWidth;
-      const scrollPos = el[dir === "y" ? "scrollTop" : "scrollLeft"];
+    const runScroll = (dir: "x" | "y", math: "floor" | "ceil") => {
+      const isX = dir === "x";
 
-      const next = size * Math[math](scrollPos / size);
+      const position = el[isX ? "scrollLeft" : "scrollTop"];
+      const gapPerDir = isX ? args.gap[0] : args.gap[1];
+      const clientSize = el[isX ? "clientWidth" : "clientHeight"];
 
-      args.smoothScroll(next, dir, args.duration);
+      const step = clientSize + gapPerDir;
+
+      const page = Math[math](Math.max(0, position) / step);
+
+      // return step * nextPage;
+      args.smoothScroll(step * page, dir, args.duration);
     };
 
     const resolveScroll = (dir: "x" | "y", value: number) => {
       // запас 20px для перелистывания
       if (Math.abs(value) > 20) runScroll(dir, value > 0 ? "ceil" : "floor");
-      else runScroll(dir, value > 0 ? "floor" : "ceil");
+      else runScroll(dir, value < 0 ? "ceil" : "floor"); // возвращает назад
     };
 
     if (acc.x === 0 && acc.y === 0) {
       if (args.direction === "hybrid")
-        (["x", "y"] as const).forEach((dir) => runScroll(dir, "ceil"));
-      else runScroll(args.direction, "ceil");
+        (["x", "y"] as const).forEach((dir) => resolveScroll(dir, acc[dir]));
+      else resolveScroll(args.direction, acc[args.direction]);
     } else
       (Object.entries(acc) as ["x" | "y", number][]).forEach(([dir, value]) => {
         if (value !== 0) resolveScroll(dir, value);
