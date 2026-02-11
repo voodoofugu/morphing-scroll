@@ -305,7 +305,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const sizeLocal = React.useMemo(() => {
     const [x, y] = Array.isArray(size)
-      ? size
+      ? [
+          typeof size[0] === "number"
+            ? size[0]
+            : receivedScrollSizeRef.current.width,
+          typeof size[1] === "number"
+            ? size[1]
+            : receivedScrollSizeRef.current.height,
+        ]
       : typeof size === "number"
         ? [size, size]
         : [
@@ -1856,7 +1863,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     </div>
   );
 
-  if (size === "auto") {
+  if (
+    size === "auto" ||
+    (Array.isArray(size) && [size[0], size[1]].includes("auto"))
+  ) {
     return (
       <ResizeTracker measure="outer" onResize={scrollResize}>
         {content}

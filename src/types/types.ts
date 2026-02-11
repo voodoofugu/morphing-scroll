@@ -39,7 +39,7 @@ export type MorphScrollT = {
   isScrolling?: (motion: boolean) => void;
 
   // — Visual Settings —
-  size: number | number[] | "auto";
+  size: number | "auto" | (number | "auto")[];
   objectsSize?:
     | number
     | "size"
