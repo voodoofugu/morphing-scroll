@@ -26,9 +26,10 @@ export type MorphScrollT = {
   type?: "scroll" | "slider" | "sliderMenu";
   direction?: "x" | "y" | "hybrid";
   scrollPosition?:
+    | null
     | number
     | "end"
-    | (number | "end")[]
+    | (null | number | "end")[]
     | {
         value: number | "end" | (number | "end")[];
         duration?: number;
@@ -39,7 +40,7 @@ export type MorphScrollT = {
   isScrolling?: (motion: boolean) => void;
 
   // — Visual Settings —
-  size: number | "auto" | (number | "auto")[];
+  size: number | number[] | "auto";
   objectsSize?:
     | number
     | "size"

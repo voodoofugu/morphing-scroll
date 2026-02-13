@@ -19,7 +19,7 @@ type ModifiedProps = Partial<MorphScrollT> & {
   sliderCheckLocal: () => void;
   duration: number;
   isTouched: boolean;
-  scrollStateRef: ScrollStateRefT;
+  scrollStateRef: React.RefObject<ScrollStateRefT>;
   scrollEl: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -91,7 +91,7 @@ const ScrollBar = ({
 
   const dataDirection = React.useMemo(() => {
     return ["hybrid", "y"].includes(direction!) ? "y" : "x";
-  }, [duration]);
+  }, [direction]);
 
   // - effects -
   React.useEffect(() => {
@@ -107,12 +107,12 @@ const ScrollBar = ({
     }
 
     const onWheel = (e: WheelEvent) => {
-      handleWheel(e, scrollEl.current!, scrollStateRef, dataDirection);
+      handleWheel(e, scrollEl.current!, scrollStateRef.current, dataDirection);
     };
 
     el.addEventListener("wheel", onWheel);
     return () => el.removeEventListener("wheel", onWheel);
-  }, []);
+  }, [dataDirection]);
 
   React.useEffect(() => {
     const el = thumbRef.current;
@@ -137,8 +137,17 @@ const ScrollBar = ({
     }),
   };
 
+  const axisSize = dataDirection === "x" ? size[0] : size[1];
+
+  const thumbFlex =
+    type !== "scroll"
+      ? ""
+      : thumbSize + thumbSpace * 2 > axisSize
+        ? "flex-end"
+        : "flex-start";
+
   // - render -
-  return (
+  const content = (
     <React.Fragment>
       {type === "scroll" ? (
         <div
@@ -148,10 +157,10 @@ const ScrollBar = ({
           style={{
             ...commonStyles,
             width: "fit-content",
+            height: `${axisSize}px`,
             ...(direction === "x"
               ? {
                   transformOrigin: "left top",
-                  height: `${size[0]}px`,
                   left: "50%",
                   ...(progressReverse
                     ? {
@@ -163,12 +172,8 @@ const ScrollBar = ({
               : {
                   top: "50%",
                   transform: "translateY(-50%)",
-                  height: `${size[1]}px`,
                   ...(progressReverse ? { left: 0 } : { right: 0 }),
                 }),
-            ...(!progressTrigger?.progressElement !== false && {
-              pointerEvents: "none",
-            }),
           }}
         >
           <div
@@ -181,6 +186,9 @@ const ScrollBar = ({
               ...(progressTrigger?.progressElement && {
                 cursor: "grab",
               }),
+              // стили помогающие выровнять thumb что бы он не вылетал за края (если добавлена анимация)
+              display: "flex",
+              alignItems: thumbFlex,
             }}
           >
             {progressTrigger?.progressElement}
@@ -220,6 +228,8 @@ const ScrollBar = ({
       )}
     </React.Fragment>
   );
+
+  return content;
 };
 
 ScrollBar.displayName = "ScrollBar";
