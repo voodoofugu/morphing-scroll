@@ -221,44 +221,6 @@ function createResizeHandler(
   };
 }
 
-function stabilizeObject(obj: unknown): string {
-  const result: string[] = [];
-
-  const traverse = (value: unknown): void => {
-    if (
-      value === null ||
-      typeof value === "number" ||
-      typeof value === "boolean" ||
-      typeof value === "bigint"
-    ) {
-      result.push(String(value));
-    } else if (typeof value === "string") {
-      result.push(value);
-    } else if (typeof value === "function") {
-      result.push("<function>");
-    } else if (React.isValidElement(value)) {
-      result.push("<react-node>");
-    } else if (Array.isArray(value)) {
-      value.forEach(traverse);
-    } else if (typeof value === "object") {
-      const entries = Object.entries(value as object).sort(([a], [b]) =>
-        a.localeCompare(b),
-      );
-      for (const [, val] of entries) {
-        traverse(val);
-      }
-    } else if (typeof value === "undefined") {
-      result.push("<undefined>");
-    }
-  };
-
-  traverse(obj);
-  return result.join("/");
-}
-function stabilizeMany(...args: unknown[]): string[] {
-  return args.map(stabilizeObject);
-}
-
 const isTouchDevice = () => {
   return typeof window !== "undefined"
     ? (window.matchMedia?.("(pointer: coarse)").matches ?? false)
@@ -273,7 +235,6 @@ export {
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
   createResizeHandler,
-  stabilizeMany,
   getStyleAlign,
   isTouchDevice,
 };

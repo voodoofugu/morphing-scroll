@@ -83,13 +83,13 @@ export type MorphScrollT = {
     | "virtual"
     | {
         type: "lazy" | "virtual";
-        rootMargin?: number | number[];
-        stopLoadOnScroll?: boolean; // <new> позже сократить до loadOnScroll
+        rootMargin?: number | number[]; // TODO указать что это для top left right bottom
+        stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll
       };
   emptyElements?: {
     // может переименовать mode
-    mode: "clear" | "fallback" | { fallback: React.ReactNode }; // <new> упростить до "clear" | "fallback" | React.ReactNode
-    clickTrigger?: string | { selector: string; delay?: number }; // <new> добавить префикс ms- к класс "remove"
+    mode: "clear" | "fallback" | { fallback: React.ReactNode }; // TODO упростить до "clear" | "fallback" | React.ReactNode
+    clickTrigger?: string | { selector: string; delay?: number }; // TODO добавить префикс ms- к класс "remove"
   };
   suspending?: boolean;
   fallback?: React.ReactNode;
