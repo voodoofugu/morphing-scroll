@@ -291,11 +291,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [renderST]);
 
   const mRootLocal = React.useMemo(() => {
-    return argsFormatter(renderLocal.rootMargin, direction === "x");
+    return argsFormatter(renderLocal.rootMargin);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [renderLocal.rootMargin, direction]);
-
-  const [mRootX, mRootY] = mRootLocal ? [mRootLocal[2], mRootLocal[0]] : [0, 0];
 
   const sizeLocal = React.useMemo(() => {
     const [x, y] = Array.isArray(size)
@@ -1466,6 +1464,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       elementTop?: number,
       left?: number,
       children?: React.ReactNode,
+      visibility?: number,
     ) => {
       const wrapStyle: React.CSSProperties = {
         width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : undefined,
@@ -1496,7 +1495,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               }
             : {})}
           className="ms-object-box"
-          style={wrapStyle}
+          style={{
+            ...wrapStyle,
+            ...(visibility && { "--visibility": visibility }),
+          }}
           onClick={emptyElements ? updateEmptyKeysClickLocal : undefined}
         >
           {content}
@@ -1565,32 +1567,63 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const { top, bottom, left, right } = memoizedChildrenData[index];
 
     // проверка видимости
-    const isVisibleX =
-      right > scrollLeft - mRootX && left < scrollLeft + sizeLocal[0] + mRootX;
-    const isVisibleY =
-      bottom > scrollTop - mRootY && top < scrollTop + sizeLocal[1] + mRootY;
+    const getVisibilityRatio = (withRootMargin: boolean = true): number => {
+      const rootMarginLocal = withRootMargin ? mRootLocal : [0, 0, 0, 0];
 
-    const isElementVisible =
-      direction === "hybrid"
-        ? isVisibleX && isVisibleY
-        : direction === "x"
-          ? isVisibleX
-          : isVisibleY;
+      const checkAxis = (dir: "x" | "y") => {
+        const viewportStart = dir === "x" ? scrollLeft : scrollTop;
+        const viewportEnd =
+          viewportStart + (dir === "x" ? sizeLocal[0] : sizeLocal[1]);
 
-    // ===== LAZY =====
+        const elStart =
+          dir === "x" ? left - rootMarginLocal[3] : top - rootMarginLocal[2];
+
+        const elEnd =
+          dir === "x"
+            ? right + rootMarginLocal[1]
+            : bottom + rootMarginLocal[0];
+
+        const elementSize = elEnd - elStart;
+        if (elementSize <= 0) return 0;
+
+        const visible =
+          Math.min(elEnd, viewportEnd) - Math.max(elStart, viewportStart);
+
+        if (visible <= 0) return 0;
+
+        // округляем
+        return Math.round(Math.min(1, visible / elementSize) * 10) / 10;
+      };
+
+      if (direction === "hybrid") {
+        const x = checkAxis("x");
+        const y = checkAxis("y");
+        return Math.min(x, y);
+      }
+
+      return direction === "x" ? checkAxis("x") : checkAxis("y");
+    };
+    const visibilityRatio = getVisibilityRatio();
+
+    // - LAZY -
     if (renderLocal.type === "lazy") {
       const wasLoaded = objectsKeys.current.loaded.has(key);
-      if (isElementVisible && !wasLoaded) {
-        objectsKeys.current.loaded.add(key);
-      }
+      if (visibilityRatio && !wasLoaded) objectsKeys.current.loaded.add(key);
       if (!wasLoaded) return null;
 
       return scrollObjectWrapper(key, top, left, childLocal);
     }
 
-    // ===== VIRTUAL =====
-    if (!isElementVisible) return null;
-    return scrollObjectWrapper(key, top, left, childLocal);
+    // - VIRTUAL -
+    if (!visibilityRatio) return null;
+
+    return scrollObjectWrapper(
+      key,
+      top,
+      left,
+      childLocal,
+      getVisibilityRatio(false),
+    );
   };
 
   const getEdgeOrArrowData = React.useMemo(
