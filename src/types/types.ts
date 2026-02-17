@@ -31,7 +31,7 @@ export type MorphScrollT = {
     | "end"
     | (null | number | "end")[]
     | {
-        value: number | "end" | (number | "end")[];
+        value: null | number | "end" | (null | number | "end")[];
         duration?: number;
         updater?: boolean;
         // callback?: (left: number, top: number) => void; // ! это onScrollValue
@@ -85,7 +85,7 @@ export type MorphScrollT = {
         type: "lazy" | "virtual";
         rootMargin?: number | number[]; // TODO указать что это для top left right bottom
         stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll
-        visibilityChecking?: boolean;
+        trackVisibility?: boolean;
       };
   emptyElements?: {
     // может переименовать mode

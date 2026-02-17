@@ -78,11 +78,12 @@ type MorphScrollT = {
    * ```
    */
   scrollPosition?:
+    | null
     | number
     | "end"
-    | (number | "end")[]
+    | (null | number | "end")[]
     | {
-        value: number | "end" | (number | "end")[];
+        value: null | number | "end" | (null | number | "end")[];
         duration?: number;
         updater?: boolean;
       };
@@ -397,13 +398,13 @@ type MorphScrollT = {
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***render***:
    * rendering strategy for performance optimization.
-   * @description
-   * - `type`:
-   *   - `"lazy"`: *renders the content if it was in the viewport once*
-   *   - `"virtual"`: *renders content only if it is in the viewport*
+   * @descriptions
+   * - `type` — determines the render strategy:
+   *   - `"lazy"`: *render once when visible*
+   *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
    * - `stopLoadOnScroll`: *stops loading content when scrolling*
-   * - `visibilityChecking`: *sets the `--visibility` variable for list item wrapper styles*
+   * - `trackVisibility`: *sets the `--visibility` variable for list item wrapper styles*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
    * @example
@@ -422,7 +423,7 @@ type MorphScrollT = {
         type: "lazy" | "virtual";
         rootMargin?: number | number[];
         stopLoadOnScroll?: boolean;
-        visibilityChecking?: boolean;
+        trackVisibility?: boolean;
       };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)

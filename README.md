@@ -161,10 +161,10 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <details><summary><b><code>scrollPosition</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-number | "end" | (number | "end")[]<br />
+null | number | "end" | (null | number | "end")[]<br />
 | {<br />
 <ul>
-  value: number | "end" | (number | "end")[];<br />
+  value: null | number | "end" | (null | number | "end")[];<br />
   duration?: number;<br />
   updater?: boolean;<br />
 </ul>
@@ -745,7 +745,7 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
   type: "lazy" | "virtual";<br />
   rootMargin?: number | number[];<br />
   stopLoadOnScroll?: boolean;<br />
-  visibilityChecking?: boolean;<br />
+  trackVisibility?: boolean;<br />
 </ul>
 }<br />
 <br />
@@ -755,8 +755,8 @@ When used, a container is created for each scrollable object, and its absolute p
 <br />
 <code>type</code>:<br />
 <ul>
-  <li><b>"lazy"</b> - renders the content if it was in the viewport once.</li>
-  <li><b>"virtual"</b> - renders content only if it is in the viewport.</li>
+  <li><b>"lazy"</b> - render once when visible.</li>
+  <li><b>"virtual"</b> - render only when visible.</li>
 </ul>
 <br />
 <code>rootMargin</code>:<br />
@@ -765,7 +765,7 @@ controls the threshold for loading content. It can be a single number or an arra
 <code>stopLoadOnScroll</code>:<br />
 controls whether to stop loading content when scrolling.<br />
 <br />
-<code>visibilityChecking</code>:<br />
+<code>trackVisibility</code>:<br />
 sets the <code>--visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--visibility);</code>.<br />
 <br />
 ✦ Note:<br />

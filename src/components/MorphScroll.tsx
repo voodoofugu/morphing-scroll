@@ -189,11 +189,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         value = scrollPosition;
       } else if (typeof scrollPosition === "object") {
         const val = scrollPosition.value;
-        if (typeof val === "number" || val === "end") {
-          value = [val, val];
-        } else if (Array.isArray(val)) {
-          value = val;
-        }
+        if (typeof val === "number" || val === "end") value = [val, val];
+        else if (Array.isArray(val)) value = val;
 
         duration = scrollPosition.duration ?? 200;
         updater = scrollPosition.updater ?? null;
@@ -276,7 +273,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       type: undefined as "lazy" | "virtual" | undefined,
       rootMargin: 0 as number | number[],
       stopLoadOnScroll: false,
-      visibilityChecking: false,
+      trackVisibility: false,
     };
 
     if (typeof render === "string") {
@@ -288,9 +285,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         type,
         rootMargin = base.rootMargin,
         stopLoadOnScroll = base.stopLoadOnScroll,
-        visibilityChecking = base.visibilityChecking,
+        trackVisibility = base.trackVisibility,
       } = render;
-      return { type, rootMargin, stopLoadOnScroll, visibilityChecking };
+      return { type, rootMargin, stopLoadOnScroll, trackVisibility };
     }
 
     return base;
@@ -1601,7 +1598,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return direction === "x" ? checkAxis("x") : checkAxis("y");
     };
     const visibilityRatio = getVisibilityRatio();
-    const visibilityRatioWithoutMargin = renderLocal.visibilityChecking
+    const visibilityRatioWithoutMargin = renderLocal.trackVisibility
       ? getVisibilityRatio(false)
       : null;
 
