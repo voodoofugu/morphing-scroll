@@ -574,6 +574,18 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 <br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+By using <code>content</code> drag scrolling will not work with interactive elements like:<br />
+<ul>
+  <li><code><input></code></li><br />
+  <li><code><textarea></code></li><br />
+  <li><code><select></code></li><br />
+  <li><code><button></code></li><br />
+  <li><code><a></code></li><br />
+  or elements they have attribute like:<br />
+  <li><code>[draggable="true"]</code></li><br />
+  <li><code>[contenteditable]</code></li><br />
+  <li><code>[data-no-scroll]</code>: custom attribute that you can apply to cancel drag scrolling on it</li><br />
+</ul>
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
@@ -592,8 +604,7 @@ allows you to add custom arrows to the progress bar<br />
   <li><code>size</code>: adds a custom size to the arrow.</li><br />
   <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
-</ul>
-You can either specify a <code>size</code> for the arrows and provide a custom element.
+</ul><br />
 <br />
 ✦ Note:<br />
 <ul>
@@ -732,6 +743,7 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
   type: "lazy" | "virtual";<br />
   rootMargin?: number | number[];<br />
   stopLoadOnScroll?: boolean;<br />
+  visibilityChecking?: boolean;<br />
 </ul>
 }<br />
 <br />
@@ -741,8 +753,8 @@ When used, a container is created for each scrollable object, and its absolute p
 <br />
 <code>type</code>:<br />
 <ul>
-  <li><b>"lazy"</b> - content is not deleted when it leaves the viewport.</li>
-  <li><b>"virtual"</b> - content is deleted when it leaves the viewport.</li>
+  <li><b>"lazy"</b> - renders the content if it was in the viewport once.</li>
+  <li><b>"virtual"</b> - renders content only if it is in the viewport.</li>
 </ul>
 <br />
 <code>rootMargin</code>:<br />
@@ -750,6 +762,9 @@ controls the threshold for loading content. It can be a single number or an arra
 <br />
 <code>stopLoadOnScroll</code>:<br />
 controls whether to stop loading content when scrolling.<br />
+<br />
+<code>visibilityChecking</code>:<br />
+sets the <code>--visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--visibility);</code>.<br />
 <br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />

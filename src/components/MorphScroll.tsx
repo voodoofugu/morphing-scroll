@@ -276,6 +276,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       type: undefined as "lazy" | "virtual" | undefined,
       rootMargin: 0 as number | number[],
       stopLoadOnScroll: false,
+      visibilityChecking: false,
     };
 
     if (typeof render === "string") {
@@ -283,8 +284,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     if (typeof render === "object" && render !== null) {
-      const { type, rootMargin = 0, stopLoadOnScroll = false } = render;
-      return { type, rootMargin, stopLoadOnScroll };
+      const {
+        type,
+        rootMargin = base.rootMargin,
+        stopLoadOnScroll = base.stopLoadOnScroll,
+        visibilityChecking = base.visibilityChecking,
+      } = render;
+      return { type, rootMargin, stopLoadOnScroll, visibilityChecking };
     }
 
     return base;
@@ -938,9 +944,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           [data-no-scroll],
           [draggable="true"],
           [contenteditable],
-          input, textarea, select,
-          button,
-          a
+          input, textarea, select, button, a
         `,
         )
       )
@@ -1123,7 +1127,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           scrollDirTrackerRef.current.reset(); // сброс
           isScrollingRef.current = false;
           isScrolling?.(false);
-          renderLocal.type === "virtual" && updateLoadedElementsKeysLocal();
+          renderLocal.type && updateLoadedElementsKeysLocal();
 
           if (
             scrollBarOnHover &&
@@ -1464,19 +1468,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       elementTop?: number,
       left?: number,
       children?: React.ReactNode,
-      visibility?: number,
+      visibility?: number | null,
     ) => {
       const wrapStyle: React.CSSProperties = {
         width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : undefined,
         height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : undefined,
         ...(renderLocal.type && {
           position: "absolute",
-          top: `${elementTop}px`,
-          left: `${left}px`,
-          ...(!objectsSizeLocal[0] &&
-            objectsPerDirection[0] === 1 && {
-              transform: "translateX(-50%)",
-            }),
+          transform: `translate(${left}px, ${elementTop}px)`,
+        }),
+        ...(typeof visibility === "number" && {
+          "--visibility": visibility,
         }),
       };
 
@@ -1495,10 +1497,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
               }
             : {})}
           className="ms-object-box"
-          style={{
-            ...wrapStyle,
-            ...(visibility && { "--visibility": visibility }),
-          }}
+          style={wrapStyle}
           onClick={emptyElements ? updateEmptyKeysClickLocal : undefined}
         >
           {content}
@@ -1604,6 +1603,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       return direction === "x" ? checkAxis("x") : checkAxis("y");
     };
     const visibilityRatio = getVisibilityRatio();
+    const visibilityRatioWithoutMargin = renderLocal.visibilityChecking
+      ? getVisibilityRatio(false)
+      : null;
 
     // - LAZY -
     if (renderLocal.type === "lazy") {
@@ -1611,7 +1613,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (visibilityRatio && !wasLoaded) objectsKeys.current.loaded.add(key);
       if (!wasLoaded) return null;
 
-      return scrollObjectWrapper(key, top, left, childLocal);
+      return scrollObjectWrapper(
+        key,
+        top,
+        left,
+        childLocal,
+        visibilityRatioWithoutMargin,
+      );
     }
 
     // - VIRTUAL -
@@ -1622,7 +1630,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       top,
       left,
       childLocal,
-      getVisibilityRatio(false),
+      visibilityRatioWithoutMargin,
     );
   };
 

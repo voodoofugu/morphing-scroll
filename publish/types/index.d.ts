@@ -17,7 +17,7 @@ import MorphScrollT from "./morphScroll";
  * ### Links:
  * [ResizeTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
  *
- * [MDN Reference for Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+ * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  */
 declare const ResizeTracker: React.FC<ResizeTrackerT>;
 
@@ -37,7 +37,7 @@ declare const ResizeTracker: React.FC<ResizeTrackerT>;
  * ### Links:
  * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
  *
- * [MDN Reference for Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  */
 declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
 
@@ -150,7 +150,7 @@ declare const Morph: {
    * ### Links:
    * [ResizeTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
    *
-   * [MDN Reference for Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+   * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
    */
   ResizeTracker: React.FC<ResizeTrackerT>;
   /** ---
@@ -169,7 +169,7 @@ declare const Morph: {
    * ### Links:
    * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
    *
-   * [MDN Reference for Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+   * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
    */
   IntersectionTracker: React.FC<IntersectionTrackerT>;
 };

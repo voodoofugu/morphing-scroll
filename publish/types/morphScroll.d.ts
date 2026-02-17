@@ -299,7 +299,8 @@ type MorphScrollT = {
    * - `arrows`: *add custom arrows*
    * @note
    * - *`progressElement` can be thumb or slider, use props `type`*
-   * - *If `progressElement` is true and `type` is "scroll", the default browser scroll element will be used*
+   * - *if `progressElement` is `true` and `type` is `"scroll"`, the default browser scroll element will be used*
+   * - *by using `content` drag scrolling will not work with interactive elements like button ([more...](https://www.npmjs.com/package/morphing-scroll))*
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -397,10 +398,12 @@ type MorphScrollT = {
    * ### ***render***:
    * rendering strategy for performance optimization.
    * @description
-   * - `"lazy"`: *does not deleted content when it leaves the viewport*
-   * - `"virtual"`: *deletes content when it leaves the viewport*
+   * - `type`:
+   *   - `"lazy"`: *renders the content if it was in the viewport once*
+   *   - `"virtual"`: *renders content only if it is in the viewport*
    * - `rootMargin`: *distance for loading from the root element*
    * - `stopLoadOnScroll`: *stops loading content when scrolling*
+   * - `visibilityChecking`: *sets the `--visibility` variable for list item wrapper styles*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
    * @example
@@ -419,6 +422,7 @@ type MorphScrollT = {
         type: "lazy" | "virtual";
         rootMargin?: number | number[];
         stopLoadOnScroll?: boolean;
+        visibilityChecking?: boolean;
       };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)

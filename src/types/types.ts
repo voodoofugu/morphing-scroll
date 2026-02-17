@@ -85,7 +85,7 @@ export type MorphScrollT = {
         type: "lazy" | "virtual";
         rootMargin?: number | number[]; // TODO указать что это для top left right bottom
         stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll
-        // visibilityChecking?: boolean; // TODO
+        visibilityChecking?: boolean;
       };
   emptyElements?: {
     // может переименовать mode
