@@ -941,9 +941,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (
         target.closest(
           `
-          [data-no-scroll],
-          [draggable="true"],
-          [contenteditable],
+          [data-no-scroll], [draggable="true"], [contenteditable],
           input, textarea, select, button, a
         `,
         )
