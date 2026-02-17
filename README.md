@@ -575,7 +575,17 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 By using <code>content</code> drag scrolling will not work with interactive elements like:<br />
-<ul></ul>
+<ul>
+  <li><code>input</code></li><br />
+  <li><code>textarea</code></li><br />
+  <li><code>select</code></li><br />
+  <li><code>button</code></li><br />
+  <li><code>a</code></li><br />
+  or elements they have attribute like:<br />
+  <li><code>[draggable="true"]</code></li><br />
+  <li><code>[contenteditable]</code></li><br />
+  <li><code>[data-no-scroll]</code>: custom attribute that you can apply to cancel drag scrolling on it</li><br />
+</ul>
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
