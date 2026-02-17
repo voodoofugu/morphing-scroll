@@ -581,7 +581,6 @@ By using <code>content</code> drag scrolling will not work with interactive elem
   <li><code><select></code></li><br />
   <li><code><button></code></li><br />
   <li><code><a></code></li><br />
-  or elements they have attribute like:<br />
   <li><code>[draggable="true"]</code></li><br />
   <li><code>[contenteditable]</code></li><br />
   <li><code>[data-no-scroll]</code>: custom attribute that you can apply to cancel drag scrolling on it</li><br />
