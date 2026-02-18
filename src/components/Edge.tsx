@@ -7,16 +7,18 @@ type EdgeT = {
   };
   visibility: boolean;
   edgeType: "left" | "right" | "top" | "bottom";
+  size: number[];
 };
 
-const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
-  if (!edgeGradient) return null;
-
+const Edge = ({ edgeGradient, visibility, edgeType, size }: EdgeT) => {
   const edgeStyle: React.CSSProperties = {
     position: "absolute",
     [edgeType]: 0,
     pointerEvents: "none",
     transition: "opacity 0.2s ease-in-out",
+
+    ["--edge-visibility" as any]: visibility ? 1 : 0,
+    opacity: "var(--edge-visibility)",
 
     ...(edgeGradient.color && {
       background:
@@ -25,22 +27,6 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
           ["left", "right"].includes(edgeType) ? "270deg, " : ""
         }${edgeGradient.color}, transparent)`,
     }),
-    // TODO заменить
-    // ...(edgeGradient.color && {
-    //   background:
-    //     edgeGradient.color &&
-    //     `linear-gradient(${
-    //       edgeType === "top"
-    //         ? ""
-    //         : edgeType === "right"
-    //           ? "270deg, "
-    //           : edgeType === "bottom"
-    //             ? "360deg, "
-    //             : edgeType === "left"
-    //               ? "90deg, "
-    //               : ""
-    //     }${edgeGradient.color}, transparent)`,
-    // }),
 
     ...(["left", "right"].includes(edgeType)
       ? {
@@ -54,7 +40,6 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
           left: 0,
         }),
 
-    // TODO удалить
     ...(edgeType === "left"
       ? {
           transform: "scaleX(-1)",
@@ -64,15 +49,49 @@ const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
         : {}),
   };
 
-  return (
-    <div
-      className={`ms-edge${edgeType ? ` ${edgeType}` : ""}`}
-      style={{
-        ...edgeStyle,
-        opacity: visibility ? 1 : 0,
-      }}
-    ></div>
-  );
+  // - styles -
+  // const edgeStyle: React.CSSProperties = {
+  //   position: "absolute",
+  //   [edgeType]: 0,
+  //   height: `${edgeGradient.size}px`,
+  //   pointerEvents: "none",
+  //   transition: "opacity 0.2s ease-in-out",
+
+  //   ["--edge-visibility" as any]: visibility ? 1 : 0,
+  //   opacity: "var(--edge-visibility)",
+
+  //   ...(edgeGradient.color && {
+  //     background:
+  //       edgeGradient.color &&
+  //       `linear-gradient(${edgeGradient.color}, transparent)`,
+  //   }),
+
+  //   ...(["left", "right"].includes(edgeType)
+  //     ? {
+  //         width: size[1],
+  //         transform: "rotate(90deg) scaleY(-1)",
+  //         transformOrigin: "left top",
+  //         top: 0,
+  //       }
+  //     : {
+  //         width: size[0],
+  //       }),
+
+  //   ...(edgeType === "right"
+  //     ? {
+  //         transform: "rotate(90deg) scaleX(-1)",
+  //         transformOrigin: "right top",
+  //       }
+  //     : edgeType === "bottom"
+  //       ? { transform: "scaleY(-1)" }
+  //       : {}),
+  // };
+
+  // - classes -
+  const edgeClasses = `ms-edge ${edgeType}${!visibility ? " ms-disabled" : ""}`;
+
+  // - render -
+  return <div className={edgeClasses} style={edgeStyle}></div>;
 };
 
 Edge.displayName = "Edge";

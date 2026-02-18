@@ -1473,7 +1473,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           transform: `translate(${left}px, ${elementTop}px)`,
         }),
         ...(typeof visibility === "number" && {
-          "--visibility": visibility,
+          "--content-visibility": visibility,
         }),
       };
 
@@ -1683,15 +1683,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const edgesJSX = React.useMemo(() => {
     if (!edgeGradient) return null;
+
     return getEdgeOrArrowData.map(({ positionType, visibility }) => (
       <Edge
         key={`edge-${positionType}`}
         edgeGradient={edgeGradientLocal}
         visibility={visibility}
         edgeType={positionType as "left" | "right" | "top" | "bottom"}
+        size={sizeLocal}
       />
     ));
-  }, [edgeGradient, getEdgeOrArrowData, edgeGradientLocal]);
+  }, [edgeGradient, getEdgeOrArrowData, edgeGradientLocal, sizeST]);
 
   const arrowsJSX = React.useMemo(() => {
     if (!progressTrigger.arrows) return null;
@@ -1699,7 +1701,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return getEdgeOrArrowData.map(({ positionType, visibility }) => (
       <Arrow
         key={`arrow-${positionType}`}
-        activity={visibility}
+        visibility={visibility}
         arrows={arrowsLocal}
         arrowType={positionType as handleArrowT["arrowType"]}
         handleArrow={handleArrowLocal}

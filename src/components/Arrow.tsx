@@ -2,18 +2,24 @@ import React from "react";
 import { handleArrowT } from "../helpers/handleArrow";
 
 type ArrowT = {
-  activity: boolean;
+  visibility: boolean;
   arrows: { size: number; element?: React.ReactNode };
   arrowType: handleArrowT["arrowType"];
   handleArrow: (arrowType: handleArrowT["arrowType"]) => void;
   size: number;
 };
 
-const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
-  // refs
+const Arrow = ({
+  visibility,
+  arrows,
+  arrowType,
+  handleArrow,
+  size,
+}: ArrowT) => {
+  // - refs -
   const arrowRef = React.useRef<HTMLDivElement | null>(null);
 
-  // constants
+  // - constants -
   const arrowsStyle: React.CSSProperties = {
     position: "absolute",
     display: "flex",
@@ -48,7 +54,7 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
         }),
   };
 
-  // effects
+  // - effects -
   React.useEffect(() => {
     const el = arrowRef.current;
     if (!el) return;
@@ -62,14 +68,12 @@ const Arrow = ({ activity, arrows, arrowType, handleArrow, size }: ArrowT) => {
     };
   }, [handleArrow, arrowType]);
 
-  // render
+  // - render -
   return (
     <div
-      className={`ms-arrow-box ${arrowType}${activity ? " active" : ""}`}
+      className={`ms-arrow-box ${arrowType}${visibility ? " active" : ""}`}
       ref={arrowRef}
-      style={{
-        ...arrowsStyle,
-      }}
+      style={arrowsStyle}
     >
       {arrows.element}
     </div>

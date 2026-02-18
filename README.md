@@ -509,7 +509,7 @@ boolean | string | { color?: string; size?: number }<br />
 { size: 40 }<br />
 <br />
 <b>Description:</b><em><br />
-parameter creates two edge elements responsible for darkening the edges of the scroll when it overflows.<br />
+parameter creates several edge elements responsible for darkening the edges of the scroll when it overflows.<br />
 <br />
 <code>color</code>:<br />
 property accepts any valid color format.
@@ -517,7 +517,11 @@ If you provide it, the library will generate a gradient transitioning from the c
 If you provide just <b>true</b>, the edge elements will have no color, allowing for custom styling via CSS class <code>.ms-edge</code>.<br />
 <br />
 <code>size</code>:<br />
-property changes the height of the edges for the horizontal and the width of the edges for the vertical.</em><br />
+property changes the height of the edges for the horizontal and the width of the edges for the vertical.<br />
+<br />
+If the edge element is inactive, it gets the <code>"ms-disabled"</code> class.<br />
+Also, each edge element gets the <code>--edge-visibility</code> variable in the styles with value 0 or 1.
+</em><br />
 <br />
 <b>Example:</b>
 
@@ -766,7 +770,7 @@ controls the threshold for loading content. It can be a single number or an arra
 controls whether to stop loading content when scrolling.<br />
 <br />
 <code>trackVisibility</code>:<br />
-sets the <code>--visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--visibility);</code>.<br />
+sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.<br />
 <br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />

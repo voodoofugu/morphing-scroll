@@ -404,7 +404,7 @@ type MorphScrollT = {
    *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
    * - `stopLoadOnScroll`: *stops loading content when scrolling*
-   * - `trackVisibility`: *sets the `--visibility` variable for list item wrapper styles*
+   * - `trackVisibility`: *sets the `--content-visibility` variable for list item wrapper styles*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
    * @example
