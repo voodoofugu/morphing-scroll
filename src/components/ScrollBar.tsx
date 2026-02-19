@@ -21,6 +21,8 @@ type ModifiedProps = Partial<MorphScrollT> & {
   isTouched: boolean;
   scrollStateRef: React.RefObject<ScrollStateRefT>;
   scrollEl: React.RefObject<HTMLDivElement | null>;
+  scrollBarsRef: React.RefObject<Set<HTMLElement>>;
+  triggerUpdate: () => void;
 };
 
 const ScrollBar = ({
@@ -39,6 +41,8 @@ const ScrollBar = ({
   isTouched,
   scrollStateRef,
   scrollEl,
+  scrollBarsRef,
+  triggerUpdate,
 }: ModifiedProps) => {
   // - refs -
   const scrollBarRef = React.useRef<HTMLDivElement>(null);
@@ -115,7 +119,7 @@ const ScrollBar = ({
   }, [dataDirection]);
 
   React.useEffect(() => {
-    const el = thumbRef.current;
+    const el = scrollBarRef.current;
     if (!el || type === "sliderMenu") return;
 
     const handleStart = (e: PointerEvent) => {
@@ -128,6 +132,18 @@ const ScrollBar = ({
       el.removeEventListener("pointerdown", handleStart);
     };
   }, [scrollBarEvent]);
+
+  React.useEffect(() => {
+    const el = scrollBarRef.current;
+    if (!el) return;
+
+    scrollBarsRef.current.add(el);
+    triggerUpdate();
+
+    return () => {
+      scrollBarsRef.current.delete(el);
+    };
+  }, []);
 
   const commonStyles: React.CSSProperties = {
     position: "absolute",
@@ -199,7 +215,7 @@ const ScrollBar = ({
         progressTrigger?.progressElement && (
           <div
             className={`ms-slider ms-${dataDirection}`}
-            ref={thumbRef}
+            ref={scrollBarRef}
             data-direction={dataDirection} // доп логика
             style={{
               ...commonStyles,

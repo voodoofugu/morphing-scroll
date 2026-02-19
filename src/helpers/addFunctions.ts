@@ -65,33 +65,12 @@ async function smoothScroll(
   );
 }
 
-const getAllScrollBars = (
-  type: Exclude<MorphScrollT["type"], undefined>,
-  customScrollRef: HTMLDivElement | null,
-  scrollBarsRef: React.MutableRefObject<[] | NodeListOf<Element>>,
-) => {
-  if (!customScrollRef) return;
-
-  const bars = customScrollRef.querySelectorAll(
-    `.${type === "scroll" ? "ms-thumb" : "ms-slider"}`,
-  );
-
-  if (bars.length > 0) {
-    scrollBarsRef.current = bars;
-  }
-};
-
 const sliderCheck = (
   scrollEl: HTMLDivElement,
-  scrollBars: NodeListOf<Element>,
+  scrollBars: Set<HTMLElement>,
   sizeLocal: number[],
   direction: Exclude<MorphScrollT["direction"], undefined>,
 ) => {
-  const elementsFirst =
-    scrollBars[0]?.querySelectorAll(".ms-slider-element") ?? [];
-  const elementsSecond =
-    scrollBars[1]?.querySelectorAll(".ms-slider-element") ?? [];
-
   function checkActive(
     elementsArray: NodeListOf<Element>,
     size: number[],
@@ -115,14 +94,15 @@ const sliderCheck = (
     });
   }
 
-  if (elementsFirst.length > 0) {
-    checkActive(elementsFirst, sizeLocal, scrollEl, direction);
-  }
+  Array.from(scrollBars).forEach((els, i) => {
+    const allObj = els?.querySelectorAll(".ms-slider-element") ?? [];
+    if (!allObj.length) return;
 
-  // при "hybrid" direction
-  if (elementsSecond.length > 0) {
-    checkActive(elementsSecond, sizeLocal, scrollEl, "x");
-  }
+    // "hybrid" direction при i === 1
+    const dir = i === 0 ? direction : "x";
+
+    checkActive(allObj, sizeLocal, scrollEl, dir);
+  });
 };
 
 function getWrapperMinSizeStyle(
@@ -230,7 +210,6 @@ const isTouchDevice = () => {
 export {
   objectsPerSize,
   smoothScroll,
-  getAllScrollBars,
   sliderCheck,
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,

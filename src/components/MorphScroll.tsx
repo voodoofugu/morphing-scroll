@@ -15,7 +15,6 @@ import handleMouseOrTouch from "../helpers/handleMouseOrTouch";
 import {
   objectsPerSize,
   smoothScroll,
-  getAllScrollBars,
   sliderCheck,
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,
@@ -103,7 +102,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
 
-  const scrollBarsRef = React.useRef<NodeListOf<Element> | []>([]);
+  const scrollBarsRef = React.useRef<Set<HTMLElement>>(new Set());
 
   const isTouchedRef = React.useRef<boolean>(isTouchDevice());
   const firstRender = React.useRef<boolean>(true);
@@ -945,7 +944,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       )
         return;
 
-      getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
       let axisFromAtr: "x" | "y" | null = null;
       if (checkClickedBar) {
         axisFromAtr = target
@@ -1030,25 +1028,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // защита от нулевых значений
     if (!sizeLocal[0] || !sizeLocal[1]) return;
 
-    getAllScrollBars(type, customScrollRef.current, scrollBarsRef);
-
     const scrollEl = scrollElementRef.current;
-    if (
-      !scrollContentRef.current ||
-      !scrollEl ||
-      scrollBarsRef.current?.length === 0
-    )
+    if (!scrollContentRef.current || !scrollEl || !scrollBarsRef.current.size)
       return;
 
     // ограничение частоты вызова
     setTask(
-      () =>
-        sliderCheck(
-          scrollEl,
-          scrollBarsRef.current as NodeListOf<Element>,
-          sizeLocal,
-          direction,
-        ),
+      () => sliderCheck(scrollEl, scrollBarsRef.current, sizeLocal, direction),
       CONST.DEBOUNCE_DELAY,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1401,10 +1387,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const el = scrollContentRef.current;
     if (!el || !scrollBarOnHover) return;
 
-    const scrollOrSlider = el.querySelectorAll<HTMLElement>(
-      type === "scroll" ? ".ms-bar" : ".ms-slider",
-    );
-    if (scrollOrSlider.length < 1) return;
+    if (!scrollBarsRef.current.size) return;
 
     const handler = (event: PointerEvent | MouseEvent) => {
       // динамический mouseup в таком виде помог решить проблему с исчезновением и залипанием thumb
@@ -1415,7 +1398,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return;
       }
 
-      scrollOrSlider.forEach((el) => {
+      Array.from(scrollBarsRef.current).forEach((el) => {
         hoverHandler({
           el,
           event,
@@ -1429,7 +1412,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       fn: (event: any) => void,
     ) => {
       if (isTouchedRef.current) {
-        scrollOrSlider.forEach((bar) => bar[type]("pointerdown", fn)); // на сам thumb
+        Array.from(scrollBarsRef.current).forEach((bar) =>
+          bar[type]("pointerdown", fn),
+        ); // на сам thumb
         document[type]("pointerup", fn);
         document[type]("pointercancel", fn);
       } else {
@@ -1448,6 +1433,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     type,
     // почему-то при изменении direction отваливается ивент
     direction,
+    scrollBarsRef.current.size,
   ]);
 
   // отделил потому что size может вычисляться позже при "auto"
@@ -1653,7 +1639,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     (): React.CSSProperties => ({
       width: `${sizeLocal[2]}px`,
       height: `${sizeLocal[3]}px`,
-      position: "relative",
     }),
     [sizeLocal],
   );
@@ -1778,6 +1763,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           isTouched={isTouchedRef.current}
           scrollStateRef={scrollStateRef}
           scrollEl={scrollElementRef}
+          scrollBarsRef={scrollBarsRef}
+          triggerUpdate={triggerRAF}
         />
       );
     });
@@ -1836,8 +1823,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         ref={scrollContentRef}
         style={{
           ...contentBoxStyle,
-          // блокируем touch оставляя только zoom (тут что бы захватить thumb)
           transform: "translateZ(0)", // помогает оптимизировать отображение
+          // блокируем touch оставляя только zoom (тут что бы захватить thumb)
           ...(isTouchedRef.current && {
             touchAction: "pinch-zoom",
           }),
