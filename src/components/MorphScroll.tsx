@@ -1650,9 +1650,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const containerStyle = React.useMemo(
-    () => ({
+    (): React.CSSProperties => ({
       width: `${sizeLocal[2]}px`,
       height: `${sizeLocal[3]}px`,
+      position: "relative",
     }),
     [sizeLocal],
   );

@@ -31,8 +31,8 @@ const handleArrow = ({
   const left = scrollElement.scrollLeft;
 
   // - funcs -
-  const getMaxValue = (dir: "x" | "y") => {
-    return dir === "x" ? scrollSize[0] - width : scrollSize[1] - height;
+  const getMaxValue = (dir: "x" | "y", delta: 1 | -1) => {
+    return dir === "x" ? (delta > 0 ? 0 : width) : delta > 0 ? 0 : height;
   };
 
   const getNewPosition = (dir: "x" | "y", delta: 1 | -1) => {
@@ -50,9 +50,8 @@ const handleArrow = ({
     return step * nextPage;
   };
 
-  const scrollTo = (dir: "x" | "y", define: 1 | -1 | "max") => {
-    const value =
-      define === "max" ? getMaxValue(dir) : getNewPosition(dir, define);
+  const scrollTo = (dir: "x" | "y", delta: 1 | -1, loop?: boolean) => {
+    const value = loop ? getMaxValue(dir, delta) : getNewPosition(dir, delta);
 
     smoothScroll(value, dir, duration);
   };
@@ -61,22 +60,22 @@ const handleArrow = ({
   switch (arrowType) {
     case "top":
       if (top > 0) scrollTo("y", -1);
-      else if (loop) scrollTo("y", "max");
+      else if (loop) scrollTo("y", -1, true);
       break;
 
     case "left":
       if (left > 0) scrollTo("x", -1);
-      else if (loop) scrollTo("x", "max");
+      else if (loop) scrollTo("x", -1, true);
       break;
 
     case "right":
       if (left + scrollSize[0] < width) scrollTo("x", 1);
-      else if (loop) scrollTo("x", "max");
+      else if (loop) scrollTo("x", 1, true);
       break;
 
     case "bottom":
       if (top + scrollSize[1] < height) scrollTo("y", 1);
-      else if (loop) scrollTo("y", "max");
+      else if (loop) scrollTo("y", 1, true);
       break;
   }
 };
