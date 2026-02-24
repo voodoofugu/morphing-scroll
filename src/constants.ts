@@ -8,15 +8,21 @@ const CONST = {
 
   // инерция для прокрутки
   MIN_VELOCITY: 0.05, // px/ms
-  INERTIA_FRAME_SCALE: 16, // px/ms → px/frame
   MIN_DISTANCE: 12, // px
-  INERTIA_FRICTION: 0.004, // сила торможения (меньше → дольше катится, своего рода сила трения)!
-  INERTIA_MIN_VELOCITY: 0.3, // порог остановки
+  INERTIA_FRICTION: 0.0025, // сила торможения (меньше → дольше катится, своего рода сила трения)!
+  INERTIA_MIN_VELOCITY: 0.02, // порог остановки
   INERTIA_EDGE_DAMPING: 0.4, // TODO наверно убрать для реализации резинки контента (демпфирование у краёв)
   INERTIA_RELEASE_TIMEOUT: 80, // ms — максимум пауза между движением и отпусканием
-  INERTIA_BOOST_EXP: 0.85, // кривая усиления (>0.7 и <1 даёт «пружину»)
+  INERTIA_BOOST_EXP: 0.92, // кривая усиления (>0.7 и <1 даёт «пружину»)
   INERTIA_MAX_SPEED: 80, // максимальная px/frame
-  INERTIA_MIN_START: 1.2, // минимальный старт, чтобы не «умирало»
+  INERTIA_MIN_START: 0.2, // минимальный старт, чтобы не «умирало»
+  INERTIA_EASE_TIME: 120, // ms мягкий переход после отпускания
+  INERTIA_FRICTION_START: 0.0012, // слабое начальное трение
+
+  // - spring-bounce -
+  RUBBER_STIFFNESS: 0.1, // чем меньше тем сильнее пружина
+  BOUNCE_MAX_OVERSCROLL: 100, // ограничение растяжения (px)
+  MICRO_DAMPENING: 0.6, // добавляется при смене направления растяжения
 };
 
 export default CONST;

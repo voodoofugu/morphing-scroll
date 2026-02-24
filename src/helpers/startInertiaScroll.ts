@@ -1,4 +1,5 @@
 import CONST from "../../src/constants";
+import clampValue from "../helpers/clampValue";
 
 type InertiaArgs = {
   el: HTMLDivElement;
@@ -8,20 +9,16 @@ type InertiaArgs = {
 };
 
 function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
-  // --- нормализация и усиление начальной скорости ---
   const sign = Math.sign(velocity);
   let v0 = Math.abs(velocity);
 
-  // нелинейное усиление (ощущение массы)
+  // нелинейное усиление
   v0 = Math.pow(v0, CONST.INERTIA_BOOST_EXP);
 
-  // минимальный старт (чтобы мелкие жесты не тухли сразу)
+  // минимальный старт
   if (v0 < CONST.INERTIA_MIN_START) {
     v0 = CONST.INERTIA_MIN_START;
   }
-
-  // жёсткий clamp сверху
-  v0 = Math.min(v0, CONST.INERTIA_MAX_SPEED);
 
   velocity = v0 * sign;
 
@@ -36,25 +33,27 @@ function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
 
   const step = () => {
     const now = performance.now();
-    const delta = now - lastTime;
+    const delta = now - lastTime; // ms
     lastTime = now;
 
-    // --- экспоненциальное затухание по времени ---
+    // экспоненциальное затухание
     velocity *= Math.exp(-CONST.INERTIA_FRICTION * delta);
 
     if (Math.abs(velocity) < CONST.INERTIA_MIN_VELOCITY) {
       return;
     }
 
-    let next = el[prop] + velocity;
+    // ВАЖНО: движение теперь time-based
+    let next = el[prop] + velocity * delta;
 
-    // --- мягкое ограничение по границам (без жёсткого стопа) ---
+    // границы хотя браузер и сам делает clump
     if (next < 0 || next > max) {
       velocity *= CONST.INERTIA_EDGE_DAMPING;
-      next = Math.max(0, Math.min(max, next));
+      next = clampValue(next, 0, max);
     }
 
     el[prop] = next;
+
     rafSchedule(step);
   };
 

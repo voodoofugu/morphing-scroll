@@ -33,7 +33,7 @@ import {
 } from "../helpers/calculateThumbSize";
 import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
 
-import { setTask } from "../helpers/taskManager";
+import { setTask, cancelTask } from "../helpers/taskManager";
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";
@@ -123,11 +123,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     animationFrameId: 0,
   });
   const isScrollingRef = React.useRef<boolean>(false);
-  const prevCoordsRef = React.useRef<{
-    x: number;
-    y: number;
-    leftover: number;
-  } | null>(null);
   const keyDownX = React.useRef<boolean>(false);
   const scrollDirTrackerRef = React.useRef(createScrollDirTracker()); // стабилизируем вызов
   const lastScrollTargetRef = React.useRef<{
@@ -136,6 +131,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }>({
     x: null,
     y: null,
+  });
+  const overscrollRef = React.useRef({
+    x: 0,
+    y: 0,
   });
 
   function useSizeRef() {
@@ -965,7 +964,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         direction,
         smoothScroll: smoothScrollLocal,
         sizeLocal: [sizeLocal[0], sizeLocal[1]],
-        prevCoordsRef,
         thumbSize: axisFromAtr === "x" ? thumbSizeMemo.x : thumbSizeMemo.y,
         axisFromAtr,
         duration: scrollPositionLocal.duration,
@@ -974,6 +972,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         isTouched: isTouchedRef.current,
         pointerId: event.pointerId,
         gap: gapLocal,
+        objectsWrapperSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
+        overscrollRef,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -987,6 +987,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       thumbSizeMemo.x,
       thumbSizeMemo.y,
       gapLocal.join(),
+      objectsWrapperWidthFull,
+      objectsWrapperHeightFull,
     ],
   );
 
@@ -1070,6 +1072,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // для обработки onScrollValue
   const handleScroll = React.useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
+      cancelTask("removeHover"); // удаляем task
+
       const el = scrollContentRef.current;
       const mainEl = customScrollRef.current;
       const scrollEl = scrollElementRef.current;
@@ -1115,9 +1119,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             scrollOrSlider.length > 0 &&
             !clickedObject.current
           ) {
-            scrollOrSlider.forEach((el) => {
-              removeHover(el);
-            });
+            // добавил в setTask что бы была задержка перед исчезновением thumbs
+            setTask(
+              () => {
+                scrollOrSlider.forEach((el) => {
+                  removeHover(el);
+                });
+              },
+              1000,
+              "removeHover",
+            );
           }
         },
         CONST.SCROLL_END_DELAY,
@@ -1765,6 +1776,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           scrollEl={scrollElementRef}
           scrollBarsRef={scrollBarsRef}
           triggerUpdate={triggerRAF}
+          overscroll={overscrollRef}
         />
       );
     });
@@ -1779,7 +1791,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       <div
         className="ms-objects-wrapper"
         ref={objectsWrapperRef}
-        style={wrapperStyle}
+        style={{
+          ...wrapperStyle,
+          ...((overscrollRef.current.x || overscrollRef.current.y) && {
+            transform: `translate(${overscrollRef.current.x}px, ${overscrollRef.current.y}px)`,
+          }),
+        }}
       >
         {validChildrenKeys.map((key, i) =>
           renderChild(key, i, scrollLeft, scrollTop),

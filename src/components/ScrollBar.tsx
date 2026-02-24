@@ -23,6 +23,10 @@ type ModifiedProps = Partial<MorphScrollT> & {
   scrollEl: React.RefObject<HTMLDivElement | null>;
   scrollBarsRef: React.RefObject<Set<HTMLElement>>;
   triggerUpdate: () => void;
+  overscroll: React.MutableRefObject<{
+    x: number;
+    y: number;
+  }>;
 };
 
 const ScrollBar = ({
@@ -43,16 +47,25 @@ const ScrollBar = ({
   scrollEl,
   scrollBarsRef,
   triggerUpdate,
+  overscroll,
 }: ModifiedProps) => {
   // - refs -
   const scrollBarRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
 
   // - vars -
-  const sliderContent = React.useMemo(() => {
-    if (type === "scroll" || !direction) return;
+  const axis = ["hybrid", "y"].includes(direction!) ? "y" : "x";
+  const dampeningOverscroll =
+    Math.abs(overscroll.current[axis]) * (thumbSize / 200);
+  const thumbSizeLocal = Math.max(thumbSize - dampeningOverscroll, 10);
+  const thumbSpaceLocal =
+    overscroll.current[axis] < 0
+      ? thumbSpace + dampeningOverscroll
+      : thumbSpace;
 
-    const axis = ["hybrid", "y"].includes(direction) ? "y" : "x";
+  const sliderContent = React.useMemo(() => {
+    if (type === "scroll") return;
+
     const neededSize = axis === "x" ? size[0] : size[1];
 
     return Array.from({ length: objLengthPerSize }, (_, index) => (
@@ -84,7 +97,6 @@ const ScrollBar = ({
     ));
   }, [
     objLengthPerSize,
-    direction,
     size,
     type,
     scrollBarEvent,
@@ -155,6 +167,7 @@ const ScrollBar = ({
 
   const axisSize = dataDirection === "x" ? size[0] : size[1];
 
+  // для позиционирования пользовательского бегунка (стабилизирует анимацию на height)
   const thumbFlex =
     type !== "scroll"
       ? ""
@@ -196,9 +209,9 @@ const ScrollBar = ({
             className="ms-thumb"
             ref={thumbRef}
             style={{
-              height: `${thumbSize}px`,
+              height: `${thumbSizeLocal}px`,
               // willChange: "transform, height", // свойство убирает артефакты во время анимации
-              transform: `translateY(${thumbSpace}px)`,
+              transform: `translateY(${thumbSpaceLocal}px)`,
               ...(progressTrigger?.progressElement && {
                 cursor: "grab",
               }),
