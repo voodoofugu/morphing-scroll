@@ -23,6 +23,7 @@ const CONST = {
   RUBBER_STIFFNESS: 0.1, // чем меньше тем сильнее пружина
   BOUNCE_MAX_OVERSCROLL: 100, // ограничение растяжения (px)
   MICRO_DAMPENING: 0.6, // добавляется при смене направления растяжения
+  OVERSCROLL_BACK_DURATION: 200, // ms — время возвращения после растяжения
 };
 
 export default CONST;

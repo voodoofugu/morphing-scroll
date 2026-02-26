@@ -11,10 +11,8 @@ function createSchedulerRAF() {
     rafId = requestAnimationFrame(() => {
       rafId = null;
 
-      const tasks = Array.from(queue);
+      queue.forEach((t) => t());
       queue.clear();
-
-      tasks.forEach((t) => t());
     });
   };
 

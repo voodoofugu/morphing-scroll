@@ -5,6 +5,10 @@ import { mouseOnEl } from "./mouseOn";
 import startInertiaScroll from "./startInertiaScroll";
 import clampValue from "./clampValue";
 import { cancelTask } from "./taskManager";
+import {
+  overscrollBackAnim,
+  stopOverscrollBackAnim,
+} from "./overscrollBackAnim";
 
 import CONST from "../constants";
 
@@ -252,7 +256,6 @@ const motionHandler = (
     if (Math.sign(state.raw) !== Math.sign(prevRaw)) {
       state.raw = 0;
       args.overscrollRef.current[axis] = 0;
-      args.objectsWrapperRef?.style.removeProperty("transform");
       args.triggerUpdate();
       return;
     }
@@ -334,6 +337,7 @@ const motionHandler = (
 };
 
 function handleMouseOrTouch(args: HandleMouseT) {
+  stopOverscrollBackAnim.stop();
   // удаляем RAF и задачу слайдера
   (["x", "y"] as const).forEach((axis) => {
     args.rafScrollAnim.cancel();
@@ -586,8 +590,11 @@ function handleUp(args: HandleUpT) {
 
   // сбрасываем
   prevCoords = null;
-  args.overscrollRef.current.x = 0;
-  args.overscrollRef.current.y = 0;
+
+  if (args.overscrollRef.current.x !== 0)
+    overscrollBackAnim(args.overscrollRef, "x", args.triggerUpdate);
+  if (args.overscrollRef.current.y !== 0)
+    overscrollBackAnim(args.overscrollRef, "y", args.triggerUpdate);
 
   el.releasePointerCapture(args.pointerId);
   args.clickedObject.current = null;
