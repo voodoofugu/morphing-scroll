@@ -49,7 +49,7 @@ async function smoothScroll(
       const animate = () => {
         const currentTime = performance.now();
         const timeElapsed = currentTime - startTime;
-        const progress = duration ? Math.min(timeElapsed / duration, 1) : 1;
+        const progress = Math.min(timeElapsed / duration, 1);
 
         scrollEl[topOrLeft] =
           startTopOrLeft + (targetScroll - startTopOrLeft) * progress;
@@ -57,7 +57,7 @@ async function smoothScroll(
         if (progress < 1) rafScrollAnim(animate);
       };
 
-      animate(); // запускаем
+      rafScrollAnim(animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
     },
     duration,
     `smoothScrollBlock${direction}`,
@@ -65,43 +65,47 @@ async function smoothScroll(
   );
 }
 
+const sliderCache = new WeakMap<
+  HTMLElement,
+  { elements: Element[]; lastIndex: number }
+>();
 const sliderCheck = (
   scrollEl: HTMLDivElement,
   scrollBars: Set<HTMLElement>,
-  sizeLocal: number[],
   direction: Exclude<MorphScrollT["direction"], undefined>,
+  objLengthPerSize: number[],
 ) => {
-  function checkActive(
-    elementsArray: NodeListOf<Element>,
-    size: number[],
-    scroll: HTMLDivElement,
-    direction: Exclude<MorphScrollT["direction"], undefined>,
-  ) {
-    const scrollPosition =
-      direction === "x" ? scroll.scrollLeft : scroll.scrollTop;
-
-    elementsArray.forEach((element, index) => {
-      const neededSize = direction === "x" ? size[0] : size[1];
-      const isActive =
-        scrollPosition >= neededSize * index &&
-        scrollPosition < neededSize * (index + 1);
-
-      if (isActive) {
-        element.classList.add("active");
-      } else {
-        element.classList.remove("active");
-      }
-    });
-  }
-
-  Array.from(scrollBars).forEach((els, i) => {
-    const allObj = els?.querySelectorAll(".ms-slider-element") ?? [];
-    if (!allObj.length) return;
-
-    // "hybrid" direction при i === 1
+  [...scrollBars].forEach((els, i) => {
+    let cache = sliderCache.get(els);
     const dir = i === 0 ? direction : "x";
+    const axisIndex = dir === "x" ? 0 : 1;
 
-    checkActive(allObj, sizeLocal, scrollEl, dir);
+    // Обновляем кэш только если изменилось количество элементов
+    if (!cache || cache.elements.length !== objLengthPerSize[axisIndex]) {
+      const elements = Array.from(els.querySelectorAll(".ms-slider-element"));
+
+      cache = { elements, lastIndex: -1 };
+      sliderCache.set(els, cache);
+    }
+
+    if (!cache.elements.length) return;
+
+    const scrollPosition =
+      dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+    const visibleSize =
+      dir === "x" ? scrollEl.clientWidth : scrollEl.clientHeight;
+    const half = visibleSize / 2;
+
+    // вычисляем индекс страницы
+    let activeIndex = Math.floor((scrollPosition + half) / visibleSize);
+
+    if (activeIndex === cache.lastIndex) return;
+
+    if (cache.lastIndex !== -1)
+      cache.elements[cache.lastIndex]?.classList.remove("active");
+    cache.elements[activeIndex]?.classList.add("active");
+
+    cache.lastIndex = activeIndex;
   });
 };
 

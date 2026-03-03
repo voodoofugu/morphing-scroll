@@ -136,6 +136,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     x: 0,
     y: 0,
   });
+  const isDraggingRef = React.useRef(false);
+  console.log("isDraggingRef", isDraggingRef.current);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -970,10 +972,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         scrollBarEdge: scrollBarEdgeLocal,
         rafScrollAnim,
         isTouched: isTouchedRef.current,
-        pointerId: event.pointerId,
         gap: gapLocal,
         objectsWrapperSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
         overscrollRef,
+        objLengthPerSize,
+        isDraggingRef,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -989,6 +992,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       gapLocal.join(),
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
+      objLengthPerSize,
     ],
   );
 
@@ -1028,19 +1032,23 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   const sliderCheckLocal = React.useCallback(() => {
     // защита от нулевых значений
-    if (!sizeLocal[0] || !sizeLocal[1]) return;
+    if (type === "scroll" || !sizeLocal[0] || !sizeLocal[1]) return;
 
-    const scrollEl = scrollElementRef.current;
-    if (!scrollContentRef.current || !scrollEl || !scrollBarsRef.current.size)
+    if (
+      !scrollContentRef.current ||
+      !scrollElementRef.current ||
+      !scrollBarsRef.current.size
+    )
       return;
 
-    // ограничение частоты вызова
-    setTask(
-      () => sliderCheck(scrollEl, scrollBarsRef.current, sizeLocal, direction),
-      CONST.DEBOUNCE_DELAY,
+    sliderCheck(
+      scrollElementRef.current,
+      scrollBarsRef.current,
+      direction,
+      objLengthPerSize,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sizeLocal.join(), direction, type]);
+  }, [sizeLocal.join(), direction, type, objLengthPerSize.join()]);
 
   const updateLoadedElementsKeysLocal = React.useCallback(() => {
     if (!objectsWrapperRef.current) return;
@@ -1182,6 +1190,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
   }, []);
 
+  // TODO
   // const onArrowKey = React.useCallback(
   //   (e: KeyboardEvent) => {
   //     raf.schedule(() => {
@@ -1240,6 +1249,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     validChildrenKeys.join(),
   ]);
 
+  // TODO
   // React.useEffect(() => {
   //   // эффект для нажатия стрелок
   //   if (isTouchedRef.current) return;
@@ -1450,7 +1460,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {
     if (type === "scroll") return;
-    sliderCheckLocal();
+    raf.schedule(sliderCheckLocal);
   }, [type, sliderCheckLocal, sizeLocal.join()]);
 
   // ♦ contents
@@ -1796,6 +1806,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ...((overscrollRef.current.x || overscrollRef.current.y) && {
             transform: `translate(${overscrollRef.current.x}px, ${overscrollRef.current.y}px)`,
           }),
+          ...(isDraggingRef.current && { pointerEvents: "none" }), // отключаем pointerEvents при перетаскивании что бы не было проблем с захватом thumb
         }}
       >
         {validChildrenKeys.map((key, i) =>

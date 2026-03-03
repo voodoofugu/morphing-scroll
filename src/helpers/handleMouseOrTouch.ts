@@ -69,13 +69,14 @@ type HandleMouseT = {
     cancel: () => void;
   };
   isTouched: boolean;
-  pointerId: number;
   gap: number[];
   objectsWrapperSize: number[];
   overscrollRef: React.MutableRefObject<{
     x: number;
     y: number;
   }>;
+  objLengthPerSize: number[];
+  isDraggingRef: React.MutableRefObject<boolean>;
 };
 
 type HandleMoveT = Omit<
@@ -186,10 +187,34 @@ const motionHandler = (
   if (!point) return;
 
   // --- инициализация предыдущей точки ---
+  const applyRubberBand = (drag: number, axis: "x" | "y", invert?: boolean) => {
+    if (drag === 0) return 0;
+
+    const viewportSize = axis === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
+    const K =
+      Math.max(CONST.MIN_THRESHOLD_SIZE, viewportSize) * CONST.RUBBER_STIFFNESS;
+
+    const abs = Math.abs(drag);
+
+    return clampValue(
+      (drag * K) / (K + (invert ? -abs : abs)),
+      -CONST.BOUNCE_MAX_OVERSCROLL,
+      CONST.BOUNCE_MAX_OVERSCROLL,
+    );
+  };
+
   if (!prevCoords) {
     prevCoords = {
-      x: { value: point.x, leftover: 0, raw: 0 },
-      y: { value: point.y, leftover: 0, raw: 0 },
+      x: {
+        value: point.x,
+        leftover: 0,
+        raw: applyRubberBand(args.overscrollRef.current.x, "x", true),
+      },
+      y: {
+        value: point.y,
+        leftover: 0,
+        raw: applyRubberBand(args.overscrollRef.current.y, "y", true),
+      },
     };
 
     return;
@@ -202,11 +227,11 @@ const motionHandler = (
     y: point.y - prev.y.value,
   };
 
-  // если checkMove больше 5px (запас), то считаем, что это scroll, и захватываем указатель
+  // если checkMove больше 2px (запас), то считаем, что это scroll, и захватываем указатель
   const stableCheckMove = Math.abs(checkMove[axis]);
-  if (!el.hasPointerCapture(args.pointerId) && stableCheckMove > 5) {
-    el.setPointerCapture(args.pointerId);
-  } else if (stableCheckMove < 6) checkMove[axis] += delta[axis];
+  if (stableCheckMove > 2) {
+    args.isDraggingRef.current = true;
+  } else if (stableCheckMove < 3) checkMove[axis] += delta[axis];
 
   // логика для плавного скроллинга пальцем
   if (args.isTouched) {
@@ -233,46 +258,14 @@ const motionHandler = (
   const topOrLeft = axis === "y" ? "scrollTop" : "scrollLeft";
   const wh = axis === "x" ? 0 : 1;
 
-  // - spring-bounce - если overscroll уже есть
-  const maxTopOrLeft =
-    axis === "x" ? args.maxTopOrLeft[0] : args.maxTopOrLeft[1];
-
-  const applyRubberBand = (drag: number) => {
-    const K =
-      (axis === "x" ? args.objectsWrapperSize[0] : args.objectsWrapperSize[1]) *
-      CONST.RUBBER_STIFFNESS;
-    return (drag * K) / (K + Math.abs(drag));
-  };
-
-  const state = prevCoords[axis];
-  if (state.raw !== 0) {
-    state.raw += delta[axis] * CONST.MICRO_DAMPENING;
-
-    args.overscrollRef.current[axis] = applyRubberBand(state.raw);
-    args.triggerUpdate();
-
-    // если пересекли 0 — полностью выходим
-    const prevRaw = state.raw - delta[axis] * CONST.MICRO_DAMPENING;
-    if (Math.sign(state.raw) !== Math.sign(prevRaw)) {
-      state.raw = 0;
-      args.overscrollRef.current[axis] = 0;
-      args.triggerUpdate();
-      return;
-    }
-
-    return;
-  }
-
-  // -
-
-  // обновление предыдущих координат, важно делать заранее
-  if (args.type === "slider") checkSliderThumbSize[axis] += move;
-
   // --- логика для thumb ---
   if (args.clickedObject.current === "thumb" && args.type !== "slider") {
     applyThumb(axis, args, move, prev[axis].leftover, thumbRatio);
     return;
   }
+
+  // обновление предыдущих координат для ! wrapp при slider
+  if (args.type === "slider") checkSliderThumbSize[axis] += move;
 
   // --- логика для wrapp ---
   if (args.clickedObject.current === "wrapp") {
@@ -284,19 +277,45 @@ const motionHandler = (
       return;
     }
 
+    // - spring-bounce -
+    // если overscroll уже есть
+    const state = prevCoords[axis];
+    if (state.raw !== 0) {
+      state.raw += delta[axis] * CONST.MICRO_DAMPENING;
+
+      args.overscrollRef.current[axis] = applyRubberBand(state.raw, axis);
+      args.triggerUpdate();
+
+      // если пересекли 0 — полностью выходим
+      const prevRaw = state.raw - delta[axis] * CONST.MICRO_DAMPENING;
+      if (Math.sign(state.raw) !== Math.sign(prevRaw)) {
+        state.raw = 0;
+        args.overscrollRef.current[axis] = 0;
+        args.triggerUpdate();
+        return;
+      }
+
+      return;
+    }
+
+    // только если overscroll нет — тогда двигаем scroll
     el[topOrLeft] += move / diff;
 
-    // - spring-bounce -
+    // если вышли за границу
+    const maxTopOrLeft =
+      axis === "x" ? args.maxTopOrLeft[0] : args.maxTopOrLeft[1];
+
     if (
       (el[topOrLeft] <= 0 && delta[axis] > 0) ||
       (el[topOrLeft] >= maxTopOrLeft && delta[axis] < 0)
     ) {
       state.raw += delta[axis];
-      args.overscrollRef.current[axis] = applyRubberBand(state.raw);
+      args.overscrollRef.current[axis] = applyRubberBand(state.raw, axis);
       args.triggerUpdate();
 
       return;
     }
+    // -
 
     return;
   }
@@ -337,7 +356,9 @@ const motionHandler = (
 };
 
 function handleMouseOrTouch(args: HandleMouseT) {
-  stopOverscrollBackAnim.stop();
+  // останавливаем overscroll анимацию назад, если она есть
+  stopOverscrollBackAnim();
+
   // удаляем RAF и задачу слайдера
   (["x", "y"] as const).forEach((axis) => {
     args.rafScrollAnim.cancel();
@@ -424,14 +445,16 @@ function handleMouseOrTouch(args: HandleMouseT) {
     // вычисления заранее размер для slider элемента thumb
     let sliderElSize: number[] | undefined;
     if (args.clickedObject.current === "thumb" && args.type === "slider") {
-      const getRectSize = (axis: "x" | "y") => {
-        const rect = args.scrollContentRef
-          ?.querySelector(".ms-slider-element.active")
-          ?.getBoundingClientRect();
-        if (!rect) return 1;
-        return axis === "x" ? rect.width : rect.height;
-      };
+      const bar = args.target?.closest(".ms-slider") as HTMLElement | null;
+      if (!bar) return;
 
+      const getRectSize = (axis: "x" | "y"): number => {
+        const rect = bar.getBoundingClientRect();
+        return Math.round(
+          (axis === "x" ? rect.width : rect.height) /
+            args.objLengthPerSize[axis === "x" ? 0 : 1],
+        );
+      };
       sliderElSize = [getRectSize("x"), getRectSize("y")];
     }
 
@@ -457,15 +480,13 @@ function handleMouseOrTouch(args: HandleMouseT) {
   document.addEventListener(
     "pointermove",
     (e) => {
-      if (e.pointerId !== args.pointerId) return;
       onMoveLocal(e);
     },
     { signal },
   );
 
   const endHandler = (e: PointerEvent) => {
-    if (e.pointerId !== args.pointerId) return; // убираем лишние события
-    el.releasePointerCapture(args.pointerId);
+    args.isDraggingRef.current = false; // сбрасываем флаг перетаскивания заранее
 
     handleUp({
       ...args,
@@ -505,7 +526,6 @@ function handleMove(args: HandleMoveT) {
 }
 
 function handleUp(args: HandleUpT) {
-  if (args.pointerId !== args.pointerId) return; // убирает все лишние события типа click (клики по контенту)
   abortController?.abort(); // удаляем слушатели
 
   const el = args.scrollElementRef as HTMLDivElement;
@@ -518,25 +538,26 @@ function handleUp(args: HandleUpT) {
   if (args.type === "slider" && args.clickedObject.current !== "thumb") {
     const acc = checkSliderThumbSize; // размеры передвижения
 
-    const runScroll = (dir: "x" | "y", math: "floor" | "ceil") => {
+    const runScroll = (dir: "x" | "y", deltaDir?: 1 | -1) => {
       const isX = dir === "x";
-
       const position = el[isX ? "scrollLeft" : "scrollTop"];
       const gapPerDir = isX ? args.gap[0] : args.gap[1];
       const clientSize = el[isX ? "clientWidth" : "clientHeight"];
 
       const step = clientSize + gapPerDir;
 
-      const page = Math[math](Math.max(0, position) / step);
+      const currentPage = Math[
+        !deltaDir ? "round" : deltaDir > 0 ? "floor" : "ceil"
+      ](position / step);
+      const nextPage = currentPage + (deltaDir ?? 0);
 
-      // return step * nextPage;
-      args.smoothScroll(step * page, dir, args.duration);
+      args.smoothScroll(step * nextPage, dir, args.duration);
     };
 
     const resolveScroll = (dir: "x" | "y", value: number) => {
       // запас 20px для перелистывания
-      if (Math.abs(value) > 20) runScroll(dir, value > 0 ? "ceil" : "floor");
-      else runScroll(dir, value < 0 ? "ceil" : "floor"); // возвращает назад
+      if (Math.abs(value) > 20) runScroll(dir, value > 0 ? 1 : -1);
+      else runScroll(dir); // возвращает назад
     };
 
     if (acc.x === 0 && acc.y === 0) {
@@ -588,15 +609,13 @@ function handleUp(args: HandleUpT) {
     }
   }
 
-  // сбрасываем
+  // - сбрасываем -
   prevCoords = null;
-
   if (args.overscrollRef.current.x !== 0)
     overscrollBackAnim(args.overscrollRef, "x", args.triggerUpdate);
   if (args.overscrollRef.current.y !== 0)
     overscrollBackAnim(args.overscrollRef, "y", args.triggerUpdate);
 
-  el.releasePointerCapture(args.pointerId);
   args.clickedObject.current = null;
   velocity = {
     x: 0,
@@ -610,6 +629,7 @@ function handleUp(args: HandleUpT) {
     x: 0,
     y: 0,
   };
+
   // обновляем
   args.triggerUpdate();
 }

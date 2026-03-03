@@ -57,7 +57,7 @@ const ScrollBar = ({
   const axis = ["hybrid", "y"].includes(direction!) ? "y" : "x";
   const dampeningOverscroll =
     Math.abs(overscroll.current[axis]) * (thumbSize / 200);
-  const thumbSizeLocal = Math.max(thumbSize - dampeningOverscroll, 10);
+  const thumbSizeLocal = thumbSize - dampeningOverscroll;
   const thumbSpaceLocal =
     overscroll.current[axis] < 0
       ? thumbSpace + dampeningOverscroll
@@ -155,7 +155,7 @@ const ScrollBar = ({
     return () => {
       scrollBarsRef.current.delete(el);
     };
-  }, []);
+  }, [thumbSize]);
 
   const commonStyles: React.CSSProperties = {
     position: "absolute",
@@ -224,7 +224,7 @@ const ScrollBar = ({
           </div>
         </div>
       ) : (
-        objLengthPerSize > 1 &&
+        objLengthPerSize > 1 && // что бы не показывать один бегунок при size: 1
         progressTrigger?.progressElement && (
           <div
             className={`ms-slider ms-${dataDirection}`}
@@ -262,4 +262,4 @@ const ScrollBar = ({
 };
 
 ScrollBar.displayName = "ScrollBar";
-export default React.memo(ScrollBar);
+export default ScrollBar;

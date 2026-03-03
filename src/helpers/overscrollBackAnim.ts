@@ -15,23 +15,25 @@ const overscrollBackAnim = (
   const startValue = overscroll.current[axis];
   const startTime = performance.now();
 
-  rafLoop.stop();
   rafLoop.start(() => {
     const now = performance.now();
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / CONST.OVERSCROLL_BACK_DURATION, 1);
 
-    overscroll.current[axis] = startValue * (1 - progress);
-    updater();
-
     if (progress >= 1) {
       overscroll.current[axis] = 0;
       updater();
-      return false; // остановить loop
+      return false; // остановить анимацию
     }
 
+    overscroll.current[axis] = startValue * (1 - progress);
+    updater();
     return true; // продолжить
   });
 };
 
-export { overscrollBackAnim, rafLoop as stopOverscrollBackAnim };
+const stopOverscrollBackAnim = () => {
+  rafLoop.stop();
+};
+
+export { overscrollBackAnim, stopOverscrollBackAnim };
