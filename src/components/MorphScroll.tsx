@@ -90,11 +90,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ errors
   const errorText = (propName: string) =>
-    `Prop "${propName}" is not provided\nmorph-scroll ${id}`;
+    `prop "${propName}" is not provided\n  morph-scroll ${id}`;
 
   if (!size) throw new Error(errorText("size"));
   if (Object.keys(progressTrigger).length === 0)
     console.error(errorText("progressTrigger"));
+  if (objectsSize === "none" && render) console.error(errorText("objectsSize"));
 
   // ♦ refs
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -137,7 +138,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     y: 0,
   });
   const isDraggingRef = React.useRef(false);
-  console.log("isDraggingRef", isDraggingRef.current);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({

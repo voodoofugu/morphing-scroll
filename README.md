@@ -85,7 +85,7 @@ allows you to add additional classes to the component.</em><br />
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-React.ReactNode<br />
+ReactNode<br />
 <br />
 <b>Description:</b><em><br />
 allows you to add custom content to the component.<br />
@@ -546,11 +546,11 @@ Also, each edge element gets the <code>--edge-visibility</code> variable in the 
   <ul> 
     wheel?: boolean | { changeDirection?: boolean; changeDirectionKey?: string };<br />
     content?: boolean;<br />
-    progressElement?: boolean | React.ReactNode | React.ReactNode[];<br />
-    arrows?: boolean | React.ReactNode<br />
+    progressElement?: boolean | ReactNode | ReactNode[];<br />
+    arrows?: boolean | ReactNode<br />
     | {<br />
       <ul>
-        element?: React.ReactNode;<br />
+        element?: ReactNode;<br />
         size?: number;<br />
         contentReduce?: boolean;<br />
         loop?: boolean;<br />
@@ -742,16 +742,24 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 ###### **— OPTIMIZATIONS —**
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-"lazy" | "virtual"<br />
-| {<br />
-<ul>
-  type: "lazy" | "virtual";<br />
-  rootMargin?: number | number[];<br />
-  stopLoadOnScroll?: boolean;<br />
-  trackVisibility?: boolean;<br />
-</ul>
-}<br />
+<b>Using:</b><br />
+<em>simple</em>
+
+```tsx
+renderMode: "lazy" || "virtual";
+```
+
+<em>advanced</em>
+
+```tsx
+renderMode: {
+  type: "lazy" || "virtual", // required
+  rootMargin: 100 || [100, 200],
+  stopLoadOnScroll: true,
+  trackVisibility: true
+}
+```
+
 <br />
 <b>Description:</b><em><br />
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
@@ -793,7 +801,7 @@ sets the <code>--content-visibility</code> variable for list item wrapper styles
 <b>Type:</b><br />
 {<br />
 <ul>
-  mode: "clear" | "fallback" | { fallback: React.ReactNode };<br />
+  mode: "clear" | "fallback" | { fallback: ReactNode };<br />
   clickTrigger?: string | { selector: string; delay?: number };<br />
 </ul>
 }<br />
@@ -805,7 +813,7 @@ this option will allow you to delete or replace empty list items during the firs
 <ul>
   <li><b>"clear"</b> – automatically removes empty elements.</li>
   <li><b>"fallback"</b> – replaces empty elements with the value from the <code>fallback</code> props.</li>
-  <li><b>{ fallback: React.ReactNode }</b> – if you need a different element than in <code>fallback</code> to replace empty elements, you can use this option.</li>
+  <li><b>{ fallback: ReactNode }</b> – if you need a different element than in <code>fallback</code> to replace empty elements, you can use this option.</li>
 </ul>
 <br />
 <code>clickTrigger</code>:<br />
@@ -863,7 +871,7 @@ adds React Suspense to the MorphScroll component for async rendering.</em><br />
 
 <details><summary><b><code>fallback</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-React.ReactNode<br />
+ReactNode<br />
 <br />
 <b>Description:</b><em><br />
 sets the fallback element to display during loading or placeholder.<br />
@@ -915,7 +923,7 @@ allows you to add additional classes to the component.</em><br />
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-React.ReactNode<br />
+ReactNode<br />
 <br />
 <b>Description:</b><em><br />
 allows you to add custom content to the component.</em><br />
@@ -932,7 +940,7 @@ allows you to add custom content to the component.</em><br />
 
 <details><summary><b><code>style</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-React.CSSProperties<br />
+CSSProperties<br />
 <br />
 <b>Example:</b>
 
@@ -1032,7 +1040,7 @@ allows you to add additional classes to the component.</em><br />
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-React.ReactNode<br />
+ReactNode<br />
 <br />
 <b>Example:</b>
 
@@ -1046,7 +1054,7 @@ React.ReactNode<br />
 
 <details><summary><b><code>style</code></b></summary><br /><ul><div>
 <b>Type:</b><br />
-React.CSSProperties<br />
+CSSProperties<br />
 <br />
 <b>Example:</b>
 
