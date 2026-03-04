@@ -720,7 +720,7 @@ number<br />
 30<br />
 <br />
 <b>Description:</b><em><br />
-if the scrollable content is long, this option sets the minimum size (in pixels) of the scroll bar thumb automatically.<br />
+if the scrollable content is long, this option sets the minimum size (in px) of the scroll bar thumb automatically.<br />
 <br />
 ✦ Note:<br />
 this parameter is only used when <code>type="scroll"</code> is set.</em><br />
@@ -756,7 +756,7 @@ render: "lazy"; // or "virtual"
 ```tsx
 render: {
   type: "lazy", // or "virtual" (required)
-  rootMargin: 100, // or [100, 200]
+  rootMargin: 100, // or [100, 200] | [100, 200, 400, 200] 
   stopLoadOnScroll: true,
   trackVisibility: true
 }
@@ -769,22 +769,24 @@ render: {
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
 <br />
-<code>type</code>:<br />
 
 <ul>
-  <li><b>"lazy"</b> - render once when visible.</li>
-  <li><b>"virtual"</b> - render only when visible.</li>
+  <li><code>type</code>:<br />
+    <ul>
+      <li><b>"lazy"</b> - render once when visible.</li>
+      <li><b>"virtual"</b> - render only when visible.</li>
+    </ul>
+  </li>
+  <li><code>rootMargin</code>:<br />
+  controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px for each side (top, right, bottom, left).
+  </li>
+  <li><code>stopLoadOnScroll</code>:<br />
+  controls whether to stop loading content when scrolling.
+  </li>
+  <li><code>trackVisibility</code>:<br />
+  sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.
+  </li>
 </ul>
-<br />
-<code>rootMargin</code>:<br />
-controls the threshold for loading content. It can be a single number or an array of 2 or 4 numbers. It is the distance for loading from the root element ( <b>.ms-element</b> ) in pixels.<br />
-<br />
-<code>stopLoadOnScroll</code>:<br />
-controls whether to stop loading content when scrolling.<br />
-<br />
-<code>trackVisibility</code>:<br />
-sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.<br />
-<br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />
 <br />
