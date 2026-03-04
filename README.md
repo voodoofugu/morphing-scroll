@@ -769,20 +769,20 @@ render: {
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
 <br />
-<code>type</code>:
+<code><b>type</b></code>:
 
 <ul>
   <li><b>"lazy"</b> - render once when visible.</li>
   <li><b>"virtual"</b> - render only when visible.</li>
 </ul>
 <br />
-<code>rootMargin</code>:<br />
+<code><b>rootMargin</b></code>:<br />
 controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px for each side (top, right, bottom, left).<br />
 <br />
-<code>stopLoadOnScroll</code>:<br />
+<code><b>stopLoadOnScroll</b></code>:<br />
 controls whether to stop loading content when scrolling.<br />
 <br />
-<code>trackVisibility</code>:<br />
+<code><b>trackVisibility</b></code>:<br />
 sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.<br />
 <br />
 ✦ Note:<br />
