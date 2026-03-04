@@ -743,23 +743,27 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
-
-<em>Simple:</em>
-
+<ul>
+  <li>simple:<br />
+  
 ```tsx
 render: "lazy"; // or "virtual"
 ```
 
-<em>Advanced:</em>
-
+  </li>
+  <li>advanced:<br />
+  
 ```tsx
 render: {
   type: "lazy", // or "virtual" (required)
-  rootMargin: 100 // or [100, 200],
+  rootMargin: 100, // or [100, 200]
   stopLoadOnScroll: true,
   trackVisibility: true
 }
 ```
+
+  </li>
+</ul>
 
 <b>Description:</b><em><br />
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
