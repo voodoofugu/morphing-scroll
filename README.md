@@ -742,30 +742,27 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 ###### **— OPTIMIZATIONS —**
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
-<b>Using:</b><br />
-<em>simple</em>
+<b>Usage:</b><br />
 
 ```tsx
-renderMode: "lazy" || "virtual";
-```
+// simple
+renderMode: "lazy"; // or "virtual"
 
-<em>advanced</em>
-
-```tsx
+// advanced
 renderMode: {
-  type: "lazy" || "virtual", // required
-  rootMargin: 100 || [100, 200],
+  type: "lazy", // or "virtual" -required-
+  rootMargin: 100 // or [100, 200],
   stopLoadOnScroll: true,
   trackVisibility: true
 }
 ```
 
-<br />
 <b>Description:</b><em><br />
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
 <br />
 <code>type</code>:<br />
+
 <ul>
   <li><b>"lazy"</b> - render once when visible.</li>
   <li><b>"virtual"</b> - render only when visible.</li>
