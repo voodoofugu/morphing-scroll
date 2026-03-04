@@ -743,20 +743,21 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
+Accepts a string for simple mode or an object for advanced configuration.
 <ul>
-  <li>simple:<br />
+  <li><b>Simple</b>:<br />
   
 ```tsx
 render: "lazy"; // or "virtual"
 ```
 
   </li>
-  <li>advanced:<br />
+  <li><b>Advanced</b>:<br />
   
 ```tsx
 render: {
   type: "lazy", // or "virtual" (required)
-  rootMargin: 100, // or [100, 200] | [100, 200, 400, 200] 
+  rootMargin: 100, // or [v, h] | [t, r, b, l]
   stopLoadOnScroll: true,
   trackVisibility: true
 }
@@ -777,7 +778,7 @@ When used, a container is created for each scrollable object, and its absolute p
 </ul>
 <br />
 <code><b>rootMargin</b></code>:<br />
-controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px for each side (top, right, bottom, left).<br />
+controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px.<br />
 <br />
 <code><b>stopLoadOnScroll</b></code>:<br />
 controls whether to stop loading content when scrolling.<br />
