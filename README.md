@@ -777,16 +777,20 @@ When used, a container is created for each scrollable object, and its absolute p
       <li><b>"virtual"</b> - render only when visible.</li>
     </ul>
   </li>
+  <br />
   <li><code>rootMargin</code>:<br />
   controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px for each side (top, right, bottom, left).
   </li>
+  <br />
   <li><code>stopLoadOnScroll</code>:<br />
   controls whether to stop loading content when scrolling.
   </li>
+  <br />
   <li><code>trackVisibility</code>:<br />
   sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.
   </li>
 </ul>
+<br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />
 <br />
