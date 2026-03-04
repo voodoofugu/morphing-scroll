@@ -817,10 +817,7 @@ emptyElements: "clear"; // or "fallback" | <YourFallback />
 ```tsx
 emptyElements: {
   mode: "clear", // or "fallback" | <YourFallback /> (required)
-  clickTrigger: ".your-selector", // or {
-  //   selector: ".your-selector"; (required)
-  //   delay: 100
-  // };
+  clickTrigger: ".your-btn", // or { selector: ".your-btn"; delay: 100 };
 }
 ```
 
@@ -828,18 +825,22 @@ emptyElements: {
 </ul>
 
 <b>Description:</b><em><br />
-this option will allow you to delete or replace empty list items during the first rendering, or to start this process by clicking<br />
+this option allows you to remove or replace empty list items during the initial render, or trigger this process via a click action<br />
 <br />
 <code><b>mode</b></code>:<br />
 
 <ul>
   <li><b>"clear"</b> – automatically removes empty elements.</li>
   <li><b>"fallback"</b> – replaces empty elements with the value from the <code>fallback</code> props.</li>
-  <li><b>{ fallback: React.ReactNode }</b> – if you need a different element than in <code>fallback</code> to replace empty elements, you can use this option.</li>
+  <li><b>{ fallback: React.ReactNode }</b> – allows you to override the default <code>fallback</code> content for this instance.</li>
 </ul>
 <br />
 <code><b>clickTrigger</b></code>:<br />
-in case if elements are removed via a click action, use this option. It accepts an object with a <code>selector</code> ( such as a delete button’s class ) and <code>delay</code> ( in <b>ms</b> ) to wait before removing the elements.<br />
+use this option if removal should be triggered by a click action..<br />
+<ul>
+  <li><b>"selector"</b> – CSS selector that triggers the removal.</li>
+  <li><b>"delay"</b> – delay before removal ( in <b>ms</b> ).</li>
+</ul>
 <br />
 ✦ Note:<br />
 <ul>
