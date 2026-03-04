@@ -743,18 +743,21 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
+<em>simple:</em>
 
 ```tsx
-// simple
-renderMode: "lazy"; // or "virtual"
+render = "lazy"; // or "virtual"
+```
 
-// advanced
-renderMode: {
+<em>advanced:</em>
+
+```tsx
+render={{
   type: "lazy", // or "virtual" -required-
   rootMargin: 100 // or [100, 200],
   stopLoadOnScroll: true,
   trackVisibility: true
-}
+}}
 ```
 
 <b>Description:</b><em><br />
