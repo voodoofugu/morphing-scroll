@@ -404,13 +404,13 @@ type MorphScrollT = {
    *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
    * - `stopLoadOnScroll`: *stops loading content when scrolling*
-   * - `trackVisibility`: *sets the `--content-visibility` variable for list item wrapper styles*
+   * - `trackVisibility`: *sets the `--content-visibility` variable*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   render="virtual"
+   *   render="lazy"
    * >
    *   {children}
    * </MorphScroll>
@@ -436,19 +436,20 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   emptyElements={{
-   *     mode: "clear",
-   *     clickTrigger: ".close-button"
-   *   }}
+   *   emptyElements="clear"
    * >
    *   {children}
    * </MorphScroll>
    *  ```
    */
-  emptyElements?: {
-    mode: "clear" | "fallback" | { fallback: React.ReactNode };
-    clickTrigger?: string | { selector: string; delay?: number };
-  };
+  emptyElements?:
+    | "clear"
+    | "fallback"
+    | React.ReactNode
+    | {
+        mode: "clear" | "fallback" | { fallback: React.ReactNode };
+        clickTrigger?: string | { selector: string; delay?: number };
+      };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***suspending***:

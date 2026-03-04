@@ -87,11 +87,15 @@ export type MorphScrollT = {
         stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll
         trackVisibility?: boolean;
       };
-  emptyElements?: {
-    // может переименовать mode
-    mode: "clear" | "fallback" | { fallback: React.ReactNode }; // TODO упростить до "clear" | "fallback" | React.ReactNode
-    clickTrigger?: string | { selector: string; delay?: number }; // TODO добавить префикс ms- к класс "remove"
-  };
+  emptyElements?:
+    | "clear"
+    | "fallback"
+    | React.ReactNode
+    | {
+        // TODO переименовать mode в content
+        mode: "clear" | "fallback" | { fallback: React.ReactNode }; // TODO упростить до "clear" | "fallback" | React.ReactNode
+        clickTrigger?: string | { selector: string; delay?: number }; // TODO добавить префикс ms- к класс "remove"
+      };
   suspending?: boolean;
   fallback?: React.ReactNode;
 };

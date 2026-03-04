@@ -244,7 +244,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       })
       .filter((key): key is string => key !== null)
       .filter((key) => {
-        if (emptyElements?.mode === "clear") {
+        if (
+          emptyElements === "clear" ||
+          (emptyElements &&
+            typeof emptyElements === "object" &&
+            "mode" in emptyElements &&
+            emptyElements.mode === "clear")
+        ) {
           return !objectsKeys.current.empty?.has(key);
         }
         return true;
@@ -1065,13 +1071,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // для обновления ключей при emptyElements
   const updateEmptyKeysClickLocal = React.useCallback(
     (event: React.MouseEvent) => {
-      if (!emptyElements?.clickTrigger) return;
-
-      updateEmptyKeysClick(
-        event,
-        emptyElements.clickTrigger,
-        updateLoadedElementsKeysLocal,
-      );
+      if (
+        emptyElements &&
+        typeof emptyElements === "object" &&
+        "clickTrigger" in emptyElements &&
+        emptyElements.clickTrigger !== undefined
+      ) {
+        updateEmptyKeysClick(
+          event,
+          emptyElements.clickTrigger,
+          updateLoadedElementsKeysLocal,
+        );
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [emptyElementsST, updateLoadedElementsKeysLocal],
@@ -1543,9 +1554,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       !objectsKeys.current.loaded.has(key)
         ? fallback
         : objectsKeys.current.empty?.has(key)
-          ? typeof emptyElements?.mode === "object"
-            ? emptyElements.mode.fallback
-            : fallback
+          ? emptyElements &&
+            typeof emptyElements === "object" &&
+            React.isValidElement(emptyElements)
+            ? emptyElements
+            : emptyElements &&
+                typeof emptyElements === "object" &&
+                "mode" in emptyElements &&
+                typeof emptyElements.mode === "object" &&
+                "fallback" in emptyElements.mode
+              ? emptyElements.mode.fallback
+              : fallback
           : child;
 
     // доп обработка для ResizeTracker
