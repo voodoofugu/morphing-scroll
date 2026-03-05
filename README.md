@@ -560,7 +560,11 @@ progressTrigger: {
   
 ```tsx
 progressTrigger: {
-  wheel: { changeDirection: true, changeDirectionKey: "someKay" }, // for direction="hybrid"
+  wheel: {
+    // only for direction="hybrid"
+    changeDirection: true,
+    changeDirectionKey: "someKay" // default "KeyX"
+  },
   progressElement: [<Elem1 />, <Elem2 />, <Elem3 />],
   arrows: {
     element: <ArrowComponent />,
@@ -582,23 +586,22 @@ this is one of the most important properties, allowing you to define how users i
 <br />
 <code><b>wheel</b></code>:<br />
 determines whether the progress bar responds to mouse wheel scrolling<br />
-<br />
 If you use <code>direction="hybrid"</code>, you can use:<br />
 
 <ul>
   <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li><br />
-  <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key (default: <b>"KeyX"</b>).<br />
+  <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key.<br />
   To disable this behavior, pass an empty string.<br />
   <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
 </ul>
 <br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-By using <code>content</code> drag scrolling will not work in these cases:
-interactive elements like:<br />
+By using <code>content</code> drag scrolling will not work in these cases:<br />
+interactive elements:<br />
 <code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code><br />
-elements they have attribute like:<br />
-<code>[draggable="true"]</code>, <code>[contenteditable]</code> and with custom attribute <code>[data-no-scroll]</code><br />
+elements with attribute:<br />
+<code>[draggable="true"]</code>, <code>[contenteditable]</code> and custom attribute - <code>[data-ms-no-drag]</code><br />
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
@@ -614,16 +617,11 @@ allows you to add custom arrows to the progress bar<br />
 <br />
 <ul>
   <li><code>element</code>: the custom arrow element.</li><br />
-  <li><code>size</code>: adds a custom size to the arrow.</li><br />
+  <li><code>size</code>: adds a custom size to the <b>.ms-arrow-box</b>.</li><br />
   <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
-<br />
-✦ Note:<br />
-<ul>
-  <li><code>progressTrigger</code> can only create or provide elements, but you must make the design for them yourself.</li>
-  <li>The Library scroll element in browser automatically receives <code>:focus</code> when you start scrolling with the mouse wheel.</li>
-</ul></em><br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
