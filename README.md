@@ -541,24 +541,39 @@ Also, each edge element gets the <code>--edge-visibility</code> variable in the 
 <h2></h2>
 
 <details><summary><b><code>progressTrigger</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-{<br />
-  <ul> 
-    wheel?: boolean | { changeDirection?: boolean; changeDirectionKey?: string };<br />
-    content?: boolean;<br />
-    progressElement?: boolean | React.ReactNode | React.ReactNode[];<br />
-    arrows?: boolean | React.ReactNode<br />
-    | {<br />
-      <ul>
-        element?: React.ReactNode;<br />
-        size?: number;<br />
-        contentReduce?: boolean;<br />
-        loop?: boolean;<br />
-      </ul>
-    };<br />
-  </ul>
-}<br />
-<br />
+<b>Usage:</b><br />
+
+<ul>
+  <li><b>Simple</b>:<br />
+  
+```tsx
+progressTrigger: {
+  wheel: true,
+  content: true,
+  progressElement: true, // or <ScrollThumbComponent />
+  arrows: true, // or <ArrowComponent />
+}
+```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+  
+```tsx
+progressTrigger: {
+  wheel: { changeDirection: true, changeDirectionKey: "someKay" }, // for direction="hybrid"
+  progressElement: [<Elem1 />, <Elem2 />, <Elem3 />],
+  arrows: {
+    element: <ArrowComponent />,
+    size: 60, // default 40px
+    contentReduce: true;
+    loop: true,
+  }
+}
+```
+
+  </li>
+</ul>
+
 <b>Default:</b><br />
 { wheel: true }<br />
 <br />
@@ -569,6 +584,7 @@ this is one of the most important properties, allowing you to define how users i
 determines whether the progress bar responds to mouse wheel scrolling<br />
 <br />
 If you use <code>direction="hybrid"</code>, you can use:<br />
+
 <ul>
   <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li><br />
   <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key (default: <b>"KeyX"</b>).<br />
@@ -578,20 +594,11 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 <br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-By using <code>content</code> drag scrolling will not work with interactive elements like:<br />
-<br />
-<ul>
-  <li><code>input</code></li><br />
-  <li><code>textarea</code></li><br />
-  <li><code>select</code></li><br />
-  <li><code>button</code></li><br />
-  <li><code>a</code></li><br />
-  or elements they have attribute like:<br />
-  <br />
-  <li><code>[draggable="true"]</code></li><br />
-  <li><code>[contenteditable]</code></li><br />
-  <li><code>[data-no-scroll]</code>: custom attribute that you can apply to cancel drag scrolling on it</li><br />
-</ul>
+By using <code>content</code> drag scrolling will not work in these cases:
+interactive elements like:<br />
+<code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code><br />
+elements they have attribute like:<br />
+<code>[draggable="true"]</code>, <code>[contenteditable]</code> and with custom attribute <code>[data-no-scroll]</code><br />
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
@@ -636,17 +643,14 @@ allows you to add custom arrows to the progress bar<br />
 <h2></h2>
 
 <details><summary><b><code>progressReverse</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-boolean | boolean[]<br />
-<br />
-<b>Default:</b><br />
-false<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+progressReverse: true; // or [true, false] for control each bar if direction="hybrid"
+```
+
 <b>Description:</b><em><br />
 this parameter changes the position of the progress bar in the opposite direction and depends on the <code>direction</code> property.<br />
-<br />
-✦ Note:<br />
-use it like an array to set different values for each direction when using <code>direction="hybrid"</code>.</em><br />
 <br />
 <b>Example:</b>
 
@@ -663,9 +667,12 @@ use it like an array to set different values for each direction when using <code
 <h2></h2>
 
 <details><summary><b><code>scrollBarOnHover</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-boolean<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+scrollBarOnHover: true;
+```
+
 <b>Default:</b><br />
 false<br />
 <br />
@@ -688,12 +695,14 @@ When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when 
 <h2></h2>
 
 <details><summary><b><code>scrollBarEdge</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | number[]<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+scrollBarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
+```
+
 <b>Description:</b><em><br />
-defines the margin (in pixels) applied to the edges of the scroll bar, effectively reducing its size.<br />
-If you use <code>direction="hybrid"</code>, you can also pass an array of numbers to control each bar individually.<br />
+defines the margin (in <b>px</b>) applied to the edges of the scroll bar, effectively reducing its size.<br />
 <br />
 ✦ Note:<br />
 this parameter is only used when <code>type="scroll"</code> is set.</em><br />
@@ -713,14 +722,11 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 <h2></h2>
 
 <details><summary><b><code>thumbMinSize</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number<br />
-<br />
 <b>Default:</b><br />
-30<br />
+30px<br />
 <br />
 <b>Description:</b><em><br />
-if the scrollable content is long, this option sets the minimum size (in px) of the scroll bar thumb automatically.<br />
+if the scrollable content is long, this option sets the minimum size (in <b>px</b>) of the scroll bar thumb automatically.<br />
 <br />
 ✦ Note:<br />
 this parameter is only used when <code>type="scroll"</code> is set.</em><br />
@@ -808,7 +814,7 @@ sets the <code>--content-visibility</code> variable for list item wrapper styles
   <li><b>Simple</b>:<br />
   
 ```tsx
-emptyElements: "clear"; // or "fallback" | <YourFallback />
+emptyElements: "clear"; // or "fallback" | <FallbackComponent />
 ```
 
   </li>
@@ -816,8 +822,8 @@ emptyElements: "clear"; // or "fallback" | <YourFallback />
   
 ```tsx
 emptyElements: {
-  mode: "clear", // or "fallback" | <YourFallback /> (required)
-  clickTrigger: ".your-btn", // or { selector: ".your-btn"; delay: 100 };
+  mode: "clear", // or "fallback" | <FallbackComponent /> (required)
+  clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
 }
 ```
 
@@ -836,7 +842,7 @@ this option allows you to remove or replace empty list items during the initial 
 </ul>
 <br />
 <code><b>clickTrigger</b></code>:<br />
-use this option if removal should be triggered by a click action..<br />
+use this option if removal should be triggered by a click action.<br />
 <ul>
   <li><b>"selector"</b> – CSS selector that triggers the removal.</li>
   <li><b>"delay"</b> – delay before removal ( in <b>ms</b> ).</li>
@@ -865,9 +871,12 @@ use this option if removal should be triggered by a click action..<br />
 <h2></h2>
 
 <details><summary><b><code>suspending</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-boolean<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+suspending: true;
+```
+
 <b>Default:</b><br />
 false<br />
 <br />
@@ -887,13 +896,11 @@ adds React Suspense to the MorphScroll component for async rendering.</em><br />
 <h2></h2>
 
 <details><summary><b><code>fallback</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-React.ReactNode<br />
-<br />
 <b>Description:</b><em><br />
 sets the fallback element to display during loading or placeholder.<br />
 <br />
 It will be used when:
+
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>

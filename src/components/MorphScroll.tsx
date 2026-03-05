@@ -920,7 +920,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsSizing[1],
     objectsWrapperHeight,
     objectsWrapperWidth,
-    progressTrigger.content,
     gapST,
     renderLocal.type,
     direction,
@@ -1190,7 +1189,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [direction, `${progressTrigger.wheel}`],
+    [direction, progressTriggerST],
   );
   const onKeyUp = React.useCallback((e: KeyboardEvent) => {
     if (keyDownX.current) {
@@ -1252,7 +1251,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, [
     direction,
-    `${progressTrigger.wheel}`,
+    progressTriggerST,
     // при изменении размеров
     sizeST,
     objectsSizeST,
@@ -1735,7 +1734,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       />
     ));
   }, [
-    progressTrigger.arrows,
+    progressTriggerST,
     getEdgeOrArrowData,
     arrowsLocal,
     handleArrowLocal,

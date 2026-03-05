@@ -73,7 +73,7 @@ export type MorphScrollT = {
         };
   };
   progressReverse?: boolean | boolean[]; // TODO переименовать в progressBarReverse или progressBarPosition
-  scrollBarOnHover?: boolean; // TODO добавить префикс ms- к "hover" и "leave" / расширить до {hover: boolean, duration: number}
+  scrollBarOnHover?: boolean; // TODO добавить префикс ms- к "hover" и "leave"
   scrollBarEdge?: number | number[];
   thumbMinSize?: number;
 
@@ -83,8 +83,8 @@ export type MorphScrollT = {
     | "virtual"
     | {
         type: "lazy" | "virtual";
-        rootMargin?: number | number[]; // TODO указать что это для top left right bottom
-        stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll
+        rootMargin?: number | number[];
+        stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll default true
         trackVisibility?: boolean;
       };
   emptyElements?:
