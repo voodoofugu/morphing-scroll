@@ -405,15 +405,32 @@ can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
 <h2></h2>
 
 <details><summary><b><code>wrapperMinSize</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | "full" | (number | "full")[]<br />
-<br />
+<b>Usage:</b><br />
+
+<ul>
+  <li><b>Simple</b>:<br />
+  
+```tsx
+wrapperMinSize: 10; // or "full"
+```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+  
+```tsx
+// if direction="hybrid"
+wrapperMinSize: [
+  "full",
+  10,
+] // or one value for both sides
+```
+
+  </li>
+</ul>
+
 <b>Description:</b><em><br />
 defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
-<br />
-✦ Note:<br />
-can be used as 1 value, or an array of 2 values.</em><br />
-<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -429,19 +446,34 @@ can be used as 1 value, or an array of 2 values.</em><br />
 <h2></h2>
 
 <details><summary><b><code>wrapperAlign</code></b></summary><br /><ul><div> 
-<b>Type:</b><br />
-"start" | "center" | "end"<br />
-| ("start" | "center" | "end")[]<br />
-<br />
+<b>Usage:</b><br />
+
+<ul>
+  <li><b>Simple</b>:<br />
+  
+```tsx
+wrapperAlign: "center"; // or "start" | "end"
+```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+  
+```tsx
+wrapperAlign: [
+  "center",
+  "start",
+] // or one value for both axes
+```
+
+  </li>
+</ul>
+
 <b>Default:</b><br />
 "start"<br />
 <br />
 <b>Description:</b><em><br />
 aligns the <b>.ms-objects-wrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
-<br />
-✦ Note:<br />
-use 1 value to align one or both axes, or an array of 2 values to align both axes.</em><br />
-<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -457,9 +489,12 @@ use 1 value to align one or both axes, or an array of 2 values to align both axe
 <h2></h2>
 
 <details><summary><b><code>elementsAlign</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-"start" | "center" | "end"<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+elementsAlign: "center"; // or "start" | "end"
+```
+
 <b>Default:</b><br />
 "start"<br />
 <br />
@@ -478,9 +513,12 @@ use 1 value to align one or both axes, or an array of 2 values to align both axe
 <h2></h2>
 
 <details><summary><b><code>elementsDirection</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-"row" | "column"<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+elementsDirection: "row"; // or "column"
+```
+
 <b>Default:</b><br />
 "row"<br />
 <br />
@@ -502,21 +540,37 @@ changes the order of the provided elements based on the provided value.</em><br 
 <h2></h2>
 
 <details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-boolean | string | { color?: string; size?: number }<br />
-<br />
-<b>Default:</b><br />
-{ size: 40 }<br />
-<br />
+<b>Usage:</b><br />
+
+<ul>
+  <li><b>Simple</b>:<br />
+  
+```tsx
+edgeGradient: true; // or "#fff"
+```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+  
+```tsx
+edgeGradient: {
+  color: "#fff",
+  size: 60, // default 40px
+}
+```
+
+  </li>
+</ul>
+
 <b>Description:</b><em><br />
 parameter creates several edge elements responsible for darkening the edges of the scroll when it overflows.<br />
 <br />
-<code>color</code>:<br />
+<code><b>color</b></code>:<br />
 property accepts any valid color format.
 If you provide it, the library will generate a gradient transitioning from the custom color to transparent.
 If you provide just <b>true</b>, the edge elements will have no color, allowing for custom styling via CSS class <code>.ms-edge</code>.<br />
 <br />
-<code>size</code>:<br />
+<code><b>size</b></code>:<br />
 property changes the height of the edges for the horizontal and the width of the edges for the vertical.<br />
 <br />
 If the edge element is inactive, it gets the <code>"ms-disabled"</code> class.<br />
@@ -561,7 +615,7 @@ progressTrigger: {
 ```tsx
 progressTrigger: {
   wheel: {
-    // for direction="hybrid" only
+    // if direction="hybrid"
     changeDirection: true,
     changeDirectionKey: "someKay" // default "KeyX"
   },
@@ -644,12 +698,12 @@ allows you to add custom arrows to the progress bar<br />
 <b>Usage:</b><br />
 
 ```tsx
-progressReverse: true; // or [true, false] for control each bar if direction="hybrid"
+progressReverse: true; // or [true, false] if direction="hybrid"
 ```
 
 <b>Description:</b><em><br />
 this parameter changes the position of the progress bar in the opposite direction and depends on the <code>direction</code> property.<br />
-<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -671,13 +725,10 @@ this parameter changes the position of the progress bar in the opposite directio
 scrollBarOnHover: true;
 ```
 
-<b>Default:</b><br />
-false<br />
-<br />
 <b>Description:</b><em><br />
 this parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
-When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.</em><br />
-<br />
+When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -703,8 +754,8 @@ scrollBarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
 defines the margin (in <b>px</b>) applied to the edges of the scroll bar, effectively reducing its size.<br />
 <br />
 ✦ Note:<br />
-this parameter is only used when <code>type="scroll"</code> is set.</em><br />
-<br />
+this parameter is only used when <code>type="scroll"</code> is set.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -727,8 +778,8 @@ this parameter is only used when <code>type="scroll"</code> is set.</em><br />
 if the scrollable content is long, this option sets the minimum size (in <b>px</b>) of the scroll bar thumb automatically.<br />
 <br />
 ✦ Note:<br />
-this parameter is only used when <code>type="scroll"</code> is set.</em><br />
-<br />
+this parameter is only used when <code>type="scroll"</code> is set.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -790,8 +841,8 @@ controls whether to stop loading content when scrolling.<br />
 sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.<br />
 <br />
 ✦ Note:<br />
-<code>render</code> is not compatible with <code>objectsSize: "none"</code>.</em><br />
-<br />
+<code>render</code> is not compatible with <code>objectsSize: "none"</code>.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -852,8 +903,8 @@ use this option if removal should be triggered by a click action.<br />
   <li>If you use <code>clickTrigger</code>:<br />
   - consider increasing <code>delay</code>, since the cleanup may run before removal.<br />
   - the wrapper <code>.ms-object-box</code> also gets the <code>remove</code> class, which you can use e.g. for fade-out animations.</li>
-</ul></em>
-<br />
+</ul>
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -903,8 +954,8 @@ It will be used when:
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
   <li><code>emptyElements.mode</code> is set to <b>"fallback"</b>.</li> 
-</ul></em><br />
-<br />
+</ul>
+</em><br />
 <b>Example:</b>
 
 ```tsx
