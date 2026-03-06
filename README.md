@@ -561,7 +561,7 @@ progressTrigger: {
 ```tsx
 progressTrigger: {
   wheel: {
-    // only for direction="hybrid"
+    // for direction="hybrid" only
     changeDirection: true,
     changeDirectionKey: "someKay" // default "KeyX"
   },
