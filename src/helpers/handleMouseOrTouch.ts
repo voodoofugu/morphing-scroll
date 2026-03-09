@@ -631,7 +631,7 @@ function handleUp(args: HandleUpT) {
   };
 
   // обновляем
-  args.triggerUpdate();
+  return args.triggerUpdate();
 }
 
 export default handleMouseOrTouch;

@@ -392,9 +392,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     return [
       getSize(
-        objectsSizing[0] &&
-          objectsSizing[0] !== "none" &&
-          objectsSizing[0] !== "size"
+        objectsSizing[0] && typeof objectsSizing[0] === "number"
           ? objectsSizing[0]
           : (direction === "y" && objectsSizing[0] !== "none") ||
               objectsSizing[0] === "size"
@@ -403,9 +401,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         receivedChildSizeRef.current.width,
       ),
       getSize(
-        objectsSizing[1] &&
-          objectsSizing[1] !== "none" &&
-          objectsSizing[1] !== "size"
+        objectsSizing[1] && typeof objectsSizing[1] === "number"
           ? objectsSizing[1]
           : (direction === "x" && objectsSizing[1] !== "none") ||
               objectsSizing[1] === "size"
@@ -427,7 +423,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const objectsPerDirection = React.useMemo(() => {
     const isHorizontal = direction === "x";
     const isRow = elementsDirection === "row";
-    const isColumn = elementsDirection === "column";
 
     const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
     const objectSize = isHorizontal
@@ -469,10 +464,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : 1;
 
       const y = useCrossCount
-        ? isColumn
+        ? !isRow
           ? crossCount
           : objectsPerD
-        : isColumn
+        : !isRow
           ? validChildrenKeys.length
           : 1;
 
@@ -883,7 +878,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           mLocalX,
           mLocalY,
         )),
-      ...(wrapperAlign && { flexShrink: 0 }), // это решает проблему с уменьшением ширины при флексе на objectsWrapper
+      // ...(wrapperAlign && { flexShrink: 0 }), // это решает проблему с уменьшением ширины при флексе на objectsWrapper
     };
 
     if (renderLocal.type) {
@@ -1071,9 +1066,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const updateEmptyKeysClickLocal = React.useCallback(
     (event: React.MouseEvent) => {
       if (
-        emptyElements &&
         typeof emptyElements === "object" &&
-        "clickTrigger" in emptyElements &&
+        "clickTrigger" in emptyElements! &&
         emptyElements.clickTrigger !== undefined
       ) {
         updateEmptyKeysClick(
@@ -1230,16 +1224,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // ♦ effects
   React.useEffect(() => {
     // эффект для нажатия клавиш
-    if (isTouchedRef.current && direction === "hybrid" && progressTrigger.wheel)
-      return;
+    if (isTouchedRef.current || direction !== "hybrid") return;
 
     const wrapper = objectsWrapperRef.current;
     const scrollEl = scrollElementRef.current;
     if (!wrapper || !scrollEl) return;
 
     if (
-      wrapper.clientWidth! > scrollEl.clientWidth! &&
-      wrapper.clientHeight! > scrollEl.clientHeight!
+      wrapper.clientWidth! + mLocalX > scrollEl.clientWidth! &&
+      wrapper.clientHeight! + mLocalY > scrollEl.clientHeight!
     ) {
       scrollEl.addEventListener("keydown", onKeyDown);
       scrollEl.addEventListener("keyup", onKeyUp);
@@ -1257,6 +1250,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     objectsSizeST,
     // при изменении количества детей
     validChildrenKeys.join(),
+    mLocalX,
+    mLocalY,
   ]);
 
   // TODO
@@ -1277,7 +1272,12 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   React.useEffect(() => {
     // запуск проверки ключей
     if (emptyElements || renderLocal.type) updateLoadedElementsKeysLocal();
-  }, [emptyElementsST, renderLocal.type, updateLoadedElementsKeysLocal]);
+  }, [
+    emptyElementsST,
+    renderLocal.type,
+    updateLoadedElementsKeysLocal,
+    validChildrenKeys.length,
+  ]);
 
   React.useEffect(() => {
     if (isTouchedRef.current) return; // при touch устроиствах выключаем

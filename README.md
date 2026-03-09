@@ -280,41 +280,38 @@ adds the <code>ResizeTracker</code> component to measure the width and height of
 <h2></h2>
 
 <details><summary><b><code>objectsSize</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | "size" | "firstChild" | "none"<br />
-| ( number | "size" | "firstChild" | "none" )[]<br />
-<br />
-<b>Default:</b><br />
-If you don't provide any value, the default value will be taken from <code>size</code>.<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+objectsSize: 100; // or [100, 70] | "size" | "firstChild" | "none"
+```
+
 <b>Description:</b><em><br />
 defines the <b>[width, height]</b> of cells for each of your objects.<br />
 <br />
 <code>number</code>:<br />
 sets a fixed size for your custom objects.<br />
 <br />
-<code>"size"</code>:<br />
+<code><b>"size"</b></code>:<br />
 the dimensions will be taken from <code>size</code>.<br />
 <br />
-<code>"firstChild"</code>:<br />
+<code><b>"firstChild"</b></code>:<br />
 creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
-<code>"none"</code>:<br />
+<code><b>"none"</b></code>:<br />
 cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
 <br />
 If no value is provided, the default behavior is partially inferred from the <code>size</code> prop:
+
 <ul>
   <li>When <code>direction="x"</code>, the height from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["size", "none"]</code>.</li>
   <li>When <code>direction="y"</code>, the width from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["none", "size"]</code>.</li>
 </ul>
 <br />
 ✦ Note:<br />
-<ul>
-  <li>All types can be used as 1 value, or an array of 2 values.</li>
-  <li><b>"none"</b> is not compatible with <code>render</code>.</li>
-</ul></em><br />
-<br />
+<b>"none"</b> is not compatible with <code>render</code>.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -330,9 +327,6 @@ If no value is provided, the default behavior is partially inferred from the <co
 <h2></h2>
 
 <details><summary><b><code>crossCount</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number<br />
-<br />
 <b>Description:</b><em><br />
 defines the number of <b>columns</b> or <b>rows</b>.<br />
 <br />
@@ -357,15 +351,15 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 <h2></h2>
 
 <details><summary><b><code>gap</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | number[]<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+gap: 10; // or [20, 10]
+```
+
 <b>Description:</b><em><br />
 allows you to set spacing in pixels between list items for rows and columns.<br />
-<br />
-✦ Note:<br />
-it can be 1 number or an array of 2 numbers.</em><br />
-<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -381,15 +375,15 @@ it can be 1 number or an array of 2 numbers.</em><br />
 <h2></h2>
 
 <details><summary><b><code>wrapperMargin</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | number[]<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+wrapperMargin: 10; // or [v, h] | [t, r, b, l]
+```
+
 <b>Description:</b><em><br />
 defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area.<br />
-<br />
-✦ Note:<br />
-can be 1 number or an array of 2 or 4 numbers in pixels.</em><br />
-<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
