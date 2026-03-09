@@ -302,13 +302,6 @@ This can be useful if you want to change the size of objects in your list dynami
 <code><b>"none"</b></code>:<br />
 cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
 <br />
-If no value is provided, the default behavior is partially inferred from the <code>size</code> prop:
-
-<ul>
-  <li>When <code>direction="x"</code>, the height from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["size", "none"]</code>.</li>
-  <li>When <code>direction="y"</code>, the width from <code>size</code> will be used, behaving as if you had passed <code>objectsSize=["none", "size"]</code>.</li>
-</ul>
-<br />
 ✦ Note:<br />
 <b>"none"</b> is not compatible with <code>render</code>.<br />
 </em><br />
