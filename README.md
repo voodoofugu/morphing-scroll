@@ -49,6 +49,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 > **✦ Note:**  
 > `MorphScroll` supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
+>
 > This library is currently under development. APIs and behavior may change in future releases.
 
 <h2></h2>
