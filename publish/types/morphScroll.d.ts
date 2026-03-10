@@ -316,7 +316,7 @@ type MorphScrollT = {
       | boolean
       | { changeDirection?: boolean; changeDirectionKey?: string };
     content?: boolean;
-    progressElement?: boolean | React.ReactNode;
+    progressElement?: boolean | React.ReactNode | React.ReactNode[];
     arrows?:
       | boolean
       | React.ReactNode
