@@ -1036,8 +1036,10 @@ determines what is being measured by automatically applying inline styles that a
 <br />
 <code><b>"inner"</b></code>:<br />
 sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.<br />
+<br />
 <code><b>"outer"</b></code>:<br />
 measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
+<br />
 <code><b>"all"</b></code>:<br />
 value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
 <br />
