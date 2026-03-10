@@ -13,7 +13,7 @@
 
 ### 〈 About 〉
 
-`morphing-scroll` is a `React` is a React library originally created to address common limitations of the native browser scrollbar, including:
+`morphing-scroll` is a `React` library originally created to address common limitations of the native browser scrollbar, including:
 
 - Design customization constraints
 - Cross-browser compatibility
@@ -49,6 +49,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 > **✦ Note:**  
 > `MorphScroll` supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
+> This library is currently under development. APIs and behavior may change in future releases.
 
 <h2></h2>
 
@@ -65,9 +66,6 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 ###### **— GENERAL SETTINGS —**
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-string<br />
-<br />
 <b>Description:</b><em><br />
 allows you to add additional classes to the component.</em><br />
 <br />
@@ -84,14 +82,11 @@ allows you to add additional classes to the component.</em><br />
 <h2></h2>
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-React.ReactNode<br />
-<br />
 <b>Description:</b><em><br />
-allows you to add custom content to the component.<br />
+allows to add custom content to the component.<br />
 Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will use the same keys as your list items, allowing it to render the correct cells for the current list.<br />
-Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the same way as <b>undefined</b>, rendering nothing in both cases.</em><br />
-<br />
+Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the same way as <b>undefined</b>, rendering nothing in both cases.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -105,21 +100,27 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 ###### **— SCROLL SETTINGS —**
 
 <details><summary><b><code>type</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-"scroll" | "slider" | "sliderMenu"<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+type: "slider"; // or "scroll" | "sliderMenu"
+```
+
 <b>Default:</b><br />
 "scroll"<br />
 <br />
 <b>Description:</b><em><br />
 defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
 <br />
-<b>scroll</b> - This is the default value and represents a standard scrollbar.<br />
+<code><b>scroll</b></code>:<br />
+the default value and represents a standard scrollbar.<br />
 <br />
-<b>slider</b> - It displays distinct elements indicating the number of full scroll steps within the list.<br />
+<code><b>slider</b></code>:<br />
+displays distinct elements indicating the number of full scroll steps within the list.<br />
 <br />
-<b>sliderMenu</b> - It behaves like a <code>slider</code>, but now the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.</em><br />
-<br />
+<code><b>sliderMenu</b></code>:<br />
+like <code>slider</code>, but the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -135,9 +136,12 @@ defines how the provided <code>progressElement</code> behaves within <code>progr
 <h2></h2>
 
 <details><summary><b><code>direction</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-"x" | "y" | "hybrid"<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+size: "x"; // or "y" | "hybrid"
+```
+
 <b>Default:</b><br />
 "y"<br />
 <br />
@@ -160,33 +164,47 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 <h2></h2>
 
 <details><summary><b><code>scrollPosition</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-null | number | "end" | (null | number | "end")[]<br />
-| {<br />
+<b>Usage:</b><br />
+
 <ul>
-  value: null | number | "end" | (null | number | "end")[];<br />
-  duration?: number;<br />
-  updater?: boolean;<br />
+  <li><b>Simple</b>:<br />
+  
+```tsx
+scrollPosition: 10; // or "end" | null | array if direction="hybrid"
+```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+  
+```tsx
+scrollPosition: {
+  value: 10; // or "end" | null | array if direction="hybrid"
+  duration: 400;
+  updater: true;
+}
+```
+
+  </li>
 </ul>
-}<br />
-<br />
+
 <b>Default:</b><br />
 { duration: 200; updater: false }<br />
 <br />
 <b>Description:</b><em><br />
 allows you to set custom scroll values.<br />
 <br />
-<code>value</code>:<br />
+<code><b>value</b></code>:<br />
+
 <ul>
   <li><b>number</b> - Sets position to a specific value.</li>
   <li><b>"end"</b> - Sets position to the end of the list.</li>
 </ul>
 You can also provide an array of two values to specific positions ( e.g., [ x, y ] axes ) for hybrid directions.</code><br />
 <br />
-<code>duration</code>:<br />
+<code><b>duration</b></code>:<br />
 property determines the animation speed for scrolling in <b>ms</b>.<br />
 <br />
-<code>updater</code>:<br />
+<code><b>updater</b></code>:<br />
 property is a helper for the <code>value</code>. When setting the same scroll value repeatedly, React does not register the update and you can use it to force an update</em><br />
 <br />
 <b>Example:</b>
@@ -204,11 +222,8 @@ property is a helper for the <code>value</code>. When setting the same scroll va
 <h2></h2>
 
 <details><summary><b><code>onScrollValue</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-( left: number, top: number ) => void<br />
-<br />
 <b>Description:</b><em><br />
-accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a number. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
+accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
 <br />
 <b>Example:</b>
 
@@ -227,9 +242,6 @@ accepts a callback function that is triggered on every scroll event. The callbac
 <h2></h2>
 
 <details><summary><b><code>isScrolling</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-( motion: boolean ) => void<br />
-<br />
 <b>Description:</b><em><br />
 accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
 <br />
@@ -253,16 +265,19 @@ accepts a callback function that is triggered whenever the scroll status changes
 ###### **— VISUAL SETTINGS —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
-<b>Type:</b><br />
-number | number[] | "auto"<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+size: 100; // or [100, 70] | "auto"
+```
+
 <b>Description:</b><em><br />
 sets the width and height of the <code>MorphScroll</code>.<br />
 <br />
-<code>number</code>:<br />
+<code><b>number</b></code>:<br />
 sets a fixed size in pixels. It can be 1 number if you want to set the same width and height, or an array of 2 numbers.<br />
 <br />
-<code>"auto"</code>:<br />
+<code><b>"auto"</b></code>:<br />
 adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
 <br />
 <b>Example:</b>
@@ -965,12 +980,9 @@ It will be used when:
 <ul><div>
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-string<br />
-<br />
 <b>Description:</b><em><br />
-allows you to add additional classes to the component.</em><br />
-<br />
+allows to add additional classes to the component.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -982,12 +994,9 @@ allows you to add additional classes to the component.</em><br />
 <h2></h2>
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-React.ReactNode<br />
-<br />
 <b>Description:</b><em><br />
-allows you to add custom content to the component.</em><br />
-<br />
+allows to add custom content to the component.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -999,9 +1008,9 @@ allows you to add custom content to the component.</em><br />
 <h2></h2>
 
 <details><summary><b><code>style</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-CSSProperties<br />
-<br />
+<b>Description:</b><em><br />
+allows to add custom inline styles.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1013,20 +1022,24 @@ CSSProperties<br />
 <h2></h2>
 
 <details><summary><b><code>measure</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-"inner" | "outer" | "all"<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+measure: "outer"; // or "inner" | "all"
+```
+
 <b>Default:</b><br />
 "inner"<br />
 <br />
 <b>Description:</b><em><br />
 determines what is being measured by automatically applying inline styles that affect width and height.<br />
 <br />
-<ul>
-  <li><b>"inner"</b> sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.</li>
-  <li><b>"outer"</b> measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.</li>
-  <li><b>"all"</b> value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.</li>
-</ul>
+<code><b>"inner"</b></code>:<br />
+sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.<br />
+<code><b>"outer"</b></code>:<br />
+measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
+<code><b>"all"</b></code>:<br />
+value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
 <br />
 ✦ Note: <br />
 Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
@@ -1042,13 +1055,10 @@ Be cautious when overriding styles via the <code>style</code> prop, as it may in
 <h2></h2>
 
 <details><summary><b><code>onResize</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-(rect: Partial<DOMRectReadOnly>) => void<br />
-<br />
 <b>Description:</b><em><br />
 callback function that is triggered whenever the observed element's dimensions change.<br />
-The function receives an object containing the updated size properties.</em><br />
-<br />
+The function receives an object of type <b>Partial<DOMRectReadOnly></b> that containing updated size properties.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1082,12 +1092,9 @@ The function receives an object containing the updated size properties.</em><br 
 <ul><div>
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-string<br />
-<br />
 <b>Description:</b><em><br />
-allows you to add additional classes to the component.</em><br />
-<br />
+allows to add additional classes to the component.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1099,9 +1106,9 @@ allows you to add additional classes to the component.</em><br />
 <h2></h2>
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-React.ReactNode<br />
-<br />
+<b>Description:</b><em><br />
+allows to add custom content to the component.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1113,9 +1120,9 @@ React.ReactNode<br />
 <h2></h2>
 
 <details><summary><b><code>style</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-CSSProperties<br />
-<br />
+<b>Description:</b><em><br />
+allows to add custom inline styles.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1129,16 +1136,13 @@ CSSProperties<br />
 <h2></h2>
 
 <details><summary><b><code>root</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-Element | null<br />
-<br />
 <b>Default:</b><br />
-null (window)<br />
+null (browser window)<br />
 <br />
 <b>Description:</b><em><br />
 specifies the element that serves as the bounding box for the intersection observation. 
-If provided, it must be an ancestor of the observed element.</em><br />
-<br />
+If provided, it must be an ancestor of the observed element.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1152,15 +1156,15 @@ If provided, it must be an ancestor of the observed element.</em><br />
 <h2></h2>
 
 <details><summary><b><code>rootMargin</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | number[]<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+rootMargin: 10; // or [v, h] | [t, r, b, l]
+```
+
 <b>Description:</b><em><br />
 defines an offset around the root element, expanding or shrinking the observed area.<br />
-<br />
-✦ Note:<br />
-it can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 4 <b>[ top, right, bottom, left ]</b> numbers.</em><br />
-<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1172,16 +1176,20 @@ it can be a single number or an array of 2 <b>[ top-bottom, left-right ]</b> or 
 <h2></h2>
 
 <details><summary><b><code>threshold</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-number | number[]<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+threshold: 0.5; // or [0, 0.5, 1]
+```
+
 <b>Default:</b><br />
 0<br />
 <br />
 <b>Description:</b><em><br />
-specifies at what percentage of the observed element’s visibility the callback should be executed.<br />
+specifies at what percentage of the observed element’s visibility the callback <code>onIntersection</code> should be executed.<br />
 <br />
 ✦ Note:<br />
+
 <ul>
   <li>A value of <code>0</code> means the callback fires when any part of the element appears, while <code>1</code> means the element must be fully visible.</li>
   <li>An array (e.g., <code>[0, 0.5, 1]</code>) triggers the callback multiple times at different visibility levels.</li>
@@ -1198,9 +1206,12 @@ specifies at what percentage of the observed element’s visibility the callback
 <h2></h2>
 
 <details><summary><b><code>visibleContent</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-boolean<br />
-<br />
+<b>Usage:</b><br />
+
+```tsx
+visibleContent: true;
+```
+
 <b>Default:</b><br />
 false<br />
 <br />
@@ -1219,21 +1230,18 @@ This is useful for testing purposes or when using the <code>onIntersection</code
 <h2></h2>
 
 <details><summary><b><code>onIntersection</code></b></summary><br /><ul><div>
-<b>Type:</b><br />
-(entry: IntersectionObserverEntry) => void<br />
-<br />
 <b>Description:</b><em><br />
 callback function that is called when the observed element enters or leaves the viewport or the area defined by the <code>root</code> property. This can be used to load new list items for <code>MorphScroll</code>.<br />
 <br />
 ✦ Note:<br />
-the <code>IntersectionObserverEntry</code> object provides details about the intersection state, including:<br />
+<code>entry</code> is an object of type <b>IntersectionObserverEntry</b> that provides details about the intersection state, including:<br />
 <ul>
-  <li><code>boundingClientRect</code>: The bounding rectangle of the element relative to the viewport.</li>
-  <li><code>intersectionRatio</code>: The percentage of the element that is visible in the viewport.</li>
-  <li><code>intersectionRect</code>: The intersection rectangle between the element and the viewport.</li>
-  <li><code>rootBounds</code>: The bounding rectangle of the root element relative to the viewport.</li>
-  <li><code>target</code>: The observed element.</li>
-  <li><code>time</code>: The timestamp when the intersection state changed.</li>
+  <li><code>boundingClientRect</code>: bounding rectangle of the element relative to the viewport.</li>
+  <li><code>intersectionRatio</code>: percentage of the element that is visible in the viewport.</li>
+  <li><code>intersectionRect</code>: intersection rectangle between the element and the viewport.</li>
+  <li><code>rootBounds</code>: bounding rectangle of the root element relative to the viewport.</li>
+  <li><code>target</code>: observed element.</li>
+  <li><code>time</code>: timestamp when the intersection state changed.</li>
 </ul></em>
 <br />
 <b>Example:</b>
