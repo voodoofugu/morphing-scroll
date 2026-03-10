@@ -123,7 +123,7 @@ const ScrollBar = ({
     }
 
     const onWheel = (e: WheelEvent) => {
-      handleWheel(e, scrollEl.current!, scrollStateRef.current, dataDirection);
+      handleWheel(e, scrollEl.current!, scrollStateRef.current!, dataDirection);
     };
 
     el.addEventListener("wheel", onWheel);
@@ -149,11 +149,11 @@ const ScrollBar = ({
     const el = scrollBarRef.current;
     if (!el) return;
 
-    scrollBarsRef.current.add(el);
+    scrollBarsRef.current!.add(el);
     triggerUpdate();
 
     return () => {
-      scrollBarsRef.current.delete(el);
+      scrollBarsRef.current!.delete(el);
     };
   }, [thumbSize]);
 
