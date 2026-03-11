@@ -421,17 +421,15 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
-    const isHorizontal = direction === "x";
+    const isHorizontal = direction === "x" ? 1 : 0;
     const isRow = elementsDirection === "row";
 
-    const localObjSize = isHorizontal ? sizeLocal[1] : sizeLocal[0];
-    const objectSize = isHorizontal
-      ? objectsSizeLocal[1] + gapLocal[1]
-      : objectsSizeLocal[0] + gapLocal[0];
+    const localObjSize = sizeLocal[isHorizontal];
+    const objectSize = objectsSizeLocal[isHorizontal] + gapLocal[isHorizontal];
 
     const neededMaxSize =
       direction === "hybrid"
-        ? objectSize * (validChildrenKeys.length + 1) - objectSize
+        ? objectSize * validChildrenKeys.length
         : localObjSize;
 
     const objects = Math.floor(neededMaxSize / objectSize) || 1;
@@ -442,12 +440,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? Math.ceil(objects / crossCount)
           : crossCount
         : objects;
+
     const childsLinePerD =
       objectsPerD > 1 && objectsPerD < validChildrenKeys.length
         ? Math.ceil(validChildrenKeys.length / objectsPerD)
-        : objectsPerD > validChildrenKeys.length
+        : objectsPerD >= validChildrenKeys.length
           ? 1
           : validChildrenKeys.length;
+    if (className === "heroBoxsScroll") {
+      console.log("childsLinePerD", childsLinePerD);
+    }
 
     const useCrossCount = crossCount && crossCount < validChildrenKeys.length;
 
@@ -491,9 +493,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const childsGap = !objectsPerDirection[0]
       ? 0
       : objectsPerDirection[0] * gapLocal[1] - gapLocal[1];
-    // neededObj нужен для распределение объектов, точнее для crossCount
-    const neededObj = objectsPerDirection[direction === "x" ? 1 : 0];
     // если детей меньше чем neededObj, то считаем по ним так как crossCount в этом случае не имеет смысла
+    const neededObj = objectsPerDirection[direction === "x" ? 1 : 0];
     const neededObjWithChildCount =
       validChildrenKeys.length < neededObj
         ? validChildrenKeys.length
@@ -542,6 +543,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     receivedChildSizeRef.current.height,
     renderLocal.type,
   ]);
+  if (className === "heroBoxsScroll") {
+    console.log("objectsPerDirection", objectsPerDirection);
+  }
 
   const objectsWrapperHeightFull = React.useMemo(() => {
     return objectsWrapperHeight + mLocalY;
@@ -878,7 +882,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           mLocalX,
           mLocalY,
         )),
-      // ...(wrapperAlign && { flexShrink: 0 }), // это решает проблему с уменьшением ширины при флексе на objectsWrapper
+      ...((direction === "hybrid" || direction === "x") && { flexShrink: 0 }), // для горизонтального выравнивания при "hybrid"/"x"
     };
 
     if (renderLocal.type) {
@@ -888,7 +892,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
     }
 
-    const flexWrap = objectsSizing[1] ? "wrap" : undefined;
     const flexDirection =
       objectsPerDirection[0] === 1
         ? direction === "y"
@@ -900,7 +903,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       ...common,
       display: "flex",
       flexDirection,
-      flexWrap,
+      flexWrap: "wrap",
       justifyContent: getStyleAlign(elementsAlign),
     };
 
