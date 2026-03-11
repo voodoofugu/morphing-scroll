@@ -447,9 +447,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : objectsPerD >= validChildrenKeys.length
           ? 1
           : validChildrenKeys.length;
-    if (className === "heroBoxsScroll") {
-      console.log("childsLinePerD", childsLinePerD);
-    }
 
     const useCrossCount = crossCount && crossCount < validChildrenKeys.length;
 
@@ -543,9 +540,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     receivedChildSizeRef.current.height,
     renderLocal.type,
   ]);
-  if (className === "heroBoxsScroll") {
-    console.log("objectsPerDirection", objectsPerDirection);
-  }
 
   const objectsWrapperHeightFull = React.useMemo(() => {
     return objectsWrapperHeight + mLocalY;
