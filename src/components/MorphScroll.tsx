@@ -384,31 +384,24 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   );
 
   const objectsSizeLocal = React.useMemo(() => {
+    const { height, width } = receivedChildSizeRef.current;
+
     const getSize = (
-      val: number | "none" | "firstChild" | "size",
+      val: number | "none" | "firstChild" | "size" | null,
       receivedSize: number,
+      sizeLocal: number,
     ) =>
-      typeof val === "number" ? val : val === "firstChild" ? receivedSize : 0;
+      receivedSize
+        ? receivedSize
+        : typeof val === "number"
+          ? val
+          : val === "size"
+            ? sizeLocal
+            : 0;
 
     return [
-      getSize(
-        objectsSizing[0] && typeof objectsSizing[0] === "number"
-          ? objectsSizing[0]
-          : (direction === "y" && objectsSizing[0] !== "none") ||
-              objectsSizing[0] === "size"
-            ? sizeLocal[0]
-            : 0,
-        receivedChildSizeRef.current.width,
-      ),
-      getSize(
-        objectsSizing[1] && typeof objectsSizing[1] === "number"
-          ? objectsSizing[1]
-          : (direction === "x" && objectsSizing[1] !== "none") ||
-              objectsSizing[1] === "size"
-            ? sizeLocal[1]
-            : 0,
-        receivedChildSizeRef.current.height,
-      ),
+      getSize(objectsSizing[0], width, sizeLocal[0]),
+      getSize(objectsSizing[1], height, sizeLocal[1]),
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -425,14 +418,16 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const isRow = elementsDirection === "row";
 
     const localObjSize = sizeLocal[isHorizontal];
-    const objectSize = objectsSizeLocal[isHorizontal] + gapLocal[isHorizontal];
+    const objectSize = objectsSizeLocal[isHorizontal]
+      ? objectsSizeLocal[isHorizontal] + gapLocal[isHorizontal]
+      : 0;
 
     const neededMaxSize =
-      direction === "hybrid"
+      direction === "hybrid" && localObjSize
         ? objectSize * validChildrenKeys.length
         : localObjSize;
 
-    const objects = Math.floor(neededMaxSize / objectSize) || 1;
+    const objects = objectSize ? Math.floor(neededMaxSize / objectSize) : 1;
     // устанавливаем crossCount если он есть и если он меньше objects
     const objectsPerD =
       crossCount && crossCount <= objects
