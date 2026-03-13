@@ -89,13 +89,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const rafScrollAnim = createSchedulerRAF();
 
   // ♦ errors
+  const errorTextEnd = `\n  morph-scroll ${id}`;
   const errorText = (propName: string) =>
-    `prop "${propName}" is not provided\n  morph-scroll ${id}`;
+    `prop "${propName}" is not provided${errorTextEnd}`;
 
   if (!size) throw new Error(errorText("size"));
   if (Object.keys(progressTrigger).length === 0)
     console.error(errorText("progressTrigger"));
-  if (objectsSize === "none" && render) console.error(errorText("objectsSize"));
+  if (
+    (objectsSize === "none" ||
+      (Array.isArray(objectsSize) &&
+        (objectsSize[0] === "none" || objectsSize[1] === "none"))) &&
+    render
+  )
+    console.error(
+      `"render" prop is incompatible with objectsSize="none"${errorTextEnd}`,
+    );
 
   // ♦ refs
   const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -414,6 +423,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
+    // защита при неизвестных размерах, пока это лучшее решение
+    if (objectsSizing[0] === "none" || objectsSizing[1] === "none")
+      return [1, validChildrenKeys.length];
+
     const isHorizontal = direction === "x" ? 1 : 0;
     const isRow = elementsDirection === "row";
 
@@ -482,9 +495,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const objectsWrapperWidth = React.useMemo(() => {
-    const childsGap = !objectsPerDirection[0]
-      ? 0
-      : objectsPerDirection[0] * gapLocal[1] - gapLocal[1];
+    const childsGap =
+      objectsPerDirection[0] < 1
+        ? 1
+        : objectsPerDirection[0] * gapLocal[1] - gapLocal[1];
     // если детей меньше чем neededObj, то считаем по ним так как crossCount в этом случае не имеет смысла
     const neededObj = objectsPerDirection[direction === "x" ? 1 : 0];
     const neededObjWithChildCount =
@@ -888,11 +902,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
         : elementsDirection;
 
+    // выравнивание элементы в линию когда размер неизвестен при direction !== "y"
+    const flexWrap =
+      objectsSizing[0] === "none" || objectsSizing[1] === "none"
+        ? undefined
+        : "wrap";
+
     return {
       ...common,
       display: "flex",
       flexDirection,
-      flexWrap: "wrap",
+      flexWrap,
       justifyContent: getStyleAlign(elementsAlign),
     };
 
