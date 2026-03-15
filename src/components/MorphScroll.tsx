@@ -38,6 +38,10 @@ import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";
 import stabilize from "../helpers/stabilize";
+import {
+  registerContainer,
+  unregisterContainer,
+} from "../helpers/autoScrollRegistry";
 
 import CONST from "../constants";
 
@@ -950,7 +954,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (
         target.closest(
           `
-          [data-ms-no-drag], [draggable="true"], [contenteditable],
+          [data-custom-drag], [draggable="true"], [contenteditable],
           input, textarea, select, button, a
         `,
         )
@@ -1396,6 +1400,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       // использование может убивает финал прокрутки
       // cancelTask(); // очищаем таски
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const el = scrollElementRef.current;
+    if (!el) return;
+
+    const container = {
+      element: el,
+      direction,
+    };
+
+    registerContainer(container);
+
+    return () => {
+      unregisterContainer(container);
     };
   }, []);
 

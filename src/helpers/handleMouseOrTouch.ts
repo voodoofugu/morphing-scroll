@@ -165,12 +165,11 @@ const applyThumb = (
   }
 
   // для перетягивания
-  if (scrollEl.scrollLeft !== args.scrollStateRef.targetScrollX) {
+  if (scrollEl.scrollLeft !== args.scrollStateRef.targetScrollX)
     scrollEl.scrollLeft = args.scrollStateRef.targetScrollX;
-  }
-  if (scrollEl.scrollTop !== args.scrollStateRef.targetScrollY) {
+
+  if (scrollEl.scrollTop !== args.scrollStateRef.targetScrollY)
     scrollEl.scrollTop = args.scrollStateRef.targetScrollY;
-  }
 };
 
 const motionHandler = (

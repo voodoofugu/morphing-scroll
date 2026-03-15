@@ -48,18 +48,21 @@ export default function handleWheel(
 
   function animateScroll() {
     let diff = 0;
+    let scrollByX = 0;
+    let scrollByY = 0;
 
     if (direction === "x") {
-      scrollEl.scrollLeft +=
+      scrollByX +=
         (stateRef.targetScrollX - scrollEl.scrollLeft) * CONST.LERP_FACTOR;
 
       diff = Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX);
     } else {
-      scrollEl.scrollTop +=
+      scrollByY +=
         (stateRef.targetScrollY - scrollEl.scrollTop) * CONST.LERP_FACTOR;
 
       diff = Math.abs(scrollEl.scrollTop - stateRef.targetScrollY);
     }
+    scrollEl.scrollBy(scrollByX, scrollByY); // обновляем
 
     // Остановка анимации, если разница в позициях мала
     // осторожнее с diff иначе будет зацикливаться
@@ -68,10 +71,11 @@ export default function handleWheel(
     } else {
       // Устанавливаем точное целевое значение
       if (direction === "x") {
-        scrollEl.scrollLeft = stateRef.targetScrollX;
+        scrollByX = stateRef.targetScrollX - scrollEl.scrollLeft; // дельта до цели
       } else {
-        scrollEl.scrollTop = stateRef.targetScrollY;
+        scrollByY = stateRef.targetScrollY - scrollEl.scrollTop; // дельта до цели
       }
+      scrollEl.scrollBy(scrollByX, scrollByY); // обновляем
 
       stateRef.animating = false;
       if (stateRef.animationFrameId !== null) {

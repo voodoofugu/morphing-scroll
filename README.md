@@ -658,7 +658,7 @@ By using <code>content</code> drag scrolling will not work in these cases:<br />
 interactive elements:<br />
 <code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code><br />
 elements with attribute:<br />
-<code>[draggable="true"]</code>, <code>[contenteditable]</code> and custom attribute - <code>[data-ms-no-drag]</code><br />
+<code>[draggable="true"]</code>, <code>[contenteditable]</code> and custom attribute - <code>[data-custom-drag]</code><br />
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
