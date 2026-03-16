@@ -908,7 +908,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     // выравнивание элементы в линию когда размер неизвестен при direction !== "y"
     const flexWrap =
-      objectsSizing[0] === "none" || objectsSizing[1] === "none"
+      objectsSizing[0] === "none" ||
+      objectsSizing[0] === null ||
+      objectsSizing[1] === "none" ||
+      objectsSizing[1] === null
         ? undefined
         : "wrap";
 
