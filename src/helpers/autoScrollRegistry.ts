@@ -47,6 +47,7 @@ function autoScrollLoop() {
 
   if (!containerEl || !rect) return;
 
+  // курсор покинул контейнер
   if (
     x < rect.left - EDGE ||
     x > rect.right + EDGE ||
@@ -72,6 +73,9 @@ function autoScrollLoop() {
 
   // ---------- Y SCROLL ----------
   if (direction === "y" || direction === "hybrid") {
+    if (y > rect.top - EDGE && y < rect.top + EDGE) console.log("top");
+    if (y < rect.bottom + EDGE && y > rect.bottom - EDGE) console.log("bottom");
+
     const topEdge = y - rect.top;
     const bottomEdge = rect.bottom - y;
 
@@ -93,6 +97,9 @@ function autoScrollLoop() {
 
   // ---------- X SCROLL ----------
   if (direction === "x" || direction === "hybrid") {
+    if (x > rect.left - EDGE && x < rect.left + EDGE) console.log("left");
+    if (x < rect.right + EDGE && x > rect.right - EDGE) console.log("right");
+
     const leftEdge = x - rect.left;
     const rightEdge = rect.right - x;
 
