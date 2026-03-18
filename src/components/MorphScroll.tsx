@@ -81,6 +81,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   emptyElements,
   suspending = false,
   fallback,
+
+  // Additional
+  dragScroll,
 }) => {
   // ♦ hooks
   const triggerUpdate = useUpdate();
@@ -1406,12 +1409,17 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     };
   }, []);
 
+  // регистрация контейнера для auto drag scroll
   React.useEffect(() => {
-    const el = scrollElementRef.current;
-    if (!el) return;
+    if (!dragScroll) return;
+
+    const parent = customScrollRef.current;
+    const element = scrollElementRef.current;
+    if (!parent || !element) return;
 
     const container = {
-      element: el,
+      parent,
+      element,
       direction,
     };
 
@@ -1420,7 +1428,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return () => {
       unregisterContainer(container);
     };
-  }, []);
+  }, [dragScroll, direction]);
 
   // установка слушателя нажатия на обертку
   React.useEffect(() => {
@@ -1478,8 +1486,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       fn: (event: any) => void,
     ) => {
       if (isTouchedRef.current) {
-        Array.from(scrollBarsRef.current).forEach((bar) =>
-          bar[type]("pointerdown", fn),
+        Array.from(scrollBarsRef.current).forEach((el) =>
+          el[type]("pointerdown", fn),
         ); // на сам thumb
         document[type]("pointerup", fn);
         document[type]("pointercancel", fn);

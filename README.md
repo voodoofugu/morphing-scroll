@@ -64,7 +64,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-###### **— GENERAL SETTINGS —**
+###### **— GENERAL —**
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
@@ -98,7 +98,7 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 <h2></h2>
 
-###### **— SCROLL SETTINGS —**
+###### **— SCROLL —**
 
 <details><summary><b><code>type</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -263,7 +263,7 @@ accepts a callback function that is triggered whenever the scroll status changes
 
 <h2></h2>
 
-###### **— VISUAL SETTINGS —**
+###### **— VISUAL —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -963,6 +963,24 @@ It will be used when:
 
 ```tsx
 <MorphScroll {...props} fallback={<div>Loading...</div>}>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
+###### **— ADDITIONAL —**
+
+<details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
+<b>Description:</b><em><br />
+activates scrolling when dragging elements to the edges of the scroll.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} dragScroll>
   {children}
 </MorphScroll>
 ```

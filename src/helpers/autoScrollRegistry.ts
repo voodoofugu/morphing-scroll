@@ -3,6 +3,7 @@ import clampValue from "./clampValue";
 
 // types
 type ScrollContainer = {
+  parent: HTMLElement;
   element: HTMLElement;
   direction: "x" | "y" | "hybrid";
 };
@@ -11,6 +12,7 @@ type ScrollContainer = {
 const DRAG_THRESHOLD = 10;
 const EDGE = 40; // before and after
 const SPEED = 20;
+const DRAG_ATR = "ms-under-drag";
 
 let abortController: AbortController | undefined;
 let dragController: AbortController | null = null;
@@ -24,10 +26,13 @@ let pointer = {
   y: 0,
 };
 let dragging = false;
-let targetEl: HTMLElement | null = null;
 let targetRect: DOMRect | null = null;
-let containerEl: HTMLElement | null = null;
-let direction: "x" | "y" | "hybrid" | null = null;
+let currentContainer: ScrollContainer | null = null;
+let attrValue = "";
+
+let targetEl: HTMLElement | null = null; // для проверки element
+let targetParent: HTMLElement | null = null; // для проверки parent
+let prevAttr: string | null = null;
 
 const raf = createSchedulerRAF();
 
@@ -45,7 +50,8 @@ function autoScrollLoop() {
   const y = pointer.y;
   const rect = targetRect;
 
-  if (!containerEl || !rect) return;
+  if (!currentContainer || !rect) return;
+  const { parent, element, direction } = currentContainer;
 
   // курсор покинул контейнер
   if (
@@ -54,74 +60,80 @@ function autoScrollLoop() {
     y < rect.top - EDGE ||
     y > rect.bottom + EDGE
   ) {
-    targetEl?.classList.remove("ms-under-drag");
-    targetEl = null;
     targetRect = null;
-    direction = null;
-    return; // может прекратить залипший scroll если курсор покинул контейнер
+    if (currentContainer) {
+      parent.removeAttribute(DRAG_ATR);
+      currentContainer = null;
+    }
+    targetParent = null;
+    targetEl = null;
+    attrValue = "";
+
+    return; // ранний выход
   }
 
-  if (targetEl !== containerEl) {
-    targetEl?.classList.remove("ms-under-drag");
-
-    targetEl = containerEl;
-    containerEl.classList.add("ms-under-drag");
-  }
+  let dirY: "top" | "bottom" | null = null;
+  let dirX: "left" | "right" | null = null;
 
   let scrollByX = 0;
   let scrollByY = 0;
 
   // ---------- Y SCROLL ----------
   if (direction === "y" || direction === "hybrid") {
-    if (y > rect.top - EDGE && y < rect.top + EDGE) console.log("top");
-    if (y < rect.bottom + EDGE && y > rect.bottom - EDGE) console.log("bottom");
-
     const topEdge = y - rect.top;
     const bottomEdge = rect.bottom - y;
 
     if (topEdge < EDGE) {
       const distance = topEdge;
-      if (containerEl.scrollTop > 0) {
-        scrollByY -= calcSpeed(distance);
-      }
+
+      dirY = "top";
+
+      if (element.scrollTop > 0) scrollByY -= calcSpeed(distance);
     } else if (bottomEdge < EDGE) {
       const distance = bottomEdge;
-      if (
-        containerEl.scrollTop + containerEl.clientHeight <
-        containerEl.scrollHeight
-      ) {
+
+      dirY = "bottom";
+
+      if (element.scrollTop + element.clientHeight < element.scrollHeight)
         scrollByY += calcSpeed(distance);
-      }
     }
   }
 
   // ---------- X SCROLL ----------
   if (direction === "x" || direction === "hybrid") {
-    if (x > rect.left - EDGE && x < rect.left + EDGE) console.log("left");
-    if (x < rect.right + EDGE && x > rect.right - EDGE) console.log("right");
-
     const leftEdge = x - rect.left;
     const rightEdge = rect.right - x;
 
     if (leftEdge < EDGE) {
       const distance = leftEdge;
-      if (containerEl.scrollLeft > 0) {
-        scrollByX -= calcSpeed(distance);
-      }
+
+      dirX = "left";
+
+      if (element.scrollLeft > 0) scrollByX -= calcSpeed(distance);
     } else if (rightEdge < EDGE) {
       const distance = rightEdge;
-      if (
-        containerEl.scrollLeft + containerEl.clientWidth <
-        containerEl.scrollWidth
-      ) {
+
+      dirX = "right";
+
+      if (element.scrollLeft + element.clientWidth < element.scrollWidth)
         scrollByX += calcSpeed(distance);
-      }
     }
   }
 
+  const parts = [];
+  if (dirY) parts.push(dirY);
+  if (dirX) parts.push(dirX);
+  attrValue = parts.join(" ");
+
+  // обновление значения атрибута
+  if (attrValue !== prevAttr) {
+    parent.setAttribute(DRAG_ATR, attrValue);
+    prevAttr = attrValue;
+  }
+
   if (scrollByX || scrollByY) {
-    containerEl.scrollBy(scrollByX, scrollByY); // обновляем scroll
-    targetRect = containerEl.getBoundingClientRect(); // ещё раз для точности обновляем напоследок rect
+    element.scrollBy(scrollByX, scrollByY); // обновляем scroll
+    targetRect = element.getBoundingClientRect(); // ещё раз для точности обновляем напоследок rect
   }
 
   // продолжаем loop
@@ -155,12 +167,17 @@ function onMove(e: PointerEvent | DragEvent) {
     const container = containerMap.get(el);
 
     if (container) {
-      containerEl = container.element;
+      currentContainer = container;
 
-      if (targetEl !== containerEl) {
-        // обновление rect только после смены элемента
-        targetRect = containerEl.getBoundingClientRect();
-        direction = container.direction;
+      if (targetEl !== currentContainer.element) {
+        if (targetParent && targetParent !== currentContainer.parent)
+          targetParent.removeAttribute(DRAG_ATR);
+
+        // обновления только после смены элемента
+        targetEl = currentContainer.element;
+        targetParent = currentContainer.parent;
+        targetParent.setAttribute(DRAG_ATR, "");
+        targetRect = currentContainer.element.getBoundingClientRect();
       }
 
       break;
@@ -177,11 +194,15 @@ function removeOnMove() {
   dragController = null;
   dragging = false;
   raf.cancel();
-  targetEl?.classList.remove("ms-under-drag");
-  targetEl = null;
+
   targetRect = null;
-  containerEl = null;
-  direction = null;
+  if (currentContainer) {
+    currentContainer.parent.removeAttribute(DRAG_ATR);
+    currentContainer = null;
+  }
+  targetParent = null;
+  targetEl = null;
+  attrValue = "";
 }
 
 function startDrag(e: PointerEvent | DragEvent) {

@@ -484,6 +484,22 @@ type MorphScrollT = {
    *  ```
    */
   fallback?: React.ReactNode;
+
+  // — Additional —
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***dragScroll***:
+   * activates scrolling when dragging elements to the edges of the scroll.
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   dragScroll
+   * >
+   *   {children}
+   * </MorphScroll>
+   *  ```
+   */
+  dragScroll?: boolean;
 };
 
 export default MorphScrollT;

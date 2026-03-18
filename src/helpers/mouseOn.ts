@@ -68,7 +68,7 @@ const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
         event.type,
       )
     ) {
-      if (event.type === "mouseleave") el.removeAttribute("data-mouse-hover"); // скрытия/появления при прокрутки
+      // if (event.type === "mouseleave") el.removeAttribute("data-mouse-hover"); // скрытия/появления при прокрутки
 
       // проверка для отмены если анимация прокрутки ещё продолжается
       if (isScrolling?.current) return;
@@ -78,7 +78,7 @@ const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
     }
 
     // - появление -
-    if (event.type === "mouseenter") el.setAttribute("data-mouse-hover", ""); // скрытия/появления при прокрутки
+    // if (event.type === "mouseenter") el.setAttribute("data-mouse-hover", ""); // скрытия/появления при прокрутки
     addHover(el);
   };
 

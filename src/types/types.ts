@@ -98,4 +98,7 @@ export type MorphScrollT = {
       };
   suspending?: boolean;
   fallback?: React.ReactNode;
+
+  // — Additional —
+  dragScroll?: boolean;
 };
