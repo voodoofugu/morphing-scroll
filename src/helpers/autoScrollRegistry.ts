@@ -9,7 +9,7 @@ type ScrollContainer = {
 };
 
 // vars
-const DRAG_THRESHOLD = 10;
+const DRAG_THRESHOLD = 10; // запас на срабатывание сдвига
 const EDGE = 40; // before and after
 const SPEED = 20;
 const DRAG_ATR = "ms-under-drag";
@@ -37,9 +37,38 @@ let prevAttr: string | null = null;
 const raf = createSchedulerRAF();
 
 // funcs
+const reset = () => {
+  if (targetParent) targetParent.removeAttribute(DRAG_ATR);
+  targetRect = null;
+  currentContainer = null;
+  targetParent = null;
+  targetEl = null;
+  attrValue = "";
+  prevAttr = null;
+};
+
+function getEdge(
+  pos: number,
+  start: number,
+  end: number,
+  scroll: number,
+  client: number,
+  scrollSize: number,
+) {
+  const before = pos - start;
+  const after = end - pos;
+
+  if (before < EDGE) {
+    if (scroll > 0) return { dir: -1, distance: before };
+  } else if (after < EDGE) {
+    if (scroll + client < scrollSize) return { dir: 1, distance: after };
+  }
+
+  return null;
+}
+
 function calcSpeed(distance: number) {
-  const d = distance < 0 ? -distance : distance;
-  const ratio = clampValue((EDGE - d) / EDGE, 0, 1, false);
+  const ratio = clampValue((EDGE - Math.abs(distance)) / EDGE, 0, 1, false);
   const accel = ratio * ratio;
 
   return (SPEED * accel) | 0;
@@ -60,15 +89,7 @@ function autoScrollLoop() {
     y < rect.top - EDGE ||
     y > rect.bottom + EDGE
   ) {
-    targetRect = null;
-    if (currentContainer) {
-      parent.removeAttribute(DRAG_ATR);
-      currentContainer = null;
-    }
-    targetParent = null;
-    targetEl = null;
-    attrValue = "";
-
+    reset();
     return; // ранний выход
   }
 
@@ -79,51 +100,43 @@ function autoScrollLoop() {
   let scrollByY = 0;
 
   // ---------- Y SCROLL ----------
-  if (direction === "y" || direction === "hybrid") {
-    const topEdge = y - rect.top;
-    const bottomEdge = rect.bottom - y;
+  const yEdge =
+    direction !== "x"
+      ? getEdge(
+          y,
+          rect.top,
+          rect.bottom,
+          element.scrollTop,
+          element.clientHeight,
+          element.scrollHeight,
+        )
+      : null;
 
-    if (topEdge < EDGE) {
-      const distance = topEdge;
-
-      dirY = "top";
-
-      if (element.scrollTop > 0) scrollByY -= calcSpeed(distance);
-    } else if (bottomEdge < EDGE) {
-      const distance = bottomEdge;
-
-      dirY = "bottom";
-
-      if (element.scrollTop + element.clientHeight < element.scrollHeight)
-        scrollByY += calcSpeed(distance);
-    }
+  if (yEdge) {
+    dirY = yEdge.dir === -1 ? "top" : "bottom";
+    scrollByY = calcSpeed(yEdge.distance) * yEdge.dir;
   }
 
   // ---------- X SCROLL ----------
-  if (direction === "x" || direction === "hybrid") {
-    const leftEdge = x - rect.left;
-    const rightEdge = rect.right - x;
+  const xEdge =
+    direction !== "y"
+      ? getEdge(
+          x,
+          rect.left,
+          rect.right,
+          element.scrollLeft,
+          element.clientWidth,
+          element.scrollWidth,
+        )
+      : null;
 
-    if (leftEdge < EDGE) {
-      const distance = leftEdge;
-
-      dirX = "left";
-
-      if (element.scrollLeft > 0) scrollByX -= calcSpeed(distance);
-    } else if (rightEdge < EDGE) {
-      const distance = rightEdge;
-
-      dirX = "right";
-
-      if (element.scrollLeft + element.clientWidth < element.scrollWidth)
-        scrollByX += calcSpeed(distance);
-    }
+  if (xEdge) {
+    dirX = xEdge.dir === -1 ? "left" : "right";
+    scrollByX = calcSpeed(xEdge.distance) * xEdge.dir;
   }
 
-  const parts = [];
-  if (dirY) parts.push(dirY);
-  if (dirX) parts.push(dirX);
-  attrValue = parts.join(" ");
+  // собираем значение атрибута
+  attrValue = [dirY, dirX].filter(Boolean).join(" ");
 
   // обновление значения атрибута
   if (attrValue !== prevAttr) {
@@ -131,62 +144,64 @@ function autoScrollLoop() {
     prevAttr = attrValue;
   }
 
-  if (scrollByX || scrollByY) {
-    element.scrollBy(scrollByX, scrollByY); // обновляем scroll
-    targetRect = element.getBoundingClientRect(); // ещё раз для точности обновляем напоследок rect
-  }
+  if (scrollByX || scrollByY) element.scrollBy(scrollByX, scrollByY); // обновляем scroll
 
   // продолжаем loop
-  raf.schedule(autoScrollLoop);
+  raf.schedule("autoScrollLoop", autoScrollLoop);
 }
 
 function onMove(e: PointerEvent | DragEvent) {
+  // ранний выход
+  if (pointer.x === e.clientX && pointer.y === e.clientY) return;
+
   pointer.x = e.clientX;
   pointer.y = e.clientY;
 
-  // проверка начала drag
-  if (!dragging) {
-    const dx = pointer.x - startPoint.x;
-    const dy = pointer.y - startPoint.y;
+  raf.schedule("onMove", () => {
+    // проверка начала drag
+    if (!dragging) {
+      const dx = pointer.x - startPoint.x;
+      const dy = pointer.y - startPoint.y;
 
-    if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
 
-    dragging = true;
-  }
-
-  const elementUnderCursor = document.elementFromPoint(
-    pointer.x,
-    pointer.y,
-  ) as HTMLElement | null;
-  // небольшая защита если elementUnderCursor вернул не DOM
-  if (!elementUnderCursor) return;
-
-  let el = elementUnderCursor as HTMLElement | null;
-
-  while (el) {
-    const container = containerMap.get(el);
-
-    if (container) {
-      currentContainer = container;
-
-      if (targetEl !== currentContainer.element) {
-        if (targetParent && targetParent !== currentContainer.parent)
-          targetParent.removeAttribute(DRAG_ATR);
-
-        // обновления только после смены элемента
-        targetEl = currentContainer.element;
-        targetParent = currentContainer.parent;
-        targetParent.setAttribute(DRAG_ATR, "");
-        targetRect = currentContainer.element.getBoundingClientRect();
-      }
-
-      break;
+      dragging = true;
     }
 
-    el = el.parentElement;
-  }
+    const elementUnderCursor = document.elementFromPoint(
+      pointer.x,
+      pointer.y,
+    ) as HTMLElement | null;
+    // небольшая защита если elementUnderCursor вернул не DOM
+    if (!elementUnderCursor) return;
 
-  raf.schedule(autoScrollLoop);
+    const parent = elementUnderCursor.closest("[morph-scroll]") as HTMLElement;
+    if (!parent) {
+      // если уже есть активный контейнер — продолжаем работать с ним
+      if (!currentContainer) {
+        reset();
+        return;
+      }
+    }
+
+    const container = containerMap.get(parent);
+    if (!container) return;
+    currentContainer = container;
+
+    if (targetEl !== container.element) {
+      if (targetParent && targetParent !== container.parent)
+        targetParent.removeAttribute(DRAG_ATR);
+
+      // обновления только после смены элемента
+      targetEl = container.element;
+      targetParent = container.parent;
+      targetParent.setAttribute(DRAG_ATR, attrValue);
+      prevAttr = attrValue;
+      targetRect = container.element.getBoundingClientRect();
+
+      autoScrollLoop(); // синхронный вызов
+    }
+  });
 }
 
 function removeOnMove() {
@@ -195,20 +210,13 @@ function removeOnMove() {
   dragging = false;
   raf.cancel();
 
-  targetRect = null;
-  if (currentContainer) {
-    currentContainer.parent.removeAttribute(DRAG_ATR);
-    currentContainer = null;
-  }
-  targetParent = null;
-  targetEl = null;
-  attrValue = "";
+  reset();
 }
 
 function startDrag(e: PointerEvent | DragEvent) {
   if (e instanceof PointerEvent) {
     const target = e.target as HTMLElement;
-    const draggable = target.closest("[data-custom-drag]");
+    const draggable = target.closest("[ms-custom-drag]");
     if (!draggable) return; // реагируем только на нужный атрибут
   } else if (e instanceof DragEvent && e.buttons === 0) return; // помогает убрать лишние вызовы
 
@@ -254,7 +262,7 @@ function detachListeners() {
 const containerMap = new Map<HTMLElement, ScrollContainer>();
 
 function registerContainer(container: ScrollContainer) {
-  containerMap.set(container.element, container);
+  containerMap.set(container.parent, container);
 
   if (containerMap.size === 1) {
     attachListeners();
@@ -262,7 +270,7 @@ function registerContainer(container: ScrollContainer) {
 }
 
 function unregisterContainer(container: ScrollContainer) {
-  containerMap.delete(container.element);
+  containerMap.delete(container.parent);
 
   if (containerMap.size === 0) {
     detachListeners();

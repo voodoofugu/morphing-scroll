@@ -489,7 +489,14 @@ type MorphScrollT = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***dragScroll***:
-   * activates scrolling when dragging elements to the edges of the scroll.
+   * enables automatic scrolling when dragging elements near the edges of the container.
+   * @note
+   * *Supports attributes:*
+   * - *`draggable="true"`*
+   * - *`ms-custom-drag`*
+   *
+   * *Set attribute: `ms-under-drag`*
+   *
    * @example
    * ```tsx
    * <MorphScroll {...props}

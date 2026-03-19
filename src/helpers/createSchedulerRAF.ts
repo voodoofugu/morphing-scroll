@@ -1,17 +1,17 @@
 // система для батчинга нескольких RAF
 function createSchedulerRAF() {
   let rafId: number | null = null;
-  const queue = new Set<() => void>();
+  const queue = new Map<string, () => void>();
 
-  const schedule = (fn: () => void) => {
-    queue.add(fn);
+  const schedule = (key: string, fn: () => void) => {
+    queue.set(key, fn);
 
     if (rafId !== null) return;
 
     rafId = requestAnimationFrame(() => {
       rafId = null;
 
-      const tasks = Array.from(queue); // сохраняем задачи в момент начала выполнения, чтобы новые, добавленные во время выполнения, не запустились
+      const tasks = Array.from(queue.values());
       queue.clear();
 
       tasks.forEach((t) => t());

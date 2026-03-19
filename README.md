@@ -171,7 +171,7 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
   <li><b>Simple</b>:<br />
   
 ```tsx
-scrollPosition: 10; // or "end" | null | array if direction="hybrid"
+scrollPosition: 10 // or "end" | null | array if direction="hybrid"
 ```
 
   </li>
@@ -414,7 +414,7 @@ defines the spacing between the list items and their wrapper, effectively increa
   <li><b>Simple</b>:<br />
   
 ```tsx
-wrapperMinSize: 10; // or "full"
+wrapperMinSize: 10 // or "full"
 ```
 
   </li>
@@ -455,7 +455,7 @@ defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which 
   <li><b>Simple</b>:<br />
   
 ```tsx
-wrapperAlign: "center"; // or "start" | "end"
+wrapperAlign: "center" // or "start" | "end"
 ```
 
   </li>
@@ -549,7 +549,7 @@ changes the order of the provided elements based on the provided value.</em><br 
   <li><b>Simple</b>:<br />
   
 ```tsx
-edgeGradient: true; // or "#fff"
+edgeGradient: true // or "#fff"
 ```
 
   </li>
@@ -655,10 +655,11 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 By using <code>content</code> drag scrolling will not work in these cases:<br />
-interactive elements:<br />
-<code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code><br />
-elements with attribute:<br />
-<code>[draggable="true"]</code>, <code>[contenteditable]</code> and custom attribute - <code>[data-custom-drag]</code><br />
+
+<ul>
+  <li><b>interactive elements</b>: <code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code></li><br />
+  <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
+</ul>
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
@@ -805,7 +806,7 @@ this parameter is only used when <code>type="scroll"</code> is set.<br />
   <li><b>Simple</b>:<br />
   
 ```tsx
-render: "lazy"; // or "virtual"
+render: "lazy" // or "virtual"
 ```
 
   </li>
@@ -866,7 +867,7 @@ sets the <code>--content-visibility</code> variable for list item wrapper styles
   <li><b>Simple</b>:<br />
   
 ```tsx
-emptyElements: "clear"; // or "fallback" | <FallbackComponent />
+emptyElements: "clear" // or "fallback" | <FallbackComponent />
 ```
 
   </li>
@@ -974,8 +975,18 @@ It will be used when:
 ###### **— ADDITIONAL —**
 
 <details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+dragScroll: true;
+```
+
 <b>Description:</b><em><br />
-activates scrolling when dragging elements to the edges of the scroll.<br />
+enables automatic scrolling when dragging elements near the edges of the container.<br />
+Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
+<br />
+✦ Note:<br />
+while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
 </em><br />
 <b>Example:</b>
 

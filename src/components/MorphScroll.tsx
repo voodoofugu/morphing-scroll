@@ -92,7 +92,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // ♦ helpers
   const raf = createSchedulerRAF();
-  const triggerRAF = () => raf.schedule(triggerUpdate); // по-кадрово оптимизированный triggerUpdate
+  const triggerRAF = () => raf.schedule("triggerUpdate", triggerUpdate); // по-кадрово оптимизированный triggerUpdate
   const rafScrollAnim = createSchedulerRAF();
 
   // ♦ errors
@@ -960,7 +960,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       if (
         target.closest(
           `
-          [data-custom-drag], [draggable="true"], [contenteditable],
+          [ms-custom-drag], [draggable="true"], [contenteditable],
           input, textarea, select, button, a
         `,
         )
@@ -1170,7 +1170,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       );
 
       // по-кадровое обновление
-      raf.schedule(() => {
+      raf.schedule("sliderCheckLocal", () => {
         if (type !== "scroll") sliderCheckLocal();
         triggerUpdate(); // main updater
       });
@@ -1348,7 +1348,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // эффекты прокрутки
   React.useEffect(() => {
     // обязательно вызываем всё в одном raf
-    raf.schedule(() => {
+    raf.schedule("smoothScrollLocal", () => {
       const directions: ("x" | "y")[] =
         direction === "hybrid" ? ["x", "y"] : [direction];
       directions.forEach((dir) => {
@@ -1513,7 +1513,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // отделил потому что size может вычисляться позже при "auto"
   React.useEffect(() => {
     if (type === "scroll") return;
-    raf.schedule(sliderCheckLocal);
+    raf.schedule("sliderCheckLocal", sliderCheckLocal);
   }, [type, sliderCheckLocal, sizeLocal.join()]);
 
   // ♦ contents

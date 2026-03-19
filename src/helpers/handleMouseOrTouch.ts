@@ -65,7 +65,7 @@ type HandleMouseT = {
   duration: number;
   scrollBarEdge: number[];
   rafScrollAnim: {
-    schedule: (fn: () => void) => void;
+    schedule: (kay: string, fn: () => void) => void;
     cancel: () => void;
   };
   isTouched: boolean;

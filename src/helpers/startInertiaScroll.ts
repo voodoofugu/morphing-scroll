@@ -5,7 +5,7 @@ type InertiaArgs = {
   el: HTMLDivElement;
   axis: "x" | "y";
   velocity: number;
-  rafSchedule: (fn: () => void) => void;
+  rafSchedule: (kay: string, fn: () => void) => void;
 };
 
 function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
@@ -54,10 +54,10 @@ function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
 
     el[prop] = next;
 
-    rafSchedule(step);
+    rafSchedule("step", step);
   };
 
-  rafSchedule(step);
+  rafSchedule("step", step);
 }
 
 export default startInertiaScroll;

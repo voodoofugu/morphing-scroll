@@ -25,7 +25,7 @@ async function smoothScroll(
   scrollEl: Element,
   duration: number | null,
   targetScroll: number,
-  rafScrollAnim: (fn: () => void) => void,
+  rafScrollAnim: (kay: string, fn: () => void) => void,
 ) {
   if (!scrollEl || targetScroll === undefined || targetScroll === null)
     return null;
@@ -54,10 +54,10 @@ async function smoothScroll(
         scrollEl[topOrLeft] =
           startTopOrLeft + (targetScroll - startTopOrLeft) * progress;
 
-        if (progress < 1) rafScrollAnim(animate);
+        if (progress < 1) rafScrollAnim("smoothScroll", animate);
       };
 
-      rafScrollAnim(animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
+      rafScrollAnim("smoothScroll", animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
     },
     duration,
     `smoothScrollBlock${direction}`,
