@@ -1412,7 +1412,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // регистрация контейнера для auto drag scroll
   React.useEffect(() => {
-    if (!dragScroll) return;
+    // if (!dragScroll) return;
 
     const parent = customScrollRef.current;
     const element = scrollElementRef.current;
@@ -1790,9 +1790,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const base: any[] = [
       {
-        shouldRender:
-          (isNotX ? thumbSizeMemo.y : thumbSizeMemo.x) <
-          sizeMinusEdge[isNotX ? 1 : 0],
+        shouldRender: fullHeightOrWidth > sizeLocal[isNotX ? 1 : 0],
         direction,
         thumbSize: isNotX ? thumbSizeMemo.y : thumbSizeMemo.x,
         thumbSpace: isNotX ? thumbSpace.y : thumbSpace.x,
@@ -1801,7 +1799,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       },
       {
         shouldRender:
-          direction === "hybrid" && thumbSizeMemo.x < sizeMinusEdge[0],
+          direction === "hybrid" && objectsWrapperWidthFull > sizeLocal[0],
         direction: "x" as const,
         thumbSize: thumbSizeMemo.x,
         thumbSpace: thumbSpace.x,

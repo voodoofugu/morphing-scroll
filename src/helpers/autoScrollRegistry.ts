@@ -26,7 +26,6 @@ let pointer = {
   y: 0,
 };
 let dragging = false;
-let targetRect: DOMRect | null = null;
 let currentContainer: ScrollContainer | null = null;
 let attrValue = "";
 
@@ -39,7 +38,6 @@ const raf = createSchedulerRAF();
 // funcs
 const reset = () => {
   if (targetParent) targetParent.removeAttribute(DRAG_ATR);
-  targetRect = null;
   currentContainer = null;
   targetParent = null;
   targetEl = null;
@@ -75,12 +73,13 @@ function calcSpeed(distance: number) {
 }
 
 function autoScrollLoop() {
+  if (!currentContainer) return;
+
+  const { parent, element, direction } = currentContainer;
+  const rect = element.getBoundingClientRect();
+
   const x = pointer.x;
   const y = pointer.y;
-  const rect = targetRect;
-
-  if (!currentContainer || !rect) return;
-  const { parent, element, direction } = currentContainer;
 
   // курсор покинул контейнер
   if (
@@ -144,10 +143,7 @@ function autoScrollLoop() {
     prevAttr = attrValue;
   }
 
-  if (scrollByX || scrollByY) {
-    element.scrollBy(scrollByX, scrollByY); // обновляем scroll
-    targetRect = element.getBoundingClientRect(); // доп вычисления так как размеры могли измениться
-  }
+  if (scrollByX || scrollByY) element.scrollBy(scrollByX, scrollByY); // обновляем scroll
 
   // продолжаем loop
   raf.schedule("autoScrollLoop", autoScrollLoop);
@@ -197,7 +193,6 @@ function onMove(e: PointerEvent | DragEvent) {
       targetParent = container.parent;
       targetParent.setAttribute(DRAG_ATR, attrValue);
       prevAttr = attrValue;
-      targetRect = container.element.getBoundingClientRect();
 
       autoScrollLoop(); // синхронный вызов
     }
