@@ -144,7 +144,10 @@ function autoScrollLoop() {
     prevAttr = attrValue;
   }
 
-  if (scrollByX || scrollByY) element.scrollBy(scrollByX, scrollByY); // обновляем scroll
+  if (scrollByX || scrollByY) {
+    element.scrollBy(scrollByX, scrollByY); // обновляем scroll
+    targetRect = element.getBoundingClientRect(); // доп вычисления так как размеры могли измениться
+  }
 
   // продолжаем loop
   raf.schedule("autoScrollLoop", autoScrollLoop);
