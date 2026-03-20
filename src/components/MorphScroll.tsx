@@ -1412,7 +1412,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // регистрация контейнера для auto drag scroll
   React.useEffect(() => {
-    // if (!dragScroll) return;
+    if (!dragScroll) return;
 
     const parent = customScrollRef.current;
     const element = scrollElementRef.current;
