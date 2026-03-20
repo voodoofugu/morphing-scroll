@@ -47,10 +47,12 @@ import Morph from "morphing-scroll";
 
 Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
-> **✦ Note:**  
-> `MorphScroll` supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
+> **✦ Note:**
 >
-> This library is currently under development. APIs and behavior may change in future releases.
+> - Supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
+> - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements ("`.ms-*`").
+> - Components include identifying attributes and MorphScroll internals elements use the "`.ms-`" prefix for classes and attributes.
+> - ! This library is currently under development. APIs and behavior may change in future releases.
 
 <h2></h2>
 
@@ -614,7 +616,7 @@ progressTrigger: {
 
   </li>
   <li><b>Advanced</b>:<br />
-  
+
 ```tsx
 progressTrigger: {
   wheel: {
