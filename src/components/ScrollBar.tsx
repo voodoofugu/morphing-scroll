@@ -126,7 +126,7 @@ const ScrollBar = ({
       handleWheel(e, scrollEl.current!, scrollStateRef.current!, dataDirection);
     };
 
-    el.addEventListener("wheel", onWheel);
+    el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, [dataDirection]);
 

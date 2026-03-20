@@ -13,15 +13,13 @@
 
 ### 〈 About 〉
 
-`morphing-scroll` is a `React` library originally created to address common limitations of the native browser scrollbar, including:
+`morphing-scroll` is a `React` library designed to overcome common limitations of native browser scrolling, including:
 
-- Design customization constraints
-- Cross-browser compatibility
-- Lack of horizontal scrolling support via mouse wheel
+- Limited design customization
+- Inconsistent cross-browser behavior
+- Lack of horizontal scrolling support via the mouse wheel
 
-Over time, the library evolved to include numerous optimizations for handling large lists, significantly improving performance and flexibility.
-
-All features are described below through the available components and their corresponding props.
+The library includes optimizations for large lists, improving performance and overall scrolling behavior.
 
 <h2></h2>
 
