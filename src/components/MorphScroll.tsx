@@ -595,13 +595,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (dir === "x") {
         return calculateThumbSize(
-          sizeLocal[0],
+          sizeLocal[0] - scrollBarEdgeLocal[0],
           objectsWrapperWidthFull,
           thumbMinSizeLocal,
         );
       } else
         return calculateThumbSize(
-          sizeLocal[1],
+          sizeLocal[1] - scrollBarEdgeLocal[1],
           objectsWrapperHeightFull,
           thumbMinSizeLocal,
         );
@@ -613,6 +613,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal[1],
       objectsWrapperWidthFull,
       thumbMinSizeLocal,
+      scrollBarEdgeLocal.join(),
     ],
   );
 
@@ -1785,22 +1786,22 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
 
   const scrollBarConfigs = () => {
+    const isNotX = direction !== "x";
+
     const base: any[] = [
       {
         shouldRender:
-          (direction !== "x"
-            ? thumbSizeMemo.y - scrollBarEdgeLocal[1]
-            : thumbSizeMemo.x - scrollBarEdgeLocal[0]) < xySize,
+          (isNotX ? thumbSizeMemo.y : thumbSizeMemo.x) <
+          sizeMinusEdge[isNotX ? 1 : 0],
         direction,
-        thumbSize: direction !== "x" ? thumbSizeMemo.y : thumbSizeMemo.x,
-        thumbSpace: direction !== "x" ? thumbSpace.y : thumbSpace.x,
+        thumbSize: isNotX ? thumbSizeMemo.y : thumbSizeMemo.x,
+        thumbSpace: isNotX ? thumbSpace.y : thumbSpace.x,
         objLengthPerSize: objLengthPerSizeXY,
         progressReverseIndex: 0,
       },
       {
         shouldRender:
-          direction === "hybrid" &&
-          thumbSizeMemo.x - scrollBarEdgeLocal[0] < sizeMinusEdge[0],
+          direction === "hybrid" && thumbSizeMemo.x < sizeMinusEdge[0],
         direction: "x" as const,
         thumbSize: thumbSizeMemo.x,
         thumbSpace: thumbSpace.x,
