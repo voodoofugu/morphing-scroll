@@ -13,15 +13,13 @@
 
 ### 〈 About 〉
 
-`morphing-scroll` is a `React` library originally created to address common limitations of the native browser scrollbar, including:
+`morphing-scroll` is a `React` library designed to overcome common limitations of native browser scrolling, including:
 
-- Design customization constraints
-- Cross-browser compatibility
-- Lack of horizontal scrolling support via mouse wheel
+- Limited design customization
+- Inconsistent cross-browser behavior
+- Lack of horizontal scrolling support via the mouse wheel
 
-Over time, the library evolved to include numerous optimizations for handling large lists, significantly improving performance and flexibility.
-
-All features are described below through the available components and their corresponding props.
+The library includes optimizations for large lists, improving performance and overall scrolling behavior.
 
 <h2></h2>
 
@@ -47,10 +45,12 @@ import Morph from "morphing-scroll";
 
 Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
 
-> **✦ Note:**  
-> `MorphScroll` supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
+> **✦ Note:**
 >
-> This library is currently under development. APIs and behavior may change in future releases.
+> - Supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
+> - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements (`.ms-*`).
+> - Components include identifying attributes and MorphScroll internals elements use the `.ms-` prefix for classes and attributes.
+> - ! This library is currently under development. APIs and behavior may change in future releases.
 
 <h2></h2>
 
@@ -64,7 +64,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <ul><div>
 
-###### **— GENERAL SETTINGS —**
+###### **— GENERAL —**
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
@@ -98,7 +98,7 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 <h2></h2>
 
-###### **— SCROLL SETTINGS —**
+###### **— SCROLL —**
 
 <details><summary><b><code>type</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -171,7 +171,7 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
   <li><b>Simple</b>:<br />
   
 ```tsx
-scrollPosition: 10; // or "end" | null | array if direction="hybrid"
+scrollPosition: 10 // or "end" | null | array if direction="hybrid"
 ```
 
   </li>
@@ -263,7 +263,7 @@ accepts a callback function that is triggered whenever the scroll status changes
 
 <h2></h2>
 
-###### **— VISUAL SETTINGS —**
+###### **— VISUAL —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -414,7 +414,7 @@ defines the spacing between the list items and their wrapper, effectively increa
   <li><b>Simple</b>:<br />
   
 ```tsx
-wrapperMinSize: 10; // or "full"
+wrapperMinSize: 10 // or "full"
 ```
 
   </li>
@@ -455,7 +455,7 @@ defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which 
   <li><b>Simple</b>:<br />
   
 ```tsx
-wrapperAlign: "center"; // or "start" | "end"
+wrapperAlign: "center" // or "start" | "end"
 ```
 
   </li>
@@ -549,7 +549,7 @@ changes the order of the provided elements based on the provided value.</em><br 
   <li><b>Simple</b>:<br />
   
 ```tsx
-edgeGradient: true; // or "#fff"
+edgeGradient: true // or "#fff"
 ```
 
   </li>
@@ -614,7 +614,7 @@ progressTrigger: {
 
   </li>
   <li><b>Advanced</b>:<br />
-  
+
 ```tsx
 progressTrigger: {
   wheel: {
@@ -655,10 +655,11 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 By using <code>content</code> drag scrolling will not work in these cases:<br />
-interactive elements:<br />
-<code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code><br />
-elements with attribute:<br />
-<code>[draggable="true"]</code>, <code>[contenteditable]</code> and custom attribute - <code>[data-ms-no-drag]</code><br />
+
+<ul>
+  <li><b>interactive elements</b>: <code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code></li><br />
+  <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
+</ul>
 <br />
 <code><b>progressElement</b></code>:<br />
 determines how the scroll progress is managed<br />
@@ -805,7 +806,7 @@ this parameter is only used when <code>type="scroll"</code> is set.<br />
   <li><b>Simple</b>:<br />
   
 ```tsx
-render: "lazy"; // or "virtual"
+render: "lazy" // or "virtual"
 ```
 
   </li>
@@ -866,7 +867,7 @@ sets the <code>--content-visibility</code> variable for list item wrapper styles
   <li><b>Simple</b>:<br />
   
 ```tsx
-emptyElements: "clear"; // or "fallback" | <FallbackComponent />
+emptyElements: "clear" // or "fallback" | <FallbackComponent />
 ```
 
   </li>
@@ -963,6 +964,34 @@ It will be used when:
 
 ```tsx
 <MorphScroll {...props} fallback={<div>Loading...</div>}>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
+###### **— ADDITIONAL —**
+
+<details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+dragScroll: true;
+```
+
+<b>Description:</b><em><br />
+enables automatic scrolling when dragging elements near the edges of the container.<br />
+Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
+<br />
+✦ Note:<br />
+while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} dragScroll>
   {children}
 </MorphScroll>
 ```
