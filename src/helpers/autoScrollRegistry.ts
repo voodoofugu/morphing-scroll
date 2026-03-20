@@ -176,13 +176,10 @@ function onMove(e: PointerEvent | DragEvent) {
     if (!elementUnderCursor) return;
 
     const parent = elementUnderCursor.closest("[morph-scroll]") as HTMLElement;
-    if (!parent) {
-      // если уже есть активный контейнер — продолжаем работать с ним
-      if (!currentContainer) {
-        reset();
-        return;
-      }
-    }
+    if (!parent && !currentContainer) {
+      reset();
+      return; // выход
+    } // если уже есть активный контейнер — продолжаем работать с ним
 
     const container = containerMap.get(parent);
     if (!container) return;
