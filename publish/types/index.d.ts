@@ -69,9 +69,9 @@ declare const IntersectionTracker: React.FC<IntersectionTrackerT>;
  * - `elementsDirection`
  * - `edgeGradient`
  * - `progressTrigger`
- * - `progressReverse`
- * - `scrollBarOnHover`
- * - `scrollBarEdge`
+ * - `scrollbarOpposite`
+ * - `scrollbarHover`
+ * - `scrollbarEdge`
  * - `thumbMinSize`
  *
  * ##### — OPTIMIZATIONS —
@@ -123,9 +123,9 @@ declare const Morph: {
    * - `elementsDirection`
    * - `edgeGradient`
    * - `progressTrigger`
-   * - `progressReverse`
-   * - `scrollBarOnHover`
-   * - `scrollBarEdge`
+   * - `scrollbarOpposite`
+   * - `scrollbarHover`
+   * - `scrollbarEdge`
    * - `thumbMinSize`
    *
    * ##### — OPTIMIZATIONS —

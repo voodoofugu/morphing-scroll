@@ -71,9 +71,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
   // Progress Bar
   progressTrigger = { wheel: true },
-  progressReverse = false,
-  scrollBarOnHover = false,
-  scrollBarEdge,
+  scrollbarOpposite = false,
+  scrollbarHover = false,
+  scrollbarEdge,
   thumbMinSize,
 
   // Optimization
@@ -119,7 +119,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
   const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
 
-  const scrollBarsRef = React.useRef<Set<HTMLElement>>(new Set());
+  const scrollbarsRef = React.useRef<Set<HTMLElement>>(new Set());
 
   const isTouchedRef = React.useRef<boolean>(isTouchDevice());
   const firstRender = React.useRef<boolean>(true);
@@ -177,7 +177,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     gapST,
     progressTriggerST,
     objectsKeysEmptyST,
-    scrollBarEdgeST,
+    scrollbarEdgeST,
   ] = stabilize(
     scrollPosition,
     render,
@@ -189,7 +189,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     gap,
     progressTrigger,
     objectsKeys.current.empty,
-    scrollBarEdge,
+    scrollbarEdge,
   );
 
   // ♦ default
@@ -264,8 +264,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           emptyElements === "clear" ||
           (emptyElements &&
             typeof emptyElements === "object" &&
-            "mode" in emptyElements &&
-            emptyElements.mode === "clear")
+            "content" in emptyElements &&
+            emptyElements.content === "clear")
         ) {
           return !objectsKeys.current.empty?.has(key);
         }
@@ -363,30 +363,30 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   ]);
   const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
-  const scrollBarEdgeLocal = React.useMemo<[number, number]>(() => {
-    if (!scrollBarEdge) return [0, 0];
+  const scrollbarEdgeLocal = React.useMemo<[number, number]>(() => {
+    if (!scrollbarEdge) return [0, 0];
 
-    if (typeof scrollBarEdge === "number") {
-      const val = scrollBarEdge * 2;
+    if (typeof scrollbarEdge === "number") {
+      const val = scrollbarEdge * 2;
       return [val, val];
     }
 
-    if (Array.isArray(scrollBarEdge)) {
-      const [first = 0, second] = scrollBarEdge;
+    if (Array.isArray(scrollbarEdge)) {
+      const [first = 0, second] = scrollbarEdge;
       return [first * 2, (second ?? first) * 2];
     }
 
     return [0, 0];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrollBarEdgeST]);
+  }, [scrollbarEdgeST]);
 
   const sizeMinusEdge = React.useMemo(() => {
-    const x = sizeLocal[0] - scrollBarEdgeLocal[0];
-    const y = sizeLocal[1] - scrollBarEdgeLocal[1];
+    const x = sizeLocal[0] - scrollbarEdgeLocal[0];
+    const y = sizeLocal[1] - scrollbarEdgeLocal[1];
 
     return [x, y];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrollBarEdgeLocal.join(), sizeLocal[0], sizeLocal[1]]);
+  }, [scrollbarEdgeLocal.join(), sizeLocal[0], sizeLocal[1]]);
 
   const objectsSizing = React.useMemo(
     () =>
@@ -595,13 +595,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
       if (dir === "x") {
         return calculateThumbSize(
-          sizeLocal[0] - scrollBarEdgeLocal[0],
+          sizeLocal[0] - scrollbarEdgeLocal[0],
           objectsWrapperWidthFull,
           thumbMinSizeLocal,
         );
       } else
         return calculateThumbSize(
-          sizeLocal[1] - scrollBarEdgeLocal[1],
+          sizeLocal[1] - scrollbarEdgeLocal[1],
           objectsWrapperHeightFull,
           thumbMinSizeLocal,
         );
@@ -613,7 +613,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal[1],
       objectsWrapperWidthFull,
       thumbMinSizeLocal,
-      scrollBarEdgeLocal.join(),
+      scrollbarEdgeLocal.join(),
     ],
   );
 
@@ -969,11 +969,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return;
 
       let axisFromAtr: "x" | "y" | null = null;
-      if (checkClickedBar) {
+      if (checkClickedBar)
         axisFromAtr = target
           .closest(type === "scroll" ? ".ms-bar" : ".ms-slider")
-          ?.getAttribute("data-direction") as "x" | "y";
-      }
+          ?.getAttribute("ms-direction") as "x" | "y";
 
       clickedObject.current = clicked;
 
@@ -992,7 +991,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         thumbSize: axisFromAtr === "x" ? thumbSizeMemo.x : thumbSizeMemo.y,
         axisFromAtr,
         duration: scrollPositionLocal.duration,
-        scrollBarEdge: scrollBarEdgeLocal,
+        scrollbarEdge: scrollbarEdgeLocal,
         rafScrollAnim,
         isTouched: isTouchedRef.current,
         gap: gapLocal,
@@ -1009,7 +1008,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       sizeLocal.join(),
       scrollPositionLocal.duration,
       smoothScrollLocal,
-      scrollBarEdgeLocal.join(),
+      scrollbarEdgeLocal.join(),
       thumbSizeMemo.x,
       thumbSizeMemo.y,
       gapLocal.join(),
@@ -1060,13 +1059,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (
       !scrollContentRef.current ||
       !scrollElementRef.current ||
-      !scrollBarsRef.current.size
+      !scrollbarsRef.current.size
     )
       return;
 
     sliderCheck(
       scrollElementRef.current,
-      scrollBarsRef.current,
+      scrollbarsRef.current,
       direction,
       objLengthPerSize,
     );
@@ -1128,13 +1127,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         type === "scroll" ? ".ms-bar" : ".ms-slider",
       );
       if (
-        scrollBarOnHover &&
+        scrollbarHover &&
         scrollOrSlider.length > 0 &&
         !isScrollingRef.current
       ) {
-        // доп логика что-бы показать скрытый scrollBar
+        // доп логика что-бы показать скрытый scrollbar
         scrollOrSlider.forEach((el) => {
-          if (!el.classList.contains("hover")) addHover(el);
+          if (!el.classList.contains("ms-hover")) addHover(el);
         });
       }
 
@@ -1150,7 +1149,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           renderLocal.type && updateLoadedElementsKeysLocal();
 
           if (
-            scrollBarOnHover &&
+            scrollbarHover &&
             scrollOrSlider.length > 0 &&
             !clickedObject.current
           ) {
@@ -1183,7 +1182,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       type,
       sliderCheckLocal,
       updateLoadedElementsKeysLocal,
-      scrollBarOnHover,
+      scrollbarHover,
       renderLocal.type,
     ],
   );
@@ -1460,9 +1459,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // установка слушателя нажатия на scrollContentRef
   React.useEffect(() => {
     const el = scrollContentRef.current;
-    if (!el || !scrollBarOnHover) return;
+    if (!el || !scrollbarHover) return;
 
-    if (!scrollBarsRef.current.size) return;
+    if (!scrollbarsRef.current.size) return;
 
     const handler = (event: PointerEvent | MouseEvent) => {
       // динамический mouseup в таком виде помог решить проблему с исчезновением и залипанием thumb
@@ -1473,7 +1472,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         return;
       }
 
-      Array.from(scrollBarsRef.current).forEach((el) => {
+      Array.from(scrollbarsRef.current).forEach((el) => {
         hoverHandler({
           el,
           event,
@@ -1487,7 +1486,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       fn: (event: any) => void,
     ) => {
       if (isTouchedRef.current) {
-        Array.from(scrollBarsRef.current).forEach((el) =>
+        Array.from(scrollbarsRef.current).forEach((el) =>
           el[type]("pointerdown", fn),
         ); // на сам thumb
         document[type]("pointerup", fn);
@@ -1504,11 +1503,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       listenersHandler("removeEventListener", handler);
     };
   }, [
-    scrollBarOnHover,
+    scrollbarHover,
     type,
     // почему-то при изменении direction отваливается ивент
     direction,
-    scrollBarsRef.current.size,
+    scrollbarsRef.current.size,
   ]);
 
   // отделил потому что size может вычисляться позже при "auto"
@@ -1597,16 +1596,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       !objectsKeys.current.loaded.has(key)
         ? fallback
         : objectsKeys.current.empty?.has(key)
-          ? emptyElements &&
-            typeof emptyElements === "object" &&
-            React.isValidElement(emptyElements)
+          ? React.isValidElement(emptyElements)
             ? emptyElements
             : emptyElements &&
                 typeof emptyElements === "object" &&
-                "mode" in emptyElements &&
-                typeof emptyElements.mode === "object" &&
-                "fallback" in emptyElements.mode
-              ? emptyElements.mode.fallback
+                "content" in emptyElements &&
+                React.isValidElement(emptyElements.content)
+              ? emptyElements.content
               : fallback
           : child;
 
@@ -1785,7 +1781,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     sizeLocal[0],
   ]);
 
-  const scrollBarConfigs = () => {
+  const scrollbarConfigs = () => {
     const isNotX = direction !== "x";
 
     const base: any[] = [
@@ -1811,29 +1807,29 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     return base.filter(({ shouldRender }) => shouldRender);
   };
 
-  const scrollBarsJSX = () => {
+  const scrollbarsJSX = () => {
     if (
       !progressTrigger.progressElement ||
       progressTrigger.progressElement === true
     )
       return null;
 
-    return scrollBarConfigs().map((args) => {
-      const progressReverseValue =
-        typeof progressReverse === "boolean"
-          ? progressReverse
-          : progressReverse[args.progressReverseIndex];
+    return scrollbarConfigs().map((args) => {
+      const scrollbarOppositeValue =
+        typeof scrollbarOpposite === "boolean"
+          ? scrollbarOpposite
+          : scrollbarOpposite[args.progressReverseIndex];
 
       return (
         <ScrollBar
           key={args.direction}
           type={type}
           direction={args.direction}
-          progressReverse={progressReverseValue}
+          scrollbarOpposite={scrollbarOppositeValue}
           size={sizeMinusEdge}
           progressTrigger={progressTrigger}
-          scrollBarOnHover={scrollBarOnHover}
-          scrollBarEvent={
+          scrollbarHover={scrollbarHover}
+          scrollbarEvent={
             type === "sliderMenu" ? smoothScrollLocal : onMoveScrollThumb
           }
           thumbSize={args.thumbSize}
@@ -1844,7 +1840,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           isTouched={isTouchedRef.current}
           scrollStateRef={scrollStateRef}
           scrollEl={scrollElementRef}
-          scrollBarsRef={scrollBarsRef}
+          scrollbarsRef={scrollbarsRef}
           triggerUpdate={triggerRAF}
           overscroll={overscrollRef}
         />
@@ -1948,7 +1944,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         </div>
 
         {edgesJSX}
-        {scrollBarsJSX()}
+        {scrollbarsJSX()}
       </div>
 
       {arrowsJSX}

@@ -12,7 +12,7 @@ type OnCustomScrollFn = (
 
 type ModifiedProps = Partial<MorphScrollT> & {
   size: number[];
-  scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
+  scrollbarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
@@ -21,7 +21,7 @@ type ModifiedProps = Partial<MorphScrollT> & {
   isTouched: boolean;
   scrollStateRef: React.RefObject<ScrollStateRefT>;
   scrollEl: React.RefObject<HTMLDivElement | null>;
-  scrollBarsRef: React.RefObject<Set<HTMLElement>>;
+  scrollbarsRef: React.RefObject<Set<HTMLElement>>;
   triggerUpdate: () => void;
   overscroll: React.MutableRefObject<{
     x: number;
@@ -32,11 +32,11 @@ type ModifiedProps = Partial<MorphScrollT> & {
 const ScrollBar = ({
   type,
   direction,
-  progressReverse,
+  scrollbarOpposite,
   size,
   progressTrigger,
-  scrollBarOnHover,
-  scrollBarEvent,
+  scrollbarHover,
+  scrollbarEvent,
   thumbSize,
   thumbSpace,
   objLengthPerSize,
@@ -45,12 +45,12 @@ const ScrollBar = ({
   isTouched,
   scrollStateRef,
   scrollEl,
-  scrollBarsRef,
+  scrollbarsRef,
   triggerUpdate,
   overscroll,
 }: ModifiedProps) => {
   // - refs -
-  const scrollBarRef = React.useRef<HTMLDivElement>(null);
+  const scrollbarRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
 
   // - vars -
@@ -80,7 +80,7 @@ const ScrollBar = ({
         onClick={
           type === "sliderMenu"
             ? () => {
-                (scrollBarEvent as OnCustomScrollFn)(
+                (scrollbarEvent as OnCustomScrollFn)(
                   neededSize * index,
                   axis,
                   duration,
@@ -99,7 +99,7 @@ const ScrollBar = ({
     objLengthPerSize,
     size,
     type,
-    scrollBarEvent,
+    scrollbarEvent,
     progressTrigger?.progressElement,
     duration,
     sliderCheckLocal,
@@ -114,7 +114,7 @@ const ScrollBar = ({
     // добавление прокрутки по колесом по thumb
     if (isTouched || !progressTrigger?.wheel) return; // при touch устроиствах прокрутку не используем
 
-    const el = scrollBarRef.current;
+    const el = scrollbarRef.current;
     if (!el) return;
 
     let prev = el.previousElementSibling as HTMLElement | null;
@@ -131,11 +131,11 @@ const ScrollBar = ({
   }, [dataDirection]);
 
   React.useEffect(() => {
-    const el = scrollBarRef.current;
+    const el = scrollbarRef.current;
     if (!el || type === "sliderMenu") return;
 
     const handleStart = (e: PointerEvent) => {
-      (scrollBarEvent as (e: PointerEvent) => void)(e);
+      (scrollbarEvent as (e: PointerEvent) => void)(e);
     };
 
     el.addEventListener("pointerdown", handleStart);
@@ -143,23 +143,23 @@ const ScrollBar = ({
     return () => {
       el.removeEventListener("pointerdown", handleStart);
     };
-  }, [scrollBarEvent]);
+  }, [scrollbarEvent]);
 
   React.useEffect(() => {
-    const el = scrollBarRef.current;
+    const el = scrollbarRef.current;
     if (!el) return;
 
-    scrollBarsRef.current!.add(el);
+    scrollbarsRef.current!.add(el);
     triggerUpdate();
 
     return () => {
-      scrollBarsRef.current!.delete(el);
+      scrollbarsRef.current!.delete(el);
     };
   }, [thumbSize]);
 
   const commonStyles: React.CSSProperties = {
     position: "absolute",
-    ...(scrollBarOnHover && {
+    ...(scrollbarHover && {
       opacity: 0,
       transition: "opacity 0.2s ease-in-out",
     }),
@@ -181,8 +181,8 @@ const ScrollBar = ({
       {type === "scroll" ? (
         <div
           className={`ms-bar ms-${dataDirection}`}
-          ref={scrollBarRef}
-          data-direction={dataDirection} // доп логика
+          ref={scrollbarRef}
+          ms-direction={dataDirection} // доп логика
           style={{
             ...commonStyles,
             width: "fit-content",
@@ -191,7 +191,7 @@ const ScrollBar = ({
               ? {
                   transformOrigin: "left top",
                   left: "50%",
-                  ...(progressReverse
+                  ...(scrollbarOpposite
                     ? {
                         top: 0,
                         transform: "rotate(-90deg) translate(-100%, -50%)",
@@ -201,7 +201,7 @@ const ScrollBar = ({
               : {
                   top: "50%",
                   transform: "translateY(-50%)",
-                  ...(progressReverse ? { left: 0 } : { right: 0 }),
+                  ...(scrollbarOpposite ? { left: 0 } : { right: 0 }),
                 }),
           }}
         >
@@ -228,8 +228,8 @@ const ScrollBar = ({
         progressTrigger?.progressElement && (
           <div
             className={`ms-slider ms-${dataDirection}`}
-            ref={scrollBarRef}
-            data-direction={dataDirection} // доп логика
+            ref={scrollbarRef}
+            ms-direction={dataDirection} // доп логика
             style={{
               ...commonStyles,
               display: "flex",
@@ -241,13 +241,13 @@ const ScrollBar = ({
                     transformOrigin: "left top",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    ...(progressReverse ? { top: 0 } : { bottom: 0 }),
+                    ...(scrollbarOpposite ? { top: 0 } : { bottom: 0 }),
                   }
                 : {
                     flexDirection: "column",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                    ...(scrollbarOpposite ? { left: 0 } : { right: 0 }),
                   }),
             }}
           >

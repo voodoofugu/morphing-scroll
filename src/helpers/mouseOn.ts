@@ -1,11 +1,11 @@
 import { setTask, cancelTask } from "./taskManager";
 
 // функция смены курсора
-const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
+const mouseOnEl = (el: HTMLElement | null, content: "start" | "end") => {
   if (!el) return;
   const isTouched = window.matchMedia("(pointer: coarse)").matches;
 
-  if (mode === "start") {
+  if (content === "start") {
     if (!isTouched) {
       let style = document.getElementById("ms-cursor-lock");
 
@@ -41,22 +41,22 @@ type HoverHandlerT = {
   isScrolling?: React.MutableRefObject<boolean>;
 };
 
-const removeHover = (scrollBar: HTMLElement) => {
-  if (scrollBar.hasAttribute("data-mouse-hover")) return;
+const removeHover = (scrollbar: HTMLElement) => {
+  if (scrollbar.hasAttribute("data-mouse-hover")) return;
 
-  const dir = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
+  const dir = scrollbar.getAttribute("ms-direction"); // важно для cancelTask различать scrolls
 
-  scrollBar.style.opacity = "0";
-  scrollBar.classList.remove("hover");
-  scrollBar.classList.add("leave");
+  scrollbar.style.opacity = "0";
+  scrollbar.classList.remove("ms-hover");
+  scrollbar.classList.add("ms-leave");
 
   cancelTask(`remove${dir}`);
-  setTask(() => scrollBar.classList.remove("leave"), 200, `remove${dir}`);
+  setTask(() => scrollbar.classList.remove("ms-leave"), 200, `remove${dir}`);
 };
 
-const addHover = (scrollBar: HTMLElement) => {
-  scrollBar.style.opacity = "1";
-  scrollBar.classList.add("hover");
+const addHover = (scrollbar: HTMLElement) => {
+  scrollbar.style.opacity = "1";
+  scrollbar.classList.add("ms-hover");
 };
 
 // функция видимости для бегунка при hover

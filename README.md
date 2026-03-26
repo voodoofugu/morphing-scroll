@@ -698,11 +698,11 @@ allows you to add custom arrows to the progress bar<br />
 
 <h2></h2>
 
-<details><summary><b><code>progressReverse</code></b></summary><br /><ul><div>
+<details><summary><b><code>scrollbarOpposite</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-progressReverse: true; // or [true, false] if direction="hybrid"
+scrollbarOpposite: true; // or [true, false] if direction="hybrid"
 ```
 
 <b>Description:</b><em><br />
@@ -711,47 +711,47 @@ this parameter changes the position of the progress bar in the opposite directio
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} progressReverse>
+<MorphScroll {...props} scrollbarOpposite>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollbarOpposite.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarOnHover</code></b></summary><br /><ul><div>
+<details><summary><b><code>scrollbarHover</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-scrollBarOnHover: true;
+scrollbarHover: true;
 ```
 
 <b>Description:</b><em><br />
 this parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
-When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.<br />
+When you use it, the <b>"ms-hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"ms-leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.<br />
 </em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} scrollBarOnHover>
+<MorphScroll {...props} scrollbarHover>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollbarHover.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>scrollBarEdge</code></b></summary><br /><ul><div>
+<details><summary><b><code>scrollbarEdge</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-scrollBarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
+scrollbarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
 ```
 
 <b>Description:</b><em><br />
@@ -763,12 +763,12 @@ this parameter is only used when <code>type="scroll"</code> is set.<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} scrollBarEdge={10}>
+<MorphScroll {...props} scrollbarEdge={10}>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollbarEdge.png)
 
 </div></ul></details>
 
@@ -875,7 +875,7 @@ emptyElements: "clear" // or "fallback" | <FallbackComponent />
   
 ```tsx
 emptyElements: {
-  mode: "clear", // or "fallback" | <FallbackComponent /> (required)
+  content: "clear", // or "fallback" | <FallbackComponent /> (required)
   clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
 }
 ```
@@ -886,7 +886,7 @@ emptyElements: {
 <b>Description:</b><em><br />
 this option allows you to remove or replace empty list items during the initial render, or trigger this process via a click action<br />
 <br />
-<code><b>mode</b></code>:<br />
+<code><b>content</b></code>:<br />
 
 <ul>
   <li><b>"clear"</b> – automatically removes empty elements.</li>
@@ -895,11 +895,13 @@ this option allows you to remove or replace empty list items during the initial 
 </ul>
 <br />
 <code><b>clickTrigger</b></code>:<br />
-use this option if removal should be triggered by a click action.<br />
+use this option if removal should be triggered by a click action<br />
+<br />
 <ul>
   <li><b>"selector"</b> – CSS selector that triggers the removal.</li>
   <li><b>"delay"</b> – delay before removal ( in <b>ms</b> ).</li>
 </ul>
+After clicking, the removed item wrapper receives the <code>ms-remove</code> class for styling before cleanup.<br />
 <br />
 ✦ Note:<br />
 <ul>
@@ -957,7 +959,7 @@ It will be used when:
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
-  <li><code>emptyElements.mode</code> is set to <b>"fallback"</b>.</li> 
+  <li><code>emptyElements.content</code> is set to <b>"fallback"</b>.</li> 
 </ul>
 </em><br />
 <b>Example:</b>

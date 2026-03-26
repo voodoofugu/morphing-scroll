@@ -65,11 +65,10 @@ const updateEmptyKeysClick = (
   if (!target.closest(selector)) return;
 
   const parentWrapper = target.closest<HTMLElement>(`[${CONST.WRAP_ATR}]`);
-
-  parentWrapper?.classList.add("remove");
+  parentWrapper?.classList.add("ms-remove");
 
   setTask(() => {
-    parentWrapper?.classList.remove("remove");
+    // parentWrapper?.classList.remove("ms-remove"); // удалять не стоит
     callBack();
   }, delay);
 };

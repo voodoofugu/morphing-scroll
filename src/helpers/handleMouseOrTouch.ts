@@ -63,7 +63,7 @@ type HandleMouseT = {
   thumbSize: number;
   axisFromAtr: "x" | "y" | null;
   duration: number;
-  scrollBarEdge: number[];
+  scrollbarEdge: number[];
   rafScrollAnim: {
     schedule: (kay: string, fn: () => void) => void;
     cancel: () => void;
@@ -81,7 +81,7 @@ type HandleMouseT = {
 
 type HandleMoveT = Omit<
   HandleMouseT,
-  "controller" | "scrollBarOnHover" | "scrollContentRef" | "mouseOnRefHandle"
+  "controller" | "scrollbarHover" | "scrollContentRef" | "mouseOnRefHandle"
 > & {
   event: PointerEvent;
   fullMargin: number[];
@@ -108,17 +108,20 @@ const cursorClassChange = (
   clicked: ClickedT,
   target: HTMLElement | null,
   scrollElementRef: HTMLDivElement | null,
-  mode: "start" | "end" = "start",
+  content: "start" | "end" = "start",
 ) => {
   if (!clicked) return;
 
   if (["thumb", "slider"].includes(clicked)) {
     // уточняем кликнутый объект для slider
     if (clicked === "slider") {
-      mouseOnEl(target?.closest(".ms-slider") as HTMLDivElement | null, mode);
-    } else mouseOnEl(target, mode);
+      mouseOnEl(
+        target?.closest(".ms-slider") as HTMLDivElement | null,
+        content,
+      );
+    } else mouseOnEl(target, content);
   } else if (clicked === "wrapp") {
-    mouseOnEl(scrollElementRef, mode);
+    mouseOnEl(scrollElementRef, content);
   }
 };
 
@@ -420,7 +423,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   if (args.clickedObject.current === "thumb" && args.axisFromAtr) {
     const wh = args.axisFromAtr === "x" ? 0 : 1;
     const maxThumbPos =
-      (scrollElementWH[wh] - args.scrollBarEdge[wh] - args.thumbSize) *
+      (scrollElementWH[wh] - args.scrollbarEdge[wh] - args.thumbSize) *
       visualDiff[wh];
     const objectsWrapperSize = objectsWrapperWH[wh] + fullMargin[wh]; // не забываем прибавить margin
     const scrollableSize = objectsWrapperSize - scrollElementWH[wh];

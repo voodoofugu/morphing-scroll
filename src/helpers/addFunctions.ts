@@ -71,11 +71,11 @@ const sliderCache = new WeakMap<
 >();
 const sliderCheck = (
   scrollEl: HTMLDivElement,
-  scrollBars: Set<HTMLElement>,
+  scrollbars: Set<HTMLElement>,
   direction: Exclude<MorphScrollT["direction"], undefined>,
   objLengthPerSize: number[],
 ) => {
-  [...scrollBars].forEach((els, i) => {
+  [...scrollbars].forEach((els, i) => {
     let cache = sliderCache.get(els);
     const dir = i === 0 ? direction : "x";
     const axisIndex = dir === "x" ? 0 : 1;

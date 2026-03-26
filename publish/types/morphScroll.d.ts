@@ -329,7 +329,7 @@ type MorphScrollT = {
   };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***progressReverse***:
+   * ### ***scrollbarOpposite***:
    * reverse your progress bar position.
    * @default false
    * @note
@@ -337,31 +337,31 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   progressReverse={true}
+   *   scrollbarOpposite={true}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  progressReverse?: boolean | boolean[];
+  scrollbarOpposite?: boolean | boolean[];
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***scrollBarOnHover***:
+   * ### ***scrollbarHover***:
    * progress bar hover visibility.
    * @default false
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   progressVisibility="hover"
+   *   scrollbarHover
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  scrollBarOnHover?: boolean;
+  scrollbarHover?: boolean;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***scrollBarEdge***:
+   * ### ***scrollbarEdge***:
    * scroll bar margin at its edges.
    * @note
    * - *Used when: `type="scroll"`*
@@ -369,13 +369,13 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   scrollBarEdge={10}
+   *   scrollbarEdge={10}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  scrollBarEdge?: number | number[];
+  scrollbarEdge?: number | number[];
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***thumbMinSize***:
@@ -447,7 +447,7 @@ type MorphScrollT = {
     | "fallback"
     | React.ReactNode
     | {
-        mode: "clear" | "fallback" | { fallback: React.ReactNode };
+        content: "clear" | "fallback" | { fallback: React.ReactNode };
         clickTrigger?: string | { selector: string; delay?: number };
       };
   /**---
@@ -472,7 +472,7 @@ type MorphScrollT = {
    * *Used when:*
    * - *`suspending === true`*
    * - *`render.stopLoadOnScroll === true`*
-   * - *`emptyElements.mode === "fallback"`*
+   * - *`emptyElements.content === "fallback"`*
    *
    * @example
    * ```tsx
