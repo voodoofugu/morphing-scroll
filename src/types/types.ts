@@ -72,8 +72,8 @@ export type MorphScrollT = {
           loop?: boolean;
         };
   };
-  progressReverse?: boolean | boolean[]; // TODO переименовать в progressBarReverse или progressBarPosition
-  scrollBarOnHover?: boolean; // TODO добавить префикс ms- к "hover" и "leave"
+  progressReverse?: boolean | boolean[];
+  scrollBarOnHover?: boolean;
   scrollBarEdge?: number | number[];
   thumbMinSize?: number;
 
@@ -84,7 +84,7 @@ export type MorphScrollT = {
     | {
         type: "lazy" | "virtual";
         rootMargin?: number | number[];
-        stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll default true
+        stopLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
   emptyElements?:
@@ -92,10 +92,8 @@ export type MorphScrollT = {
     | "fallback"
     | React.ReactNode
     | {
-        // TODO переименовать mode в content
-        mode: "clear" | "fallback" | { fallback: React.ReactNode }; // TODO упростить до "clear" | "fallback" | React.ReactNode
-        clickTrigger?: string | { selector: string; delay?: number }; // TODO добавить префикс ms- к класс "remove"
-      };
+        mode: "clear" | "fallback" | { fallback: React.ReactNode };
+        clickTrigger?: string | { selector: string; delay?: number };
   suspending?: boolean;
   fallback?: React.ReactNode;
 
