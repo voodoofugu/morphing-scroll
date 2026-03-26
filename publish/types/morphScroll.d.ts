@@ -403,7 +403,7 @@ type MorphScrollT = {
    *   - `"lazy"`: *render once when visible*
    *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
-   * - `stopLoadOnScroll`: *stops loading content when scrolling*
+   * - `deferLoadOnScroll`: *stops loading content when scrolling*
    * - `trackVisibility`: *sets the `--content-visibility` variable*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
@@ -422,7 +422,7 @@ type MorphScrollT = {
     | {
         type: "lazy" | "virtual";
         rootMargin?: number | number[];
-        stopLoadOnScroll?: boolean;
+        deferLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
   /**---
@@ -471,7 +471,7 @@ type MorphScrollT = {
    * @note
    * *Used when:*
    * - *`suspending === true`*
-   * - *`render.stopLoadOnScroll === true`*
+   * - *`render.deferLoadOnScroll === true`*
    * - *`emptyElements.content === "fallback"`*
    *
    * @example

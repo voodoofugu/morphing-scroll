@@ -294,7 +294,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     const base = {
       type: undefined as "lazy" | "virtual" | undefined,
       rootMargin: 0 as number | number[],
-      stopLoadOnScroll: false,
+      deferLoadOnScroll: false,
       trackVisibility: false,
     };
 
@@ -306,10 +306,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       const {
         type,
         rootMargin = base.rootMargin,
-        stopLoadOnScroll = base.stopLoadOnScroll,
+        deferLoadOnScroll = base.deferLoadOnScroll,
         trackVisibility = base.trackVisibility,
       } = render;
-      return { type, rootMargin, stopLoadOnScroll, trackVisibility };
+      return { type, rootMargin, deferLoadOnScroll, trackVisibility };
     }
 
     return base;
@@ -1591,7 +1591,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     // обработка детей когда их лучше не показывать
     const childRenderOnScroll =
-      renderLocal.stopLoadOnScroll &&
+      renderLocal.deferLoadOnScroll &&
       isScrollingRef.current &&
       !objectsKeys.current.loaded.has(key)
         ? fallback

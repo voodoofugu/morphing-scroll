@@ -84,7 +84,7 @@ export type MorphScrollT = {
     | {
         type: "lazy" | "virtual";
         rootMargin?: number | number[];
-        stopLoadOnScroll?: boolean; // TODO позже сократить до loadOnScroll default true
+        deferLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
   emptyElements?:

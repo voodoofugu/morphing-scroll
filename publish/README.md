@@ -816,7 +816,7 @@ render: "lazy" // or "virtual"
 render: {
   type: "lazy", // or "virtual" (required)
   rootMargin: 100, // or [v, h] | [t, r, b, l]
-  stopLoadOnScroll: true,
+  deferLoadOnScroll: true,
   trackVisibility: true
 }
 ```
@@ -838,7 +838,7 @@ When used, a container is created for each scrollable object, and its absolute p
 <code><b>rootMargin</b></code>:<br />
 controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px.<br />
 <br />
-<code><b>stopLoadOnScroll</b></code>:<br />
+<code><b>deferLoadOnScroll</b></code>:<br />
 controls whether to stop loading content when scrolling.<br />
 <br />
 <code><b>trackVisibility</b></code>:<br />
@@ -956,7 +956,7 @@ It will be used when:
 
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
-  <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
+  <li><code>render.deferLoadOnScroll</code> is set to <b>true</b>.</li>
   <li><code>emptyElements.content</code> is set to <b>"fallback"</b>.</li> 
 </ul>
 </em><br />
