@@ -94,6 +94,7 @@ export type MorphScrollT = {
     | {
         mode: "clear" | "fallback" | { fallback: React.ReactNode };
         clickTrigger?: string | { selector: string; delay?: number };
+      };
   suspending?: boolean;
   fallback?: React.ReactNode;
 
