@@ -996,6 +996,8 @@ while auto-scrolling is active, the container receives the <code>ms-under-drag</
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-dragScroll.png)
+
 </div></ul></details>
   
 </div></ul>
