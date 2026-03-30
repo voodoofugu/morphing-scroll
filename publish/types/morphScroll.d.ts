@@ -337,7 +337,7 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   progressReverse={true}
+   *   progressReverse
    * >
    *   {children}
    * </MorphScroll>
@@ -352,7 +352,7 @@ type MorphScrollT = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   progressVisibility="hover"
+   *   scrollBarOnHover
    * >
    *   {children}
    * </MorphScroll>
