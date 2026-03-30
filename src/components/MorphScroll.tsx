@@ -428,6 +428,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     sizeLocal.join(),
   ]);
 
+  const fallbackLocal = React.useMemo(() => {
+    // делаем заглушку что бы не удалять всё подряд при emptyElements
+    if (render && emptyElements && !fallback)
+      return <div className="ms-empty-element"></div>;
+
+    return fallback;
+  }, [!!fallback, renderST, emptyElementsST]);
+
   // ♦ calculations
   const objectsPerDirection = React.useMemo(() => {
     // защита при неизвестных размерах, пока это лучшее решение
@@ -1539,7 +1547,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       };
 
       const content = suspending ? (
-        <React.Suspense fallback={fallback}>{children}</React.Suspense>
+        <React.Suspense fallback={fallbackLocal}>{children}</React.Suspense>
       ) : (
         children
       );
@@ -1563,7 +1571,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // eslint-disable-next-line
     [
       suspending,
-      !!fallback,
+      !!fallbackLocal, // просто проверка на наличие, но не на изменение, думаю этого достаточно
       objectsSizeLocal.join(),
       renderST,
       emptyElementsST,
@@ -1595,7 +1603,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       renderLocal.stopLoadOnScroll &&
       isScrollingRef.current &&
       !objectsKeys.current.loaded.has(key)
-        ? fallback
+        ? fallbackLocal
         : objectsKeys.current.empty?.has(key)
           ? emptyElements &&
             typeof emptyElements === "object" &&
@@ -1607,7 +1615,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
                 typeof emptyElements.mode === "object" &&
                 "fallback" in emptyElements.mode
               ? emptyElements.mode.fallback
-              : fallback
+              : fallbackLocal
           : child;
 
     // доп обработка для ResizeTracker
@@ -1674,7 +1682,11 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     // - LAZY -
     if (renderLocal.type === "lazy") {
       const wasLoaded = objectsKeys.current.loaded.has(key);
-      if (visibilityRatio && !wasLoaded) objectsKeys.current.loaded.add(key);
+      if (visibilityRatio && !wasLoaded) {
+        if (isScrollingRef.current && renderLocal.stopLoadOnScroll) return; // отменяем обновление ключей если скроллим и есть stopLoadOnScroll
+
+        objectsKeys.current.loaded.add(key);
+      }
       if (!wasLoaded) return null;
 
       return scrollObjectWrapper(
@@ -1687,7 +1699,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     }
 
     // - VIRTUAL -
-    if (!visibilityRatio) return null;
+    if (!visibilityRatio) {
+      objectsKeys.current.loaded.delete(key); // удаляем из loaded
+      return null;
+    }
 
     return scrollObjectWrapper(
       key,
