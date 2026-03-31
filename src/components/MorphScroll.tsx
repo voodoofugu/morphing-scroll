@@ -1301,13 +1301,14 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   // }, [onArrowKey]);
 
   React.useEffect(() => {
-    // запуск проверки ключей
-    if (emptyElements || renderLocal.type) updateLoadedElementsKeysLocal();
+    if (!emptyElements || !renderLocal.type) return; // ранний выход
+
+    updateLoadedElementsKeysLocal(); // запуск проверки ключей
   }, [
     emptyElementsST,
     renderLocal.type,
     updateLoadedElementsKeysLocal,
-    validChildrenKeys.length,
+    validChildrenKeys.length, // при изменении количества детей
   ]);
 
   React.useEffect(() => {

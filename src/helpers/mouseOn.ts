@@ -55,7 +55,12 @@ const removeHover = (scrollBar: HTMLElement) => {
 };
 
 const addHover = (scrollBar: HTMLElement) => {
+  const dir = scrollBar.getAttribute("data-direction");
+
+  cancelTask(`remove${dir}`);
+
   scrollBar.style.opacity = "1";
+  scrollBar.classList.remove("leave");
   scrollBar.classList.add("hover");
 };
 
