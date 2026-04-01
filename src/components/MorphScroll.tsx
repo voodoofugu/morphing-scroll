@@ -1162,16 +1162,18 @@ const MorphScroll: React.FC<MorphScrollT> = ({
             scrollOrSlider.length > 0 &&
             !clickedObject.current
           ) {
-            // добавил в setTask что бы была задержка перед исчезновением thumbs
-            setTask(
-              () => {
-                scrollOrSlider.forEach((el) => {
+            // этот removeHover убирает scrollbar если он был сдвинуть но курсор мыши не был наведён
+            scrollOrSlider.forEach((el) => {
+              // добавил в setTask что бы была задержка перед исчезновением thumbs
+              setTask(
+                () => {
+                  if (el.hasAttribute("ms-manual-hover")) return; // выход если атрибут
                   removeHover(el);
-                });
-              },
-              1000,
-              "removeHover",
-            );
+                },
+                1000,
+                "removeHover",
+              );
+            });
           }
         },
         CONST.SCROLL_END_DELAY,

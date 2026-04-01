@@ -42,8 +42,6 @@ type HoverHandlerT = {
 };
 
 const removeHover = (scrollBar: HTMLElement) => {
-  if (scrollBar.hasAttribute("data-mouse-hover")) return;
-
   const dir = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
 
   scrollBar.style.opacity = "0";
@@ -73,7 +71,7 @@ const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
         event.type,
       )
     ) {
-      // if (event.type === "mouseleave") el.removeAttribute("data-mouse-hover"); // скрытия/появления при прокрутки
+      el.removeAttribute("ms-manual-hover"); // обязательно выполняем
 
       // проверка для отмены если анимация прокрутки ещё продолжается
       if (isScrolling?.current) return;
@@ -83,7 +81,7 @@ const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
     }
 
     // - появление -
-    // if (event.type === "mouseenter") el.setAttribute("data-mouse-hover", ""); // скрытия/появления при прокрутки
+    el.setAttribute("ms-manual-hover", ""); // для removeHover в MorphScroll (надо добавлять тут а не в addHover)
     addHover(el);
   };
 
