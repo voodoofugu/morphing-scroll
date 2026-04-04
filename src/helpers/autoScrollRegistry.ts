@@ -32,6 +32,7 @@ let attrValue = "";
 let targetEl: HTMLElement | null = null; // для проверки element
 let targetParent: HTMLElement | null = null; // для проверки parent
 let prevAttr: string | null = null;
+let isButtonDown = false;
 
 const raf = createSchedulerRAF();
 
@@ -151,6 +152,10 @@ function autoScrollLoop() {
 
 function onMove(e: PointerEvent | DragEvent) {
   // ранний выход
+  if (e instanceof DragEvent && e.buttons === 0) {
+    removeOnMove();
+    return;
+  }
   if (pointer.x === e.clientX && pointer.y === e.clientY) return;
 
   pointer.x = e.clientX;
@@ -209,11 +214,14 @@ function removeOnMove() {
 }
 
 function startDrag(e: PointerEvent | DragEvent) {
-  if (e instanceof PointerEvent) {
+  const isPointer = e instanceof PointerEvent;
+
+  // если PointerEvent, то проверяем атрибут ms-custom-drag
+  if (isPointer) {
     const target = e.target as HTMLElement;
     const draggable = target.closest("[ms-custom-drag]");
     if (!draggable) return; // реагируем только на нужный атрибут
-  } else if (e instanceof DragEvent && e.buttons === 0) return; // помогает убрать лишние вызовы
+  }
 
   startPoint.x = e.clientX;
   startPoint.y = e.clientY;
@@ -224,12 +232,17 @@ function startDrag(e: PointerEvent | DragEvent) {
   dragController = controller;
   const { signal } = controller;
 
-  // для pointer
-  document.addEventListener("pointermove", onMove, { signal });
-  document.addEventListener("pointerup", removeOnMove, { signal });
-  // для drag
-  document.addEventListener("dragover", onMove, { signal });
-  document.addEventListener("dragend", removeOnMove, { signal });
+  if (isPointer) {
+    document.addEventListener("pointermove", onMove, { signal });
+    document.addEventListener("pointerup", removeOnMove, { signal });
+  } else {
+    document.addEventListener("dragover", onMove, { signal });
+
+    document.addEventListener("dragend", removeOnMove, { signal });
+    document.addEventListener("drop", removeOnMove, { signal });
+    document.addEventListener("pointerdown", removeOnMove, { signal }); // может помочь сбросить drag
+    window.addEventListener("blur", removeOnMove, { signal });
+  }
 }
 
 function attachListeners() {
