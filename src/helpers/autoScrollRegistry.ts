@@ -57,11 +57,10 @@ function getEdge(
   const before = pos - start;
   const after = end - pos;
 
-  if (before < EDGE) {
+  if (before < EDGE)
     if (scroll > 0) return { dir: -1, distance: before };
-  } else if (after < EDGE) {
-    if (scroll + client < scrollSize) return { dir: 1, distance: after };
-  }
+    else if (after < EDGE)
+      if (scroll + client < scrollSize) return { dir: 1, distance: after };
 
   return null;
 }
