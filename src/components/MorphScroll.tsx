@@ -721,9 +721,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     let alignSpaceTop: number = 0;
 
     const splitIndicesData = splitIndices(); // вызов заранее
-    if (className === "armySetupScroll") {
-      console.log("splitIndicesData", splitIndicesData);
-    }
     // находим индексы последних элементов
     let itemsInLastRowDirection: Set<number> = new Set();
     const isX = direction === "x";
