@@ -484,7 +484,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       Number.isFinite(val) && val > 0 ? val : 1;
 
     if (direction === "hybrid") {
-      const x = useCrossCount
+      const row = useCrossCount
         ? isRow
           ? crossCount
           : rowObjects
@@ -492,7 +492,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? validChildrenKeys.length
           : 1;
 
-      const y = useCrossCount
+      const column = useCrossCount
         ? !isRow
           ? crossCount
           : rowObjects
@@ -500,7 +500,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           ? validChildrenKeys.length
           : 1;
 
-      return [validated(x), validated(y)];
+      return [validated(row), validated(column)];
     }
 
     return [validated(rowObjects), validated(columnObjects)];
@@ -509,7 +509,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     elementsDirection,
     gapLocal[0],
     gapLocal[1],
-    objectsSizeLocal.join(),
+    objectsSizeLocal[0],
+    objectsSizeLocal[1],
     validChildrenKeys.length,
     direction,
     sizeLocal.join(),
@@ -538,7 +539,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [
     direction,
     objectsSizeLocal[0],
-    objectsPerDirection.join(),
+    objectsPerDirection[0],
+    objectsPerDirection[1],
     gapLocal[1],
     receivedWrapSizeRef.current.width,
     receivedChildSizeRef.current.width,
@@ -565,7 +567,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   }, [
     direction,
     objectsSizeLocal[1],
-    objectsPerDirection.join(),
+    objectsPerDirection[0],
+    objectsPerDirection[1],
     gapLocal[0],
     receivedWrapSizeRef.current.height,
     receivedChildSizeRef.current.height,
@@ -679,158 +682,112 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         : 0,
   };
 
-  // делим на группы
-  const splitIndices = React.useCallback(() => {
-    if (!renderLocal.type || objectsPerDirection[0] <= 1) {
-      return [];
-    }
-
-    // Создаём пустые массивы из objectsPerDirection
-    const result: number[][] = Array.from(
-      { length: objectsPerDirection[0] },
-      () => [],
-    );
-
-    const isRow =
-      (direction === "x" && elementsDirection === "column") ||
-      (direction !== "x" && elementsDirection === "row");
-
-    // массив индексов детей
-    validChildrenKeys.forEach((_, index) => {
-      const groupIndex = isRow
-        ? index % objectsPerDirection[0]
-        : Math.floor(index / objectsPerDirection[1]);
-
-      result[groupIndex].push(index);
-    });
-
-    return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    validChildrenKeys.length,
-    objectsPerDirection.join(),
-    renderLocal.type,
-    elementsDirection,
-    direction,
-  ]);
-
   const memoizedChildrenData = React.useMemo(() => {
     if (!renderLocal.type) return [{ top: 0, bottom: 0, left: 0, right: 0 }];
 
-    let alignSpaceLeft: number = 0;
-    let alignSpaceTop: number = 0;
+    let alignSpace: number = 0;
 
-    const splitIndicesData = splitIndices(); // вызов заранее
-    // находим индексы последних элементов
-    let itemsInLastRowDirection: Set<number> = new Set();
     const isX = direction === "x";
+    const isRow = elementsDirection === "row";
+    const isRowInDir = (isX && !isRow) || (!isX && isRow);
 
-    if (elementsDirection === "row") {
-      const itemsPerRow = !isX
-        ? objectsPerDirection[0]
-        : objectsPerDirection[1];
-      const lastRowStart =
-        Math.floor((validChildrenKeys.length - 1) / itemsPerRow) * itemsPerRow;
+    const stepX = objectsSizeLocal[0] + gapLocal[1];
+    const stepY = objectsSizeLocal[1] + gapLocal[0];
 
-      for (let i = lastRowStart; i < validChildrenKeys.length; i++) {
-        itemsInLastRowDirection.add(i);
-      }
+    const itemsInLastLine = new Set<number>();
 
-      const remainingSlots = itemsPerRow - itemsInLastRowDirection.size;
+    // -- находим последние индексы
+    const itemsPerLine = isRowInDir
+      ? objectsPerDirection[0]
+      : objectsPerDirection[1];
+    const size = objectsSizeLocal[isRow ? 0 : 1];
+    const gap = gapLocal[isRow ? 1 : 0];
 
-      if (elementsAlign === "center")
-        alignSpaceLeft =
-          ((objectsSizeLocal[0] + gapLocal[1]) * remainingSlots) / 2;
-      else if (elementsAlign === "end")
-        alignSpaceLeft = (objectsSizeLocal[0] + gapLocal[1]) * remainingSlots;
-    } else {
-      const itemsPerColumn = isX
-        ? objectsPerDirection[0]
-        : objectsPerDirection[1];
-      const lastColumnStart =
-        Math.floor((validChildrenKeys.length - 1) / itemsPerColumn) *
-        itemsPerColumn;
+    // начало последней линии
+    const lastLineStart =
+      Math.floor((validChildrenKeys.length - 1) / itemsPerLine) * itemsPerLine;
 
-      for (let i = lastColumnStart; i < validChildrenKeys.length; i++) {
-        itemsInLastRowDirection.add(i);
-      }
+    for (let i = lastLineStart; i < validChildrenKeys.length; i++)
+      itemsInLastLine.add(i);
 
-      const remainingSlots = itemsPerColumn - itemsInLastRowDirection.size;
+    // -- вычисляем отступ
+    const emptySlots = itemsPerLine - itemsInLastLine.size;
+    const offset = emptySlots > 0 ? (size + gap) * emptySlots : 0;
 
-      if (elementsAlign === "center")
-        alignSpaceTop =
-          ((objectsSizeLocal[1] + gapLocal[0]) * remainingSlots) / 2;
-      else if (elementsAlign === "end")
-        alignSpaceTop = (objectsSizeLocal[1] + gapLocal[0]) * remainingSlots;
+    if (elementsAlign === "center") alignSpace = Math.round(offset / 2);
+    else if (elementsAlign === "end") alignSpace = offset;
+
+    // !!! -- check --
+    const childIndexZ = 1;
+    const groupIndexZ = isRowInDir
+      ? childIndexZ % objectsPerDirection[0]
+      : Math.floor(childIndexZ / objectsPerDirection[1]);
+    const subIndexZ = isRowInDir
+      ? Math.floor(childIndexZ / objectsPerDirection[0])
+      : childIndexZ % objectsPerDirection[1];
+    const isLastElZ =
+      itemsInLastLine.size > 0 && itemsInLastLine.has(childIndexZ);
+
+    const topZ = (function (indexTop: number) {
+      const alignLocal = isLastElZ && !isRow ? alignSpace : 0;
+      return indexTop > 0 ? alignLocal + stepY * indexTop : alignLocal;
+    })(
+      objectsPerDirection[0] > 1 || direction !== "y"
+        ? childIndexZ
+        : childIndexZ,
+    );
+    const leftZ = (function (indexLeft: number) {
+      const alignLocal = isLastElZ && isRow ? alignSpace : 0;
+      return indexLeft > 0 ? alignLocal + stepX * indexLeft : alignLocal;
+    })(objectsPerDirection[0] === 1 && isX ? groupIndexZ : childIndexZ);
+
+    if (className === "armySetupScroll") {
+      console.log("topZ", topZ);
+      console.log("leftZ", leftZ);
     }
+    // -- check --
 
-    return validChildrenKeys.map((_, index) => {
-      // разбиваем на группы left, top
-      const indexAndSubIndex = (function (
-        index: number,
-        splitIndices: number[][],
-      ) {
-        for (
-          let arrayIndex = 0;
-          arrayIndex < splitIndices.length;
-          arrayIndex++
-        ) {
-          const indexInArray = splitIndices[arrayIndex].indexOf(index);
-          if (indexInArray !== -1) {
-            const neededTopIndex = ["hybrid", "y"].includes(direction)
-              ? indexInArray
-              : arrayIndex;
-            const neededLeftIndex =
-              direction === "x" ? indexInArray : arrayIndex;
-
-            return [neededLeftIndex, neededTopIndex];
-          }
-        }
-        return [0, 0];
-      })(index, splitIndicesData);
+    // -- получаем координаты
+    return validChildrenKeys.map((_, childIndex) => {
+      // вычисляем group и subIndex сразу
+      const groupIndex = isRowInDir
+        ? childIndex % objectsPerDirection[isX ? 1 : 0]
+        : Math.floor(childIndex / objectsPerDirection[isX ? 0 : 1]);
+      const subIndex = isRowInDir
+        ? Math.floor(childIndex / objectsPerDirection[isX ? 1 : 0])
+        : childIndex % objectsPerDirection[isX ? 0 : 1];
 
       const isLastEl =
-        itemsInLastRowDirection.size > 0 && itemsInLastRowDirection.has(index);
+        itemsInLastLine.size > 0 && itemsInLastLine.has(childIndex);
 
       const top = (function (indexTop: number) {
-        const alignLocal = isLastEl ? alignSpaceTop : 0;
-
-        return indexTop > 0
-          ? alignLocal + (objectsSizeLocal[1] + gapLocal[0]) * indexTop
-          : alignLocal;
+        const alignLocal = isLastEl && !isRow ? alignSpace : 0;
+        return indexTop > 0 ? alignLocal + stepY * indexTop : alignLocal;
       })(
-        objectsPerDirection[0] > 1 || ["hybrid", "x"].includes(direction)
-          ? indexAndSubIndex[1]
-          : index,
+        objectsPerDirection[0] > 1 || direction !== "y" ? subIndex : childIndex,
       );
 
       const left = (function (indexLeft: number) {
-        const alignLocal = isLastEl ? alignSpaceLeft : 0;
+        const alignLocal = isLastEl && isRow ? alignSpace : 0;
+        return indexLeft > 0 ? alignLocal + stepX * indexLeft : alignLocal;
+      })(objectsPerDirection[0] === 1 && isX ? childIndex : groupIndex);
 
-        return indexLeft > 0
-          ? alignLocal + (objectsSizeLocal[0] + gapLocal[1]) * indexLeft
-          : alignLocal;
-      })(
-        objectsPerDirection[0] === 1 && direction === "x"
-          ? index
-          : indexAndSubIndex[0],
-      );
-
-      const right = left + objectsSizeLocal[0];
-
-      const bottom = (function () {
-        return objectsSizeLocal[1] ? top + objectsSizeLocal[1] : top;
-      })();
-
-      return { top, bottom, left, right };
+      return {
+        top,
+        left,
+        bottom: top + objectsSizeLocal[1],
+        right: left + objectsSizeLocal[0],
+      };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    objectsSizeLocal.join(),
-    gapLocal.join(),
+    objectsSizeLocal[0],
+    objectsSizeLocal[1],
+    gapLocal[0],
+    gapLocal[1],
     elementsAlign,
     validChildrenKeys.length,
-    objectsPerDirection.join(),
+    objectsPerDirection[0],
+    objectsPerDirection[1],
     renderLocal.type,
     elementsDirection,
     direction,
@@ -1035,7 +992,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollBarEdgeLocal.join(),
       thumbSizeMemo.x,
       thumbSizeMemo.y,
-      gapLocal.join(),
+      gapLocal[0],
+      gapLocal[1],
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
       objLengthPerSize,
@@ -1072,7 +1030,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollPositionLocal.duration,
       smoothScrollLocal,
       arrowsLocal.loop,
-      gapLocal.join(),
+      gapLocal[0],
+      gapLocal[1],
     ],
   );
 
@@ -1590,7 +1549,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     [
       suspending,
       !!fallbackLocal, // просто проверка на наличие, но не на изменение, думаю этого достаточно
-      objectsSizeLocal.join(),
+      objectsSizeLocal[0],
+      objectsSizeLocal[1],
       renderST,
       emptyElementsST,
       objectsPerDirection[0],
