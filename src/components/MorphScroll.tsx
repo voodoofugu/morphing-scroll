@@ -717,60 +717,37 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     if (elementsAlign === "center") alignSpace = Math.round(offset / 2);
     else if (elementsAlign === "end") alignSpace = offset;
 
-    // !!! -- check --
-    const childIndexZ = 1;
-    const groupIndexZ = isRowInDir
-      ? childIndexZ % objectsPerDirection[0]
-      : Math.floor(childIndexZ / objectsPerDirection[1]);
-    const subIndexZ = isRowInDir
-      ? Math.floor(childIndexZ / objectsPerDirection[0])
-      : childIndexZ % objectsPerDirection[1];
-    const isLastElZ =
-      itemsInLastLine.size > 0 && itemsInLastLine.has(childIndexZ);
-
-    const topZ = (function (indexTop: number) {
-      const alignLocal = isLastElZ && !isRow ? alignSpace : 0;
-      return indexTop > 0 ? alignLocal + stepY * indexTop : alignLocal;
-    })(
-      objectsPerDirection[0] > 1 || direction !== "y"
-        ? childIndexZ
-        : childIndexZ,
-    );
-    const leftZ = (function (indexLeft: number) {
-      const alignLocal = isLastElZ && isRow ? alignSpace : 0;
-      return indexLeft > 0 ? alignLocal + stepX * indexLeft : alignLocal;
-    })(objectsPerDirection[0] === 1 && isX ? groupIndexZ : childIndexZ);
-
-    if (className === "armySetupScroll") {
-      console.log("topZ", topZ);
-      console.log("leftZ", leftZ);
-    }
-    // -- check --
-
     // -- получаем координаты
     return validChildrenKeys.map((_, childIndex) => {
       // вычисляем group и subIndex сразу
       const groupIndex = isRowInDir
-        ? childIndex % objectsPerDirection[isX ? 1 : 0]
-        : Math.floor(childIndex / objectsPerDirection[isX ? 0 : 1]);
+        ? childIndex % objectsPerDirection[0]
+        : Math.floor(childIndex / objectsPerDirection[1]);
+
       const subIndex = isRowInDir
-        ? Math.floor(childIndex / objectsPerDirection[isX ? 1 : 0])
-        : childIndex % objectsPerDirection[isX ? 0 : 1];
+        ? Math.floor(childIndex / objectsPerDirection[0])
+        : childIndex % objectsPerDirection[1];
+
+      let leftIndex: number;
+      let topIndex: number;
+
+      if (direction === "x") {
+        leftIndex = subIndex;
+        topIndex = groupIndex;
+      } else if (direction === "y") {
+        leftIndex = groupIndex;
+        topIndex = subIndex;
+      } else {
+        // hybrid
+        leftIndex = groupIndex;
+        topIndex = subIndex;
+      }
 
       const isLastEl =
         itemsInLastLine.size > 0 && itemsInLastLine.has(childIndex);
 
-      const top = (function (indexTop: number) {
-        const alignLocal = isLastEl && !isRow ? alignSpace : 0;
-        return indexTop > 0 ? alignLocal + stepY * indexTop : alignLocal;
-      })(
-        objectsPerDirection[0] > 1 || direction !== "y" ? subIndex : childIndex,
-      );
-
-      const left = (function (indexLeft: number) {
-        const alignLocal = isLastEl && isRow ? alignSpace : 0;
-        return indexLeft > 0 ? alignLocal + stepX * indexLeft : alignLocal;
-      })(objectsPerDirection[0] === 1 && isX ? childIndex : groupIndex);
+      const top = (isLastEl && !isRow ? alignSpace : 0) + stepY * topIndex;
+      const left = (isLastEl && isRow ? alignSpace : 0) + stepX * leftIndex;
 
       return {
         top,
