@@ -131,7 +131,8 @@ const ScrollBar = ({
   }, [dataDirection]);
 
   React.useEffect(() => {
-    const el = scrollBarRef.current;
+    // добавление клика на thumb
+    const el = thumbRef.current;
     if (!el || type === "sliderMenu") return;
 
     const handleStart = (e: PointerEvent) => {
@@ -146,6 +147,7 @@ const ScrollBar = ({
   }, [scrollBarEvent]);
 
   React.useEffect(() => {
+    // добавление элементов в ref
     const el = scrollBarRef.current;
     if (!el) return;
 
