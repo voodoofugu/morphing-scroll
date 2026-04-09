@@ -10,7 +10,10 @@ type OnCustomScrollFn = (
   callback?: () => void,
 ) => void;
 
-type ModifiedProps = Partial<MorphScrollT> & {
+type ModifiedProps = Pick<
+  MorphScrollT,
+  "type" | "progressReverse" | "scrollBarOnHover" // выбираю нужное
+> & {
   size: number[];
   scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
   thumbSize: number;
@@ -27,6 +30,8 @@ type ModifiedProps = Partial<MorphScrollT> & {
     x: number;
     y: number;
   }>;
+  direction: "x" | "y" | "hybrid";
+  progressTrigger: [MorphScrollT["progressTrigger"], number];
 };
 
 const ScrollBar = ({
@@ -63,10 +68,11 @@ const ScrollBar = ({
       ? thumbSpace + dampeningOverscroll
       : thumbSpace;
 
+  // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
     if (type === "scroll") return;
 
-    const neededSize = axis === "x" ? size[0] : size[1];
+    const neededSize = size[axis === "x" ? 0 : 1];
 
     return Array.from({ length: objLengthPerSize }, (_, index) => (
       <div
@@ -90,61 +96,67 @@ const ScrollBar = ({
             : undefined
         }
       >
-        {Array.isArray(progressTrigger?.progressElement)
-          ? progressTrigger.progressElement[index]
-          : progressTrigger?.progressElement}
+        {Array.isArray(progressTrigger[0].progressElement)
+          ? progressTrigger[0].progressElement[index]
+          : progressTrigger[0].progressElement}
       </div>
     ));
   }, [
     objLengthPerSize,
-    size,
     type,
-    scrollBarEvent,
-    progressTrigger?.progressElement,
+    progressTrigger[1], // только для memo
     duration,
     sliderCheckLocal,
+    size[0],
+    size[1],
+    scrollBarEvent,
   ]);
 
   const dataDirection = React.useMemo(() => {
-    return ["hybrid", "y"].includes(direction!) ? "y" : "x";
+    return direction !== "x" ? "y" : "x";
   }, [direction]);
+
+  const axisSize = size[dataDirection === "x" ? 0 : 1];
+
+  // для позиционирования пользовательского бегунка (стабилизирует анимацию на height)
+  const thumbFlex =
+    type !== "scroll"
+      ? ""
+      : thumbSize + thumbSpace * 2 > axisSize
+        ? "flex-end"
+        : "flex-start";
 
   // - effects -
   React.useEffect(() => {
     // добавление прокрутки по колесом по thumb
-    if (isTouched || !progressTrigger?.wheel) return; // при touch устроиствах прокрутку не используем
+    if (isTouched || !progressTrigger[0].wheel) return; // при touch устроиствах прокрутку не используем
 
     const el = scrollBarRef.current;
     if (!el) return;
 
     let prev = el.previousElementSibling as HTMLElement | null;
-    while (prev && !prev.classList.contains("ms-element")) {
+    while (prev && !prev.classList.contains("ms-element"))
       prev = prev.previousElementSibling as HTMLElement | null;
-    }
 
-    const onWheel = (e: WheelEvent) => {
+    const onWheel = (e: WheelEvent) =>
       handleWheel(e, scrollEl.current!, scrollStateRef.current!, dataDirection);
-    };
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, [dataDirection]);
 
   React.useEffect(() => {
-    // добавление клика на thumb
-    const el = thumbRef.current;
+    // добавление клика на scrollBar или thumb
+    const el = type === "slider" ? scrollBarRef.current : thumbRef.current;
     if (!el || type === "sliderMenu") return;
 
-    const handleStart = (e: PointerEvent) => {
+    const handleStart = (e: PointerEvent) =>
       (scrollBarEvent as (e: PointerEvent) => void)(e);
-    };
 
     el.addEventListener("pointerdown", handleStart);
 
-    return () => {
-      el.removeEventListener("pointerdown", handleStart);
-    };
-  }, [scrollBarEvent]);
+    return () => el.removeEventListener("pointerdown", handleStart);
+  }, [scrollBarEvent, type]);
 
   React.useEffect(() => {
     // добавление элементов в ref
@@ -166,16 +178,6 @@ const ScrollBar = ({
       transition: "opacity 0.2s ease-in-out",
     }),
   };
-
-  const axisSize = dataDirection === "x" ? size[0] : size[1];
-
-  // для позиционирования пользовательского бегунка (стабилизирует анимацию на height)
-  const thumbFlex =
-    type !== "scroll"
-      ? ""
-      : thumbSize + thumbSpace * 2 > axisSize
-        ? "flex-end"
-        : "flex-start";
 
   // - render -
   const content = (
@@ -214,7 +216,7 @@ const ScrollBar = ({
               height: `${thumbSizeLocal}px`,
               // willChange: "transform, height", // свойство убирает артефакты во время анимации
               transform: `translateY(${thumbSpaceLocal}px)`,
-              ...(progressTrigger?.progressElement && {
+              ...(progressTrigger[0].progressElement && {
                 cursor: "grab",
               }),
               // стили помогающие выровнять thumb что бы он не вылетал за края (если добавлена анимация)
@@ -222,12 +224,12 @@ const ScrollBar = ({
               alignItems: thumbFlex,
             }}
           >
-            {progressTrigger?.progressElement}
+            {progressTrigger[0].progressElement}
           </div>
         </div>
       ) : (
         objLengthPerSize > 1 && // что бы не показывать один бегунок при size: 1
-        progressTrigger?.progressElement && (
+        progressTrigger[0].progressElement && (
           <div
             className={`ms-slider ms-${dataDirection}`}
             ref={scrollBarRef}

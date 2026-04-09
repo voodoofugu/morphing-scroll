@@ -1801,7 +1801,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           direction={args.direction}
           progressReverse={progressReverseValue}
           size={sizeMinusEdge}
-          progressTrigger={progressTrigger}
+          progressTrigger={[progressTrigger, progressTriggerST]}
           scrollBarOnHover={scrollBarOnHover}
           scrollBarEvent={
             type === "sliderMenu" ? smoothScrollLocal : onMoveScrollThumb
