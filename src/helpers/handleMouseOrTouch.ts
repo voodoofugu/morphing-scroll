@@ -108,18 +108,20 @@ const cursorClassChange = (
   clicked: ClickedT,
   target: HTMLElement | null,
   scrollElementRef: HTMLDivElement | null,
-  mode: "start" | "end" = "start",
+  mode: "start" | "end",
+  isSlider: boolean,
 ) => {
   if (!clicked) return;
+  let elem: HTMLElement | null = null;
 
+  // уточняем elem
   if (["thumb", "slider"].includes(clicked)) {
-    // уточняем кликнутый объект для slider
-    if (clicked === "slider") {
-      mouseOnEl(target?.closest(".ms-slider") as HTMLDivElement | null, mode);
-    } else mouseOnEl(target, mode);
-  } else if (clicked === "wrapp") {
-    mouseOnEl(scrollElementRef, mode);
-  }
+    if (clicked === "slider")
+      elem = target?.closest(".ms-slider") as HTMLDivElement | null;
+    else elem = target;
+  } else if (clicked === "wrapp") elem = scrollElementRef;
+
+  mouseOnEl(scrollElementRef, mode, isSlider);
 };
 
 const applyThumb = (
@@ -431,8 +433,14 @@ function handleMouseOrTouch(args: HandleMouseT) {
     }
   }
 
-  // меняем курсор и классы
-  cursorClassChange(args.clickedObject.current, args.target, el);
+  // меняем курсор и класс
+  cursorClassChange(
+    args.clickedObject.current,
+    args.target,
+    el,
+    "start",
+    args.type !== "scroll" ? true : false,
+  );
 
   // слушатели для движения и отжатия
   abortController?.abort(); // отменяем предыдущие слушатели
@@ -531,7 +539,13 @@ function handleUp(args: HandleUpT) {
   if (!el) return;
 
   // меняем курсор и классы
-  cursorClassChange(args.clickedObject.current, args.target, el, "end");
+  cursorClassChange(
+    args.clickedObject.current,
+    args.target,
+    el,
+    "end",
+    args.type !== "scroll" ? true : false,
+  );
 
   // логика для слайдера
   if (args.type === "slider" && args.clickedObject.current !== "thumb") {

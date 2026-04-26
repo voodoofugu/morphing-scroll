@@ -69,23 +69,26 @@ const sliderCache = new WeakMap<
   HTMLElement,
   { elements: Element[]; lastIndex: number }
 >();
+
 const sliderCheck = (
   scrollEl: HTMLDivElement,
   scrollBars: Set<HTMLElement>,
   direction: Exclude<MorphScrollT["direction"], undefined>,
   objLengthPerSize: number[],
 ) => {
-  [...scrollBars].forEach((els, i) => {
-    let cache = sliderCache.get(els);
+  [...scrollBars].forEach((msSlider, i) => {
+    let cache = sliderCache.get(msSlider);
     const dir = i === 0 ? direction : "x";
     const axisIndex = dir === "x" ? 0 : 1;
 
     // Обновляем кэш только если изменилось количество элементов
     if (!cache || cache.elements.length !== objLengthPerSize[axisIndex]) {
-      const elements = Array.from(els.querySelectorAll(".ms-slider-element"));
+      const elements = Array.from(
+        msSlider.querySelectorAll(".ms-slider-element"),
+      );
 
       cache = { elements, lastIndex: -1 };
-      sliderCache.set(els, cache);
+      sliderCache.set(msSlider, cache);
     }
 
     if (!cache.elements.length) return;

@@ -1,7 +1,11 @@
 import { setTask, cancelTask } from "./taskManager";
 
 // функция смены курсора
-const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
+const mouseOnEl = (
+  el: HTMLElement | null,
+  mode: "start" | "end",
+  isSlider: boolean,
+) => {
   if (!el) return;
   const isTouched = window.matchMedia("(pointer: coarse)").matches;
 
@@ -13,9 +17,11 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
       if (!style) {
         style = document.createElement("style");
         style.id = "ms-cursor-lock";
+        // устанавливаем курсор и блокируем выделение текста
         style.textContent = `
       * {
         cursor: grabbing !important;
+        user-select: none;
       }
     `;
         document.head.appendChild(style);
@@ -23,7 +29,7 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
     }
 
     el.style.cursor = "grabbing";
-    el.classList.add("active"); // что бы был контроль на phones
+    !isSlider && el.classList.add("active"); // что бы был контроль на phones
   } else {
     if (!isTouched) {
       const style = document.getElementById("ms-cursor-lock");
@@ -31,7 +37,7 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
     }
 
     el.style.cursor = "grab";
-    el.classList.remove("active"); // что бы был контроль на phones
+    !isSlider && el.classList.remove("active"); // что бы был контроль на phones
   }
 };
 
