@@ -1,5 +1,5 @@
 import React from "react";
-import { MorphScrollT } from "../types/types";
+import { MorphScrollT, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 
 import useIdent from "../hooks/useIdent";
@@ -584,6 +584,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
   const fullHeightOrWidth =
     direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
+  const maxScrollSize = React.useMemo<Vec2>(() => {
+    return [
+      Math.max(0, objectsWrapperWidthFull - sizeLocal[0]),
+      Math.max(0, objectsWrapperHeightFull - sizeLocal[1]),
+    ];
+  }, [sizeLocal.join(), objectsWrapperHeightFull, objectsWrapperWidthFull]);
+
   const scrollSpaceFromRef =
     direction === "x"
       ? scrollElementRef.current?.scrollLeft || 0
@@ -824,9 +831,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         firstRender.current ? null : duration,
         targetScroll,
         rafScrollAnim.schedule,
+        maxScrollSize,
       );
     },
-    [],
+    [maxScrollSize.join()],
   );
 
   const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
@@ -939,7 +947,6 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         objectsWrapperRef: objectsWrapperRef.current,
         target,
         clickedObject,
-        scrollContentRef: scrollContentRef.current,
         scrollStateRef: scrollStateRef.current,
         type,
         triggerUpdate: triggerRAF,
@@ -953,10 +960,10 @@ const MorphScroll: React.FC<MorphScrollT> = ({
         rafScrollAnim,
         isTouched: isTouchedRef.current,
         gap: gapLocal,
-        objectsWrapperSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
         overscrollRef,
         objLengthPerSize,
         isDraggingRef,
+        maxScrollSize,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -969,11 +976,9 @@ const MorphScroll: React.FC<MorphScrollT> = ({
       scrollBarEdgeLocal.join(),
       thumbSizeMemo.x,
       thumbSizeMemo.y,
-      gapLocal[0],
-      gapLocal[1],
-      objectsWrapperWidthFull,
-      objectsWrapperHeightFull,
+      gapLocal.join(),
       objLengthPerSize,
+      maxScrollSize.join(),
     ],
   );
 
@@ -1269,7 +1274,8 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     // wheel вешается вручную что бы выключить scroll e.preventDefault()!
     const scrollEl = scrollElementRef.current;
-    if (!scrollEl) return;
+    const objectsWrapper = objectsWrapperRef.current;
+    if (!scrollEl || !objectsWrapper) return;
 
     const directionWithPriority =
       direction === "hybrid" &&
@@ -1290,7 +1296,13 @@ const MorphScroll: React.FC<MorphScrollT> = ({
 
     const wheelHandler = (e: WheelEvent) => {
       e.preventDefault();
-      handleWheel(e, scrollEl, scrollStateRef.current, directionForWheel);
+      handleWheel(
+        e,
+        scrollEl,
+        maxScrollSize,
+        scrollStateRef.current,
+        directionForWheel,
+      );
     };
 
     progressTrigger.wheel &&
@@ -1306,6 +1318,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
     sizeLocal[1],
     mLocalY,
     keyDownX.current,
+    maxScrollSize.join(),
   ]);
 
   // эффекты прокрутки
@@ -1817,6 +1830,7 @@ const MorphScroll: React.FC<MorphScrollT> = ({
           scrollBarsRef={scrollBarsRef}
           triggerUpdate={triggerRAF}
           overscroll={overscrollRef}
+          maxScrollSize={maxScrollSize}
         />
       );
     });

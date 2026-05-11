@@ -1,3 +1,5 @@
+export type Vec2 = readonly [x: number, y: number];
+
 export type ResizeTrackerT = {
   className?: string;
   children: React.ReactNode;

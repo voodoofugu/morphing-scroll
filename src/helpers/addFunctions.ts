@@ -2,7 +2,8 @@ import React from "react";
 
 import { setTask } from "./taskManager";
 
-import { MorphScrollT } from "../types/types";
+import { MorphScrollT, Vec2 } from "../types/types";
+import clampValue from "./clampValue";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
   if (availableSize <= objectSize) return 1;
@@ -26,13 +27,17 @@ async function smoothScroll(
   duration: number | null,
   targetScroll: number,
   rafScrollAnim: (kay: string, fn: () => void) => void,
+  maxScrollSize: Vec2,
 ) {
-  if (!scrollEl || targetScroll === undefined || targetScroll === null)
-    return null;
+  const isY = direction === "y";
 
-  const topOrLeft = direction === "y" ? "scrollTop" : "scrollLeft";
-  const startTopOrLeft = scrollEl[topOrLeft];
-  if (startTopOrLeft === targetScroll) return;
+  const topOrLeft = isY ? "scrollTop" : "scrollLeft";
+  const maxScroll = isY ? maxScrollSize[1] : maxScrollSize[0];
+
+  const clampedTargetScroll = clampValue(targetScroll, 0, maxScroll);
+  const startScroll = clampValue(scrollEl[topOrLeft], 0, maxScroll);
+
+  if (startScroll === clampedTargetScroll) return;
 
   // первый рендер duration 0 для мгновенного запуска
   if (duration === null) {
@@ -51,10 +56,16 @@ async function smoothScroll(
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
 
-        scrollEl[topOrLeft] =
-          startTopOrLeft + (targetScroll - startTopOrLeft) * progress;
+        const nextScroll = clampValue(
+          startScroll + (clampedTargetScroll - startScroll) * progress,
+          0,
+          maxScroll,
+        );
 
-        if (progress < 1) rafScrollAnim("smoothScroll", animate);
+        scrollEl[topOrLeft] = nextScroll;
+
+        if (progress < 1 && nextScroll !== clampedTargetScroll)
+          rafScrollAnim("smoothScroll", animate);
       };
 
       rafScrollAnim("smoothScroll", animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0

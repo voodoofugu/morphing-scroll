@@ -1,5 +1,5 @@
 import React from "react";
-import { MorphScrollT } from "../types/types";
+import { MorphScrollT, Vec2 } from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 
@@ -32,6 +32,7 @@ type ModifiedProps = Pick<
   }>;
   direction: "x" | "y" | "hybrid";
   progressTrigger: [MorphScrollT["progressTrigger"], number];
+  maxScrollSize: Vec2;
 };
 
 const ScrollBar = ({
@@ -53,6 +54,7 @@ const ScrollBar = ({
   scrollBarsRef,
   triggerUpdate,
   overscroll,
+  maxScrollSize,
 }: ModifiedProps) => {
   // - refs -
   const scrollBarRef = React.useRef<HTMLDivElement>(null);
@@ -132,14 +134,21 @@ const ScrollBar = ({
     if (isTouched || !progressTrigger[0].wheel) return; // при touch устроиствах прокрутку не используем
 
     const el = scrollBarRef.current;
-    if (!el) return;
+    const scrollElem = scrollEl.current;
+    if (!el || !scrollElem) return;
 
     let prev = el.previousElementSibling as HTMLElement | null;
     while (prev && !prev.classList.contains("ms-element"))
       prev = prev.previousElementSibling as HTMLElement | null;
 
     const onWheel = (e: WheelEvent) =>
-      handleWheel(e, scrollEl.current!, scrollStateRef.current!, dataDirection);
+      handleWheel(
+        e,
+        scrollElem,
+        maxScrollSize,
+        scrollStateRef.current!,
+        dataDirection,
+      );
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);

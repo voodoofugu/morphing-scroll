@@ -1,5 +1,5 @@
 import clampValue from "./clampValue";
-import type { MorphScrollT } from "../types/types";
+import type { MorphScrollT, Vec2 } from "../types/types";
 import CONST from "../constants";
 
 export type ScrollStateRefT = {
@@ -12,31 +12,39 @@ export type ScrollStateRefT = {
 export default function handleWheel(
   e: WheelEvent,
   scrollEl: HTMLElement,
+  maxScrollSize: Vec2,
   stateRef: ScrollStateRefT,
   direction: MorphScrollT["direction"],
 ) {
-  if (!scrollEl.matches(":focus")) scrollEl.focus(); // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
+  // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
+  if (!scrollEl.matches(":focus")) scrollEl.focus();
 
   // Устанавливаем начальные значения
   if (!stateRef.animating) {
-    stateRef.targetScrollX = scrollEl.scrollLeft;
-    stateRef.targetScrollY = scrollEl.scrollTop;
+    stateRef.targetScrollX = clampValue(
+      scrollEl.scrollLeft,
+      0,
+      maxScrollSize[0],
+    );
+    stateRef.targetScrollY = clampValue(
+      scrollEl.scrollTop,
+      0,
+      maxScrollSize[1],
+    );
   }
 
-  // Вычисляем новое целевое значение прокрутки
+  // Вычисляем новое значение прокрутки
   if (direction === "x") {
-    // ограничиваем значение
     stateRef.targetScrollX = clampValue(
-      stateRef.targetScrollX + e.deltaY, // используем deltaY вместо deltaX, так как на deltaX не срабатывает onScroll
+      stateRef.targetScrollX + e.deltaY,
       0,
-      scrollEl.scrollWidth - scrollEl.clientWidth + CONST.SCROLL_OFFSET,
+      maxScrollSize[0],
     );
   } else {
-    // ограничиваем значение
     stateRef.targetScrollY = clampValue(
       stateRef.targetScrollY + e.deltaY,
       0,
-      scrollEl.scrollHeight - scrollEl.clientHeight + CONST.SCROLL_OFFSET,
+      maxScrollSize[1],
     );
   }
 
@@ -47,41 +55,52 @@ export default function handleWheel(
   }
 
   function animateScroll() {
-    let diff = 0;
-    let scrollByX = 0;
-    let scrollByY = 0;
+    let diff: number;
 
+    // обновляем
     if (direction === "x") {
-      scrollByX +=
-        (stateRef.targetScrollX - scrollEl.scrollLeft) * CONST.LERP_FACTOR;
+      const nextScrollX = clampValue(
+        scrollEl.scrollLeft +
+          (stateRef.targetScrollX - scrollEl.scrollLeft) * CONST.LERP_FACTOR,
+        0,
+        maxScrollSize[0],
+      );
 
-      diff = Math.abs(scrollEl.scrollLeft - stateRef.targetScrollX);
+      scrollEl.scrollLeft = nextScrollX;
+      diff = Math.abs(nextScrollX - stateRef.targetScrollX);
     } else {
-      scrollByY +=
-        (stateRef.targetScrollY - scrollEl.scrollTop) * CONST.LERP_FACTOR;
+      const nextScrollY = clampValue(
+        scrollEl.scrollTop +
+          (stateRef.targetScrollY - scrollEl.scrollTop) * CONST.LERP_FACTOR,
+        0,
+        maxScrollSize[1],
+      );
 
-      diff = Math.abs(scrollEl.scrollTop - stateRef.targetScrollY);
+      scrollEl.scrollTop = nextScrollY;
+      diff = Math.abs(nextScrollY - stateRef.targetScrollY);
     }
-    scrollEl.scrollBy(scrollByX, scrollByY); // обновляем
 
-    // Остановка анимации, если разница в позициях мала
-    // осторожнее с diff иначе будет зацикливаться
+    // остановка анимации, если разница в позициях мала
     if (diff > CONST.DIFF_THRESHOLD) {
       stateRef.animationFrameId = requestAnimationFrame(animateScroll);
     } else {
-      // Устанавливаем точное целевое значение
+      // обновляем
       if (direction === "x") {
-        scrollByX = stateRef.targetScrollX - scrollEl.scrollLeft; // дельта до цели
+        scrollEl.scrollLeft = clampValue(
+          stateRef.targetScrollX,
+          0,
+          maxScrollSize[0],
+        );
       } else {
-        scrollByY = stateRef.targetScrollY - scrollEl.scrollTop; // дельта до цели
+        scrollEl.scrollTop = clampValue(
+          stateRef.targetScrollY,
+          0,
+          maxScrollSize[1],
+        );
       }
-      scrollEl.scrollBy(scrollByX, scrollByY); // обновляем
 
       stateRef.animating = false;
-      if (stateRef.animationFrameId !== null) {
-        cancelAnimationFrame(stateRef.animationFrameId);
-        stateRef.animationFrameId = null;
-      }
+      stateRef.animationFrameId = null;
     }
   }
 }
