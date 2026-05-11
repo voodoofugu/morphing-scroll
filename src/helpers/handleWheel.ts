@@ -1,5 +1,5 @@
 import clampValue from "./clampValue";
-import type { MorphScrollT, Vec2 } from "../types/types";
+import type { MorphScroll, Vec2 } from "../types/types";
 import CONST from "../constants";
 
 export type ScrollStateRefT = {
@@ -14,7 +14,7 @@ export default function handleWheel(
   scrollEl: HTMLElement,
   maxScrollSize: Vec2,
   stateRef: ScrollStateRefT,
-  direction: MorphScrollT["direction"],
+  direction: MorphScroll["direction"],
 ) {
   // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
   if (!scrollEl.matches(":focus")) scrollEl.focus();

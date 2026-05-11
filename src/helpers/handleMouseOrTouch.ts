@@ -1,4 +1,4 @@
-import { MorphScrollT, Vec2 } from "../types/types";
+import { MorphScroll, Vec2 } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
 import { mouseOnEl } from "./mouseOn";
@@ -48,7 +48,7 @@ type HandleMouseT = {
   objectsWrapperRef: HTMLDivElement | null;
   target: HTMLElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
-  type: MorphScrollT["type"];
+  type: MorphScroll["type"];
   direction: "x" | "y" | "hybrid";
   scrollStateRef: ScrollStateRefT;
   sizeLocal: number[];

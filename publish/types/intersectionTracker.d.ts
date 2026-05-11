@@ -1,4 +1,6 @@
-type IntersectionTrackerT = {
+import type { SpacingValue } from "./additional";
+
+type IntersectionTracker = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***className***:
@@ -69,7 +71,7 @@ type IntersectionTrackerT = {
    * </IntersectionTracker>
    * ```
    */
-  rootMargin?: number | number[];
+  rootMargin?: SpacingValue;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***threshold***:
@@ -122,4 +124,4 @@ type IntersectionTrackerT = {
   onIntersection?: (entry: IntersectionObserverEntry) => void;
 };
 
-export default IntersectionTrackerT;
+export default IntersectionTracker;

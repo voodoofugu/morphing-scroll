@@ -1,4 +1,4 @@
-type ResizeTrackerT = {
+type ResizeTracker = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***className***:
@@ -75,4 +75,4 @@ type ResizeTrackerT = {
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
 };
 
-export default ResizeTrackerT;
+export default ResizeTracker;

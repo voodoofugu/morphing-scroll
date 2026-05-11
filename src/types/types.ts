@@ -1,6 +1,10 @@
-export type Vec2 = readonly [x: number, y: number];
+export type Vec2 = [x: number, y: number];
+type Size = [width: number, height: number];
+type Edges = [top: number, right: number, bottom: number, left: number];
+type SpacingValue = number | Vec2 | Edges;
+type Align = "start" | "center" | "end";
 
-export type ResizeTrackerT = {
+export type ResizeTracker = {
   className?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;
@@ -8,18 +12,18 @@ export type ResizeTrackerT = {
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
 };
 
-export type IntersectionTrackerT = {
+export type IntersectionTracker = {
   className?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;
   root?: Element | null;
-  rootMargin?: number | number[];
+  rootMargin?: SpacingValue;
   threshold?: number | number[];
   visibleContent?: boolean;
   onIntersection?: (entry: IntersectionObserverEntry) => void;
 };
 
-export type MorphScrollT = {
+export type MorphScroll = {
   // — General Settings —
   className?: string;
   children?: React.ReactNode;
@@ -42,7 +46,7 @@ export type MorphScrollT = {
   isScrolling?: (motion: boolean) => void;
 
   // — Visual Settings —
-  size: number | number[] | "auto";
+  size: number | "auto" | Size;
   objectsSize?:
     | number
     | "size"
@@ -50,11 +54,11 @@ export type MorphScrollT = {
     | "none"
     | (number | "size" | "firstChild" | "none")[];
   crossCount?: number;
-  gap?: number | number[];
-  wrapperMargin?: number | number[];
+  gap?: number | Vec2;
+  wrapperMargin?: SpacingValue;
   wrapperMinSize?: number | "full" | (number | "full")[];
-  wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
-  elementsAlign?: "start" | "center" | "end";
+  wrapperAlign?: Align | [x: Align, y: Align];
+  elementsAlign?: Align;
   elementsDirection?: "row" | "column";
   edgeGradient?: boolean | string | { color?: string; size?: number };
   progressTrigger: {
@@ -76,7 +80,7 @@ export type MorphScrollT = {
   };
   progressReverse?: boolean | boolean[];
   scrollBarOnHover?: boolean;
-  scrollBarEdge?: number | number[];
+  scrollBarEdge?: number | Vec2;
   thumbMinSize?: number;
 
   // — Optimization —
@@ -85,7 +89,7 @@ export type MorphScrollT = {
     | "virtual"
     | {
         type: "lazy" | "virtual";
-        rootMargin?: number | number[];
+        rootMargin?: SpacingValue;
         stopLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };

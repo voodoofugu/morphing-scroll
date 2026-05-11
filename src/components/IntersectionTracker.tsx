@@ -1,9 +1,9 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
-import { IntersectionTrackerT } from "../types/types";
+import { IntersectionTracker } from "../types/types";
 import numOrArrFormat from "../helpers/argsFormatter";
 
-const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
+const IntersectionTracker: React.FC<IntersectionTracker> = ({
   className,
   children,
   style,
@@ -38,7 +38,7 @@ const IntersectionTracker: React.FC<IntersectionTrackerT> = ({
         });
       }
     },
-    [onIntersection]
+    [onIntersection],
   );
 
   React.useEffect(() => {

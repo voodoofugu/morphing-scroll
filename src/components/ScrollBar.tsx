@@ -1,5 +1,5 @@
 import React from "react";
-import { MorphScrollT, Vec2 } from "../types/types";
+import { MorphScroll, Vec2 } from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 
@@ -11,7 +11,7 @@ type OnCustomScrollFn = (
 ) => void;
 
 type ModifiedProps = Pick<
-  MorphScrollT,
+  MorphScroll,
   "type" | "progressReverse" | "scrollBarOnHover" // выбираю нужное
 > & {
   size: number[];
@@ -31,7 +31,7 @@ type ModifiedProps = Pick<
     y: number;
   }>;
   direction: "x" | "y" | "hybrid";
-  progressTrigger: [MorphScrollT["progressTrigger"], number];
+  progressTrigger: [MorphScroll["progressTrigger"], number];
   maxScrollSize: Vec2;
 };
 

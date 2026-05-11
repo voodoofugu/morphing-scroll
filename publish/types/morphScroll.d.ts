@@ -1,4 +1,6 @@
-type MorphScrollT = {
+import type { Vec2, Size, SpacingValue, Align } from "./additional";
+
+type MorphScroll = {
   // — General Settings —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
@@ -123,9 +125,10 @@ type MorphScrollT = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***size***:
-   * width and height dimension of scroll area ( **REQUIRED** ).gt
+   * width and height dimension of scroll area. ( **REQUIRED** )
    * @description
-   * - `number` *sets the width and height, can be an array of 2 numbers*
+   * - `number` *sets the width and height*
+   * - `Size` *width and height as an array*
    * - `"auto"` *for automatic resizing based on the parent element*
    *
    * @example
@@ -137,7 +140,7 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  size: number | number[] | "auto";
+  size: number | "auto" | Size;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***objectsSize***:
@@ -181,9 +184,9 @@ type MorphScrollT = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***gap***:
-   * gap between cells.
+   * space between cells.
    * @note
-   * *It can be a number or an array of 2 or 4 numbers*
+   * *It can be a number or an array of 2 numbers*
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -193,7 +196,7 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  gap?: number | number[];
+  gap?: number | Vec2;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***wrapperMargin***:
@@ -209,7 +212,7 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  wrapperMargin?: number | number[];
+  wrapperMargin?: SpacingValue;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***wrapperMinSize***:
@@ -244,7 +247,7 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  wrapperAlign?: "start" | "center" | "end" | ("start" | "center" | "end")[];
+  wrapperAlign?: Align | [x: Align, y: Align];
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***elementsAlign***:
@@ -258,7 +261,7 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  elementsAlign?: "start" | "center" | "end";
+  elementsAlign?: Align;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***elementsDirection***:
@@ -365,7 +368,7 @@ type MorphScrollT = {
    * scroll bar margin at its edges.
    * @note
    * - *Used when: `type="scroll"`*
-   * - *When `direction="hybrid"` you can set an array of values*
+   * - *When `direction="hybrid"` you can set an array of 2 values*
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -375,7 +378,7 @@ type MorphScrollT = {
    * </MorphScroll>
    * ```
    */
-  scrollBarEdge?: number | number[];
+  scrollBarEdge?: number | Vec2;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***thumbMinSize***:
@@ -421,7 +424,7 @@ type MorphScrollT = {
     | "virtual"
     | {
         type: "lazy" | "virtual";
-        rootMargin?: number | number[];
+        rootMargin?: SpacingValue;
         stopLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
@@ -509,4 +512,4 @@ type MorphScrollT = {
   dragScroll?: boolean;
 };
 
-export default MorphScrollT;
+export default MorphScroll;

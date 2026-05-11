@@ -2,7 +2,7 @@ import React from "react";
 
 import { setTask } from "./taskManager";
 
-import { MorphScrollT, Vec2 } from "../types/types";
+import { MorphScroll, Vec2 } from "../types/types";
 import clampValue from "./clampValue";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
@@ -84,7 +84,7 @@ const sliderCache = new WeakMap<
 const sliderCheck = (
   scrollEl: HTMLDivElement,
   scrollBars: Set<HTMLElement>,
-  direction: Exclude<MorphScrollT["direction"], undefined>,
+  direction: Exclude<MorphScroll["direction"], undefined>,
   objLengthPerSize: number[],
 ) => {
   [...scrollBars].forEach((msSlider, i) => {
@@ -125,7 +125,7 @@ const sliderCheck = (
 
 function getWrapperMinSizeStyle(
   wrapperMinSize: number | "full" | (number | "full")[],
-  direction: Exclude<MorphScrollT["direction"], undefined>,
+  direction: Exclude<MorphScroll["direction"], undefined>,
   sizeLocal: number[],
   mLocalX: number,
   mLocalY: number,
@@ -166,7 +166,7 @@ const getStyleAlign = (algin: "start" | "center" | "end" | undefined) =>
     : undefined;
 
 function getWrapperAlignStyle(
-  wrapperAlign: Exclude<MorphScrollT["wrapperAlign"], undefined>,
+  wrapperAlign: Exclude<MorphScroll["wrapperAlign"], undefined>,
   sizeLocal: number[],
   objectsWrapperWidthFull: number,
   objectsWrapperHeightFull: number,

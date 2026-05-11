@@ -1,5 +1,5 @@
 import React from "react";
-import { MorphScrollT, Vec2 } from "../types/types";
+import { MorphScroll, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 
 import useIdent from "../hooks/useIdent";
@@ -45,7 +45,7 @@ import {
 
 import CONST from "../constants";
 
-const MorphScroll: React.FC<MorphScrollT> = ({
+const MorphScroll: React.FC<MorphScroll> = ({
   // General Settings
   className,
   children,
