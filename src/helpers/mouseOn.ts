@@ -29,7 +29,7 @@ const mouseOnEl = (
     }
 
     el.style.cursor = "grabbing";
-    !isSlider && el.classList.add("active"); // что бы был контроль на phones
+    el.classList.add("ms-active"); // что бы был контроль на phones
   } else {
     if (!isTouched) {
       const style = document.getElementById("ms-cursor-lock");
@@ -37,7 +37,7 @@ const mouseOnEl = (
     }
 
     el.style.cursor = "grab";
-    !isSlider && el.classList.remove("active"); // что бы был контроль на phones
+    el.classList.remove("ms-active"); // что бы был контроль на phones
   }
 };
 

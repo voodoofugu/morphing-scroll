@@ -44,8 +44,8 @@ let prevCoords: {
 } | null = null;
 
 type HandleMouseT = {
-  scrollElementRef: HTMLDivElement | null;
-  objectsWrapperRef: HTMLDivElement | null;
+  scrollElement: HTMLDivElement | null;
+  objectsWrapper: HTMLDivElement | null;
   target: HTMLElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
   type: MorphScroll["type"];
@@ -105,7 +105,7 @@ function getVisualToLayoutScale(el: HTMLElement) {
 const cursorClassChange = (
   clicked: ClickedT,
   target: HTMLElement | null,
-  scrollElementRef: HTMLDivElement | null,
+  scrollElement: HTMLDivElement | null,
   mode: "start" | "end",
   isSlider: boolean,
 ) => {
@@ -116,10 +116,10 @@ const cursorClassChange = (
   if (["thumb", "slider"].includes(clicked)) {
     if (clicked === "slider")
       elem = target?.closest(".ms-slider") as HTMLDivElement | null;
-    else elem = target;
-  } else if (clicked === "wrapp") elem = scrollElementRef;
+    else elem = scrollElement?.closest(".ms-thumb") as HTMLDivElement | null;
+  } else if (clicked === "wrapp") elem = scrollElement;
 
-  mouseOnEl(scrollElementRef, mode, isSlider);
+  mouseOnEl(scrollElement, mode, isSlider);
 };
 
 const applyThumb = (
@@ -129,9 +129,9 @@ const applyThumb = (
   prevLeftover: number,
   thumbRatio: number,
 ) => {
-  if (!args.scrollElementRef || !args.objectsWrapperRef) return;
+  if (!args.scrollElement || !args.objectsWrapper) return;
 
-  const scrollEl = args.scrollElementRef;
+  const scrollEl = args.scrollElement;
   const fullDelta = move * thumbRatio + prevLeftover;
   const intDelta = Math.trunc(fullDelta);
 
@@ -175,7 +175,7 @@ const motionHandler = (
   visualDiff: number[],
   args: HandleMoveT,
 ) => {
-  const el = args.scrollElementRef as HTMLDivElement;
+  const el = args.scrollElement as HTMLDivElement;
   if (!el) return;
 
   const isX = axis === "x";
@@ -367,7 +367,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   });
 
   // обновление targetScroll заранее
-  const el = args.scrollElementRef;
+  const el = args.scrollElement;
   if (!el) return;
 
   args.scrollStateRef.targetScrollX = el.scrollLeft;
@@ -392,14 +392,14 @@ function handleMouseOrTouch(args: HandleMouseT) {
     scrollElementWH = [el.clientWidth, el.clientHeight];
 
     objectsWrapperWH = [
-      args.objectsWrapperRef!.clientWidth,
-      args.objectsWrapperRef!.clientHeight,
+      args.objectsWrapper!.clientWidth,
+      args.objectsWrapper!.clientHeight,
     ];
   }
   if (args.type === "slider") {
     wrapElWH = [
-      args.objectsWrapperRef!.clientWidth,
-      args.objectsWrapperRef!.clientHeight,
+      args.objectsWrapper!.clientWidth,
+      args.objectsWrapper!.clientHeight,
     ];
   }
 
@@ -517,7 +517,7 @@ function handleMove(args: HandleMoveT) {
 function handleUp(args: HandleUpT) {
   abortController?.abort(); // удаляем слушатели
 
-  const el = args.scrollElementRef as HTMLDivElement;
+  const el = args.scrollElement as HTMLDivElement;
   if (!el) return;
 
   // меняем курсор и классы
