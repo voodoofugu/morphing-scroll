@@ -944,7 +944,6 @@ const MorphScroll: React.FC<MorphScroll> = ({
 
       handleMouseOrTouch({
         scrollElement: scrollElementRef.current,
-        objectsWrapper: objectsWrapperRef.current,
         target,
         clickedObject,
         scrollStateRef: scrollStateRef.current,

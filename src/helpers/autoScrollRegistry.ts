@@ -17,11 +17,11 @@ const DRAG_ATR = "ms-under-drag";
 let abortController: AbortController | undefined;
 let dragController: AbortController | null = null;
 let listening = false;
-let startPoint = {
+const startPoint = {
   x: 0,
   y: 0,
 };
-let pointer = {
+const pointer = {
   x: 0,
   y: 0,
 };
@@ -32,7 +32,7 @@ let attrValue = "";
 let targetEl: HTMLElement | null = null; // для проверки element
 let targetParent: HTMLElement | null = null; // для проверки parent
 let prevAttr: string | null = null;
-let isButtonDown = false;
+const isButtonDown = false;
 
 const raf = createSchedulerRAF();
 
@@ -57,10 +57,10 @@ function getEdge(
   const before = pos - start;
   const after = end - pos;
 
-  if (before < EDGE)
-    if (scroll > 0) return { dir: -1, distance: before };
-    else if (after < EDGE)
-      if (scroll + client < scrollSize) return { dir: 1, distance: after };
+  if (before < EDGE && scroll > 0) return { dir: -1, distance: before };
+
+  if (after < EDGE && scroll + client < scrollSize)
+    return { dir: 1, distance: after };
 
   return null;
 }
@@ -178,13 +178,15 @@ function onMove(e: PointerEvent | DragEvent) {
     // небольшая защита если elementUnderCursor вернул не DOM
     if (!elementUnderCursor) return;
 
-    const parent = elementUnderCursor.closest("[morph-scroll]") as HTMLElement;
+    const parent = elementUnderCursor.closest(
+      "[morph-scroll]",
+    ) as HTMLElement | null;
     if (!parent && !currentContainer) {
       reset();
       return; // выход
     } // если уже есть активный контейнер — продолжаем работать с ним
 
-    const container = containerMap.get(parent);
+    const container = parent ? containerMap.get(parent) : currentContainer;
     if (!container) return;
     currentContainer = container;
 
