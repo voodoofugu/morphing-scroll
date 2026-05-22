@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
+    "npmLogin": "npm login",
     "publish": "cd publish && npm publish",
     "prepare-publish": "node buildHelper.js",
     "lint": "eslint src"
