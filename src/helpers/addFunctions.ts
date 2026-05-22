@@ -111,7 +111,7 @@ const sliderCheck = (
     const half = visibleSize / 2;
 
     // вычисляем индекс страницы
-    let activeIndex = Math.floor((scrollPosition + half) / visibleSize);
+    const activeIndex = Math.floor((scrollPosition + half) / visibleSize);
 
     if (activeIndex === cache.lastIndex) return;
 
