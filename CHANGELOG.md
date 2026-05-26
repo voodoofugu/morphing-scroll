@@ -1,13 +1,13 @@
-## [2.8.9]
+## [2.9.0]
 
 ### Added
 
-- `Vec2` type.
+-
 
 ### Changed
 
-- Improved argument passing in `handleMouseOrTouch.ts`.
+- Extracted internal task orchestration into the standalone `keytask-core` package.
 
 ### Fixed
 
-- Fixed drag logic and `scrollBarOnHover` behavior.
+-
