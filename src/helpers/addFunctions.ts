@@ -1,6 +1,5 @@
 import React from "react";
-
-import { setThrottleTask } from "./taskManager";
+import { setLockTask } from "keytask-core";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import clampValue from "./clampValue";
@@ -47,7 +46,7 @@ async function smoothScroll(
     return;
   }
 
-  setThrottleTask(
+  setLockTask(
     () => {
       const startTime = performance.now();
 

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setTask } from "./taskManager";
+import { setTask } from "keytask-core";
 
 import CONST from "../constants";
 

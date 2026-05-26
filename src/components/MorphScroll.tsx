@@ -1,4 +1,6 @@
 import React from "react";
+import { setTask, cancelTask } from "keytask-core";
+
 import { MorphScroll, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 
@@ -33,7 +35,6 @@ import {
 } from "../helpers/calculateThumbSize";
 import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
 
-import { setTask, cancelTask } from "../helpers/taskManager";
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";

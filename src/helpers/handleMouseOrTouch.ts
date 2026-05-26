@@ -1,10 +1,11 @@
+import { cancelTask } from "keytask-core";
+
 import { MorphScroll, Vec2 } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
 import { mouseOnEl } from "./mouseOn";
 import startInertiaScroll from "./startInertiaScroll";
 import clampValue from "./clampValue";
-import { cancelTask } from "./taskManager";
 import {
   overscrollBackAnim,
   stopOverscrollBackAnim,
