@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setTask } from "./taskManager";
+import { setThrottleTask } from "./taskManager";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import clampValue from "./clampValue";
@@ -47,7 +47,7 @@ async function smoothScroll(
     return;
   }
 
-  setTask(
+  setThrottleTask(
     () => {
       const startTime = performance.now();
 
@@ -72,7 +72,6 @@ async function smoothScroll(
     },
     duration,
     `smoothScrollBlock${direction}`,
-    "exclusive",
   );
 }
 
@@ -111,7 +110,7 @@ const sliderCheck = (
     const half = visibleSize / 2;
 
     // вычисляем индекс страницы
-    let activeIndex = Math.floor((scrollPosition + half) / visibleSize);
+    const activeIndex = Math.floor((scrollPosition + half) / visibleSize);
 
     if (activeIndex === cache.lastIndex) return;
 

@@ -4,6 +4,8 @@ import terser from "@rollup/plugin-terser";
 import del from "rollup-plugin-delete";
 import commonjs from "@rollup/plugin-commonjs";
 
+const external = (id) => /^react/.test(id) || id === "keytask-core";
+
 const plugins = [
   resolve(),
   commonjs(),
@@ -36,7 +38,7 @@ export default [
       format: "esm",
     },
     plugins: [del({ targets: "dist/*" }), ...plugins],
-    external: (id) => /^react/.test(id),
+    external,
   },
 
   // CJS точка входа
@@ -48,6 +50,6 @@ export default [
       exports: "named",
     },
     plugins,
-    external: (id) => /^react/.test(id),
+    external,
   },
 ];

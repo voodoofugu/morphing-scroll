@@ -22,7 +22,8 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^24.0.7",
-    "@types/react": "^18.3.7",
+    "@types/react": "^19.1.10",
+    "csstype": "^3.1.3",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -35,5 +36,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "dependencies": {
+    "keytask-core": "^1.0.0"
   }
 }
