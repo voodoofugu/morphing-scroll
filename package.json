@@ -17,6 +17,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && rollup -c rollup.config.mjs && node scripts/prepare-dist.mjs",
+    "build:dev": "npm run typecheck && MORPHING_SCROLL_BUILD=development rollup -c rollup.config.mjs && node scripts/prepare-dist.mjs",
     "package-prepare": "npm run build && node scripts/prepare-publish.mjs",
     "publish": "cd publish && npm publish",
     "lint": "eslint src"

@@ -5,28 +5,33 @@ import del from "rollup-plugin-delete";
 import commonjs from "@rollup/plugin-commonjs";
 
 const external = (id) => /^react/.test(id) || id === "keytask-core";
+const isDevBuild = process.env.MORPHING_SCROLL_BUILD === "development";
 
 const plugins = [
   resolve(),
   commonjs(),
   typescript(),
-  terser({
-    compress: {
-      passes: 2,
-      unsafe: true,
-      unsafe_arrows: true,
-      unsafe_comps: true,
-      unsafe_math: true,
-      drop_console: true,
-      pure_funcs: ["console.log"],
-    },
-    mangle: {
-      toplevel: true,
-    },
-    output: {
-      comments: false,
-    },
-  }),
+  ...(isDevBuild
+    ? []
+    : [
+        terser({
+          compress: {
+            passes: 2,
+            unsafe: true,
+            unsafe_arrows: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            drop_console: true,
+            pure_funcs: ["console.log"],
+          },
+          mangle: {
+            toplevel: true,
+          },
+          output: {
+            comments: false,
+          },
+        }),
+      ]),
 ];
 
 export default [
