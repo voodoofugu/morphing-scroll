@@ -61,7 +61,7 @@ export type MorphScroll = {
   elementsAlign?: Align;
   elementsDirection?: "row" | "column";
   edgeGradient?: boolean | string | { color?: string; size?: number };
-  progressTrigger: {
+  progressTrigger?: {
     // TODO добавить "wheel" | "content" | "arrows"
     wheel?:
       | boolean

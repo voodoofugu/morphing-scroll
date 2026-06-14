@@ -161,7 +161,7 @@ type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  objectsSize:
+  objectsSize?:
     | number
     | "size"
     | "firstChild"
@@ -314,7 +314,7 @@ type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  progressTrigger: {
+  progressTrigger?: {
     wheel?:
       | boolean
       | { changeDirection?: boolean; changeDirectionKey?: string };

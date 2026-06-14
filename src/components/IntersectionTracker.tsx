@@ -1,9 +1,9 @@
 /* eslint-disable react/no-unknown-property */
 import React from "react";
-import { IntersectionTracker } from "../types/types";
+import type { IntersectionTracker as IntersectionTrackerProps } from "../types/types";
 import numOrArrFormat from "../helpers/argsFormatter";
 
-const IntersectionTracker: React.FC<IntersectionTracker> = ({
+const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
   className,
   children,
   style,

@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
     "module": "ESNext",
-    "target": "es6",
-    "lib": ["dom", "es2019"],
-    "declaration": true,
-    "outDir": "./dist/types",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
-    "types": ["react", "node"],
-    "typeRoots": ["./node_modules/@types"],
-    "strict": true,
-    "jsx": "react"
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["dist", "node_modules"]
 }

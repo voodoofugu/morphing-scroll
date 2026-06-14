@@ -1,7 +1,7 @@
 import React from "react";
 import { setTask, cancelTask } from "keytask-core";
 
-import { MorphScroll, Vec2 } from "../types/types";
+import type { MorphScroll as MorphScrollProps, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 
 import useIdent from "../hooks/useIdent";
@@ -46,7 +46,7 @@ import {
 
 import CONST from "../constants";
 
-const MorphScroll: React.FC<MorphScroll> = ({
+const MorphScroll: React.FC<MorphScrollProps> = ({
   // General Settings
   className,
   children,

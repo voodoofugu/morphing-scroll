@@ -1,14 +1,24 @@
 {
-  "name": "morphing-scroll-repo",
+  "name": "morphing-scroll",
+  "version": "2.9.0",
+  "description": "React library for custom object scrolling and scrollbar styling",
   "author": "Georg Schilin",
   "license": "MIT",
-  "main": "src/shared/index.ts",
-  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
   "scripts": {
-    "build": "rollup -c",
-    "npmLogin": "npm login",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && rollup -c rollup.config.mjs && node scripts/prepare-dist.mjs",
+    "package-prepare": "npm run build && node scripts/prepare-publish.mjs",
     "publish": "cd publish && npm publish",
-    "prepare-publish": "node buildHelper.js",
     "lint": "eslint src"
   },
   "keywords": [
@@ -27,7 +37,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "globals": "^15.13.0",
+    "globals": "^15.15.0",
     "rollup": "^4.21.3",
     "rollup-plugin-delete": "^2.1.0",
     "tslib": "^2.7.0",
@@ -35,9 +45,13 @@
     "typescript-eslint": "^8.18.0"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": ">=16.8 <20"
   },
   "dependencies": {
     "keytask-core": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/voodoofugu/morphing-scroll.git"
   }
 }
