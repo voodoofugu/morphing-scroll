@@ -44,6 +44,7 @@ export type MorphScroll = {
       };
   onScrollValue?: (left: number, top: number) => void;
   isScrolling?: (motion: boolean) => void;
+  onRenderedKeysChange?: (keys: string[]) => void;
 
   // — Visual Settings —
   size: number | "auto" | Size;

@@ -16,7 +16,7 @@ export function stabilize(...args: unknown[]): number[] {
       return h;
     }
     if (typeof val === "undefined") return 4;
-    if (typeof val === "function") return 5;
+    if (typeof val === "function") return 5; // для функций лучше использовать ref паттерн
     if (React.isValidElement(val)) return 6;
 
     if (Array.isArray(val)) {

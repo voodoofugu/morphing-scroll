@@ -264,6 +264,27 @@ accepts a callback function that is triggered whenever the scroll status changes
 
 <h2></h2>
 
+<details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
+<b>Description:</b><em><br />
+accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  onRenderedKeysChange={(keys) => {
+    console.log("Rendered keys:", keys);
+  }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
 ###### **— VISUAL —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>

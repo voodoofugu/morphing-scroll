@@ -40,6 +40,10 @@ import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";
 import stabilize from "../helpers/stabilize";
 import {
+  getRenderedKeysFromWrapper,
+  areKeysEqual,
+} from "../helpers/getRenderedKeysFromWrapper";
+import {
   registerContainer,
   unregisterContainer,
 } from "../helpers/autoScrollRegistry";
@@ -57,6 +61,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
   scrollPosition,
   onScrollValue,
   isScrolling,
+  onRenderedKeysChange,
 
   // Visual Settings
   size,
@@ -155,6 +160,8 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     y: 0,
   });
   const isDraggingRef = React.useRef(false);
+  const lastRenderedKeysRef = React.useRef<string[] | null>(null);
+  const onRenderedKeysChangeRef = React.useRef(onRenderedKeysChange);
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -215,7 +222,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     }
 
     return { value, duration, updater };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollPositionST]);
 
   // ♦ variables
@@ -227,7 +233,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       : typeof edgeGradient === "string"
         ? { color: edgeGradient, size: defaultSize }
         : edgeGradientDefault;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edgeGradient]);
 
   const arrowsLocal = React.useMemo(() => {
@@ -240,7 +245,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       return { ...base, ...arrows };
 
     return base;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressTriggerST]);
 
   const childrenArray = React.useMemo(
@@ -272,7 +276,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         }
         return true;
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [children, emptyElementsST, objectsKeysEmptyST]);
 
   const [mT, mR, mB, mL] = wrapperMargin
@@ -318,7 +321,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
   const mRootLocal = React.useMemo(() => {
     return argsFormatter(renderLocal.rootMargin);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [renderLocal.rootMargin, direction]);
 
   const sizeLocal = React.useMemo(() => {
@@ -353,7 +355,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     }
 
     return [recountX, recountY, x, y]; // [2, 3] is only for customScrollRef
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     sizeST,
     progressTriggerST,
@@ -378,7 +379,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     }
 
     return [0, 0];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollBarEdgeST]);
 
   const sizeMinusEdge = React.useMemo(() => {
@@ -386,7 +386,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     const y = sizeLocal[1] - scrollBarEdgeLocal[1];
 
     return [x, y];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollBarEdgeLocal.join(), sizeLocal[0], sizeLocal[1]]);
 
   const objectsSizing = React.useMemo(
@@ -396,7 +395,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
           ? argsFormatter(objectsSize, true, 2)
           : objectsSize
         : [null, null],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [objectsSizeST],
   );
 
@@ -420,7 +419,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       getSize(objectsSizing[0], width, sizeLocal[0]),
       getSize(objectsSizing[1], height, sizeLocal[1]),
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     objectsSizing.join(),
     direction,
@@ -505,7 +503,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     }
 
     return [validated(rowObjects), validated(columnObjects)];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     elementsDirection,
     gapLocal[0],
@@ -536,7 +533,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       : !renderLocal.type
         ? receivedWrapSizeRef.current.width
         : receivedChildSizeRef.current.width + childsGap;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     direction,
     objectsSizeLocal[0],
@@ -564,7 +560,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       : !renderLocal.type
         ? receivedWrapSizeRef.current.height // on "fit-content"
         : receivedChildSizeRef.current.height + childsGap;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     direction,
     objectsSizeLocal[1],
@@ -787,7 +782,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     wrapperAlign,
     sizeLocal.join(),
@@ -800,11 +794,9 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     const y = objectsPerSize(objectsWrapperHeightFull, sizeLocal[1]);
 
     return [x, y];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectsWrapperWidthFull, objectsWrapperHeightFull, sizeLocal.join()]);
   const objLengthPerSizeXY = React.useMemo(() => {
     return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
 
   // ♦ functions
@@ -892,8 +884,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       flexWrap,
       justifyContent: getStyleAlign(elementsAlign),
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     wrapperMargin,
     wrapperAlignST,
@@ -966,7 +956,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         maxScrollSize,
       });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [
       direction,
       type,
@@ -1004,7 +994,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         gap: gapLocal,
       });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [
       sizeLocal.join(),
       objectsWrapperWidthFull,
@@ -1034,8 +1024,26 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       direction,
       objLengthPerSize,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sizeLocal.join(), direction, type, objLengthPerSize.join()]);
+
+  const onRenderedKeysChangeUpdate = React.useCallback(
+    (callback: MorphScrollProps["onRenderedKeysChange"]) => {
+      if (callback) {
+        const renderedKeys = getRenderedKeysFromWrapper(
+          objectsWrapperRef.current,
+        );
+
+        if (
+          !lastRenderedKeysRef.current ||
+          !areKeysEqual(lastRenderedKeysRef.current, renderedKeys)
+        ) {
+          lastRenderedKeysRef.current = renderedKeys;
+          callback(renderedKeys);
+        }
+      }
+    },
+    [],
+  );
 
   const updateLoadedElementsKeysLocal = React.useCallback(() => {
     if (!objectsWrapperRef.current) return;
@@ -1046,7 +1054,9 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       triggerRAF,
       renderLocal.type,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // логика что бы получить корректный массив после удалений
+    onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
   }, [renderST]);
 
   // для обновления ключей при emptyElements
@@ -1064,7 +1074,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         );
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [emptyElementsST, updateLoadedElementsKeysLocal],
   );
 
@@ -1136,12 +1146,18 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         "isScrolling",
       );
 
+      setTask(
+        // логика обновления массива при прокрутке
+        () => onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current),
+        "raf",
+        "onRenderedKeysChange",
+      );
+
       // по-кадровое обновление
       raf.schedule("sliderCheckLocal", () => {
         if (type !== "scroll") sliderCheckLocal();
         triggerUpdate(); // main updater
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [
       onScrollValue,
@@ -1171,7 +1187,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         triggerRAF();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [direction, progressTriggerST],
   );
   const onKeyUp = React.useCallback((e: KeyboardEvent) => {
@@ -1356,7 +1372,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         }
       });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     direction,
     scrollPositionST,
@@ -1365,7 +1380,11 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     scrollPositionLocal.value.join(),
   ]);
 
+  // эффект запускается раз при старте
   React.useEffect(() => {
+    // логика при первом запуске получаем массив
+    onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
+
     const animationFrameId = scrollStateRef.current.animationFrameId;
 
     if ((renderLocal.type || isScrolling) && isScrolling) isScrolling(false);
@@ -1380,7 +1399,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
       rafScrollAnim.cancel();
 
-      // использование может убивает финал прокрутки
+      // использование cancelTask может убивает финал прокрутки
       // cancelTask(); // очищаем таски
     };
   }, []);
@@ -1522,11 +1541,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       return (
         <div
           key={key}
-          {...(renderLocal.type || emptyElements
-            ? {
-                [CONST.WRAP_ATR]: `${key}`,
-              }
-            : {})}
+          {...{ [CONST.WRAP_ATR]: `${key}` }}
           className="ms-object-box"
           style={wrapStyle}
           onClick={emptyElements ? updateEmptyKeysClickLocal : undefined}
@@ -1535,7 +1550,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         </div>
       );
     },
-    // eslint-disable-next-line
     [
       suspending,
       !!fallbackLocal, // просто проверка на наличие, но не на изменение, думаю этого достаточно

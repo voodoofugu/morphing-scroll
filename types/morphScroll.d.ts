@@ -120,6 +120,24 @@ type MorphScroll = {
    * ```
    */
   isScrolling?: (motion: boolean) => void;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***onRenderedKeysChange***:
+   * callback for keys that are currently rendered inside `MorphScroll`.
+   * @param keys array of rendered child keys.
+   * @note
+   * *Use explicit React keys to receive meaningful names.*
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   onRenderedKeysChange={(keys) => console.log("Rendered:", keys)}
+   * >
+   *   <Card key="profile" />
+   *   <Card key="settings" />
+   * </MorphScroll>
+   * ```
+   */
+  onRenderedKeysChange?: (keys: string[]) => void;
 
   // — Visual Settings —
   /**---

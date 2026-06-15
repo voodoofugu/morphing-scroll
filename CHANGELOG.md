@@ -1,12 +1,12 @@
-## [2.9.0]
+## [2.10.0]
 
 ### Added
 
--
+- New prop onRenderedKeysChange.
 
 ### Changed
 
-- Extracted internal task orchestration into the standalone `keytask-core` package.
+-
 
 ### Fixed
 
