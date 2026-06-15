@@ -1,8 +1,8 @@
-## [2.10.0]
+## [2.10.1]
 
 ### Added
 
-- New prop onRenderedKeysChange.
+-
 
 ### Changed
 
@@ -10,4 +10,4 @@
 
 ### Fixed
 
--
+- formatRenderedKey function

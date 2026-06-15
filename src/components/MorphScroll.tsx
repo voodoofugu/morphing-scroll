@@ -161,7 +161,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
   });
   const isDraggingRef = React.useRef(false);
   const lastRenderedKeysRef = React.useRef<string[] | null>(null);
-  const onRenderedKeysChangeRef = React.useRef(onRenderedKeysChange);
+  const onRenderedKeysChangeRef = React.useRef(onRenderedKeysChange); // для стабилизации функцию
 
   function useSizeRef() {
     return React.useRef<{ width: number; height: number }>({
@@ -1054,9 +1054,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       triggerRAF,
       renderLocal.type,
     );
-
-    // логика что бы получить корректный массив после удалений
-    onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
   }, [renderST]);
 
   // для обновления ключей при emptyElements
@@ -1228,6 +1225,30 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
   // ♦ effects
   React.useEffect(() => {
+    // эффект заставляет сразу выключать или включать работу onRenderedKeysChange
+    if (!onRenderedKeysChange) {
+      onRenderedKeysChangeRef.current = undefined;
+      lastRenderedKeysRef.current = null;
+      return;
+    }
+
+    onRenderedKeysChangeRef.current = onRenderedKeysChange;
+    lastRenderedKeysRef.current = null;
+
+    onRenderedKeysChangeUpdate(onRenderedKeysChange);
+  }, [onRenderedKeysChange, onRenderedKeysChangeUpdate]);
+
+  React.useEffect(() => {
+    if (!onRenderedKeysChangeRef.current) return;
+
+    if (!sizeLocal[0] || !sizeLocal[1]) return;
+
+    // логика получения массива ключей
+    // (кейсы: первый рендер и при удалении с emptyElements)
+    onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
+  }, [validChildrenKeys.join("|"), sizeLocal.join()]);
+
+  React.useEffect(() => {
     // эффект для нажатия клавиш
     if (isTouchedRef.current || direction !== "hybrid") return;
 
@@ -1382,9 +1403,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
   // эффект запускается раз при старте
   React.useEffect(() => {
-    // логика при первом запуске получаем массив
-    onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
-
     const animationFrameId = scrollStateRef.current.animationFrameId;
 
     if ((renderLocal.type || isScrolling) && isScrolling) isScrolling(false);

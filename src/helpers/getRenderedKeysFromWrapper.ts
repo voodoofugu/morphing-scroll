@@ -7,14 +7,21 @@ const areKeysEqual = (a: string[], b: string[]) =>
 const formatRenderedKey = (key: string) => {
   const explicitKeyStart = key.lastIndexOf(":$");
 
-  // если ключ создан react просто вернём его
-  if (explicitKeyStart === -1) return key;
+  // вложенный React path: ".0:$Key"
+  if (explicitKeyStart !== -1) {
+    return key
+      .slice(explicitKeyStart + 2)
+      .replace(/=0/g, "=")
+      .replace(/=2/g, ":");
+  }
 
-  // если ключ передан пользователем корректно вернём его
-  return key
-    .slice(explicitKeyStart + 2)
-    .replace(/=0/g, "=")
-    .replace(/=2/g, ":");
+  // корневой React path: ".$Key"
+  if (key.startsWith(".$")) {
+    return key.slice(2).replace(/=0/g, "=").replace(/=2/g, ":");
+  }
+
+  // React-generated key: ".0"
+  return key;
 };
 
 const getRenderedKeysFromWrapper = (wrapper: HTMLDivElement | null) => {
