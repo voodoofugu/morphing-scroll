@@ -6,19 +6,29 @@ import commonjs from "@rollup/plugin-commonjs";
 
 const external = (id) => /^react/.test(id) || id === "keytask-core";
 const isDevBuild = process.env.MORPHING_SCROLL_BUILD === "development";
+const bundleCompilerOptions = {
+  target: "ES5",
+  downlevelIteration: true,
+};
+const outputOptions = {
+  generatedCode: "es5",
+};
 
 const plugins = [
   resolve(),
   commonjs(),
-  typescript(),
+  typescript({
+    compilerOptions: bundleCompilerOptions,
+  }),
   ...(isDevBuild
     ? []
     : [
         terser({
+          ecma: 5,
           compress: {
+            ecma: 5,
             passes: 2,
             unsafe: true,
-            unsafe_arrows: true,
             unsafe_comps: true,
             unsafe_math: true,
             drop_console: true,
@@ -27,7 +37,8 @@ const plugins = [
           mangle: {
             toplevel: true,
           },
-          output: {
+          format: {
+            ecma: 5,
             comments: false,
           },
         }),
@@ -39,6 +50,7 @@ export default [
   {
     input: "./src/index.ts",
     output: {
+      ...outputOptions,
       file: "dist/esm/index.js",
       format: "esm",
     },
@@ -50,6 +62,7 @@ export default [
   {
     input: "./src/index.ts",
     output: {
+      ...outputOptions,
       file: "dist/cjs/index.js",
       format: "cjs",
       exports: "named",

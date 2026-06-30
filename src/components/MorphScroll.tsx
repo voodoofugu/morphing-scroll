@@ -1559,7 +1559,11 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       return (
         <div
           key={key}
-          {...{ [CONST.WRAP_ATR]: `${key}` }}
+          {...(renderLocal.type || emptyElements
+            ? {
+                [CONST.WRAP_ATR]: `${key}`,
+              }
+            : {})}
           className="ms-object-box"
           style={wrapStyle}
           onClick={emptyElements ? updateEmptyKeysClickLocal : undefined}
