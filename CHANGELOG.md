@@ -1,4 +1,4 @@
-## [2.10.4]
+## [2.10.5]
 
 ### Added
 
@@ -6,7 +6,7 @@
 
 ### Changed
 
-- Builder updater for ES5
+- Create Local keytaskStore and transition to it
 
 ### Fixed
 

@@ -1,8 +1,8 @@
 import React from "react";
-import { setLockTask } from "keytask-core";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import clampValue from "./clampValue";
+import { setLockTask } from "./keytaskStore";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
   if (availableSize <= objectSize) return 1;

@@ -1,8 +1,8 @@
 import React from "react";
-import { setTask, cancelTask } from "keytask-core";
 
 import type { MorphScroll as MorphScrollProps, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
+import { setTask, cancelTask } from "../helpers/keytaskStore";
 
 import useIdent from "../hooks/useIdent";
 import useUpdate from "../hooks/useUpdate";

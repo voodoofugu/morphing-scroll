@@ -1,4 +1,4 @@
-import { cancelTask } from "keytask-core";
+import { cancelTask } from "./keytaskStore";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";

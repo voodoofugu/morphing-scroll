@@ -1,4 +1,4 @@
-import { setTask, cancelTask } from "keytask-core";
+import { setTask, cancelTask } from "./keytaskStore";
 
 // функция смены курсора
 const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {

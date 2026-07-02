@@ -1,8 +1,7 @@
 import React from "react";
 
-import { setTask } from "keytask-core";
-
 import CONST from "../constants";
+import { setTask } from "./keytaskStore";
 
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
