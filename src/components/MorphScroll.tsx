@@ -1389,10 +1389,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
           smoothScrollLocal(value, dir, scrollPositionLocal.duration);
         }
-        console.log(
-          "scrollPositionLocal.value.join()",
-          scrollPositionLocal.value.join(),
-        );
       });
     });
   }, [
