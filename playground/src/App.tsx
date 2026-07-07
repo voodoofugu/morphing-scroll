@@ -277,7 +277,7 @@ function ControlGroup({
   title: string;
 }) {
   return (
-    <details className="control-group" open>
+    <details className="control-group">
       <summary>{title}</summary>
       <div className="control-group-body">{children}</div>
     </details>
@@ -870,6 +870,22 @@ function App() {
     ],
   );
 
+  const handleResize = React.useCallback((rect: Partial<DOMRectReadOnly>) => {
+    setResizeRect((current) => {
+      const width = Math.round(rect.width || 0);
+      const height = Math.round(rect.height || 0);
+      if (current.width === width && current.height === height) return current;
+      return { height, width };
+    });
+  }, []);
+
+  const handleIntersection = React.useCallback(
+    (entry: IntersectionObserverEntry) => {
+      setIsProbeVisible(entry.isIntersecting);
+    },
+    [],
+  );
+
   const applyScroll = React.useCallback(
     (mode: "clear" | "end" | "start" | "value") => {
       setScrollCommand((current) => {
@@ -1437,12 +1453,7 @@ function App() {
         <ResizeTracker
           className="resize-probe"
           measure="outer"
-          onResize={(rect) =>
-            setResizeRect({
-              height: Math.round(rect.height || 0),
-              width: Math.round(rect.width || 0),
-            })
-          }
+          onResize={handleResize}
         >
           <div
             className={[
@@ -1456,7 +1467,7 @@ function App() {
 
         <IntersectionTracker
           className="intersection-probe"
-          onIntersection={(entry) => setIsProbeVisible(entry.isIntersecting)}
+          onIntersection={handleIntersection}
           visibleContent
         >
           <span>
