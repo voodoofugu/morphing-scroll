@@ -1385,20 +1385,22 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
         // "number"
         else if (typeof value === "number") {
-          if (lastScrollTargetRef.current[dir] !== value) {
-            lastScrollTargetRef.current[dir] = value;
+          lastScrollTargetRef.current[dir] = value;
 
-            smoothScrollLocal(value, dir, scrollPositionLocal.duration);
-          }
+          smoothScrollLocal(value, dir, scrollPositionLocal.duration);
         }
+        console.log(
+          "scrollPositionLocal.value.join()",
+          scrollPositionLocal.value.join(),
+        );
       });
     });
   }, [
     direction,
-    scrollPositionST,
     endObjectsWrapper.w,
     endObjectsWrapper.h,
     scrollPositionLocal.value.join(),
+    scrollPositionLocal.updater,
   ]);
 
   // эффект запускается раз при старте
