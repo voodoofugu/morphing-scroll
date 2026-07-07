@@ -16,6 +16,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "playground": "vite --config vite.config.ts --host 0.0.0.0",
+    "playground:check": "tsc -p playground/tsconfig.json --noEmit",
     "build": "npm run typecheck && rollup -c rollup.config.mjs && node scripts/prepare-dist.mjs",
     "build:dev": "npm run typecheck && MORPHING_SCROLL_BUILD=development rollup -c rollup.config.mjs && node scripts/prepare-dist.mjs",
     "package-prepare": "npm run build && node scripts/prepare-publish.mjs",
@@ -34,16 +36,21 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^24.0.7",
     "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
     "csstype": "^3.1.3",
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.15.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "rollup": "^4.21.3",
     "rollup-plugin-delete": "^2.1.0",
     "tslib": "^2.7.0",
     "typescript": "^5.6.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "vite": "^8.1.3"
   },
   "peerDependencies": {
     "react": ">=16.8 <20"
