@@ -1,4 +1,4 @@
-## [2.10.5]
+## [2.10.6]
 
 ### Added
 
@@ -6,7 +6,7 @@
 
 ### Changed
 
-- Create Local keytaskStore and transition to it
+- Fix scrollPosition
 
 ### Fixed
 
