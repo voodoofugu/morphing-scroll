@@ -69,3 +69,63 @@ describe("MorphScroll — suspending", () => {
     expect(container.querySelector(".susp-fallback")).toBeInTheDocument();
   });
 });
+
+describe("MorphScroll — render.rootMargin", () => {
+  const many = (n: number) =>
+    Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
+
+  const rendered = (c: HTMLElement) =>
+    Array.from(c.querySelectorAll("[wrap-id]")).map((n) =>
+      n.getAttribute("wrap-id"),
+    );
+
+  // rootMargin is documented as [top, right, bottom, left]. Like the CSS
+  // property it mirrors, a margin on one side must preload in that direction:
+  // `bottom` reaches further down, `right` further to the right.
+  const virtualScroll = (
+    direction: "x" | "y",
+    rootMargin: [number, number, number, number],
+  ) => (
+    <MorphScroll
+      size={direction === "x" ? [300, 100] : [100, 300]}
+      objectsSize={100}
+      direction={direction}
+      render={{ type: "virtual", rootMargin }}
+    >
+      {many(20)}
+    </MorphScroll>
+  );
+
+  describe("vertical", () => {
+    it("bottom margin preloads the items below the viewport", () => {
+      const { container } = render(virtualScroll("y", [0, 0, 200, 0]));
+      expect(rendered(container)).toHaveLength(5); // 3 visible + 2 preloaded
+    });
+
+    it("top margin preloads nothing at the very top", () => {
+      const { container } = render(virtualScroll("y", [200, 0, 0, 0]));
+      expect(rendered(container)).toHaveLength(3);
+    });
+  });
+
+  describe("horizontal", () => {
+    it("right margin preloads the items past the right edge", () => {
+      const { container } = render(virtualScroll("x", [0, 200, 0, 0]));
+      expect(rendered(container)).toHaveLength(5);
+    });
+
+    it("left margin preloads nothing at the very start", () => {
+      const { container } = render(virtualScroll("x", [0, 0, 0, 200]));
+      expect(rendered(container)).toHaveLength(3);
+    });
+  });
+
+  it("a scalar margin preloads on both axes alike", () => {
+    const y = render(virtualScroll("y", [200, 200, 200, 200]));
+    expect(rendered(y.container)).toHaveLength(5);
+    y.unmount();
+
+    const x = render(virtualScroll("x", [200, 200, 200, 200]));
+    expect(rendered(x.container)).toHaveLength(5);
+  });
+});

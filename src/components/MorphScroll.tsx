@@ -1685,13 +1685,20 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         const viewportEnd =
           viewportStart + (dir === "x" ? sizeLocal[0] : sizeLocal[1]);
 
-        const elStart =
-          dir === "x" ? left - rootMarginLocal[3] : top - rootMarginLocal[2];
-
-        const elEnd =
+        /*
+         * rootMargin приходит в CSS-порядке [top, right, bottom, left], но
+         * растягиваем мы бокс элемента, а не вьюпорт, поэтому стороны идут
+         * крест-накрест: что бы дотянуться до того, что ниже/правее, надо
+         * растянуть начало бокса — туда уходит bottom/right, а в конец
+         * top/left. По оси x стороны были перепутаны местами.
+         */
+        const [marginBefore, marginAfter] =
           dir === "x"
-            ? right + rootMarginLocal[1]
-            : bottom + rootMarginLocal[0];
+            ? [rootMarginLocal[3], rootMarginLocal[1]]
+            : [rootMarginLocal[0], rootMarginLocal[2]];
+
+        const elStart = (dir === "x" ? left : top) - marginAfter;
+        const elEnd = (dir === "x" ? right : bottom) + marginBefore;
 
         const elementSize = elEnd - elStart;
         if (elementSize <= 0) return 0;
