@@ -1138,8 +1138,12 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         });
       }
 
-      isScrollingRef.current = true;
-      isScrolling?.(true);
+      // только на переходе: событий scroll за один жест десятки,
+      // а прокрутка началась один раз
+      if (!isScrollingRef.current) {
+        isScrollingRef.current = true;
+        isScrolling?.(true);
+      }
 
       // debounce для финала через setTask
       tasks.setTask(
