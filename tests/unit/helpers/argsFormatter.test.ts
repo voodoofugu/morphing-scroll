@@ -8,10 +8,10 @@ describe("argsFormatter", () => {
     });
   });
 
-  describe("2-tuple input [a, b]", () => {
-    // A 2-tuple is treated as [vertical, horizontal] and expanded to
-    // [top, right, bottom, left] = [b, a, b, a].
-    it("maps [a, b] to [b, a, b, a]", () => {
+  describe("2-tuple input [x, y]", () => {
+    // A 2-tuple is Vec2 — [x, y], horizontal first — expanded to CSS edge
+    // order [top, right, bottom, left] = [y, x, y, x].
+    it("maps [x, y] to [y, x, y, x]", () => {
       expect(argsFormatter([10, 20])).toEqual([20, 10, 20, 10]);
     });
   });

@@ -409,7 +409,7 @@ allows you to set spacing in pixels between list items for rows and columns.<br 
 <b>Usage:</b><br />
 
 ```tsx
-wrapperMargin: 10; // or [v, h] | [t, r, b, l]
+wrapperMargin: 10; // or [x, y] | [t, r, b, l]
 ```
 
 <b>Description:</b><em><br />
@@ -837,7 +837,7 @@ render: "lazy" // or "virtual"
 ```tsx
 render: {
   type: "lazy", // or "virtual" (required)
-  rootMargin: 100, // or [v, h] | [t, r, b, l]
+  rootMargin: 100, // or [x, y] | [t, r, b, l]
   stopLoadOnScroll: true,
   trackVisibility: true
 }
@@ -1215,7 +1215,7 @@ If provided, it must be an ancestor of the observed element.<br />
 <b>Usage:</b><br />
 
 ```tsx
-rootMargin: 10; // or [v, h] | [t, r, b, l]
+rootMargin: 10; // or [x, y] | [t, r, b, l]
 ```
 
 <b>Description:</b><em><br />
