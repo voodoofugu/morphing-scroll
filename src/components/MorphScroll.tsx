@@ -1733,14 +1733,20 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
     // - LAZY -
     if (renderLocal.type === "lazy") {
-      const wasLoaded = objectsKeys.current.loaded.has(key);
-      if (visibilityRatio && !wasLoaded) {
-        // отменяем обновление ключей если скроллим и есть stopLoadOnScroll
+      /*
+       * Раньше только что ставший видимым элемент попадал в loaded, но этот
+       * же проход всё равно возвращал null — элемент появлялся лишь на
+       * следующем рендере. В приложении тик приходил быстро и это выглядело
+       * морганием, а на первом кадре список был просто пустым.
+       */
+      if (!objectsKeys.current.loaded.has(key)) {
+        if (!visibilityRatio) return null;
+
+        // откладываем первую отрисовку пока идёт прокрутка
         if (isScrollingRef.current && renderLocal.stopLoadOnScroll) return null;
 
         objectsKeys.current.loaded.add(key);
       }
-      if (!wasLoaded) return null;
 
       return scrollObjectWrapper(
         key,

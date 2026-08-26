@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor, fireEvent } from "@testing-library/react";
 import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
 
 /**
@@ -97,23 +97,33 @@ describe("MorphScroll — render: virtual / lazy", () => {
     expect(tagged[0].getAttribute("wrap-id")).toBe(".$item-0");
   });
 
-  // Characterization: lazy marks visible items as "loaded" during the first
-  // render but returns null for them that same pass (`if (!wasLoaded) return
-  // null`). They only paint on the NEXT render tick. Flagged for review.
-  it("lazy paints nothing on the first render, then the visible items", () => {
-    const { container, rerender } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="lazy">
-        {items(10)}
-      </MorphScroll>,
-    );
-    expect(boxes(container)).toHaveLength(0);
-
-    rerender(
+  it("lazy paints the visible items on the very first render", () => {
+    const { container } = render(
       <MorphScroll size={SIZE} objectsSize={OBJ} render="lazy">
         {items(10)}
       </MorphScroll>,
     );
     expect(boxes(container)).toHaveLength(3);
+  });
+
+  it("lazy keeps an item mounted after it scrolls out of view", async () => {
+    const { container } = render(
+      <MorphScroll size={SIZE} objectsSize={OBJ} render="lazy">
+        {items(10)}
+      </MorphScroll>,
+    );
+    const el = container.querySelector<HTMLElement>(".ms-element")!;
+
+    fireEvent.scroll(el, { target: { scrollTop: 500 } });
+
+    // items 0..2 stay loaded, the newly visible ones join them
+    await waitFor(() => {
+      expect(boxes(container).length).toBeGreaterThan(3);
+    });
+    const tagged = Array.from(container.querySelectorAll("[wrap-id]")).map((n) =>
+      n.getAttribute("wrap-id"),
+    );
+    expect(tagged).toContain(".$item-0");
   });
 
   it("logs an error when render is combined with objectsSize='none'", () => {
