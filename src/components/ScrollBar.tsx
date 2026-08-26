@@ -128,6 +128,14 @@ const ScrollBar = ({
         ? "flex-end"
         : "flex-start";
 
+  /*
+   * Диапазон прокрутки меняется вместе с контентом, а слушатель колеса
+   * вешается один раз — держим актуальное значение в ref, иначе колесо над
+   * баром считает по размеру, который был на момент монтирования.
+   */
+  const maxScrollSizeRef = React.useRef(maxScrollSize);
+  maxScrollSizeRef.current = maxScrollSize;
+
   // - effects -
   React.useEffect(() => {
     // добавление прокрутки по колесом по thumb
@@ -137,22 +145,18 @@ const ScrollBar = ({
     const scrollElem = scrollEl.current;
     if (!el || !scrollElem) return;
 
-    let prev = el.previousElementSibling as HTMLElement | null;
-    while (prev && !prev.classList.contains("ms-element"))
-      prev = prev.previousElementSibling as HTMLElement | null;
-
     const onWheel = (e: WheelEvent) =>
       handleWheel(
         e,
         scrollElem,
-        maxScrollSize,
+        maxScrollSizeRef.current,
         scrollStateRef.current!,
         dataDirection,
       );
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [dataDirection]);
+  }, [dataDirection, isTouched, progressTrigger[1]]);
 
   React.useEffect(() => {
     // добавление клика на scrollBar или thumb
