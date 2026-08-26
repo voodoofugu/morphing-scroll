@@ -1197,6 +1197,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       updateLoadedElementsKeysLocal,
       scrollBarOnHover,
       renderLocal.type,
+      scrollPositionLocal.value.join(), // читается внутри для трекера "end"
     ],
   );
 
@@ -1733,7 +1734,8 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
     if (renderLocal.type === "lazy") {
       const wasLoaded = objectsKeys.current.loaded.has(key);
       if (visibilityRatio && !wasLoaded) {
-        if (isScrollingRef.current && renderLocal.stopLoadOnScroll) return; // отменяем обновление ключей если скроллим и есть stopLoadOnScroll
+        // отменяем обновление ключей если скроллим и есть stopLoadOnScroll
+        if (isScrollingRef.current && renderLocal.stopLoadOnScroll) return null;
 
         objectsKeys.current.loaded.add(key);
       }
