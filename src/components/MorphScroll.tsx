@@ -1969,7 +1969,13 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
   const content = (
     <div
-      morph-scroll={`${id}`}
+      /*
+       * Атрибут — маркер присутствия: autoScrollRegistry ищет ближайший
+       * `[morph-scroll]`, значение никто не читает. Печатать сюда id нельзя —
+       * он из модульного счётчика, на сервере и на клиенте счёт разный, и
+       * гидрация ловила несовпадение атрибутов. id остаётся в текстах ошибок.
+       */
+      morph-scroll=""
       className={className}
       ref={customScrollRef}
       style={containerStyle}
