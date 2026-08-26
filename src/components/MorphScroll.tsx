@@ -6,6 +6,7 @@ import { setTask, cancelTask } from "../helpers/keytaskStore";
 
 import useIdent from "../hooks/useIdent";
 import useUpdate from "../hooks/useUpdate";
+import useConst from "../hooks/useConst";
 
 import ResizeTracker from "./ResizeTracker";
 import ScrollBar from "./ScrollBar";
@@ -97,9 +98,16 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
   const id = useIdent();
 
   // ♦ helpers
-  const raf = createSchedulerRAF();
+  /*
+   * Планировщики раньше создавались прямо в теле рендера, то есть заново на
+   * каждый рендер: дедупликация по ключу переставала работать между рендерами,
+   * а cleanup гасил только последний экземпляр — анимации прошлых рендеров
+   * продолжали писать в scrollTop параллельно новым.
+   */
+  const raf = useConst(createSchedulerRAF);
+  const rafScrollAnim = useConst(createSchedulerRAF);
+
   const triggerRAF = () => raf.schedule("triggerUpdate", triggerUpdate); // по-кадрово оптимизированный triggerUpdate
-  const rafScrollAnim = createSchedulerRAF();
 
   // ♦ errors
   const errorTextEnd = `\n  morph-scroll ${id}`;
@@ -1426,6 +1434,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       if (scrollStateRef.current.animationFrameId)
         cancelAnimationFrame(scrollStateRef.current.animationFrameId);
 
+      raf.cancel();
       rafScrollAnim.cancel();
 
       // использование cancelTask может убивает финал прокрутки
