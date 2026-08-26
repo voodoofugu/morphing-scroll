@@ -52,6 +52,13 @@ import {
 
 import CONST from "../constants";
 
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***MorphScroll***:
+ * the main component of the library, responsible for displaying your data.
+ * ### Links:
+ * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
+ */
 const MorphScroll: React.FC<MorphScrollProps> = ({
   // General Settings
   className,

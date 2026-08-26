@@ -1,6 +1,15 @@
 import React from "react";
 import type { ResizeTracker as ResizeTrackerProps } from "../types/types";
 
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***ResizeTracker***:
+ * component that monitors changes to an element's size.
+ *
+ * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+ * ### Links:
+ * [ResizeTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
+ */
 const ResizeTracker: React.FC<ResizeTrackerProps> = ({
   className,
   children,

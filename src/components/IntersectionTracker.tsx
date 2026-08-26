@@ -2,6 +2,15 @@ import React from "react";
 import type { IntersectionTracker as IntersectionTrackerProps } from "../types/types";
 import numOrArrFormat from "../helpers/argsFormatter";
 
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***IntersectionTracker***:
+ * component for tracking the intersection of an element with the viewport.
+ *
+ * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
+ * ### Links:
+ * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
+ */
 const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
   className,
   children,
