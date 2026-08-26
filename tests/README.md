@@ -22,7 +22,7 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **171 unit + 15 e2e green**, 71% statement coverage of `src`.
+Current status: **199 unit + 15 e2e green**, 74% statement coverage of `src`.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyElements` (clear/fallback), `suspending`,
 `edgeGradient`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
@@ -54,6 +54,20 @@ instances on one page must not see each other. They cover:
 deterministically — that is what makes driving two instances at once possible
 in tier 2 at all.
 
+### Point fixes (v3, stage 2)
+
+Each of these landed test-first, and the test fails on the old code:
+
+- `render.rootMargin` sides on the horizontal axis (`MorphScroll.optimization`);
+- the wheel no longer steals focus from an input (`handleWheel` — the module
+  had no tests at all before);
+- `isScrolling` fires once per burst instead of once per scroll event
+  (`MorphScroll.callbacks`);
+- the wheel over a custom scrollbar follows the current scroll range
+  (`ScrollBar`);
+- the wait for scrollable content is bounded (`smoothScroll`);
+- server rendering hydrates without an attribute mismatch (`MorphScroll.ssr`).
+
 ### Still uncovered (candidates for the next pass)
 - `handleMouseOrTouch` full flow beyond thumb/content drag (rubber-band, slider
   drag with snapping on release) — needs real `getBoundingClientRect`, so e2e.
@@ -61,8 +75,8 @@ in tier 2 at all.
   itself is unit-tested; the gesture → inertia handoff is not.
 - `type: "slider"` drag variant; `wheel.changeDirectionKey` (keyboard toggle).
 - `size: "auto"` (ResizeTracker-driven sizing).
-- `handleWheel` (0% — wheel physics only runs in a real browser, tier 3 covers
-  the outcome but not the module).
+- `autoScrollRegistry` beyond the happy path (tier 3 covers the attribute and
+  the edge auto-scroll; the pointer/drag branches are not unit-tested).
 
 ## Running
 
@@ -105,14 +119,22 @@ whether they are intended:
    paint is empty.
    See `tests/unit/components/MorphScroll.render.test.tsx`.
 
-3. **Pointer gestures do not track `pointerId`.**
+3. **`objectsWrapperHeight` sizes its gap by the wrong axis.**
+   The height branch guards on `objectsPerDirection[1]` but multiplies
+   `objectsPerDirection[0]` — the width branch uses `[0]` for both. It only
+   shows with `render` + an unknown `objectsSize`, which the component already
+   warns against, so it is flagged rather than changed: no reproducing case
+   yet. (Both `< 1` guards are also dead — `validated()` clamps the values to
+   at least 1.)
+
+4. **Pointer gestures do not track `pointerId`.**
    `pointerdown` adds document-level `pointermove`/`pointerup` listeners with
    no pointer filtering, so *any* `pointerup` ends the gesture. Two fingers on
    two different scrolls still interfere — instance state is now separate, but
    the events are not. Needs `setPointerCapture` / id filtering; deliberately
    out of scope for stage 1.
 
-4. **`wrap-id` stores the raw React path** (`.$item-0`), normalized to the clean
+5. **`wrap-id` stores the raw React path** (`.$item-0`), normalized to the clean
    key only inside `getRenderedKeysFromWrapper`. `onRenderedKeysChange` therefore
    reports clean keys, but the DOM attribute is the raw path — worth keeping in
    mind if anything reads the attribute directly.
