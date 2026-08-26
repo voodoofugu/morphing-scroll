@@ -913,16 +913,29 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
       const target = event.target as HTMLElement;
 
-      // проверка на интерактивные элементы на них не скроллим
+      // свой drag у элемента и поля ввода — не наше дело ни на каком устройстве
       if (
         target.closest(
           `
           [ms-custom-drag], [draggable="true"], [contenteditable],
-          input, textarea, select, button, a
+          input, textarea, select
         `,
         )
       )
         return;
+
+      /*
+       * Мышью по ссылке или кнопке не скроллим: там drag — это выделение текста
+       * и нативный drag ссылки, а не прокрутка.
+       *
+       * Пальцем наоборот. Список, целиком собранный из ссылок или кнопок —
+       * меню, лента карточек, — должен скроллиться с любой точки, как нативный:
+       * палец попадает по пункту, а не между ними. Тап от скролла там отличает
+       * расстояние, а не то, куда попали: до 2px это тап и click проходит,
+       * дальше поднимается isDraggingRef, ms-objects-wrapper получает
+       * pointer-events: none, и click уже не случится.
+       */
+      if (!isTouchedRef.current && target.closest("button, a")) return;
 
       let axisFromAtr: "x" | "y" | null = null;
       if (checkClickedBar) {
