@@ -604,14 +604,14 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       ? scrollElementRef.current?.scrollLeft || 0
       : scrollElementRef.current?.scrollTop || 0;
 
-  const isNotAtStart = scrollSpaceFromRef > 1 && true;
+  const isNotAtStart = scrollSpaceFromRef > 1;
   const isNotAtEnd =
     Math.round(scrollSpaceFromRef + xySize) < fullHeightOrWidth;
 
   let isNotAtStartX = false;
   let isNotAtEndX = false;
   if (direction === "hybrid") {
-    isNotAtStartX = (scrollElementRef.current?.scrollLeft || 0) > 1 && true;
+    isNotAtStartX = (scrollElementRef.current?.scrollLeft || 0) > 1;
     isNotAtEndX =
       Math.round((scrollElementRef.current?.scrollLeft || 0) + sizeLocal[0]) <
       objectsWrapperWidthFull;
@@ -1437,7 +1437,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
   React.useEffect(() => {
     const animationFrameId = scrollStateRef.current.animationFrameId;
 
-    if ((renderLocal.type || isScrolling) && isScrolling) isScrolling(false);
+    isScrolling?.(false); // стартовое состояние
 
     // первый рендер
     requestAnimationFrame(() => (firstRender.current = false)); // RAF спасает от двойного вызова smoothScroll в StrictMode
@@ -1826,7 +1826,6 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         edgeGradient={edgeGradientLocal}
         visibility={visibility}
         edgeType={positionType as "left" | "right" | "top" | "bottom"}
-        size={sizeLocal}
       />
     ));
   }, [edgeGradient, getEdgeOrArrowData, edgeGradientLocal, sizeST]);

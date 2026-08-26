@@ -7,10 +7,9 @@ type EdgeT = {
   };
   visibility: boolean;
   edgeType: "left" | "right" | "top" | "bottom";
-  size: number[];
 };
 
-const Edge = ({ edgeGradient, visibility, edgeType, size }: EdgeT) => {
+const Edge = ({ edgeGradient, visibility, edgeType }: EdgeT) => {
   const edgeStyle: React.CSSProperties = {
     position: "absolute",
     [edgeType]: 0,
@@ -48,44 +47,6 @@ const Edge = ({ edgeGradient, visibility, edgeType, size }: EdgeT) => {
         ? { transform: "scaleY(-1)" }
         : {}),
   };
-
-  // - styles -
-  // const edgeStyle: React.CSSProperties = {
-  //   position: "absolute",
-  //   [edgeType]: 0,
-  //   height: `${edgeGradient.size}px`,
-  //   pointerEvents: "none",
-  //   transition: "opacity 0.2s ease-in-out",
-
-  //   ["--edge-visibility" as any]: visibility ? 1 : 0,
-  //   opacity: "var(--edge-visibility)",
-
-  //   ...(edgeGradient.color && {
-  //     background:
-  //       edgeGradient.color &&
-  //       `linear-gradient(${edgeGradient.color}, transparent)`,
-  //   }),
-
-  //   ...(["left", "right"].includes(edgeType)
-  //     ? {
-  //         width: size[1],
-  //         transform: "rotate(90deg) scaleY(-1)",
-  //         transformOrigin: "left top",
-  //         top: 0,
-  //       }
-  //     : {
-  //         width: size[0],
-  //       }),
-
-  //   ...(edgeType === "right"
-  //     ? {
-  //         transform: "rotate(90deg) scaleX(-1)",
-  //         transformOrigin: "right top",
-  //       }
-  //     : edgeType === "bottom"
-  //       ? { transform: "scaleY(-1)" }
-  //       : {}),
-  // };
 
   // - classes -
   const edgeClasses = `ms-edge ${edgeType}${!visibility ? " ms-disabled" : ""}`;

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 import React from "react";
 import type { IntersectionTracker as IntersectionTrackerProps } from "../types/types";
 import numOrArrFormat from "../helpers/argsFormatter";
