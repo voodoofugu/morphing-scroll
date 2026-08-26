@@ -3,7 +3,7 @@ import { createResizeHandler } from "@morphing-scroll/src/helpers/addFunctions";
 
 const makeRef = () => ({ current: { width: 0, height: 0 } });
 
-describe("createResizeHandler (characterization)", () => {
+describe("createResizeHandler", () => {
   it("stores the new size and triggers an update on change", () => {
     const ref = makeRef();
     const trigger = vi.fn();
@@ -46,11 +46,10 @@ describe("createResizeHandler (characterization)", () => {
     expect(trigger).toHaveBeenCalledTimes(1);
   });
 
-  // NOTE: `firstZero` is declared inside the returned handler, so it resets on
-  // every invocation. The net effect is that ANY 0x0 measurement is always
-  // ignored — a collapse to zero is never reported. This pins the current
-  // behavior; revisit if the "ignore only the first zero" intent is restored.
-  it("ignores a 0x0 measurement even after a real size", () => {
+  // A 0x0 rect means the element is hidden (display: none), not that it lost
+  // its size — keep the last known one so the tree does not recompute from
+  // zeros and flash when it comes back.
+  it("ignores a 0x0 measurement and keeps the last known size", () => {
     const ref = { current: { width: 100, height: 50 } };
     const trigger = vi.fn();
     const handler = createResizeHandler(ref, trigger);
@@ -59,5 +58,29 @@ describe("createResizeHandler (characterization)", () => {
 
     expect(ref.current).toEqual({ width: 100, height: 50 }); // unchanged
     expect(trigger).not.toHaveBeenCalled();
+  });
+
+  it("keeps ignoring zeros across repeated hidden/measured cycles", () => {
+    const ref = makeRef();
+    const trigger = vi.fn();
+    const handler = createResizeHandler(ref, trigger);
+
+    handler({ width: 100, height: 50 });
+    handler({ width: 0, height: 0 });
+    handler({ width: 0, height: 0 });
+
+    expect(ref.current).toEqual({ width: 100, height: 50 });
+    expect(trigger).toHaveBeenCalledTimes(1);
+  });
+
+  it("still reports a collapse on a single axis", () => {
+    const ref = { current: { width: 100, height: 50 } };
+    const trigger = vi.fn();
+    const handler = createResizeHandler(ref, trigger);
+
+    handler({ width: 100, height: 0 });
+
+    expect(ref.current).toEqual({ width: 100, height: 0 });
+    expect(trigger).toHaveBeenCalledTimes(1);
   });
 });

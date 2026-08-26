@@ -201,22 +201,25 @@ function createResizeHandler(
   offsetY = 0,
 ) {
   return (rect: Partial<DOMRectReadOnly>) => {
-    let firstZero = false;
-
     const newSize = {
       width: (rect.width ?? 0) - offsetX,
       height: (rect.height ?? 0) - offsetY,
     };
 
-    const zero = newSize.width === 0 && newSize.height === 0;
-    if (zero && !firstZero) {
-      firstZero = true;
-    }
+    /*
+     * 0×0 приходит, когда элемент скрыт (display: none) — размер не потерян,
+     * его просто сейчас не измерить. Держим последний известный: иначе всё
+     * дерево пересчитается по нулям и моргнёт при возврате.
+     *
+     * Раньше тут был флаг firstZero, объявленный внутри самого обработчика,
+     * то есть сбрасывавшийся на каждый вызов. Имя обещало «пропустить только
+     * первый ноль», код всегда пропускал любой.
+     */
+    if (newSize.width === 0 && newSize.height === 0) return;
 
     if (
-      (dataRef.current?.width === newSize.width &&
-        dataRef.current?.height === newSize.height) ||
-      (zero && firstZero)
+      dataRef.current?.width === newSize.width &&
+      dataRef.current?.height === newSize.height
     )
       return;
 
