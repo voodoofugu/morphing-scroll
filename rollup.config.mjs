@@ -31,8 +31,9 @@ const plugins = [
             unsafe: true,
             unsafe_comps: true,
             unsafe_math: true,
-            drop_console: true,
-            pure_funcs: ["console.log"],
+            // console.error несёт диагностику, которую видит потребитель
+            // библиотеки, — её оставляем; глушим только отладочный вывод
+            pure_funcs: ["console.log", "console.debug", "console.info"],
           },
           mangle: {
             toplevel: true,
