@@ -16,5 +16,7 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     css: false,
+    // отчёт только по библиотеке — хелперы самих тестов его искажают
+    coverage: { include: ["src/**"] },
   },
 });
