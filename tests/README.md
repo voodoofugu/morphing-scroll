@@ -87,7 +87,7 @@ paints the visible items on the first pass instead of the next tick.
   drag with snapping on release) — needs real `getBoundingClientRect`, so e2e.
 - Touch inertia end-to-end (`page.touchscreen` + velocity) — the integrator
   itself is unit-tested; the gesture → inertia handoff is not.
-- `wheel.changeDirectionKey` (keyboard toggle).
+- `wheel.changeDirectionBtn` (keyboard toggle).
 - `autoScrollRegistry` (25%) — it needs `elementFromPoint`, real drag events
   and layout, none of which jsdom has. It belongs in tier 3; two e2e tests
   cover the attribute and the edge auto-scroll, the rest is unexercised.

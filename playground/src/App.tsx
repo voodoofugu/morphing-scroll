@@ -60,7 +60,7 @@ type Settings = {
   edgeSize: number;
   wheel: boolean;
   wheelChangeDirection: boolean;
-  wheelChangeDirectionKey: string;
+  wheelChangeDirectionBtn: string;
   contentDrag: boolean;
   progressElementMode: ProgressElementMode;
   arrows: boolean;
@@ -138,7 +138,7 @@ const defaultSettings: Settings = {
   edgeSize: 42,
   wheel: true,
   wheelChangeDirection: true,
-  wheelChangeDirectionKey: "KeyX",
+  wheelChangeDirectionBtn: "KeyX",
   contentDrag: false,
   progressElementMode: "custom",
   arrows: false,
@@ -555,7 +555,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     wheel: settings.wheel
       ? {
           changeDirection: settings.wheelChangeDirection,
-          changeDirectionKey: settings.wheelChangeDirectionKey || "KeyX",
+          changeDirectionBtn: settings.wheelChangeDirectionBtn || "KeyX",
         }
       : false,
     content: settings.contentDrag,
@@ -840,7 +840,7 @@ function App() {
         wheel: settings.wheel
           ? {
               changeDirection: settings.wheelChangeDirection,
-              changeDirectionKey: settings.wheelChangeDirectionKey || "KeyX",
+              changeDirectionBtn: settings.wheelChangeDirectionBtn || "KeyX",
             }
           : false,
       },
@@ -1007,12 +1007,12 @@ function App() {
             onChange={(value) => update("wheelChangeDirection", value)}
             value={settings.wheelChangeDirection}
           />
-          <Field label="wheel.changeDirectionKey">
+          <Field label="wheel.changeDirectionBtn">
             <input
               onChange={(event) =>
-                update("wheelChangeDirectionKey", event.target.value)
+                update("wheelChangeDirectionBtn", event.target.value)
               }
-              value={settings.wheelChangeDirectionKey}
+              value={settings.wheelChangeDirectionBtn}
             />
           </Field>
         </ControlGroup>

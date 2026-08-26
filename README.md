@@ -642,7 +642,7 @@ progressTrigger: {
   wheel: {
     // if direction="hybrid"
     changeDirection: true,
-    changeDirectionKey: "someKay" // default "KeyX"
+    changeDirectionBtn: "KeyZ" // default "KeyX", "" to disable
   },
   progressElement: [<Elem1 />, <Elem2 />, <Elem3 />],
   arrows: {
@@ -669,7 +669,7 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 
 <ul>
   <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li><br />
-  <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key.<br />
+  <li><code>changeDirectionBtn</code>: enables switching the scroll direction by pressing a specific key.<br />
   To disable this behavior, pass an empty string.<br />
   <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
 </ul>

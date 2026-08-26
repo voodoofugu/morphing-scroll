@@ -1215,8 +1215,8 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
       const keyName =
         typeof progressTrigger.wheel === "object" &&
-        typeof progressTrigger.wheel.changeDirectionKey === "string"
-          ? progressTrigger.wheel.changeDirectionKey
+        typeof progressTrigger.wheel.changeDirectionBtn === "string"
+          ? progressTrigger.wheel.changeDirectionBtn
           : "KeyX";
 
       if (e.code === keyName && direction === "hybrid" && !keyDownX.current) {

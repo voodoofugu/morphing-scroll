@@ -542,7 +542,7 @@ export type MorphScroll = {
     // TODO добавить "wheel" | "content" | "arrows"
     wheel?:
       | boolean
-      | { changeDirection?: boolean; changeDirectionKey?: string };
+      | { changeDirection?: boolean; changeDirectionBtn?: string };
     content?: boolean;
     progressElement?: boolean | React.ReactNode | React.ReactNode[];
     arrows?:
