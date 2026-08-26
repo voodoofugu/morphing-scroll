@@ -2,6 +2,7 @@ import React from "react";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import clampValue from "./clampValue";
+import CONST from "../constants";
 import type { Tasks } from "./createTasks";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
@@ -11,11 +12,17 @@ function objectsPerSize(availableSize: number, objectSize: number): number {
   return objects;
 }
 
+/*
+ * Ждём, пока контент станет прокручиваемым, что бы стартовая позиция не
+ * применилась в пустоту. Ожидание обязательно ограничено: maxScrollSize
+ * считается по пропсам, а прокручиваемость — по DOM, и они могут разойтись
+ * (CSS ужал контент, размеры заданы неверно). Без предела это был вечный rAF.
+ */
 async function checkScrollReady(el: Element) {
-  while (
-    el.scrollHeight <= el.clientHeight &&
-    el.scrollWidth <= el.clientWidth
-  ) {
+  for (let frame = 0; frame < CONST.SCROLL_READY_MAX_FRAMES; frame++) {
+    if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)
+      return;
+
     await new Promise((r) => requestAnimationFrame(r));
   }
 }
