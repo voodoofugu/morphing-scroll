@@ -2,6 +2,7 @@ import React from "react";
 import type { MorphScroll, Vec2 } from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
+import CONST from "../constants";
 
 type OnCustomScrollFn = (
   targetScrollTop: number,
@@ -186,10 +187,8 @@ const ScrollBar = ({
 
   const commonStyles: React.CSSProperties = {
     position: "absolute",
-    ...(scrollBarOnHover && {
-      opacity: 0,
-      transition: "opacity 0.2s ease-in-out",
-    }),
+    // стартовое состояние; дальше его двигают addHover/removeHover
+    ...(scrollBarOnHover && { [CONST.BAR_VISIBILITY_VAR]: 0 }),
   };
 
   // - render -

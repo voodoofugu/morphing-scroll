@@ -755,8 +755,30 @@ scrollBarOnHover: true;
 
 <b>Description:</b><em><br />
 this parameter controls the visibility of the progress bar regardless of the <code>mode</code> value.<br />
-When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.<br />
-</em><br />
+<br />
+The library only reports the state, it does not decide how the bar disappears. It sets the <code>--ms-bar-visibility</code> variable on <b>.ms-bar</b> to <b>1</b> while the bar is active — the cursor is over it, a finger touches it, or the content is being scrolled — and back to <b>0</b> afterwards. Alongside it, <b>.ms-hover</b> is added while active and <b>.ms-leave</b> for the 200ms after it stops being active, so the departure can be animated separately.<br />
+<br />
+✦ Note:<br />
+nothing is styled for you, so the bar stays visible until you use the variable:<br />
+</em>
+
+```css
+.ms-bar {
+  opacity: var(--ms-bar-visibility, 1);
+  transition: opacity 0.2s ease-in-out;
+}
+```
+
+<em>which also means you are not limited to <code>opacity</code>:</em>
+
+```css
+.ms-bar {
+  transform: scaleX(var(--ms-bar-visibility, 1));
+  transition: transform 0.2s ease-in-out;
+}
+```
+
+<br />
 <b>Example:</b>
 
 ```tsx

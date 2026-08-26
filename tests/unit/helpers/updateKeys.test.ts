@@ -71,7 +71,7 @@ describe("updateEmptyKeysClick", () => {
     return { wrapper, inner };
   };
 
-  it("marks the wrapper with 'remove' when the selector matches", () => {
+  it("marks the wrapper with 'ms-remove' when the selector matches", () => {
     const { wrapper, inner } = buildClickTarget();
     updateEmptyKeysClick(
       { target: inner } as unknown as React.MouseEvent,
@@ -79,7 +79,7 @@ describe("updateEmptyKeysClick", () => {
       () => {},
       createTasks(),
     );
-    expect(wrapper.classList.contains("remove")).toBe(true);
+    expect(wrapper.classList.contains("ms-remove")).toBe(true);
     wrapper.remove();
   });
 
@@ -92,7 +92,7 @@ describe("updateEmptyKeysClick", () => {
       cb,
       createTasks(),
     );
-    expect(wrapper.classList.contains("remove")).toBe(false);
+    expect(wrapper.classList.contains("ms-remove")).toBe(false);
     expect(cb).not.toHaveBeenCalled();
     wrapper.remove();
   });

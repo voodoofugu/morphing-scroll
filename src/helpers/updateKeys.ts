@@ -66,10 +66,10 @@ const updateEmptyKeysClick = (
 
   const parentWrapper = target.closest<HTMLElement>(`[${CONST.WRAP_ATR}]`);
 
-  parentWrapper?.classList.add("remove");
+  parentWrapper?.classList.add("ms-remove");
 
   tasks.setTask(() => {
-    parentWrapper?.classList.remove("remove");
+    parentWrapper?.classList.remove("ms-remove");
     callBack();
   }, delay);
 };

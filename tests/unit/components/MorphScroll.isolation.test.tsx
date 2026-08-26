@@ -25,6 +25,10 @@ const items = (n: number, prefix: string) =>
 const elements = (container: HTMLElement) =>
   Array.from(container.querySelectorAll<HTMLElement>(".ms-element"));
 
+// the library reports bar visibility through a CSS variable, not opacity
+const visibility = (bars: HTMLElement[]) =>
+  bars.map((bar) => bar.style.getPropertyValue("--ms-bar-visibility"));
+
 /** two independent scrolls, both with a usable layout */
 const renderPair = (props: Record<string, unknown> = {}) => {
   const utils = render(
@@ -131,14 +135,14 @@ describe("MorphScroll isolation — scheduled tasks", () => {
     });
 
     // both were revealed by their own scroll
-    expect(bars.map((bar) => bar.style.opacity)).toEqual(["1", "1"]);
+    expect(visibility(bars)).toEqual(["1", "1"]);
 
     // scroll-end delay + the extra hide delay
     act(() => {
       vi.advanceTimersByTime(CONST.SCROLL_END_DELAY + 1500);
     });
 
-    expect(bars.map((bar) => bar.style.opacity)).toEqual(["0", "0"]);
+    expect(visibility(bars)).toEqual(["0", "0"]);
   });
 });
 

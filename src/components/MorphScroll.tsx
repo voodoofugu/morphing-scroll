@@ -1142,7 +1142,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       ) {
         // доп логика что-бы показать скрытый scrollBar
         scrollOrSlider.forEach((el) => {
-          if (!el.classList.contains("hover")) addHover(el, tasks);
+          if (!el.classList.contains("ms-hover")) addHover(el, tasks);
         });
       }
 
