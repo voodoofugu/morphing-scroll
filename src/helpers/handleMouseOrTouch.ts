@@ -1,4 +1,4 @@
-import { cancelTask } from "./keytaskStore";
+import type { Tasks } from "./createTasks";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
@@ -75,6 +75,8 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
+  /** менеджер задач этого инстанса */
+  tasks: Tasks;
 };
 
 type HandleMoveT = Omit<
@@ -359,7 +361,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   // удаляем RAF и задачу слайдера
   (["x", "y"] as const).forEach((axis) => {
     args.rafScrollAnim.cancel();
-    cancelTask(`smoothScrollBlock${axis}`); // обязательно убираем анимацию
+    args.tasks.cancelTask(`smoothScrollBlock${axis}`); // обязательно убираем анимацию
   });
 
   // обновление targetScroll заранее

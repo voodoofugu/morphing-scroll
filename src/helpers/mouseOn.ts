@@ -1,4 +1,4 @@
-import { setTask, cancelTask } from "./keytaskStore";
+import type { Tasks } from "./createTasks";
 
 // функция смены курсора
 const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
@@ -40,24 +40,25 @@ const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
 type HoverHandlerT = {
   el: HTMLElement | HTMLElement[];
   event: PointerEvent | MouseEvent;
+  tasks: Tasks;
   isScrolling?: React.MutableRefObject<boolean>;
 };
 
-const removeHover = (scrollBar: HTMLElement) => {
+const removeHover = (scrollBar: HTMLElement, tasks: Tasks) => {
   const dir = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
 
   scrollBar.style.opacity = "0";
   scrollBar.classList.remove("hover");
   scrollBar.classList.add("leave");
 
-  cancelTask(`remove${dir}`);
-  setTask(() => scrollBar.classList.remove("leave"), 200, `remove${dir}`);
+  tasks.cancelTask(`remove${dir}`);
+  tasks.setTask(() => scrollBar.classList.remove("leave"), 200, `remove${dir}`);
 };
 
-const addHover = (scrollBar: HTMLElement) => {
+const addHover = (scrollBar: HTMLElement, tasks: Tasks) => {
   const dir = scrollBar.getAttribute("data-direction");
 
-  cancelTask(`remove${dir}`);
+  tasks.cancelTask(`remove${dir}`);
 
   scrollBar.style.opacity = "1";
   scrollBar.classList.remove("leave");
@@ -65,7 +66,7 @@ const addHover = (scrollBar: HTMLElement) => {
 };
 
 // функция видимости для бегунка при hover
-const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
+const hoverHandler = ({ el, event, tasks, isScrolling }: HoverHandlerT) => {
   const logic = (el: HTMLElement) => {
     // - исчезновение -
     if (
@@ -78,13 +79,13 @@ const hoverHandler = ({ el, event, isScrolling }: HoverHandlerT) => {
       // проверка для отмены если анимация прокрутки ещё продолжается
       if (isScrolling?.current) return;
 
-      removeHover(el);
+      removeHover(el, tasks);
       return;
     }
 
     // - появление -
     el.setAttribute("ms-manual-hover", ""); // для removeHover в MorphScroll (надо добавлять тут а не в addHover)
-    addHover(el);
+    addHover(el, tasks);
   };
 
   if (Array.isArray(el)) {

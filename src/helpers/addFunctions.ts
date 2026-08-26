@@ -2,7 +2,7 @@ import React from "react";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import clampValue from "./clampValue";
-import { setLockTask } from "./keytaskStore";
+import type { Tasks } from "./createTasks";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
   if (availableSize <= objectSize) return 1;
@@ -27,6 +27,7 @@ async function smoothScroll(
   targetScroll: number,
   rafScrollAnim: (kay: string, fn: () => void) => void,
   maxScrollSize: Vec2,
+  tasks: Tasks,
 ) {
   const isY = direction === "y";
 
@@ -46,7 +47,7 @@ async function smoothScroll(
     return;
   }
 
-  setLockTask(
+  tasks.setLockTask(
     () => {
       const startTime = performance.now();
 

@@ -2,7 +2,7 @@ import React from "react";
 
 import type { MorphScroll as MorphScrollProps, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
-import { setTask, cancelTask } from "../helpers/keytaskStore";
+import createTasks from "../helpers/createTasks";
 
 import useIdent from "../hooks/useIdent";
 import useUpdate from "../hooks/useUpdate";
@@ -106,6 +106,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
    */
   const raf = useConst(createSchedulerRAF);
   const rafScrollAnim = useConst(createSchedulerRAF);
+  const tasks = useConst(createTasks);
 
   const triggerRAF = () => raf.schedule("triggerUpdate", triggerUpdate); // по-кадрово оптимизированный triggerUpdate
 
@@ -833,6 +834,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         targetScroll,
         rafScrollAnim.schedule,
         maxScrollSize,
+        tasks,
       );
     },
     [maxScrollSize.join()],
@@ -975,6 +977,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         objLengthPerSize,
         isDraggingRef,
         maxScrollSize,
+        tasks,
       });
     },
 
@@ -1089,6 +1092,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
           event,
           emptyElements.clickTrigger,
           updateLoadedElementsKeysLocal,
+          tasks,
         );
       }
     },
@@ -1099,7 +1103,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
   // для обработки onScrollValue
   const handleScroll = React.useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
-      cancelTask("removeHover"); // удаляем task
+      tasks.cancelTask("removeHover"); // удаляем task
 
       const el = scrollContentRef.current;
       const mainEl = customScrollRef.current;
@@ -1126,7 +1130,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       ) {
         // доп логика что-бы показать скрытый scrollBar
         scrollOrSlider.forEach((el) => {
-          if (!el.classList.contains("hover")) addHover(el);
+          if (!el.classList.contains("hover")) addHover(el, tasks);
         });
       }
 
@@ -1134,7 +1138,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       isScrolling?.(true);
 
       // debounce для финала через setTask
-      setTask(
+      tasks.setTask(
         () => {
           scrollDirTrackerRef.current.reset(); // сброс
           isScrollingRef.current = false;
@@ -1149,10 +1153,10 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
             // этот removeHover убирает scrollbar если он был сдвинуть но курсор мыши не был наведён
             scrollOrSlider.forEach((el) => {
               // добавил в setTask что бы была задержка перед исчезновением thumbs
-              setTask(
+              tasks.setTask(
                 () => {
                   if (el.hasAttribute("ms-manual-hover")) return; // выход если атрибут
-                  removeHover(el);
+                  removeHover(el, tasks);
                 },
                 1000,
                 "removeHover",
@@ -1164,7 +1168,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         "isScrolling",
       );
 
-      setTask(
+      tasks.setTask(
         // логика обновления массива при прокрутке
         () => onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current),
         "raf",
@@ -1437,8 +1441,12 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       raf.cancel();
       rafScrollAnim.cancel();
 
-      // использование cancelTask может убивает финал прокрутки
-      // cancelTask(); // очищаем таски
+      /*
+       * Раньше здесь нельзя было чистить задачи: менеджер был общий, и
+       * `cancelTask()` убивал финал прокрутки у всех скроллов страницы.
+       * Теперь менеджер свой, так что снимаем только собственные задачи.
+       */
+      tasks.clear();
     };
   }, []);
 
@@ -1509,6 +1517,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         hoverHandler({
           el,
           event,
+          tasks,
           isScrolling: isScrollingRef,
         });
       });

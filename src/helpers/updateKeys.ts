@@ -1,7 +1,7 @@
 import React from "react";
 
 import CONST from "../constants";
-import { setTask } from "./keytaskStore";
+import type { Tasks } from "./createTasks";
 
 const updateLoadedElementsKeys = (
   customScrollRef: HTMLDivElement,
@@ -55,6 +55,7 @@ const updateEmptyKeysClick = (
   event: React.MouseEvent,
   clickTrigger: string | { selector: string; delay?: number },
   callBack: () => void,
+  tasks: Tasks,
 ) => {
   const { selector, delay = 0 } =
     typeof clickTrigger === "string"
@@ -67,7 +68,7 @@ const updateEmptyKeysClick = (
 
   parentWrapper?.classList.add("remove");
 
-  setTask(() => {
+  tasks.setTask(() => {
     parentWrapper?.classList.remove("remove");
     callBack();
   }, delay);

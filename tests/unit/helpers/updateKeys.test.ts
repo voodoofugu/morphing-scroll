@@ -4,6 +4,7 @@ import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
 } from "@morphing-scroll/src/helpers/updateKeys";
+import createTasks from "@morphing-scroll/src/helpers/createTasks";
 import CONST from "@morphing-scroll/src/constants";
 
 const makeKeysRef = () => ({
@@ -76,6 +77,7 @@ describe("updateEmptyKeysClick", () => {
       { target: inner } as unknown as React.MouseEvent,
       ".close",
       () => {},
+      createTasks(),
     );
     expect(wrapper.classList.contains("remove")).toBe(true);
     wrapper.remove();
@@ -88,6 +90,7 @@ describe("updateEmptyKeysClick", () => {
       { target: inner } as unknown as React.MouseEvent,
       ".other",
       cb,
+      createTasks(),
     );
     expect(wrapper.classList.contains("remove")).toBe(false);
     expect(cb).not.toHaveBeenCalled();
