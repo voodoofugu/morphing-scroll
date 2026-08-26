@@ -55,7 +55,7 @@ const mouseOnEl = (
     }
 
     el.style.cursor = "grabbing";
-    el.classList.add("active"); // что бы был контроль на phones
+    el.classList.add("ms-grabbing"); // что бы был контроль на phones
   } else {
     if (holder.cursorLocked) {
       unlockCursor();
@@ -63,7 +63,7 @@ const mouseOnEl = (
     }
 
     el.style.cursor = "grab";
-    el.classList.remove("active"); // что бы был контроль на phones
+    el.classList.remove("ms-grabbing"); // что бы был контроль на phones
   }
 };
 

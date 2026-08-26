@@ -688,7 +688,7 @@ determines how the scroll progress is managed<br />
 <br />
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
+  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
   <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
@@ -701,6 +701,8 @@ allows you to add custom arrows to the progress bar<br />
   <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
+An arrow that has nowhere left to scroll gets the <code>ms-disabled</code> class, the same way <b>.ms-edge</b> does. With <code>loop</code> there are no dead ends, so the class is never set.<br />
+While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br />
 </em><br />
 <b>Example:</b>
 

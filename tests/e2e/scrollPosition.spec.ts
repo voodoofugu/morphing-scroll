@@ -25,7 +25,7 @@ test.describe("MorphScroll sliderMenu (real browser)", () => {
     await page.goto("/?scenario=sliderMenu");
     const dots = page.locator(".ms-slider-element");
     await expect(dots).toHaveCount(20);
-    await expect(dots.first()).toHaveClass(/active/);
+    await expect(dots.first()).toHaveClass(/\bms-active\b/);
   });
 
   test("clicking a later slider element scrolls toward it", async ({ page }) => {

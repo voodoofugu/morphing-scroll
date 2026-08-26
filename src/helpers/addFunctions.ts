@@ -122,8 +122,8 @@ const sliderCheck = (
     if (activeIndex === cache.lastIndex) return;
 
     if (cache.lastIndex !== -1)
-      cache.elements[cache.lastIndex]?.classList.remove("active");
-    cache.elements[activeIndex]?.classList.add("active");
+      cache.elements[cache.lastIndex]?.classList.remove("ms-active");
+    cache.elements[activeIndex]?.classList.add("ms-active");
 
     cache.lastIndex = activeIndex;
   });
