@@ -16,8 +16,19 @@ export default function handleWheel(
   stateRef: ScrollStateRefT,
   direction: MorphScroll["direction"],
 ) {
-  // фокусируем элемент прокрутки для корректной работы клавиатурной навигации
-  if (!scrollEl.matches(":focus")) scrollEl.focus();
+  /*
+   * Фокус нужен для клавиатурной навигации (changeDirectionKey слушается на
+   * самом элементе прокрутки). Но забирать его у поля, в котором пользователь
+   * печатает, нельзя: прокрутка колесом над списком выбивала каретку из
+   * инпута.
+   */
+  const active = document.activeElement;
+  const isTyping =
+    !!active &&
+    (active.matches("input, textarea, select") ||
+      !!active.closest("[contenteditable]"));
+
+  if (!isTyping && !scrollEl.matches(":focus")) scrollEl.focus();
 
   // Устанавливаем начальные значения
   if (!stateRef.animating) {
