@@ -184,6 +184,35 @@ scenarios.dragScroll = (
   </MorphScroll>
 );
 
+// size: "auto" — dimensions come from a ResizeTracker around the whole scroll,
+// so the host box decides them rather than a numeric prop.
+scenarios.sizeAuto = (
+  <div style={{ width: 280, height: 240 }} data-testid="auto-host">
+    <MorphScroll
+      size="auto"
+      objectsSize={OBJ}
+      progressTrigger={{ wheel: true, progressElement: thumb }}
+      onScrollValue={onScrollValue}
+    >
+      {makeItems()}
+    </MorphScroll>
+  </div>
+);
+
+// type: "slider" driven by a content drag — releasing past the threshold
+// snaps to the next page instead of stopping wherever the finger let go.
+scenarios.sliderDrag = (
+  <MorphScroll
+    size={300}
+    objectsSize={300}
+    type="slider"
+    progressTrigger={{ content: true, progressElement: <div className="dot" /> }}
+    onScrollValue={onScrollValue}
+  >
+    {makeItems()}
+  </MorphScroll>
+);
+
 const params = new URLSearchParams(window.location.search);
 const scenario = params.get("scenario") ?? "wheel";
 
