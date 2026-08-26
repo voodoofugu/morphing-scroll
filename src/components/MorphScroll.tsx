@@ -980,6 +980,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         objLengthPerSize,
         isDraggingRef,
         maxScrollSize,
+        pointerId: event.pointerId,
         runtime: pointerRuntime,
         tasks,
       });

@@ -47,6 +47,8 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
+  /** указатель, начавший жест — остальные игнорируем */
+  pointerId: number;
   /** состояние указателя этого инстанса */
   runtime: PointerRuntime;
   /** менеджер задач этого инстанса */
@@ -408,15 +410,26 @@ function handleMouseOrTouch(args: HandleMouseT) {
     });
   };
 
+  /*
+   * Слушаем на document, что бы жест не терялся при уходе за границы
+   * элемента, но реагируем только на свой указатель. Иначе любой pointerup
+   * завершал чужой жест: два пальца на двух списках мешали друг другу, а
+   * посторонний pointermove двигал прокрутку, которую никто не трогал.
+   */
+  const isOwnPointer = (e: PointerEvent) => e.pointerId === args.pointerId;
+
   document.addEventListener(
     "pointermove",
     (e) => {
+      if (!isOwnPointer(e)) return;
       onMoveLocal(e);
     },
     { signal },
   );
 
   const endHandler = (e: PointerEvent) => {
+    if (!isOwnPointer(e)) return;
+
     args.isDraggingRef.current = false; // сбрасываем флаг перетаскивания заранее
 
     handleUp({

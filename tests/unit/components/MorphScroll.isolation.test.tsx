@@ -192,6 +192,52 @@ describe("MorphScroll isolation — pointer gestures", () => {
   });
 });
 
+describe("MorphScroll isolation — concurrent pointers", () => {
+  afterEach(() => {
+    pointer("pointerup", 0, 0, document, 1);
+    pointer("pointerup", 0, 0, document, 2);
+  });
+
+  it("keeps two simultaneous drags independent", () => {
+    const { a, b } = renderPair({ progressTrigger: { content: true } });
+
+    // two fingers, one on each list, moving different distances
+    pointer("pointerdown", 50, 250, a, 1);
+    pointer("pointerdown", 50, 250, b, 2);
+    pointer("pointermove", 50, 240, document, 1);
+    pointer("pointermove", 50, 240, document, 2);
+    pointer("pointermove", 50, 150, document, 1); // A travels 90
+    pointer("pointermove", 50, 200, document, 2); // B travels 40
+
+    expect(a.scrollTop).toBe(90);
+    expect(b.scrollTop).toBe(40);
+  });
+
+  it("lifting one finger does not end the other gesture", () => {
+    const { a, b } = renderPair({ progressTrigger: { content: true } });
+
+    pointer("pointerdown", 50, 250, a, 1);
+    pointer("pointerdown", 50, 250, b, 2);
+    pointer("pointermove", 50, 240, document, 1);
+    pointer("pointermove", 50, 240, document, 2);
+
+    pointer("pointerup", 50, 240, document, 1); // A lets go
+    pointer("pointermove", 50, 140, document, 2); // B keeps dragging
+
+    expect(b.scrollTop).toBe(100);
+  });
+
+  it("ignores pointermove from a pointer that never pressed down", () => {
+    const { a } = renderPair({ progressTrigger: { content: true } });
+
+    pointer("pointerdown", 50, 250, a, 1);
+    pointer("pointermove", 50, 240, document, 1);
+    pointer("pointermove", 50, 100, document, 7); // stray pointer
+
+    expect(a.scrollTop).toBe(0);
+  });
+});
+
 describe("MorphScroll isolation — document cursor lock", () => {
   afterEach(() => cursorLock()?.remove());
 
@@ -213,6 +259,20 @@ describe("MorphScroll isolation — document cursor lock", () => {
     expect(cursorLock()).not.toBeNull();
 
     unmount();
+    expect(cursorLock()).toBeNull();
+  });
+
+  it("keeps the cursor lock while another instance is still dragging", () => {
+    const { a, b } = renderPair({ progressTrigger: { content: true } });
+
+    pointer("pointerdown", 50, 250, a, 1);
+    pointer("pointerdown", 50, 250, b, 2);
+    expect(cursorLock()).not.toBeNull();
+
+    pointer("pointerup", 50, 250, document, 1); // A finishes, B holds on
+    expect(cursorLock()).not.toBeNull();
+
+    pointer("pointerup", 50, 250, document, 2);
     expect(cursorLock()).toBeNull();
   });
 
