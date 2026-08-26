@@ -237,19 +237,19 @@ export type MorphScroll = {
   // — Scroll Settings —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***type***:
-   * change the type of progress element.
+   * ### ***mode***:
+   * change how the scroll behaves and what the progress element is.
    * @default "scroll"
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   type="slider"
+   *   mode="slider"
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  type?: "scroll" | "slider" | "sliderMenu";
+  mode?: "scroll" | "slider" | "sliderMenu";
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***direction***:
@@ -627,7 +627,7 @@ export type MorphScroll = {
    * ### ***render***:
    * rendering strategy for performance optimization.
    * @descriptions
-   * - `type` — determines the render strategy:
+   * - `mode` — determines the render strategy:
    *   - `"lazy"`: *render once when visible*
    *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
@@ -648,7 +648,7 @@ export type MorphScroll = {
     | "lazy"
     | "virtual"
     | {
-        type: "lazy" | "virtual";
+        mode: "lazy" | "virtual";
         rootMargin?: SpacingValue;
         stopLoadOnScroll?: boolean;
         trackVisibility?: boolean;

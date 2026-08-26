@@ -12,7 +12,7 @@ type OnCustomScrollFn = (
 
 type ModifiedProps = Pick<
   MorphScroll,
-  "type" | "progressReverse" | "scrollBarOnHover" // выбираю нужное
+  "mode" | "progressReverse" | "scrollBarOnHover" // выбираю нужное
 > & {
   size: number[];
   scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
@@ -36,7 +36,7 @@ type ModifiedProps = Pick<
 };
 
 const ScrollBar = ({
-  type,
+  mode,
   direction,
   progressReverse,
   size,
@@ -72,7 +72,7 @@ const ScrollBar = ({
 
   // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
-    if (type === "scroll") return;
+    if (mode === "scroll") return;
 
     const neededSize = size[axis === "x" ? 0 : 1];
 
@@ -81,12 +81,12 @@ const ScrollBar = ({
         key={index}
         className="ms-slider-element"
         style={{
-          ...(type === "sliderMenu" && {
+          ...(mode === "sliderMenu" && {
             cursor: "pointer",
           }),
         }}
         onClick={
-          type === "sliderMenu"
+          mode === "sliderMenu"
             ? () => {
                 (scrollBarEvent as OnCustomScrollFn)(
                   neededSize * index,
@@ -105,7 +105,7 @@ const ScrollBar = ({
     ));
   }, [
     objLengthPerSize,
-    type,
+    mode,
     progressTrigger[1], // только для memo
     duration,
     sliderCheckLocal,
@@ -122,7 +122,7 @@ const ScrollBar = ({
 
   // для позиционирования пользовательского бегунка (стабилизирует анимацию на height)
   const thumbFlex =
-    type !== "scroll"
+    mode !== "scroll"
       ? ""
       : thumbSize + thumbSpace * 2 > axisSize
         ? "flex-end"
@@ -160,8 +160,8 @@ const ScrollBar = ({
 
   React.useEffect(() => {
     // добавление клика на scrollBar или thumb
-    const el = type === "slider" ? scrollBarRef.current : thumbRef.current;
-    if (!el || type === "sliderMenu") return;
+    const el = mode === "slider" ? scrollBarRef.current : thumbRef.current;
+    if (!el || mode === "sliderMenu") return;
 
     const handleStart = (e: PointerEvent) =>
       (scrollBarEvent as (e: PointerEvent) => void)(e);
@@ -169,7 +169,7 @@ const ScrollBar = ({
     el.addEventListener("pointerdown", handleStart);
 
     return () => el.removeEventListener("pointerdown", handleStart);
-  }, [scrollBarEvent, type]);
+  }, [scrollBarEvent, mode]);
 
   React.useEffect(() => {
     // добавление элементов в ref
@@ -195,7 +195,7 @@ const ScrollBar = ({
   // - render -
   const content = (
     <React.Fragment>
-      {type === "scroll" ? (
+      {mode === "scroll" ? (
         <div
           className={`ms-bar ms-${dataDirection}`}
           ref={scrollBarRef}
@@ -250,7 +250,7 @@ const ScrollBar = ({
             style={{
               ...commonStyles,
               display: "flex",
-              ...(type === "slider" && {
+              ...(mode === "slider" && {
                 cursor: "grab",
               }),
               ...(direction === "x"

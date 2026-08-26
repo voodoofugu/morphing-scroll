@@ -101,11 +101,11 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 ###### **— SCROLL —**
 
-<details><summary><b><code>type</code></b></summary><br /><ul><div>
+<details><summary><b><code>mode</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-type: "slider"; // or "scroll" | "sliderMenu"
+mode: "slider"; // or "scroll" | "sliderMenu"
 ```
 
 <b>Default:</b><br />
@@ -126,12 +126,12 @@ like <code>slider</code>, but the <code>progressElement</code> is a menu, an you
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} type="slider">
+<MorphScroll {...props} mode="slider">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-type.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-mode.png)
 
 </div></ul></details>
 
@@ -148,7 +148,7 @@ size: "x"; // or "y" | "hybrid"
 "y"<br />
 <br />
 <b>Description:</b><em><br />
-changes the scroll or slider type direction based on the provided value.<br />
+changes the scroll or slider direction based on the provided value.<br />
 You can set the value to horizontal, vertical or hybrid positions to customize the component according to your needs.</em><br />
 <br />
 <b>Example:</b>
@@ -687,9 +687,9 @@ By using <code>content</code> drag scrolling will not work in these cases:<br />
 determines how the scroll progress is managed<br />
 <br />
 <ul>
-  <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-  <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
-  <li>When using <code>type="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+  <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
+  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
+  <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
 <code><b>arrows</b></code>:<br />
@@ -752,7 +752,7 @@ scrollBarOnHover: true;
 ```
 
 <b>Description:</b><em><br />
-this parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
+this parameter controls the visibility of the progress bar regardless of the <code>mode</code> value.<br />
 When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.<br />
 </em><br />
 <b>Example:</b>
@@ -780,7 +780,7 @@ scrollBarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
 defines the margin (in <b>px</b>) applied to the edges of the scroll bar, effectively reducing its size.<br />
 <br />
 ✦ Note:<br />
-this parameter is only used when <code>type="scroll"</code> is set.<br />
+this parameter is only used when <code>mode="scroll"</code> is set.<br />
 </em><br />
 <b>Example:</b>
 
@@ -804,7 +804,7 @@ this parameter is only used when <code>type="scroll"</code> is set.<br />
 if the scrollable content is long, this option sets the minimum size (in <b>px</b>) of the scroll bar thumb automatically.<br />
 <br />
 ✦ Note:<br />
-this parameter is only used when <code>type="scroll"</code> is set.<br />
+this parameter is only used when <code>mode="scroll"</code> is set.<br />
 </em><br />
 <b>Example:</b>
 
@@ -836,7 +836,7 @@ render: "lazy" // or "virtual"
   
 ```tsx
 render: {
-  type: "lazy", // or "virtual" (required)
+  mode: "lazy", // or "virtual" (required)
   rootMargin: 100, // or [x, y] | [t, r, b, l]
   stopLoadOnScroll: true,
   trackVisibility: true
@@ -850,7 +850,7 @@ render: {
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
 <br />
-<code><b>type</b></code>:
+<code><b>mode</b></code>:
 
 <ul>
   <li><b>"lazy"</b> - render once when visible.</li>

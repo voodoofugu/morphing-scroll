@@ -90,7 +90,7 @@ describe("MorphScroll — render.rootMargin", () => {
       size={direction === "x" ? [300, 100] : [100, 300]}
       objectsSize={100}
       direction={direction}
-      render={{ type: "virtual", rootMargin }}
+      render={{ mode: "virtual", rootMargin }}
     >
       {many(20)}
     </MorphScroll>

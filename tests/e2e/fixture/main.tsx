@@ -102,7 +102,7 @@ const scenarios: Record<string, React.ReactElement> = {
     <MorphScroll
       size={300}
       objectsSize={300}
-      type="sliderMenu"
+      mode="sliderMenu"
       progressTrigger={{ wheel: true, progressElement: <div className="dot" /> }}
       onScrollValue={onScrollValue}
     >
@@ -205,7 +205,7 @@ scenarios.sliderDrag = (
   <MorphScroll
     size={300}
     objectsSize={300}
-    type="slider"
+    mode="slider"
     progressTrigger={{ content: true, progressElement: <div className="dot" /> }}
     onScrollValue={onScrollValue}
   >

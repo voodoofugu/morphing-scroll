@@ -20,7 +20,7 @@ type HandleMouseT = {
   scrollElement: HTMLDivElement | null;
   target: HTMLElement | null;
   clickedObject: React.MutableRefObject<ClickedT>;
-  type: MorphScroll["type"];
+  mode: MorphScroll["mode"];
   direction: "x" | "y" | "hybrid";
   scrollStateRef: ScrollStateRefT;
   sizeLocal: number[];
@@ -279,7 +279,7 @@ const motionHandler = (
   };
 
   // --- логика для thumb ---
-  if (args.clickedObject.current === "thumb" && args.type !== "slider") {
+  if (args.clickedObject.current === "thumb" && args.mode !== "slider") {
     const fullDelta = move * thumbRatio + prev[axis].rest;
     const intDelta = Math.trunc(fullDelta);
     prev[axis].rest = fullDelta - intDelta;
@@ -289,7 +289,7 @@ const motionHandler = (
   }
 
   // обновление предыдущих координат для ! wrapp при slider
-  if (args.type === "slider") rt.checkSliderThumbSize[axis] += move;
+  if (args.mode === "slider") rt.checkSliderThumbSize[axis] += move;
 
   // --- логика для wrapp ---
   if (args.clickedObject.current === "wrapp") {
@@ -356,7 +356,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
 
   // получение некоторых данных заранее при клике
   const wrapElWH = [el.scrollWidth, el.scrollHeight];
-  const visualDiff = ["scroll", "slider"].includes(args.type!)
+  const visualDiff = ["scroll", "slider"].includes(args.mode!)
     ? getVisualToLayoutScale(el)
     : [];
   // --------------------------------------------
@@ -386,7 +386,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   const onMoveLocal = (e: PointerEvent) => {
     // вычисления заранее размер для slider элемента thumb
     let sliderElSize: number[] | undefined;
-    if (args.clickedObject.current === "thumb" && args.type === "slider") {
+    if (args.clickedObject.current === "thumb" && args.mode === "slider") {
       const bar = args.target?.closest(".ms-slider") as HTMLElement | null;
       if (!bar) return;
 
@@ -482,7 +482,7 @@ function handleUp(args: HandleUpT) {
   cursorClassChange(args.clickedObject.current, args.target, el, "end", rt);
 
   // логика для слайдера
-  if (args.type === "slider" && args.clickedObject.current !== "thumb") {
+  if (args.mode === "slider" && args.clickedObject.current !== "thumb") {
     const acc = rt.checkSliderThumbSize; // размеры передвижения
 
     const runScroll = (dir: "x" | "y", deltaDir?: 1 | -1) => {
@@ -524,7 +524,7 @@ function handleUp(args: HandleUpT) {
   // --- inertia scroll for touch ---
   if (
     args.isTouched &&
-    args.type === "scroll" &&
+    args.mode === "scroll" &&
     args.clickedObject.current !== "slider"
   ) {
     const inertLogic = (axis: "x" | "y") => {

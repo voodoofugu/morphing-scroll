@@ -17,7 +17,7 @@ import Morph, {
 export const everyProp = (
   <MorphScroll
     className="custom"
-    type="sliderMenu"
+    mode="sliderMenu"
     direction="hybrid"
     scrollPosition={{ value: "end", duration: 300 }}
     onScrollValue={(left, top) => void (left + top)}
@@ -43,7 +43,7 @@ export const everyProp = (
     scrollBarOnHover
     scrollBarEdge={[4, 8]}
     thumbMinSize={24}
-    render={{ type: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
+    render={{ mode: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
     emptyElements={{ mode: "clear", clickTrigger: { selector: ".x", delay: 100 } }}
     suspending
     fallback={<span />}

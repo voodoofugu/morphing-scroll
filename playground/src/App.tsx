@@ -20,7 +20,7 @@ type ObjectsSizeMode =
   | "none";
 type ProgressElementMode = "custom" | "native" | "off";
 type RenderMode = "off" | "lazy" | "virtual";
-type ScrollType = "scroll" | "slider" | "sliderMenu";
+type ScrollMode = "scroll" | "slider" | "sliderMenu";
 type SizeMode = "fixed" | "square" | "auto";
 type WrapperMinMode = "off" | "number" | "pair" | "full";
 
@@ -32,7 +32,7 @@ type Settings = {
   enableOnScrollValue: boolean;
   enableIsScrolling: boolean;
   enableOnRenderedKeysChange: boolean;
-  type: ScrollType;
+  mode: ScrollMode;
   direction: Direction;
   sizeMode: SizeMode;
   width: number;
@@ -110,7 +110,7 @@ const defaultSettings: Settings = {
   enableOnScrollValue: true,
   enableIsScrolling: true,
   enableOnRenderedKeysChange: true,
-  type: "scroll",
+  mode: "scroll",
   direction: "y",
   sizeMode: "fixed",
   width: 680,
@@ -164,7 +164,7 @@ const defaultSettings: Settings = {
 const presets: Record<string, Partial<Settings>> = {
   vertical: {
     itemCount: 96,
-    type: "scroll",
+    mode: "scroll",
     direction: "y",
     sizeMode: "fixed",
     width: 680,
@@ -180,7 +180,7 @@ const presets: Record<string, Partial<Settings>> = {
   },
   virtual: {
     itemCount: 420,
-    type: "scroll",
+    mode: "scroll",
     direction: "hybrid",
     sizeMode: "fixed",
     width: 720,
@@ -197,7 +197,7 @@ const presets: Record<string, Partial<Settings>> = {
   },
   menu: {
     itemCount: 24,
-    type: "sliderMenu",
+    mode: "sliderMenu",
     direction: "x",
     sizeMode: "fixed",
     width: 760,
@@ -214,7 +214,7 @@ const presets: Record<string, Partial<Settings>> = {
   },
   auto: {
     itemCount: 60,
-    type: "slider",
+    mode: "slider",
     direction: "hybrid",
     sizeMode: "auto",
     objectsSizeMode: "pair",
@@ -232,7 +232,7 @@ const presets: Record<string, Partial<Settings>> = {
 const alignOptions: Align[] = ["start", "center", "end"];
 const directionOptions: Direction[] = ["y", "x", "hybrid"];
 const renderOptions: RenderMode[] = ["off", "lazy", "virtual"];
-const typeOptions: ScrollType[] = ["scroll", "slider", "sliderMenu"];
+const modeOptions: ScrollMode[] = ["scroll", "slider", "sliderMenu"];
 
 function readInitialSettings() {
   try {
@@ -495,7 +495,7 @@ function formatCodeValue(value: CodeValue, indent = 0): string {
 function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
   const imports = `import { MorphScroll } from "morphing-scroll";`;
   const menuCount = clamp(Math.ceil(settings.itemCount / 2), 8, 140);
-  const needsMenu = settings.type === "sliderMenu";
+  const needsMenu = settings.mode === "sliderMenu";
   const helpers = [
     `const items = Array.from({ length: ${settings.itemCount} }, (_, index) => (\n  <div key={\`item-\${index + 1}\`}>Item {index + 1}</div>\n));`,
     needsMenu
@@ -574,7 +574,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     settings.renderMode === "off"
       ? undefined
       : {
-          type: settings.renderMode,
+          mode: settings.renderMode,
           rootMargin: settings.rootMargin,
           stopLoadOnScroll: settings.stopLoadOnScroll,
           trackVisibility: settings.trackVisibility,
@@ -594,7 +594,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
 
   const props: Array<[string, CodeValue | undefined, "boolean" | "value"]> = [
     ["className", settings.className || undefined, "value"],
-    ["type", settings.type, "value"],
+    ["mode", settings.mode, "value"],
     ["direction", settings.direction, "value"],
     ["size", size, "value"],
     ["objectsSize", objectsSize, "value"],
@@ -762,12 +762,12 @@ function App() {
     NonNullable<MorphScrollProps["progressTrigger"]>["progressElement"]
   >(() => {
     if (settings.progressElementMode === "off") return false;
-    if (settings.type === "sliderMenu") return progressMenu;
+    if (settings.mode === "sliderMenu") return progressMenu;
     if (settings.progressElementMode === "native") return true;
-    if (settings.type === "slider")
+    if (settings.mode === "slider")
       return <span className="slider-progress-dot" />;
     return <span className="thumb-content" />;
-  }, [progressMenu, settings.progressElementMode, settings.type]);
+  }, [progressMenu, settings.progressElementMode, settings.mode]);
 
   const render = React.useMemo<MorphScrollProps["render"]>(() => {
     if (settings.renderMode === "off") return undefined;
@@ -775,7 +775,7 @@ function App() {
       rootMargin: settings.rootMargin,
       stopLoadOnScroll: settings.stopLoadOnScroll,
       trackVisibility: settings.trackVisibility,
-      type: settings.renderMode,
+      mode: settings.renderMode,
     };
   }, [
     settings.renderMode,
@@ -851,7 +851,7 @@ function App() {
       size,
       suspending: settings.suspending,
       thumbMinSize: settings.thumbMinSize,
-      type: settings.type,
+      mode: settings.mode,
       wrapperAlign: [settings.wrapperAlignX, settings.wrapperAlignY],
       wrapperMargin,
       wrapperMinSize,
@@ -976,10 +976,10 @@ function App() {
 
         <ControlGroup title="Scroll">
           <SelectField
-            label="type"
-            onChange={(value) => update("type", value)}
-            options={typeOptions}
-            value={settings.type}
+            label="mode"
+            onChange={(value) => update("mode", value)}
+            options={modeOptions}
+            value={settings.mode}
           />
           <SegmentedField
             label="direction"
@@ -1098,7 +1098,7 @@ function App() {
                   ...current,
                   direction: "hybrid",
                   progressElementMode: "custom",
-                  type: "scroll",
+                  mode: "scroll",
                 }))
               }
               type="button"
@@ -1111,7 +1111,7 @@ function App() {
                   ...current,
                   direction: "hybrid",
                   progressElementMode: "custom",
-                  type: "slider",
+                  mode: "slider",
                 }))
               }
               type="button"
@@ -1395,7 +1395,7 @@ function App() {
 
         <ControlGroup title="render / emptyElements">
           <SelectField
-            label="render.type"
+            label="render.mode"
             onChange={(value) => update("renderMode", value)}
             options={renderOptions}
             value={settings.renderMode}
@@ -1442,7 +1442,7 @@ function App() {
             <h2>Live Surface</h2>
             <p>
               {settings.itemCount} items · {settings.direction} ·{" "}
-              {settings.type}
+              {settings.mode}
             </p>
           </div>
           <code className="prop-pill">
