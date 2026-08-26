@@ -1,35 +1,65 @@
 import type { Tasks } from "./createTasks";
 
-// функция смены курсора
-const mouseOnEl = (el: HTMLElement | null, mode: "start" | "end") => {
-  if (!el) return;
-  const isTouched = window.matchMedia("(pointer: coarse)").matches;
+/**
+ * Курсорный «замок» — один тег стиля на документ, поэтому счётчик здесь
+ * действительно общий. Считаем захваты: пока хотя бы один скролл тащит
+ * контент, стиль обязан жить. Раньше первый отпустивший инстанс снимал
+ * стиль у всех остальных, а размонтирование посреди драга оставляло
+ * `cursor: grabbing !important` на странице навсегда.
+ */
+const CURSOR_LOCK_ID = "ms-cursor-lock";
+let cursorLocks = 0;
 
-  if (mode === "start") {
-    if (!isTouched) {
-      let style = document.getElementById("ms-cursor-lock");
+const isTouched = () =>
+  typeof window !== "undefined"
+    ? (window.matchMedia?.("(pointer: coarse)").matches ?? false)
+    : false;
 
-      // лучше создать тег стиля для курсора
-      if (!style) {
-        style = document.createElement("style");
-        style.id = "ms-cursor-lock";
-        // устанавливаем курсор и блокируем выделение текста
-        style.textContent = `
+const lockCursor = () => {
+  if (cursorLocks++ > 0) return;
+  if (document.getElementById(CURSOR_LOCK_ID)) return;
+
+  const style = document.createElement("style");
+  style.id = CURSOR_LOCK_ID;
+  // устанавливаем курсор и блокируем выделение текста
+  style.textContent = `
       * {
         cursor: grabbing !important;
         user-select: none;
       }
     `;
-        document.head.appendChild(style);
-      }
+  document.head.appendChild(style);
+};
+
+const unlockCursor = () => {
+  if (cursorLocks === 0) return;
+  if (--cursorLocks > 0) return;
+
+  document.getElementById(CURSOR_LOCK_ID)?.remove();
+};
+
+type CursorHolder = { cursorLocked: boolean };
+
+// функция смены курсора
+const mouseOnEl = (
+  el: HTMLElement | null,
+  mode: "start" | "end",
+  holder: CursorHolder,
+) => {
+  if (!el) return;
+
+  if (mode === "start") {
+    if (!isTouched() && !holder.cursorLocked) {
+      lockCursor();
+      holder.cursorLocked = true;
     }
 
     el.style.cursor = "grabbing";
     el.classList.add("active"); // что бы был контроль на phones
   } else {
-    if (!isTouched) {
-      const style = document.getElementById("ms-cursor-lock");
-      if (style) style.remove();
+    if (holder.cursorLocked) {
+      unlockCursor();
+      holder.cursorLocked = false;
     }
 
     el.style.cursor = "grab";
@@ -89,8 +119,9 @@ const hoverHandler = ({ el, event, tasks, isScrolling }: HoverHandlerT) => {
   };
 
   if (Array.isArray(el)) {
-    el.map((el) => logic(el));
+    el.forEach((el) => logic(el));
   } else logic(el);
 };
 
-export { mouseOnEl, hoverHandler, removeHover, addHover };
+export { mouseOnEl, hoverHandler, removeHover, addHover, unlockCursor };
+export type { CursorHolder };

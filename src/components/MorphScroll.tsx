@@ -3,6 +3,7 @@ import React from "react";
 import type { MorphScroll as MorphScrollProps, Vec2 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 import createTasks from "../helpers/createTasks";
+import createPointerRuntime from "../helpers/createPointerRuntime";
 
 import useIdent from "../hooks/useIdent";
 import useUpdate from "../hooks/useUpdate";
@@ -99,14 +100,16 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
 
   // ♦ helpers
   /*
-   * Планировщики раньше создавались прямо в теле рендера, то есть заново на
-   * каждый рендер: дедупликация по ключу переставала работать между рендерами,
-   * а cleanup гасил только последний экземпляр — анимации прошлых рендеров
-   * продолжали писать в scrollTop параллельно новым.
+   * Рантайм инстанса. Планировщики раньше создавались прямо в теле рендера,
+   * то есть заново на каждый рендер: дедупликация по ключу переставала
+   * работать между рендерами, а cleanup гасил только последний экземпляр —
+   * анимации прошлых рендеров продолжали писать в scrollTop параллельно
+   * новым. useConst создаёт их один раз на инстанс.
    */
   const raf = useConst(createSchedulerRAF);
   const rafScrollAnim = useConst(createSchedulerRAF);
   const tasks = useConst(createTasks);
+  const pointerRuntime = useConst(createPointerRuntime);
 
   const triggerRAF = () => raf.schedule("triggerUpdate", triggerUpdate); // по-кадрово оптимизированный triggerUpdate
 
@@ -977,6 +980,7 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
         objLengthPerSize,
         isDraggingRef,
         maxScrollSize,
+        runtime: pointerRuntime,
         tasks,
       });
     },
@@ -1444,9 +1448,11 @@ const MorphScroll: React.FC<MorphScrollProps> = ({
       /*
        * Раньше здесь нельзя было чистить задачи: менеджер был общий, и
        * `cancelTask()` убивал финал прокрутки у всех скроллов страницы.
-       * Теперь менеджер свой, так что снимаем только собственные задачи.
+       * Теперь менеджер свой, так что снимаем только собственные задачи —
+       * вместе с оборванным жестом и курсорным замком.
        */
       tasks.clear();
+      pointerRuntime.destroy();
     };
   }, []);
 

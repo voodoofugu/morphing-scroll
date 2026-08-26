@@ -1,4 +1,5 @@
 import type { Tasks } from "./createTasks";
+import type { PointerRuntime } from "./createPointerRuntime";
 
 import { MorphScroll, Vec2 } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
@@ -14,35 +15,6 @@ import {
 import CONST from "../constants";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
-
-let checkMove = {
-  x: 0,
-  y: 0,
-};
-let checkSliderThumbSize = {
-  x: 0,
-  y: 0,
-};
-let abortController: AbortController | undefined;
-let velocity = {
-  x: 0,
-  y: 0,
-  t: 0,
-  distX: 0, // дистанция для границы запуска конца touch анимации
-  distY: 0,
-};
-let prevCoords: {
-  x: {
-    value: number;
-    rest: number;
-    raw: number;
-  };
-  y: {
-    value: number;
-    rest: number;
-    raw: number;
-  };
-} | null = null;
 
 type HandleMouseT = {
   scrollElement: HTMLDivElement | null;
@@ -75,6 +47,8 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
+  /** состояние указателя этого инстанса */
+  runtime: PointerRuntime;
   /** менеджер задач этого инстанса */
   tasks: Tasks;
 };
@@ -107,6 +81,7 @@ const cursorClassChange = (
   target: HTMLElement | null,
   scrollElement: HTMLDivElement | null,
   mode: "start" | "end",
+  runtime: PointerRuntime,
 ) => {
   if (!clicked) return;
   let elem: HTMLElement | null = null;
@@ -118,7 +93,7 @@ const cursorClassChange = (
     else elem = target;
   } else if (clicked === "wrapp") elem = scrollElement;
 
-  mouseOnEl(elem, mode);
+  mouseOnEl(elem, mode, runtime);
 };
 
 const setScrollValue = (
@@ -145,6 +120,7 @@ const motionHandler = (
   const el = args.scrollElement as HTMLDivElement;
   if (!el) return;
 
+  const rt = args.runtime;
   const isX = axis === "x";
 
   // --- получение координат ---
@@ -173,8 +149,8 @@ const motionHandler = (
     );
   };
 
-  if (!prevCoords) {
-    prevCoords = {
+  if (!rt.prevCoords) {
+    rt.prevCoords = {
       x: {
         value: point.x,
         rest: 0,
@@ -190,7 +166,7 @@ const motionHandler = (
     return;
   }
 
-  const prev = prevCoords;
+  const prev = rt.prevCoords;
 
   const delta = {
     x: point.x - prev.x.value,
@@ -198,26 +174,26 @@ const motionHandler = (
   };
 
   // если checkMove больше 2px (запас), то считаем, что это scroll, и захватываем указатель
-  const stableCheckMove = Math.abs(checkMove[axis]);
+  const stableCheckMove = Math.abs(rt.checkMove[axis]);
   if (stableCheckMove > 2) {
     args.isDraggingRef.current = true;
-  } else if (stableCheckMove < 3) checkMove[axis] += delta[axis];
+  } else if (stableCheckMove < 3) rt.checkMove[axis] += delta[axis];
 
   // логика для плавного скроллинга пальцем
   if (args.isTouched) {
     const now = performance.now();
 
-    if (!velocity.t) {
-      velocity.t = now;
+    if (!rt.velocity.t) {
+      rt.velocity.t = now;
     } else {
-      const dt = Math.max(now - velocity.t, 8);
+      const dt = Math.max(now - rt.velocity.t, 8);
 
-      velocity = {
-        x: velocity.x * 0.8 + (delta.x / dt) * 0.2,
-        y: velocity.y * 0.8 + (delta.y / dt) * 0.2,
+      rt.velocity = {
+        x: rt.velocity.x * 0.8 + (delta.x / dt) * 0.2,
+        y: rt.velocity.y * 0.8 + (delta.y / dt) * 0.2,
         t: now,
-        distX: (velocity.distX ?? 0) + Math.abs(delta.x),
-        distY: (velocity.distY ?? 0) + Math.abs(delta.y),
+        distX: rt.velocity.distX + Math.abs(delta.x),
+        distY: rt.velocity.distY + Math.abs(delta.y),
       };
     }
   }
@@ -233,12 +209,12 @@ const motionHandler = (
     rawDelta: number,
     withVisualOverscroll: boolean,
   ) => {
-    const state = prevCoords![axis];
+    const state = rt.prevCoords![axis];
     const maxScrollSize = isX ? args.maxScrollSize[0] : args.maxScrollSize[1];
 
     if (!Number.isFinite(scrollDelta) || !Number.isFinite(rawDelta)) {
       // важно: сбрасываем состояние, иначе жест «залипнет»
-      prevCoords = null;
+      rt.prevCoords = null;
       return;
     }
 
@@ -311,7 +287,7 @@ const motionHandler = (
   }
 
   // обновление предыдущих координат для ! wrapp при slider
-  if (args.type === "slider") checkSliderThumbSize[axis] += move;
+  if (args.type === "slider") rt.checkSliderThumbSize[axis] += move;
 
   // --- логика для wrapp ---
   if (args.clickedObject.current === "wrapp") {
@@ -326,7 +302,7 @@ const motionHandler = (
   // проверка если checkSliderThumbSize меньше размера элемента thumb слайдера
   if (
     args.sliderElSize &&
-    Math.abs(checkSliderThumbSize[axis]) < args.sliderElSize[isX ? 0 : 1]
+    Math.abs(rt.checkSliderThumbSize[axis]) < args.sliderElSize[isX ? 0 : 1]
   )
     return;
 
@@ -348,15 +324,17 @@ const motionHandler = (
         ? getNewPosition(-1)
         : null;
 
-  checkSliderThumbSize[axis] = 0; // обязательно сбрасываем
+  rt.checkSliderThumbSize[axis] = 0; // обязательно сбрасываем
 
   // быстрое движение для слайдера по thumb длящееся 10мс
   args.smoothScroll(nextScroll, axis, 10);
 };
 
 function handleMouseOrTouch(args: HandleMouseT) {
+  const rt = args.runtime;
+
   // останавливаем overscroll анимацию назад, если она есть
-  stopOverscrollBackAnim();
+  stopOverscrollBackAnim(rt.overscrollLoop);
 
   // удаляем RAF и задачу слайдера
   (["x", "y"] as const).forEach((axis) => {
@@ -372,13 +350,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   args.scrollStateRef.targetScrollY = el.scrollTop;
 
   // reset inertia state for new gesture
-  velocity = {
-    x: 0,
-    y: 0,
-    t: 0,
-    distX: 0,
-    distY: 0,
-  };
+  rt.resetGesture();
 
   // получение некоторых данных заранее при клике
   const wrapElWH = [el.scrollWidth, el.scrollHeight];
@@ -401,12 +373,12 @@ function handleMouseOrTouch(args: HandleMouseT) {
   }
 
   // меняем курсор и класс
-  cursorClassChange(args.clickedObject.current, args.target, el, "start");
+  cursorClassChange(args.clickedObject.current, args.target, el, "start", rt);
 
   // слушатели для движения и отжатия
-  abortController?.abort(); // отменяем предыдущие слушатели
+  rt.controller?.abort(); // отменяем предыдущий жест этого же скролла
   const controller = new AbortController();
-  abortController = controller;
+  rt.controller = controller;
   const { signal } = controller;
 
   const onMoveLocal = (e: PointerEvent) => {
@@ -478,6 +450,7 @@ function handleMove(args: HandleMoveT) {
 
   // обновление prevCoords
   const point = { x: args.event.clientX, y: args.event.clientY };
+  const { prevCoords } = args.runtime;
   if (prevCoords) {
     prevCoords.x.value = point.x;
     prevCoords.y.value = point.y;
@@ -485,17 +458,19 @@ function handleMove(args: HandleMoveT) {
 }
 
 function handleUp(args: HandleUpT) {
-  abortController?.abort(); // удаляем слушатели
+  const rt = args.runtime;
+  rt.controller?.abort(); // удаляем слушатели
+  rt.controller = undefined;
 
   const el = args.scrollElement as HTMLDivElement;
   if (!el) return;
 
   // меняем курсор и классы
-  cursorClassChange(args.clickedObject.current, args.target, el, "end");
+  cursorClassChange(args.clickedObject.current, args.target, el, "end", rt);
 
   // логика для слайдера
   if (args.type === "slider" && args.clickedObject.current !== "thumb") {
-    const acc = checkSliderThumbSize; // размеры передвижения
+    const acc = rt.checkSliderThumbSize; // размеры передвижения
 
     const runScroll = (dir: "x" | "y", deltaDir?: 1 | -1) => {
       const isX = dir === "x";
@@ -541,11 +516,11 @@ function handleUp(args: HandleUpT) {
   ) {
     const inertLogic = (axis: "x" | "y") => {
       // умножаем velocity на thumbRatio для правильного передвижение по thumb
-      const vel = velocity[axis] * args.thumbRatio;
-      const dist = axis === "x" ? velocity.distX : velocity.distY;
+      const vel = rt.velocity[axis] * args.thumbRatio;
+      const dist = axis === "x" ? rt.velocity.distX : rt.velocity.distY;
 
       const now = performance.now();
-      const dtFromLastMove = now - velocity.t; // убираем скроллинг при резком отпускании пальца
+      const dtFromLastMove = now - rt.velocity.t; // убираем скроллинг при резком отпускании пальца
 
       if (
         dtFromLastMove < CONST.INERTIA_RELEASE_TIMEOUT &&
@@ -573,25 +548,19 @@ function handleUp(args: HandleUpT) {
   }
 
   // - сбрасываем -
-  prevCoords = null;
-  if (args.overscrollRef.current.x !== 0)
-    overscrollBackAnim(args.overscrollRef, "x", args.triggerUpdate);
-  if (args.overscrollRef.current.y !== 0)
-    overscrollBackAnim(args.overscrollRef, "y", args.triggerUpdate);
+  const backAnim = (axis: "x" | "y") =>
+    overscrollBackAnim(
+      rt.overscrollLoop,
+      args.overscrollRef,
+      axis,
+      args.triggerUpdate,
+    );
+
+  if (args.overscrollRef.current.x !== 0) backAnim("x");
+  if (args.overscrollRef.current.y !== 0) backAnim("y");
 
   args.clickedObject.current = null;
-  velocity = {
-    x: 0,
-    y: 0,
-    t: 0,
-    distX: 0,
-    distY: 0,
-  };
-  checkMove = { x: 0, y: 0 };
-  checkSliderThumbSize = {
-    x: 0,
-    y: 0,
-  };
+  rt.resetGesture();
 
   // обновляем
   return args.triggerUpdate();

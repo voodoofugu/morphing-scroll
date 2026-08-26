@@ -3,12 +3,19 @@ import {
   overscrollBackAnim,
   stopOverscrollBackAnim,
 } from "@morphing-scroll/src/helpers/overscrollBackAnim";
+import createRafLoop from "@morphing-scroll/src/helpers/createRafLoop";
 import CONST from "@morphing-scroll/src/constants";
 
 describe("overscrollBackAnim", () => {
-  beforeEach(() => vi.useFakeTimers());
+  // петля создаётся на инстанс скролла, поэтому и в тестах она своя
+  let loop: ReturnType<typeof createRafLoop>;
+
+  beforeEach(() => {
+    loop = createRafLoop();
+    vi.useFakeTimers();
+  });
   afterEach(() => {
-    stopOverscrollBackAnim();
+    stopOverscrollBackAnim(loop);
     vi.useRealTimers();
   });
 
@@ -20,7 +27,7 @@ describe("overscrollBackAnim", () => {
     const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(ref as any, "x", updater);
+    overscrollBackAnim(loop, ref as any, "x", updater);
     // OVERSCROLL_BACK_DURATION ms worth of frames, plus slack
     advance(Math.ceil(CONST.OVERSCROLL_BACK_DURATION / 16) + 5);
 
@@ -32,7 +39,7 @@ describe("overscrollBackAnim", () => {
     const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(ref as any, "x", updater);
+    overscrollBackAnim(loop, ref as any, "x", updater);
     advance(2); // a couple of frames in
 
     expect(ref.current.x).toBeGreaterThan(0);
@@ -43,9 +50,9 @@ describe("overscrollBackAnim", () => {
     const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(ref as any, "x", updater);
+    overscrollBackAnim(loop, ref as any, "x", updater);
     advance(1);
-    stopOverscrollBackAnim();
+    stopOverscrollBackAnim(loop);
     const frozen = ref.current.x;
     updater.mockClear();
 
@@ -59,7 +66,7 @@ describe("overscrollBackAnim", () => {
     const ref = { current: { x: 0, y: -80 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(ref as any, "y", updater);
+    overscrollBackAnim(loop, ref as any, "y", updater);
     advance(Math.ceil(CONST.OVERSCROLL_BACK_DURATION / 16) + 5);
 
     expect(ref.current.y).toBe(0);
