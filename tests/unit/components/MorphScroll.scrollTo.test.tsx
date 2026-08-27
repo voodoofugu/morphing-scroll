@@ -176,3 +176,43 @@ describe("MorphScroll — scrollTo (imperative)", () => {
     expect(el.scrollTop).toBe(MAX);
   });
 });
+
+describe("MorphScroll — scrollTo on both axes at once", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  /*
+   * В `hybrid` цель ставится обеим осям одним вызовом, и обе анимации живут в
+   * одной кадровой очереди. Пока ключ в ней был общим, вторая ось затирала
+   * первую — доезжала только одна.
+   */
+  it("animates x and y together", () => {
+    const ref = React.createRef<MorphScrollHandle>();
+    const { container } = render(
+      <MorphScroll
+        ref={ref}
+        size={[300, 300]}
+        objectsSize={100}
+        crossCount={12}
+        direction="hybrid"
+      >
+        {Array.from({ length: 144 }, (_, i) => (
+          <div key={`item-${i}`}>item {i}</div>
+        ))}
+      </MorphScroll>,
+    );
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
+    stubLayout(el, {
+      clientWidth: 300,
+      clientHeight: 300,
+      scrollWidth: 1200,
+      scrollHeight: 1200,
+    });
+    settle(50);
+
+    act(() => ref.current!.scrollTo(600));
+    settle();
+
+    expect([el.scrollLeft, el.scrollTop]).toEqual([600, 600]);
+  });
+});

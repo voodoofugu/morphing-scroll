@@ -19,19 +19,19 @@ const VIEW = 300;
 const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
-const Chat = ({ count }: { count: number }) => (
+const Chat = ({ count, duration = 0 }: { count: number; duration?: number }) => (
   <MorphScroll
     size={[200, VIEW]}
     objectsSize={OBJ}
     crossCount={1}
-    scrollPosition={{ value: "end", duration: 0 }}
+    scrollPosition={{ value: "end", duration }}
   >
     {items(count)}
   </MorphScroll>
 );
 
-const mount = (count: number) => {
-  const utils = render(<Chat count={count} />);
+const mount = (count: number, duration = 0) => {
+  const utils = render(<Chat count={count} duration={duration} />);
   const el = utils.container.querySelector<HTMLElement>(".ms-viewport")!;
   stubLayout(el, { clientHeight: VIEW, scrollHeight: count * OBJ });
   return { ...utils, el };
@@ -49,9 +49,10 @@ const grow = (
   rerender: (ui: React.ReactElement) => void,
   el: HTMLElement,
   count: number,
+  duration = 0,
 ) =>
   act(() => {
-    rerender(<Chat count={count} />);
+    rerender(<Chat count={count} duration={duration} />);
     stubLayout(el, { clientHeight: VIEW, scrollHeight: count * OBJ });
   });
 
@@ -105,6 +106,20 @@ describe("MorphScroll — scrollPosition end", () => {
     userScrollTo(el, 14 * OBJ - VIEW);
     grow(rerender, el, 18);
     await vi.waitFor(() => expect(el.scrollTop).toBe(18 * OBJ - VIEW));
+  });
+
+  it("re-aims at the new end when more content lands mid-flight", async () => {
+    // сообщения приходят пачками: вторая успевает, пока едет анимация к первой
+    const { el, rerender } = mount(10, 200);
+    await vi.waitFor(() => expect(el.scrollTop).toBe(10 * OBJ - VIEW));
+
+    grow(rerender, el, 14, 200);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    grow(rerender, el, 18, 200);
+
+    await vi.waitFor(() => expect(el.scrollTop).toBe(18 * OBJ - VIEW), {
+      timeout: 2000,
+    });
   });
 
   it("counts a few pixels short of the bottom as the bottom", async () => {

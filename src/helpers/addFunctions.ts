@@ -27,6 +27,12 @@ async function checkScrollReady(el: Element) {
   }
 }
 
+/*
+ * Куда едет анимация каждой оси — по элементу, а значит по инстансу.
+ * Нужно, что бы отличить повторный запрос той же цели от новой.
+ */
+const aimedAt = new WeakMap<Element, { x: number | null; y: number | null }>();
+
 async function smoothScroll(
   direction: "x" | "y",
   scrollEl: Element,
@@ -54,6 +60,31 @@ async function smoothScroll(
     return;
   }
 
+  const lockKey = `smoothScrollBlock${direction}`;
+
+  /*
+   * Очередь кадров держит по одной работе на ключ, а ключ был общим на обе
+   * оси: при `hybrid` анимация одной оси затирала другую — из двух запросов
+   * доезжал только последний.
+   */
+  const rafKey = `smoothScroll${direction}`;
+
+  /*
+   * Замок бережёт анимацию от рестарта на каждом кадре, но цель умеет уезжать
+   * из-под неё: в чате дорастал контент, пока мы ехали к прежнему концу, и
+   * запрос нового конца просто терялся — прокрутка замирала на старом.
+   * Та же цель по-прежнему игнорируется, новая — перенацеливает.
+   */
+  if (tasks.hasTask(lockKey)) {
+    if (aimedAt.get(scrollEl)?.[direction] === clampedTargetScroll) return;
+
+    tasks.cancelTask(lockKey);
+  }
+
+  const aim = aimedAt.get(scrollEl) ?? { x: null, y: null };
+  aim[direction] = clampedTargetScroll;
+  aimedAt.set(scrollEl, aim);
+
   tasks.setLockTask(
     () => {
       const startTime = performance.now();
@@ -72,13 +103,13 @@ async function smoothScroll(
         scrollEl[topOrLeft] = nextScroll;
 
         if (progress < 1 && nextScroll !== clampedTargetScroll)
-          rafScrollAnim("smoothScroll", animate);
+          rafScrollAnim(rafKey, animate);
       };
 
-      rafScrollAnim("smoothScroll", animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
+      rafScrollAnim(rafKey, animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
     },
     duration,
-    `smoothScrollBlock${direction}`,
+    lockKey,
   );
 }
 
