@@ -223,6 +223,15 @@ themselves are no longer transformed and can be positioned from CSS.
   `"keys"`; `mode: "pan"` nudges by `step` pixels. Defaults to `"step"` in
   the slider modes and `"pan"` in `mode="scroll"`, takes only the keys of
   the scrolling axis, and leaves the arrows alone inside a text field.
+- `scrollPosition: "end"` sticks to the bottom by position instead of by the
+  direction of the last movement. It followed new content only while a
+  reading of "the user was going down" survived, and that reading is wiped
+  `SCROLL_END_DELAY` after movement stops — so a slow drag upward, which is
+  a drag with pauses in it, lost the guard and threw the reader back to the
+  bottom the moment older messages loaded. A fast drag kept it and behaved.
+  Now it asks whether the scroll was at the bottom when the content changed,
+  which no pause can affect; the scroll's own animation frames no longer
+  count as the user leaving.
 - `onNavigate` — fires once when the scroll settles on a page it was not on
   before, with `reason` (`"arrows"` / `"bar"` / `"scroll"`), `axis`, `from`
   and `to`. `onScrollPosition` reports continuous movement; this reports the

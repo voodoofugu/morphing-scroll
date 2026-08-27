@@ -22,7 +22,7 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **355 unit + 36 e2e green**, 81% statement coverage of `src`
+Current status: **353 unit + 36 e2e green**, 81% statement coverage of `src`
 from the unit tier alone — `autoScrollRegistry` and the gesture physics are
 covered by Playwright, which this number does not see.
 Covered mechanics include:

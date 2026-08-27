@@ -248,7 +248,7 @@ props describe state, methods do something now. <code>scrollPosition</code> is t
   <li><code>options.duration</code>: animation length in <b>ms</b>; <b>0</b> jumps without animating. Defaults to the <code>scrollPosition</code> duration.</li>
 </ul>
 
-Unlike the declarative <b>"end"</b>, which backs off if the user has scrolled away from the bottom, an explicit <code>scrollTo("end")</code> always runs.<br />
+Unlike the declarative <b>"end"</b>, which keeps following new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
 <br />
 <code><b>step(side, options?)</b></code>:<br />
 turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run unless <code>arrows.loop</code> is on.<br />

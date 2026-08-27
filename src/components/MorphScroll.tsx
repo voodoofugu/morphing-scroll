@@ -46,7 +46,6 @@ import {
 import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
 
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
-import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";
 import childKey from "../helpers/childKey";
 import pageAt from "../helpers/pageAt";
@@ -191,7 +190,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     });
     const isScrollingRef = React.useRef<boolean>(false);
     const keyDownX = React.useRef<boolean>(false);
-    const scrollDirTrackerRef = React.useRef(createScrollDirTracker()); // стабилизируем вызов
+    /*
+     * Липнет ли скролл к концу. `scrollPosition: "end"` означает «держись
+     * низа», но вырывать пользователя из середины истории нельзя — а понять,
+     * ушёл ли он оттуда, можно только по положению.
+     */
+    const atEndRef = React.useRef({ x: true, y: true });
     const lastScrollTargetRef = React.useRef<{
       x: number | null;
       y: number | null;
@@ -756,6 +760,25 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [getThumbSize, direction],
     );
 
+    /*
+     * Липнет ли скролл к концу — по положению, а не по направлению движения.
+     * Направление стирается через SCROLL_END_DELAY, и при медленной прокрутке
+     * пауза успевала стереть его раньше, чем дорастал контент: человека, уже
+     * читающего историю, выбрасывало обратно вниз.
+     */
+    const updateAtEnd = (allow: (dir: "x" | "y") => boolean = () => true) => {
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl || !scrollPositionLocal.value.includes("end")) return;
+
+      const near = (pos: number, end: number) =>
+        pos >= end - CONST.END_STICK_THRESHOLD;
+
+      if (allow("x"))
+        atEndRef.current.x = near(scrollEl.scrollLeft, endRef.current.w);
+      if (allow("y"))
+        atEndRef.current.y = near(scrollEl.scrollTop, endRef.current.h);
+    };
+
     const endObjectsWrapper = React.useMemo(
       () => ({
         w: !sizeLocal[0]
@@ -772,6 +795,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         sizeLocal[1],
       ],
     );
+
+    // читается из обработчиков, поэтому держим свежим без пересоздания замыканий
+    const endRef = React.useRef(endObjectsWrapper);
+    endRef.current = endObjectsWrapper;
 
     // высчитываем сдвиг scroll и ограничиваем его
     const thumbSpace = {
@@ -1288,11 +1315,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         if (!el || !mainEl || !scrollEl) return;
 
-        if (scrollPositionLocal.value.includes("end")) {
-          // если есть "end" устанавливаем параметры scrollDirTrackerRef
-          const { scrollLeft, scrollTop } = event.currentTarget;
-          scrollDirTrackerRef.current.update(scrollLeft, scrollTop);
-        }
+        /*
+         * Кадры собственной анимации к концу — не мнение пользователя о том,
+         * где он хочет стоять. Пока библиотека сама везёт эту ось, отметку не
+         * трогаем: иначе она успевала записать промежуточное положение как
+         * «ушёл вниз» и следующая подгрузка уже никуда не ехала.
+         */
+        updateAtEnd((dir) => !tasks.hasTask(`smoothScrollBlock${dir}`));
 
         // уведомляем о прокрутке пропс
         onScrollPosition?.(scrollEl.scrollLeft, scrollEl.scrollTop);
@@ -1323,10 +1352,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         // debounce для финала через setTask
         tasks.setTask(
           () => {
-            scrollDirTrackerRef.current.reset(); // сброс
             isScrollingRef.current = false;
             mainEl.removeAttribute(CONST.SCROLLING_ATR);
             onScrollingChange?.(false);
+            // всё доехало — отметка о конце тут точно про итоговое положение
+            updateAtEnd();
             reportNavigate();
             renderLocal.mode && updateLoadedElementsKeysLocal();
 
@@ -1641,13 +1671,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
             // "end"
             if (value === "end") {
-              // если направление прокрутки было противоположным от "end" отменяем
-              if (
-                respectUserScroll &&
-                scrollDirTrackerRef.current.get()[dir] ===
-                  (dir === "x" ? "left" : "up")
-              )
-                return;
+              // пользователь ушёл от конца читать историю — не тянем обратно
+              if (respectUserScroll && !atEndRef.current[dir]) return;
 
               smoothScrollLocal(
                 dir === "x" ? endObjectsWrapper.w : endObjectsWrapper.h,

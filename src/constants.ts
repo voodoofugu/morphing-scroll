@@ -9,6 +9,7 @@ const CONST = {
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
   SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation
   SCROLL_END_DELAY: 200, // Delay before marking scroll as ended (ms)
+  END_STICK_THRESHOLD: 16, // px — на таком расстоянии от конца скролл всё ещё «внизу»
   SCROLL_READY_MAX_FRAMES: 60, // Frames to wait for the content to become scrollable
 
   // инерция для прокрутки
