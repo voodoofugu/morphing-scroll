@@ -22,15 +22,15 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **283 unit + 31 e2e green**, 80% statement coverage of `src`
+Current status: **331 unit + 31 e2e green**, 81% statement coverage of `src`
 from the unit tier alone — `autoScrollRegistry` and the gesture physics are
 covered by Playwright, which this number does not see.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
-`edge`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
+`edge`, `arrows`, the `bar` scrollbar, `direction`/`crossCount`,
 `objectsSize` modes, `gap`/`wrapper.margin`/`wrapper.minSize`/`wrapper.align`/
-`objectsAlign`, `progressReverse`, `onRenderedKeysChange`, `onScrollPosition`,
-`scrollPosition` (number/end), `type: sliderMenu` snapping, `autoScrollOnDrag`
+`objectsAlign`, `bar.reverse`, `onRenderedKeysChange`, `onScrollPosition`,
+`scrollPosition` (number/end), `mode: sliderMenu` snapping, `autoScrollOnDrag`
 auto-scroll, hybrid `wheel.changeDirection`, plus the pure algorithms
 (`startInertiaScroll`, `overscrollBackAnim`, rAF schedulers, `handleArrow`,
 `updateKeys`, `autoScrollRegistry`) and the wheel/thumb/content-drag/arrow
@@ -89,7 +89,7 @@ paints the visible items on the first pass instead of the next tick.
 Six problems came in from real use; each has a test that fails on the old
 code, except the last, which was already fixed and is now held in place:
 
-- content drag did nothing next to `progressElement: true`
+- content drag did nothing next to `bar: true`
   (`MorphScroll.contentDrag`);
 - `objectsSize="firstChild"` with `render` rendered nothing at all
   (`MorphScroll.render`);

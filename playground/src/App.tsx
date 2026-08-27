@@ -677,10 +677,9 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["objectsAlign", settings.objectsAlign, "value"],
     ["objectsDirection", settings.objectsDirection, "value"],
     [
+      // цвет и размер края теперь дело CSS, в проп уходит узел
       "edge",
-      settings.edge
-        ? { color: settings.edgeColor, size: settings.edgeSize }
-        : undefined,
+      settings.edge ? raw("<YourEdgeElement />") : undefined,
       "value",
     ],
     ["progressTrigger", progressTrigger, "value"],
