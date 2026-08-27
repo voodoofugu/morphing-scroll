@@ -29,6 +29,26 @@ const stubLayout = (el: HTMLElement, m: Metrics) => {
   ] as const)
     Object.defineProperty(el, key, { value: m[key], configurable: true });
 
+  /*
+   * A browser clamps scrollTop/scrollLeft to what the element can actually
+   * scroll; jsdom stores whatever you assign. Without this, code that decides
+   * "we are at the end" by comparing the offset against a computed maximum
+   * behaves differently here than in a real browser.
+   */
+  for (const [prop, max] of [
+    ["scrollTop", m.scrollHeight - m.clientHeight],
+    ["scrollLeft", m.scrollWidth - m.clientWidth],
+  ] as const) {
+    let value = 0;
+    Object.defineProperty(el, prop, {
+      configurable: true,
+      get: () => value,
+      set: (next: number) => {
+        value = Math.max(0, Math.min(next, Math.max(0, max)));
+      },
+    });
+  }
+
   el.getBoundingClientRect = () =>
     ({
       width: m.clientWidth,

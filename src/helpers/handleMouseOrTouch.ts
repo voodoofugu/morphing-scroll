@@ -212,7 +212,18 @@ const motionHandler = (
     withVisualOverscroll: boolean,
   ) => {
     const state = rt.prevCoords![axis];
-    const maxScrollSize = isX ? args.maxScrollSize[0] : args.maxScrollSize[1];
+
+    /*
+     * `maxScrollSize` считается по пропсам, а докуда реально доезжает
+     * scrollLeft/scrollTop — решает DOM. На дробных размерах и когда CSS ужал
+     * контент они расходятся: прокрутка упирается раньше, чем мы считаем край
+     * достигнутым, и резиновость просто не включалась. Берём меньшее из двух.
+     */
+    const propMax = isX ? args.maxScrollSize[0] : args.maxScrollSize[1];
+    const domMax = isX
+      ? el.scrollWidth - el.clientWidth
+      : el.scrollHeight - el.clientHeight;
+    const maxScrollSize = domMax > 0 ? Math.min(propMax, domMax) : propMax;
 
     if (!Number.isFinite(scrollDelta) || !Number.isFinite(rawDelta)) {
       // важно: сбрасываем состояние, иначе жест «залипнет»
