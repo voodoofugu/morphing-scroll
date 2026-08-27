@@ -100,14 +100,13 @@ describe("MorphScroll — wrapperAlign", () => {
   });
 });
 
-describe("MorphScroll — progressReverse", () => {
-  const renderBar = (progressReverse: boolean) =>
+describe("MorphScroll — bar.reverse", () => {
+  const renderBar = (reverse: boolean) =>
     render(
       <MorphScroll
         size={[100, 300]}
         objectsSize={100}
-        progressReverse={progressReverse}
-        progressTrigger={{ wheel: true, progressElement: <div /> }}
+        progressTrigger={{ wheel: true, bar: { element: <div />, reverse } }}
       >
         {items(10)}
       </MorphScroll>,

@@ -32,7 +32,7 @@ const scenarios: Record<string, React.ReactElement> = {
     <MorphScroll
       size={300}
       objectsSize={OBJ}
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -56,7 +56,7 @@ const scenarios: Record<string, React.ReactElement> = {
     <MorphScroll
       size={300}
       objectsSize={OBJ}
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -79,7 +79,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       render="virtual"
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -91,7 +91,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       render="lazy"
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -103,7 +103,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={300}
       mode="sliderMenu"
-      progressTrigger={{ wheel: true, progressElement: <div className="dot" /> }}
+      progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -115,7 +115,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       scrollPosition={200}
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -127,7 +127,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       scrollPosition="end"
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -149,7 +149,7 @@ scenarios.hybridWheel = (
     objectsSize={OBJ}
     crossCount={4}
     direction="hybrid"
-    progressTrigger={{ wheel: true, progressElement: thumb }}
+    progressTrigger={{ wheel: true, bar: thumb }}
     onScrollValue={onScrollValue}
   >
     {hybridItems()}
@@ -164,7 +164,7 @@ scenarios.hybridChangeDir = (
     direction="hybrid"
     progressTrigger={{
       wheel: { changeDirection: true },
-      progressElement: thumb,
+      bar: thumb,
     }}
     onScrollValue={onScrollValue}
   >
@@ -191,7 +191,7 @@ scenarios.sliderThumbDrag = (
     size={300}
     objectsSize={300}
     mode="slider"
-    progressTrigger={{ wheel: true, progressElement: <div className="dot" /> }}
+    progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
     onScrollValue={onScrollValue}
   >
     {makeItems()}
@@ -250,7 +250,7 @@ scenarios.sizeAuto = (
     <MorphScroll
       size="auto"
       objectsSize={OBJ}
-      progressTrigger={{ wheel: true, progressElement: thumb }}
+      progressTrigger={{ wheel: true, bar: thumb }}
       onScrollValue={onScrollValue}
     >
       {makeItems()}
@@ -265,7 +265,7 @@ scenarios.sliderDrag = (
     size={300}
     objectsSize={300}
     mode="slider"
-    progressTrigger={{ content: true, progressElement: <div className="dot" /> }}
+    progressTrigger={{ content: true, bar: <div className="dot" /> }}
     onScrollValue={onScrollValue}
   >
     {makeItems()}

@@ -14,7 +14,7 @@ const withBar = (count: number) => (
   <MorphScroll
     size={[100, VIEW]}
     objectsSize={OBJ}
-    progressTrigger={{ wheel: true, progressElement: <div className="knob" /> }}
+    progressTrigger={{ wheel: true, bar: <div className="knob" /> }}
   >
     {items(count)}
   </MorphScroll>
@@ -54,7 +54,7 @@ describe("ScrollBar — wheel over the bar", () => {
   });
 });
 
-describe("ScrollBar — scrollBarOnHover", () => {
+describe("ScrollBar — showOnHover", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
@@ -62,8 +62,10 @@ describe("ScrollBar — scrollBarOnHover", () => {
     <MorphScroll
       size={[100, VIEW]}
       objectsSize={OBJ}
-      scrollBarOnHover
-      progressTrigger={{ wheel: true, progressElement: <div className="knob" /> }}
+      progressTrigger={{
+        wheel: true,
+        bar: { element: <div className="knob" />, showOnHover: true },
+      }}
     >
       {items(20)}
     </MorphScroll>
@@ -134,7 +136,7 @@ describe("ScrollBar — a changed progressElement", () => {
     <MorphScroll
       size={[100, VIEW]}
       objectsSize={OBJ}
-      progressTrigger={{ wheel: true, progressElement: <b>{label}</b> }}
+      progressTrigger={{ wheel: true, bar: <b>{label}</b> }}
     >
       {items(20)}
     </MorphScroll>
@@ -145,7 +147,7 @@ describe("ScrollBar — a changed progressElement", () => {
       size={[100, VIEW]}
       objectsSize={VIEW}
       mode="sliderMenu"
-      progressTrigger={{ wheel: true, progressElement: <b>{label}</b> }}
+      progressTrigger={{ wheel: true, bar: <b>{label}</b> }}
     >
       {items(9)}
     </MorphScroll>
@@ -179,13 +181,12 @@ describe("ScrollBar — a changed progressElement", () => {
 });
 
 describe("ScrollBar — edgeGap", () => {
-  const bar = (progressElement: unknown, extra: Record<string, unknown> = {}) =>
+  const bar = (config: unknown) =>
     render(
       <MorphScroll
         size={[100, VIEW]}
         objectsSize={OBJ}
-        progressTrigger={{ wheel: true, progressElement: progressElement as never }}
-        {...extra}
+        progressTrigger={{ wheel: true, bar: config as never }}
       >
         {items(20)}
       </MorphScroll>,
@@ -203,8 +204,8 @@ describe("ScrollBar — edgeGap", () => {
     expect(bar({ element: <i />, edgeGap: -20 }).style.right).toBe("-20px");
   });
 
-  it("moves to the other side together with progressReverse", () => {
-    const el = bar({ element: <i />, edgeGap: 8 }, { progressReverse: true });
+  it("moves to the other side together with reverse", () => {
+    const el = bar({ element: <i />, edgeGap: 8, reverse: true });
     expect(el.style.left).toBe("8px");
     expect(el.style.right).toBe("");
   });
@@ -223,7 +224,7 @@ describe("ScrollBar — edgeGap", () => {
         crossCount={4}
         progressTrigger={{
           wheel: true,
-          progressElement: { element: <i />, edgeGap: [4, 16] },
+          bar: { element: <i />, edgeGap: [4, 16] },
         }}
       >
         {items(20)}

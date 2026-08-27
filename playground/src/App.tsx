@@ -71,12 +71,14 @@ type Settings = {
   arrowSize: number;
   arrowContentReduce: boolean;
   arrowLoop: boolean;
-  progressReverseX: boolean;
-  progressReverseY: boolean;
-  scrollBarOnHover: boolean;
-  scrollBarEdgeX: number;
-  scrollBarEdgeY: number;
-  thumbMinSize: number;
+  barReverseX: boolean;
+  barReverseY: boolean;
+  barShowOnHover: boolean;
+  barTrackGapX: number;
+  barTrackGapY: number;
+  barEdgeGapX: number;
+  barEdgeGapY: number;
+  barThumbMinSize: number;
   renderMode: RenderMode;
   rootMargin: number;
   stopLoadOnScroll: boolean;
@@ -148,12 +150,14 @@ const defaultSettings: Settings = {
   arrowSize: 36,
   arrowContentReduce: true,
   arrowLoop: false,
-  progressReverseX: false,
-  progressReverseY: false,
-  scrollBarOnHover: false,
-  scrollBarEdgeX: 8,
-  scrollBarEdgeY: 8,
-  thumbMinSize: 30,
+  barReverseX: false,
+  barReverseY: false,
+  barShowOnHover: false,
+  barTrackGapX: 8,
+  barTrackGapY: 8,
+  barEdgeGapX: 0,
+  barEdgeGapY: 0,
+  barThumbMinSize: 30,
   renderMode: "off",
   rootMargin: 120,
   stopLoadOnScroll: false,
@@ -545,7 +549,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
           ? settings.wrapperMinWidth
           : [settings.wrapperMinWidth, settings.wrapperMinHeight];
 
-  const progressElement: CodeValue =
+  const barElement: CodeValue =
     settings.progressElementMode === "off"
       ? false
       : needsMenu
@@ -553,6 +557,20 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : settings.progressElementMode === "native"
           ? true
           : raw("<YourProgressElement />");
+
+  /** всё про бегунок теперь живёт одним объектом внутри progressTrigger */
+  const barSettings = {
+    edgeGap: [settings.barEdgeGapX, settings.barEdgeGapY],
+    reverse: [settings.barReverseX, settings.barReverseY],
+    showOnHover: settings.barShowOnHover,
+    thumbMinSize: settings.barThumbMinSize,
+    trackGap: [settings.barTrackGapX, settings.barTrackGapY],
+  };
+
+  const barForCode: CodeValue =
+    barElement === false || barElement === true
+      ? barElement
+      : { element: barElement, ...barSettings };
 
   const progressTrigger: CodeValue = {
     wheel: settings.wheel
@@ -562,7 +580,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         }
       : false,
     content: settings.contentDrag,
-    progressElement,
+    bar: barForCode,
     arrows: settings.arrows
       ? {
           element: raw("<YourArrow />"),
@@ -622,26 +640,6 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       "value",
     ],
     ["progressTrigger", progressTrigger, "value"],
-    [
-      "progressReverse",
-      settings.progressReverseX || settings.progressReverseY
-        ? [settings.progressReverseX, settings.progressReverseY]
-        : undefined,
-      "value",
-    ],
-    ["scrollBarOnHover", settings.scrollBarOnHover || undefined, "boolean"],
-    [
-      "scrollBarEdge",
-      settings.scrollBarEdgeX || settings.scrollBarEdgeY
-        ? [settings.scrollBarEdgeX, settings.scrollBarEdgeY]
-        : undefined,
-      "value",
-    ],
-    [
-      "thumbMinSize",
-      settings.thumbMinSize !== 30 ? settings.thumbMinSize : undefined,
-      "value",
-    ],
     ["render", render, "value"],
     ["emptyElements", emptyElements, "value"],
     ["suspending", settings.suspending || undefined, "boolean"],
@@ -774,7 +772,7 @@ function App() {
   }, [settings.edgeColor, settings.edgeGradient, settings.edgeSize]);
 
   const progressElement = React.useMemo<
-    ProgressTriggerConfig["progressElement"]
+    React.ReactNode | React.ReactNode[] | boolean
   >(() => {
     if (settings.progressElementMode === "off") return false;
     if (settings.mode === "sliderMenu") return progressMenu;
@@ -840,7 +838,6 @@ function App() {
             setScrollTop(top);
           }
         : undefined,
-      progressReverse: [settings.progressReverseX, settings.progressReverseY],
       progressTrigger: {
         arrows: settings.arrows
           ? {
@@ -851,7 +848,17 @@ function App() {
             }
           : false,
         content: settings.contentDrag,
-        progressElement,
+        bar:
+          typeof progressElement === "boolean"
+            ? progressElement
+            : {
+                edgeGap: [settings.barEdgeGapX, settings.barEdgeGapY],
+                element: progressElement,
+                reverse: [settings.barReverseX, settings.barReverseY],
+                showOnHover: settings.barShowOnHover,
+                thumbMinSize: settings.barThumbMinSize,
+                trackGap: [settings.barTrackGapX, settings.barTrackGapY],
+              },
         wheel: settings.wheel
           ? {
               changeDirection: settings.wheelChangeDirection,
@@ -860,12 +867,9 @@ function App() {
           : false,
       },
       render,
-      scrollBarEdge: [settings.scrollBarEdgeX, settings.scrollBarEdgeY],
-      scrollBarOnHover: settings.scrollBarOnHover,
       scrollPosition: scrollCommand,
       size,
       suspending: settings.suspending,
-      thumbMinSize: settings.thumbMinSize,
       mode: settings.mode,
       wrapperAlign: [settings.wrapperAlignX, settings.wrapperAlignY],
       wrapperMargin,
@@ -1143,14 +1147,14 @@ function App() {
           </div>
           <div className="two-col">
             <ToggleField
-              label="progressReverse[0]"
-              onChange={(value) => update("progressReverseX", value)}
-              value={settings.progressReverseX}
+              label="bar.reverse[0]"
+              onChange={(value) => update("barReverseX", value)}
+              value={settings.barReverseX}
             />
             <ToggleField
-              label="progressReverse[1]"
-              onChange={(value) => update("progressReverseY", value)}
-              value={settings.progressReverseY}
+              label="bar.reverse[1]"
+              onChange={(value) => update("barReverseY", value)}
+              value={settings.barReverseY}
             />
           </div>
         </ControlGroup>
@@ -1325,7 +1329,7 @@ function App() {
 
         <ControlGroup title="progressTrigger">
           <SelectField
-            label="progressElement"
+            label="bar.element"
             onChange={(value) => update("progressElementMode", value)}
             options={["custom", "native", "off"] as const}
             value={settings.progressElementMode}
@@ -1344,11 +1348,11 @@ function App() {
               value={settings.arrowSize}
             />
             <NumberField
-              label="thumbMinSize"
+              label="bar.thumbMinSize"
               max={160}
               min={8}
-              onChange={(value) => update("thumbMinSize", value)}
-              value={settings.thumbMinSize}
+              onChange={(value) => update("barThumbMinSize", value)}
+              value={settings.barThumbMinSize}
             />
           </div>
           <ToggleField
@@ -1362,34 +1366,50 @@ function App() {
             value={settings.arrowLoop}
           />
           <ToggleField
-            label="scrollBarOnHover"
-            onChange={(value) => update("scrollBarOnHover", value)}
-            value={settings.scrollBarOnHover}
+            label="bar.showOnHover"
+            onChange={(value) => update("barShowOnHover", value)}
+            value={settings.barShowOnHover}
           />
           <div className="two-col">
             <ToggleField
-              label="progressReverse x"
-              onChange={(value) => update("progressReverseX", value)}
-              value={settings.progressReverseX}
+              label="bar.reverse x"
+              onChange={(value) => update("barReverseX", value)}
+              value={settings.barReverseX}
             />
             <ToggleField
-              label="progressReverse y"
-              onChange={(value) => update("progressReverseY", value)}
-              value={settings.progressReverseY}
+              label="bar.reverse y"
+              onChange={(value) => update("barReverseY", value)}
+              value={settings.barReverseY}
             />
           </div>
           <div className="two-col">
             <NumberField
-              label="scrollBarEdge x"
+              label="bar.trackGap x"
               max={100}
-              onChange={(value) => update("scrollBarEdgeX", value)}
-              value={settings.scrollBarEdgeX}
+              onChange={(value) => update("barTrackGapX", value)}
+              value={settings.barTrackGapX}
             />
             <NumberField
-              label="scrollBarEdge y"
+              label="bar.trackGap y"
               max={100}
-              onChange={(value) => update("scrollBarEdgeY", value)}
-              value={settings.scrollBarEdgeY}
+              onChange={(value) => update("barTrackGapY", value)}
+              value={settings.barTrackGapY}
+            />
+          </div>
+          <div className="two-col">
+            <NumberField
+              label="bar.edgeGap x"
+              max={100}
+              min={-100}
+              onChange={(value) => update("barEdgeGapX", value)}
+              value={settings.barEdgeGapX}
+            />
+            <NumberField
+              label="bar.edgeGap y"
+              max={100}
+              min={-100}
+              onChange={(value) => update("barEdgeGapY", value)}
+              value={settings.barEdgeGapY}
             />
           </div>
         </ControlGroup>

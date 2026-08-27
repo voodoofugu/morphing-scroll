@@ -15,6 +15,32 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `scrollPosition={{ value, updater }}` | `ref.current.scrollTo(value)` — see below |
 | `edgeGradient="#fff"` | `edgeGradient` + your CSS |
 | `edgeGradient={{ color, size }}` | `edgeGradient` + your CSS, or `edgeGradient={<Node />}` |
+| `progressTrigger={{ progressElement: X }}` | `progressTrigger={{ bar: X }}` |
+| `progressReverse={true}` | `progressTrigger={{ bar: { reverse: true } }}` |
+| `scrollBarOnHover` | `progressTrigger={{ bar: { showOnHover: true } }}` |
+| `scrollBarEdge={10}` | `progressTrigger={{ bar: { trackGap: 10 } }}` |
+| `thumbMinSize={24}` | `progressTrigger={{ bar: { thumbMinSize: 24 } }}` |
+
+Everything about the scrollbar now lives inside `progressTrigger.bar`, the
+same way everything about the arrows already lived inside
+`progressTrigger.arrows`. Four top-level props are gone, and the names lose
+the prefixes they no longer need:
+
+```tsx
+progressTrigger={{
+  wheel: true,
+  bar: {
+    element: <Thumb />,
+    edgeGap: 8,        // new: distance from the side the bar sits on
+    trackGap: 10,      // was scrollBarEdge
+    reverse: true,     // was progressReverse
+    showOnHover: true, // was scrollBarOnHover
+    thumbMinSize: 24,
+  },
+}}
+```
+
+`progressTrigger` also accepts `"bar"` as a shorthand name now.
 
 `progressTrigger` also accepts a name or a list of names now —
 `"wheel"`, `["wheel", "content"]` — which is the same as `{ wheel: true }`
@@ -98,10 +124,9 @@ themselves are no longer transformed and can be positioned from CSS.
 ### Added
 
 - `ref` with `scrollTo(target, { duration })`.
-- `progressTrigger.progressElement` accepts an object —
-  `{ element, edgeGap }` — the same shape `arrows` already had. `edgeGap` is
-  the distance from the side the bar sits on; negative pushes it past the
-  edge.
+- `progressTrigger.bar` accepts an object with everything about the
+  scrollbar in it. `edgeGap` is new: the distance from the side the bar sits
+  on, negative pushes it past the edge.
 - Public types: `MorphScrollProps`, `ResizeTrackerProps`,
   `IntersectionTrackerProps`, `MorphScrollHandle`, `ScrollTarget`,
   `ProgressTriggerName`, `ProgressTriggerConfig`.

@@ -52,7 +52,7 @@ describe("slider elements", () => {
         size={SIZE}
         objectsSize={300}
         mode="sliderMenu"
-        progressTrigger={{ wheel: true, progressElement: <span /> }}
+        progressTrigger={{ wheel: true, bar: <span /> }}
       >
         {items(6)}
       </MorphScroll>,

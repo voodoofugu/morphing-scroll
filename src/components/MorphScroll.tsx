@@ -1,6 +1,7 @@
 import React from "react";
 
 import type {
+  BarConfig,
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
   ProgressTriggerConfig,
@@ -94,10 +95,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // Progress Bar
       progressTrigger = { wheel: true },
-      progressReverse = false,
-      scrollBarOnHover = false,
-      scrollBarEdge,
-      thumbMinSize,
 
       // Optimization
       render,
@@ -214,7 +211,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       gapST,
       progressTriggerST,
       objectsKeysEmptyST,
-      scrollBarEdgeST,
       edgeGradientST,
     ] = stabilize(
       scrollPosition,
@@ -227,7 +223,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       gap,
       progressTrigger,
       objectsKeys.current.empty,
-      scrollBarEdge,
       edgeGradient,
     );
 
@@ -276,6 +271,49 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       () => (React.isValidElement(edgeGradient) ? edgeGradient : undefined),
       [edgeGradientST],
     );
+
+    /*
+     * Всё про бегунок собрано в одном месте — как `arrows`. Наружу отдаём
+     * готовые значения, что бы ScrollBar не разбирал форму повторно.
+     */
+    const barLocal = React.useMemo(() => {
+      const bar = progressTriggerLocal.bar;
+
+      const isConfig =
+        !!bar &&
+        typeof bar === "object" &&
+        !Array.isArray(bar) &&
+        !React.isValidElement(bar) &&
+        !("type" in bar);
+
+      const config = (isConfig ? bar : {}) as BarConfig;
+      const element = isConfig
+        ? config.element
+        : (bar as React.ReactNode | React.ReactNode[]);
+
+      const pair = <T,>(value: T | T[] | undefined, fallback: T): [T, T] => {
+        if (Array.isArray(value))
+          return [value[0] ?? fallback, value[1] ?? value[0] ?? fallback];
+
+        return [value ?? fallback, value ?? fallback];
+      };
+
+      const [gapX, gapY] = pair(config.trackGap, 0);
+
+      return {
+        element,
+        /** есть ли вообще что показывать */
+        present: !!bar,
+        /** `true` — отдаём работу нативному скроллбару браузера */
+        native: bar === true,
+        edgeGap: pair(config.edgeGap, 0),
+        // трек укорачивается с обоих концов, отсюда удвоение
+        trackGap: [gapX * 2, gapY * 2] as [number, number],
+        reverse: pair(config.reverse, false),
+        showOnHover: config.showOnHover ?? false,
+        thumbMinSize: config.thumbMinSize ?? 30,
+      };
+    }, [progressTriggerST]);
 
     const arrowsLocal = React.useMemo(() => {
       const arrows = progressTriggerLocal.arrows;
@@ -407,28 +445,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     ]);
     const xySize = direction === "x" ? sizeLocal[0] : sizeLocal[1];
 
-    const scrollBarEdgeLocal = React.useMemo<[number, number]>(() => {
-      if (!scrollBarEdge) return [0, 0];
-
-      if (typeof scrollBarEdge === "number") {
-        const val = scrollBarEdge * 2;
-        return [val, val];
-      }
-
-      if (Array.isArray(scrollBarEdge)) {
-        const [first = 0, second] = scrollBarEdge;
-        return [first * 2, (second ?? first) * 2];
-      }
-
-      return [0, 0];
-    }, [scrollBarEdgeST]);
-
     const sizeMinusEdge = React.useMemo(() => {
-      const x = sizeLocal[0] - scrollBarEdgeLocal[0];
-      const y = sizeLocal[1] - scrollBarEdgeLocal[1];
+      const x = sizeLocal[0] - barLocal.trackGap[0];
+      const y = sizeLocal[1] - barLocal.trackGap[1];
 
       return [x, y];
-    }, [scrollBarEdgeLocal.join(), sizeLocal[0], sizeLocal[1]]);
+    }, [barLocal.trackGap.join(), sizeLocal[0], sizeLocal[1]]);
 
     const objectsSizing = React.useMemo(
       () =>
@@ -654,27 +676,21 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsWrapperWidthFull;
     }
 
-    const thumbMinSizeLocal = React.useMemo(
-      () => thumbMinSize ?? 30,
-      [thumbMinSize],
-    );
-
     const getThumbSize = React.useCallback(
       (dir: "x" | "y") => {
-        if (!progressTriggerLocal.progressElement || !fullHeightOrWidth)
-          return 0;
+        if (!barLocal.present || !fullHeightOrWidth) return 0;
 
         if (dir === "x") {
           return calculateThumbSize(
-            sizeLocal[0] - scrollBarEdgeLocal[0],
+            sizeLocal[0] - barLocal.trackGap[0],
             objectsWrapperWidthFull,
-            thumbMinSizeLocal,
+            barLocal.thumbMinSize,
           );
         } else
           return calculateThumbSize(
-            sizeLocal[1] - scrollBarEdgeLocal[1],
+            sizeLocal[1] - barLocal.trackGap[1],
             objectsWrapperHeightFull,
-            thumbMinSizeLocal,
+            barLocal.thumbMinSize,
           );
       },
       [
@@ -683,8 +699,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         sizeLocal[0],
         sizeLocal[1],
         objectsWrapperWidthFull,
-        thumbMinSizeLocal,
-        scrollBarEdgeLocal.join(),
+        barLocal.thumbMinSize,
+        barLocal.trackGap.join(),
       ],
     );
 
@@ -1011,7 +1027,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           thumbSize: axisFromAtr === "x" ? thumbSizeMemo.x : thumbSizeMemo.y,
           axisFromAtr,
           duration: scrollPositionLocal.duration,
-          scrollBarEdge: scrollBarEdgeLocal,
+          scrollBarEdge: barLocal.trackGap,
           rafScrollAnim,
           isTouched: isTouchedRef.current,
           gap: gapLocal,
@@ -1031,7 +1047,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         sizeLocal.join(),
         scrollPositionLocal.duration,
         smoothScrollLocal,
-        scrollBarEdgeLocal.join(),
+        barLocal.trackGap.join(),
         thumbSizeMemo.x,
         thumbSizeMemo.y,
         gapLocal.join(),
@@ -1168,7 +1184,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           mode === "scroll" ? ".ms-bar" : ".ms-slider",
         );
         if (
-          scrollBarOnHover &&
+          barLocal.showOnHover &&
           scrollOrSlider.length > 0 &&
           !isScrollingRef.current
         ) {
@@ -1197,7 +1213,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             renderLocal.mode && updateLoadedElementsKeysLocal();
 
             if (
-              scrollBarOnHover &&
+              barLocal.showOnHover &&
               scrollOrSlider.length > 0 &&
               !clickedObject.current
             ) {
@@ -1238,7 +1254,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         mode,
         sliderCheckLocal,
         updateLoadedElementsKeysLocal,
-        scrollBarOnHover,
+        barLocal.showOnHover,
         renderLocal.mode,
         scrollPositionLocal.value.join(), // читается внутри для трекера "end"
       ],
@@ -1592,7 +1608,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * Отсекаем только полосу: clientWidth/clientHeight её не включают.
        */
       const isOnNativeBar = (event: PointerEvent) => {
-        if (progressTriggerLocal.progressElement !== true) return false;
+        if (!barLocal.native) return false;
 
         const rect = scrollEl.getBoundingClientRect();
         return (
@@ -1624,7 +1640,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // установка слушателя нажатия на scrollContentRef
     React.useEffect(() => {
       const el = scrollContentRef.current;
-      if (!el || !scrollBarOnHover) return;
+      if (!el || !barLocal.showOnHover) return;
 
       if (!scrollBarsRef.current.size) return;
 
@@ -1669,7 +1685,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         listenersHandler("removeEventListener", handler);
       };
     }, [
-      scrollBarOnHover,
+      barLocal.showOnHover,
       mode,
       // почему-то при изменении direction отваливается ивент
       direction,
@@ -1979,12 +1995,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           handleArrow={handleArrowLocal}
         />
       ));
-    }, [
-      progressTriggerST,
-      getEdgeOrArrowData,
-      arrowsLocal,
-      handleArrowLocal,
-    ]);
+    }, [progressTriggerST, getEdgeOrArrowData, arrowsLocal, handleArrowLocal]);
 
     const scrollBarConfigs = () => {
       const isNotX = direction !== "x";
@@ -2013,27 +2024,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     };
 
     const scrollBarsJSX = () => {
-      if (
-        !progressTriggerLocal.progressElement ||
-        progressTriggerLocal.progressElement === true
-      )
-        return null;
+      // нативный скроллбар браузера рисует себя сам
+      if (!barLocal.present || barLocal.native) return null;
 
       return scrollBarConfigs().map((args) => {
-        const progressReverseValue =
-          typeof progressReverse === "boolean"
-            ? progressReverse
-            : progressReverse[args.progressReverseIndex];
+        // индекс 0 — бар оси x, 1 — оси y
+        const axis = args.progressReverseIndex === 1 ? 0 : 1;
 
         return (
           <ScrollBar
             key={args.direction}
             mode={mode}
             direction={args.direction}
-            progressReverse={progressReverseValue}
+            element={barLocal.element}
+            reverse={barLocal.reverse[axis]}
+            edgeGap={barLocal.edgeGap[axis]}
+            showOnHover={barLocal.showOnHover}
             size={sizeMinusEdge}
             progressTrigger={[progressTriggerLocal, progressTriggerST]}
-            scrollBarOnHover={scrollBarOnHover}
             scrollBarEvent={
               mode === "sliderMenu" ? smoothScrollLocal : onMoveScrollThumb
             }
@@ -2136,8 +2144,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               height: "100%",
               outline: "none",
               ...wrapperAlignLocal,
-              ...(typeof progressTriggerLocal.progressElement !== "boolean" ||
-              progressTriggerLocal.progressElement === false
+              ...(!barLocal.native
                 ? {
                     scrollbarWidth: "none",
                     overflow: "hidden",

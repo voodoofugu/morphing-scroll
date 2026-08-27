@@ -37,13 +37,16 @@ export const everyProp = (
     progressTrigger={{
       wheel: { changeDirection: true },
       content: true,
-      progressElement: { element: <i />, edgeGap: [4, -8] },
+      bar: {
+        element: <i />,
+        edgeGap: [4, -8],
+        trackGap: 6,
+        reverse: [true, false],
+        showOnHover: true,
+        thumbMinSize: 24,
+      },
       arrows: { element: <b />, size: 40, loop: true },
     }}
-    progressReverse={[true, false]}
-    scrollBarOnHover
-    scrollBarEdge={[4, 8]}
-    thumbMinSize={24}
     render={{ mode: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
     emptyElements={{ mode: "clear", clickTrigger: { selector: ".x", delay: 100 } }}
     suspending
@@ -57,7 +60,7 @@ export const everyProp = (
 export const triggerShorthand = (
   <>
     <MorphScroll size={100} progressTrigger="wheel" />
-    <MorphScroll size={100} progressTrigger={["wheel", "content", "arrows"]} />
+    <MorphScroll size={100} progressTrigger={["wheel", "content", "arrows", "bar"]} />
   </>
 );
 

@@ -51,7 +51,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements.
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
-> - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressElement={<Thumb />}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
+> - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressTrigger={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
 > - Due to frequent DOM updates for customization, performance may decrease when DevTools are open, as the browser needs extra resources to track changes.
 > - ! This library is currently under development. APIs and behavior may change in future releases.
 
@@ -114,7 +114,7 @@ mode: "slider"; // or "scroll" | "sliderMenu"
 "scroll"<br />
 <br />
 <b>Description:</b><em><br />
-defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
+defines how the provided <code>bar</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
 <br />
 <code><b>scroll</b></code>:<br />
 the default value and represents a standard scrollbar.<br />
@@ -123,7 +123,7 @@ the default value and represents a standard scrollbar.<br />
 displays distinct elements indicating the number of full scroll steps within the list.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-like <code>slider</code>, but the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
+like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
 </em><br />
 <b>Example:</b>
 
@@ -573,7 +573,7 @@ changes the order of the provided elements based on the provided value.</em><br 
   <li><b>Shorthand</b>:<br />
 
 ```tsx
-progressTrigger: "wheel"; // or ["wheel", "content", "arrows"]
+progressTrigger: "wheel"; // or ["wheel", "content", "arrows", "bar"]
 ```
 
   </li>
@@ -583,7 +583,7 @@ progressTrigger: "wheel"; // or ["wheel", "content", "arrows"]
 progressTrigger: {
   wheel: true,
   content: true,
-  progressElement: true, // or <ScrollThumbComponent />
+  bar: true, // or <ScrollThumbComponent />
   arrows: true, // or <ArrowComponent />
 }
 ```
@@ -598,7 +598,7 @@ progressTrigger: {
     changeDirection: true,
     changeDirectionBtn: "KeyZ" // default "KeyX", "" to disable
   },
-  progressElement: [<Elem1 />, <Elem2 />, <Elem3 />],
+  bar: [<Elem1 />, <Elem2 />, <Elem3 />],
   arrows: {
     element: <ArrowComponent />,
     size: 60, // default 40px
@@ -617,7 +617,7 @@ progressTrigger: {
 <b>Description:</b><em><br />
 this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
 <br />
-A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "content"]</code> the same as <code>{ wheel: true, content: true }</code>. Reach for the object form when a trigger needs settings, or to pass <code>progressElement</code>.<br />
+A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "content"]</code> the same as <code>{ wheel: true, content: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br />
 <br />
 <code><b>wheel</b></code>:<br />
 determines whether the progress bar responds to mouse wheel scrolling<br />
@@ -639,26 +639,69 @@ By using <code>content</code> drag scrolling will not work in these cases:<br />
   <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
 </ul>
 <br />
-<code><b>progressElement</b></code>:<br />
+<code><b>bar</b></code>:<br />
 determines how the scroll progress is managed<br />
 <br />
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
   <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
-  <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+  <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>bar</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
 
 For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:
 
 ```tsx
-progressElement: {
+bar: {
   element: <ScrollThumbComponent />,
-  edgeGap: 8, // or [x, y] for direction="hybrid"
+  edgeGap: 8,        // or [x, y] for direction="hybrid"
+  trackGap: 10,
+  reverse: true,
+  showOnHover: true,
+  thumbMinSize: 24,
 }
 ```
 
-<code><b>edgeGap</b></code> is the distance between the bar and the side it sits on. A negative value pushes it past that edge, which is the usual reason to reach for CSS here. It follows <code>progressReverse</code>, so the gap is always measured from whichever side the bar is actually on.<br />
+<ul>
+  <li><code>element</code>: what the bar is made of. An array feeds one node per slider element.</li><br />
+  <li><code>edgeGap</code>: distance between the bar and the side it sits on. A negative value pushes it past that edge — the usual reason to reach for CSS here. It follows <code>reverse</code>, so the gap is always measured from whichever side the bar actually ended up on.</li><br />
+  <li><code>trackGap</code>: shortens the track by this much at each of its two ends. Not to be confused with <code>edgeGap</code>: this one runs along the track, that one across it.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+<br />
+  <li><code>reverse</code>: put the bar on the opposite side.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
+<br />
+  <li><code>showOnHover</code>: report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
+<br />
+  <li><code>thumbMinSize</code>: the thumb never shrinks below this.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-thumbMinSize.png)
+</ul>
+
+<br />
+✦ Note:<br />
+with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) on <b>.ms-bar</b> and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. The bar stays visible until you use the variable:<br />
+
+```css
+.ms-bar {
+  opacity: var(--ms-bar-visibility, 1);
+  transition: opacity 0.2s ease-in-out;
+}
+```
+
+<em>which also means you are not limited to <code>opacity</code>:</em>
+
+```css
+.ms-bar {
+  transform: scaleX(var(--ms-bar-visibility, 1));
+  transition: transform 0.2s ease-in-out;
+}
+```
+<br />
 <br />
 <code><b>arrows</b></code>:<br />
 allows you to add custom arrows to the progress bar<br />
@@ -683,134 +726,12 @@ While the content, a thumb or a slider is being dragged, the element under the p
   {...props}
   progressTrigger={{
     wheel: true,
-    progressElement: <div className="your-scroll-thumb" />,
+    bar: <div className="your-scroll-thumb" />,
   }}
 >
   {children}
 </MorphScroll>
 ```
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>progressReverse</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-progressReverse: true; // or [true, false] if direction="hybrid"
-```
-
-<b>Description:</b><em><br />
-this parameter changes the position of the progress bar in the opposite direction and depends on the <code>direction</code> property.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} progressReverse>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>scrollBarOnHover</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-scrollBarOnHover: true;
-```
-
-<b>Description:</b><em><br />
-this parameter controls the visibility of the progress bar regardless of the <code>mode</code> value.<br />
-<br />
-The library only reports the state, it does not decide how the bar disappears. It sets the <code>--ms-bar-visibility</code> variable on <b>.ms-bar</b> to <b>1</b> while the bar is active — the cursor is over it, a finger touches it, or the content is being scrolled — and back to <b>0</b> afterwards. Alongside it, <b>.ms-hover</b> is added while active and <b>.ms-leave</b> for the 200ms after it stops being active, so the departure can be animated separately.<br />
-<br />
-✦ Note:<br />
-nothing is styled for you, so the bar stays visible until you use the variable:<br />
-</em>
-
-```css
-.ms-bar {
-  opacity: var(--ms-bar-visibility, 1);
-  transition: opacity 0.2s ease-in-out;
-}
-```
-
-<em>which also means you are not limited to <code>opacity</code>:</em>
-
-```css
-.ms-bar {
-  transform: scaleX(var(--ms-bar-visibility, 1));
-  transition: transform 0.2s ease-in-out;
-}
-```
-
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} scrollBarOnHover>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>scrollBarEdge</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-scrollBarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
-```
-
-<b>Description:</b><em><br />
-defines the margin (in <b>px</b>) applied to the edges of the scroll bar, effectively reducing its size.<br />
-<br />
-✦ Note:<br />
-this parameter is only used when <code>mode="scroll"</code> is set.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} scrollBarEdge={10}>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>thumbMinSize</code></b></summary><br /><ul><div>
-<b>Default:</b><br />
-30px<br />
-<br />
-<b>Description:</b><em><br />
-if the scrollable content is long, this option sets the minimum size (in <b>px</b>) of the scroll bar thumb automatically.<br />
-<br />
-✦ Note:<br />
-this parameter is only used when <code>mode="scroll"</code> is set.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} thumbMinSize={40}>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-thumbMinSize.png)
 
 </div></ul></details>
 

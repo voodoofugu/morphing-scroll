@@ -267,7 +267,7 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
         objectsSize={OBJ}
         progressTrigger={{
           wheel: true,
-          progressElement: <div className="my-thumb" />,
+          bar: <div className="my-thumb" />,
         }}
       >
         {items(10)}
@@ -285,7 +285,7 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
         objectsSize={OBJ}
         progressTrigger={{
           wheel: true,
-          progressElement: <div className="my-thumb" />,
+          bar: <div className="my-thumb" />,
         }}
       >
         {items(2)}
@@ -299,7 +299,7 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
       <MorphScroll
         size={SIZE}
         objectsSize={OBJ}
-        progressTrigger={{ wheel: true, progressElement: true }}
+        progressTrigger={{ wheel: true, bar: true }}
       >
         {items(10)}
       </MorphScroll>,

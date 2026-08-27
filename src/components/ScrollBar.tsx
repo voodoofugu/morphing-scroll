@@ -1,10 +1,5 @@
 import React from "react";
-import type {
-  MorphScroll,
-  ProgressElementConfig,
-  ProgressTriggerConfig,
-  Vec2,
-} from "../types/types";
+import type { MorphScroll, ProgressTriggerConfig, Vec2 } from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
@@ -16,10 +11,12 @@ type OnCustomScrollFn = (
   callback?: () => void,
 ) => void;
 
-type ModifiedProps = Pick<
-  MorphScroll,
-  "mode" | "progressReverse" | "scrollBarOnHover" // выбираю нужное
-> & {
+type ModifiedProps = Pick<MorphScroll, "mode"> & {
+  /** уже разобранная конфигурация бегунка, по одной оси */
+  element: React.ReactNode | React.ReactNode[];
+  reverse: boolean;
+  edgeGap: number;
+  showOnHover: boolean;
   size: number[];
   scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
   thumbSize: number;
@@ -41,34 +38,15 @@ type ModifiedProps = Pick<
   maxScrollSize: Vec2;
 };
 
-/*
- * `progressElement` принимает и голый узел, и объект с настройками — так же,
- * как `arrows`. Разбираем один раз.
- */
-const isElementConfig = (
-  value: ProgressTriggerConfig["progressElement"],
-): value is ProgressElementConfig =>
-  !!value &&
-  typeof value === "object" &&
-  !Array.isArray(value) &&
-  !React.isValidElement(value) &&
-  "element" in value;
-
-const readProgressElement = (value: ProgressTriggerConfig["progressElement"]) =>
-  isElementConfig(value)
-    ? { element: value.element, edgeGap: value.edgeGap }
-    : {
-        element: value as React.ReactNode | React.ReactNode[],
-        edgeGap: undefined as ProgressElementConfig["edgeGap"],
-      };
-
 const ScrollBar = ({
   mode,
   direction,
-  progressReverse,
+  element: progressElement,
+  reverse: progressReverse,
+  edgeGap,
+  showOnHover: scrollBarOnHover,
   size,
   progressTrigger,
-  scrollBarOnHover,
   scrollBarEvent,
   thumbSize,
   thumbSpace,
@@ -96,20 +74,6 @@ const ScrollBar = ({
     overscroll.current[axis] < 0
       ? thumbSpace + dampeningOverscroll
       : thumbSpace;
-
-  const { element: progressElement, edgeGap } = React.useMemo(
-    () => readProgressElement(progressTrigger[0].progressElement),
-    [progressTrigger[1]],
-  );
-
-  /** зазор до своей стороны: [для бара оси x, для бара оси y] */
-  const edgeGapLocal = React.useMemo<[number, number]>(() => {
-    if (typeof edgeGap === "number") return [edgeGap, edgeGap];
-    if (Array.isArray(edgeGap))
-      return [edgeGap[0] ?? 0, edgeGap[1] ?? edgeGap[0] ?? 0];
-
-    return [0, 0];
-  }, [edgeGap]);
 
   // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
@@ -258,11 +222,11 @@ const ScrollBar = ({
                   left: "50%",
                   ...(progressReverse
                     ? {
-                        top: `${edgeGapLocal[0]}px`,
+                        top: `${edgeGap}px`,
                         transform: "rotate(-90deg) translate(-100%, -50%)",
                       }
                     : {
-                        bottom: `${edgeGapLocal[0]}px`,
+                        bottom: `${edgeGap}px`,
                         transform: "rotate(-90deg) translateY(-50%)",
                       }),
                 }
@@ -270,8 +234,8 @@ const ScrollBar = ({
                   top: "50%",
                   transform: "translateY(-50%)",
                   ...(progressReverse
-                    ? { left: `${edgeGapLocal[1]}px` }
-                    : { right: `${edgeGapLocal[1]}px` }),
+                    ? { left: `${edgeGap}px` }
+                    : { right: `${edgeGap}px` }),
                 }),
           }}
         >
@@ -312,16 +276,16 @@ const ScrollBar = ({
                     left: "50%",
                     transform: "translateX(-50%)",
                     ...(progressReverse
-                      ? { top: `${edgeGapLocal[0]}px` }
-                      : { bottom: `${edgeGapLocal[0]}px` }),
+                      ? { top: `${edgeGap}px` }
+                      : { bottom: `${edgeGap}px` }),
                   }
                 : {
                     flexDirection: "column",
                     top: "50%",
                     transform: "translateY(-50%)",
                     ...(progressReverse
-                      ? { left: `${edgeGapLocal[1]}px` }
-                      : { right: `${edgeGapLocal[1]}px` }),
+                      ? { left: `${edgeGap}px` }
+                      : { right: `${edgeGap}px` }),
                   }),
             }}
           >

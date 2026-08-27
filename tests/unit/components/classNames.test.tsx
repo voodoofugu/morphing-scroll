@@ -34,11 +34,10 @@ describe("class names", () => {
         direction="hybrid"
         mode="sliderMenu"
         edgeGradient
-        scrollBarOnHover
         progressTrigger={{
           wheel: true,
           content: true,
-          progressElement: <span />,
+          bar: { element: <span />, showOnHover: true },
           arrows: { element: <span />, size: 40 },
         }}
         render="virtual"

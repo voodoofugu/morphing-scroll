@@ -70,10 +70,10 @@ describe("MorphScroll — content drag", () => {
   });
 
   it("still drags when the native scrollbar is in use", () => {
-    // progressElement: true means "use the browser's own scrollbar" — it says
+    // bar: true means "use the browser's own scrollbar" — it says
     // nothing about whether the content can be grabbed
     const { el } = mount({
-      progressTrigger: { content: true, progressElement: true },
+      progressTrigger: { content: true, bar: true },
     });
     dragUp(el);
     expect(el.scrollTop).toBeGreaterThan(0);
@@ -81,7 +81,7 @@ describe("MorphScroll — content drag", () => {
 
   it("still drags when a custom thumb is in use", () => {
     const { el } = mount({
-      progressTrigger: { content: true, progressElement: <i /> },
+      progressTrigger: { content: true, bar: <i /> },
     });
     dragUp(el);
     expect(el.scrollTop).toBeGreaterThan(0);
@@ -127,7 +127,7 @@ describe("MorphScroll — the native scrollbar gutter", () => {
 
   it("does not turn a press on the native bar into a content drag", () => {
     const { el } = mount({
-      progressTrigger: { content: true, progressElement: true },
+      progressTrigger: { content: true, bar: true },
     });
     // the element is 100 wide including a 15px native bar
     stubLayout(el, {

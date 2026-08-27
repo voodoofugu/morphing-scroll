@@ -1,16 +1,29 @@
 export type Vec2 = [x: number, y: number];
 
 /** короткая форма для `progressTrigger` */
-export type ProgressTriggerName = "wheel" | "content" | "arrows";
+export type ProgressTriggerName = "wheel" | "content" | "arrows" | "bar";
 
-/** объектная форма `progressTrigger.progressElement` */
-export type ProgressElementConfig = {
+/** объектная форма `progressTrigger.bar` */
+export type BarConfig = {
+  /** what the bar is made of; an array feeds one node per slider element */
   element?: React.ReactNode | React.ReactNode[];
   /**
    * distance between the bar and the side it sits on;
    * a negative value pushes it past the edge
    */
   edgeGap?: number | Vec2;
+  /** shortens the track by this much at each of its two ends */
+  trackGap?: number | Vec2;
+  /** put the bar on the opposite side */
+  reverse?: boolean | boolean[];
+  /**
+   * report the bar as idle unless it is hovered, touched or the content is
+   * moving — through `--ms-bar-visibility` and the `ms-hover` / `ms-leave`
+   * classes. Nothing is styled for you; see the README.
+   */
+  showOnHover?: boolean;
+  /** the thumb never shrinks below this */
+  thumbMinSize?: number;
 };
 
 /** `progressTrigger` после разбора короткой формы */
@@ -531,19 +544,30 @@ export type MorphScroll = {
    * @description
    * - `wheel`: *allow to scroll by mouse wheel*
    * - `content`: *allow to scroll by content drag*
-   * - `progressElement`: *add custom progress element*
+   * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*
    * @note
-   * - *`progressElement` can be thumb or slider, use props `type`*
-   * - *if `progressElement` is `true` and `type` is `"scroll"`, the default browser scroll element will be used*
+   * - *a name, or a list of names, switches those triggers on: `"wheel"` is
+   *   the same as `{ wheel: true }`*
+   * - *`bar` renders as a thumb or as a slider depending on `mode`*
+   * - *`bar: true` with `mode="scroll"` hands the job to the browser's own
+   *   scrollbar*
    * - *by using `content` drag scrolling will not work with interactive elements like button ([more...](https://www.npmjs.com/package/morphing-scroll))*
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   progressTrigger={ wheel: true, progressElement: <ScrollThumb /> }
+   *   progressTrigger={{ wheel: true, bar: <ScrollThumb /> }}
    * >
    *   {children}
    * </MorphScroll>
+   * ```
+   * @example
+   * ```tsx
+   * // with settings
+   * progressTrigger={{
+   *   wheel: true,
+   *   bar: { element: <ScrollThumb />, edgeGap: 8, showOnHover: true },
+   * }}
    * ```
    */
   progressTrigger?:
@@ -553,11 +577,7 @@ export type MorphScroll = {
         wheel?:
           boolean | { changeDirection?: boolean; changeDirectionBtn?: string };
         content?: boolean;
-        progressElement?:
-          | boolean
-          | React.ReactNode
-          | React.ReactNode[]
-          | ProgressElementConfig;
+        bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
         arrows?:
           | boolean
           | React.ReactNode
@@ -568,71 +588,6 @@ export type MorphScroll = {
               loop?: boolean;
             };
       };
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***progressReverse***:
-   * reverse your progress bar position.
-   * @default false
-   * @note
-   * *use 1 boolean or an array of 2 booleans to set different values for hybrid `direction`*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   progressReverse
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  progressReverse?: boolean | boolean[];
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***scrollBarOnHover***:
-   * progress bar hover visibility.
-   * @default false
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   scrollBarOnHover
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  scrollBarOnHover?: boolean;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***scrollBarEdge***:
-   * scroll bar margin at its edges.
-   * @note
-   * - *Used when: `type="scroll"`*
-   * - *When `direction="hybrid"` you can set an array of 2 values*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   scrollBarEdge={10}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  scrollBarEdge?: number | Vec2;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***thumbMinSize***:
-   * scroll bar thumb minimum size.
-   * @note
-   * *Used when: `type="scroll"`*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   thumbMinSize={40}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  thumbMinSize?: number;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***edgeGradient***:

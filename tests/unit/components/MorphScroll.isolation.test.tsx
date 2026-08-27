@@ -97,7 +97,7 @@ describe("MorphScroll isolation — scheduled tasks", () => {
   });
 
   it("hides both scrollbars after scrolling, one instance after another", () => {
-    // scrollBarOnHover shows the bar while scrolling and hides it once the
+    // showOnHover reports the bar as active while scrolling and idle once the
     // scroll-end task fires. That task shares its key across instances, so a
     // second scroll used to leave the first bar visible forever.
     const { container } = render(
@@ -105,16 +105,14 @@ describe("MorphScroll isolation — scheduled tasks", () => {
         <MorphScroll
           size={SIZE}
           objectsSize={OBJ}
-          scrollBarOnHover
-          progressTrigger={{ wheel: true, progressElement: <div /> }}
+          progressTrigger={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
         >
           {items(20, "a")}
         </MorphScroll>
         <MorphScroll
           size={SIZE}
           objectsSize={OBJ}
-          scrollBarOnHover
-          progressTrigger={{ wheel: true, progressElement: <div /> }}
+          progressTrigger={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
         >
           {items(20, "b")}
         </MorphScroll>

@@ -25,7 +25,7 @@ const tree = (
     size={[100, 300]}
     objectsSize={100}
     render="virtual"
-    progressTrigger={{ wheel: true, progressElement: <div /> }}
+    progressTrigger={{ wheel: true, bar: <div /> }}
   >
     {items(50)}
   </MorphScroll>
