@@ -260,24 +260,73 @@ nudges the content by <code>{ x, y }</code> pixels. Plain movement, so it shows 
 any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
 </em>
 
+<b>Recipe — a gamepad:</b>
+
+<em>The Gamepad API has no events, only a snapshot you read per frame, so driving a scroll with one is a loop plus two rules: the stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
+
 ```tsx
-// геймпад: опрос — ваш, действие — библиотеки
-function poll() {
-  const pad = navigator.getGamepads()[0];
-  if (!pad) return;
+const DEAD_ZONE = 0.15; // сколько стик отдаёт, лёжа в покое
+const PAN_PER_SECOND = 900; // px при полностью отклонённом стике
+const REPEAT = { first: 400, next: 120 }; // автоповтор удержанной кнопки, ms
 
-  if (pad.buttons[13].pressed)
-    scroll.current?.step("bottom", { reason: "gamepad" });
+function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
+  React.useEffect(() => {
+    let frame = 0;
+    let last = performance.now();
+    const held = new Map<number, number>(); // кнопка -> когда сработает снова
 
-  const stick = pad.axes[3];
-  if (Math.abs(stick) > 0.15)
-    scroll.current?.pan({ y: stick * 12 }, { reason: "gamepad", duration: 0 });
+    const DPAD = { 12: "top", 13: "bottom", 14: "left", 15: "right" } as const;
 
-  requestAnimationFrame(poll);
+    const tick = (now: number) => {
+      frame = requestAnimationFrame(tick);
+
+      // кадр мог быть длинным: считаем от времени, а не от количества кадров
+      const delta = Math.min(now - last, 100) / 1000;
+      last = now;
+
+      const pad = navigator.getGamepads().find(Boolean);
+      if (!pad) return held.clear();
+
+      // — правый стик: непрерывное движение —
+      const [x, y] = [pad.axes[2] ?? 0, pad.axes[3] ?? 0].map((value) =>
+        Math.abs(value) < DEAD_ZONE ? 0 : value,
+      );
+
+      if (x || y)
+        scroll.current?.pan(
+          { x: x * PAN_PER_SECOND * delta, y: y * PAN_PER_SECOND * delta },
+          { duration: 0, reason: "gamepad" },
+        );
+
+      // — крестовина: шаг на нажатие, а не на кадр —
+      for (const [index, side] of Object.entries(DPAD)) {
+        const button = Number(index);
+
+        if (!pad.buttons[button]?.pressed) {
+          held.delete(button);
+          continue;
+        }
+
+        const due = held.get(button);
+        if (due === undefined) {
+          scroll.current?.step(side, { reason: "gamepad" });
+          held.set(button, now + REPEAT.first);
+        } else if (now >= due) {
+          scroll.current?.step(side, { reason: "gamepad" });
+          held.set(button, now + REPEAT.next);
+        }
+      }
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [scroll]);
 }
 ```
 
-<em>A game already has an input layer and a frame loop; a second polling loop inside the scroll would only have to guess which scroll on the page the stick was meant for.</em>
+<em>Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
+<br />
+Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is the reason polling stays out here: a game already has an input layer and a frame loop, and a loop inside the scroll would have to guess which of several scrolls on the page the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect exactly the same way; only the reason changes.</em>
 
 </div></ul></details>
 
