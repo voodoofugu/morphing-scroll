@@ -25,6 +25,9 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `emptyElements` | `emptyObjects` |
 | `objectsSize="size"` | `objectsSize="full"` |
 | `dragScroll` | `autoScrollOnDrag` |
+| `wrapperMargin={10}` | `wrapper={{ margin: 10 }}` |
+| `wrapperMinSize="full"` | `wrapper={{ minSize: "full" }}` |
+| `wrapperAlign="center"` | `wrapper={{ align: "center" }}` |
 | `onScrollValue` | `onScrollPosition` |
 | `isScrolling` | `onScrollingChange` |
 | `progressTrigger={{ arrows: { contentReduce } }}` | `arrows: { reserveSpace }` |
@@ -52,6 +55,20 @@ progressTrigger={{
 `"wheel"`, `["wheel", "content"]`, `"bar"` — which is the same as
 `{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
 unchanged.
+
+#### One box, one prop
+
+Three props described the same internal box, the way four props once
+described the scrollbar:
+
+```tsx
+wrapper={{ margin: 10, minSize: "full", align: "center" }}
+```
+
+That is 24 top-level props down to 22. `objectsSize`, `crossCount` and
+`gap` stay where they are: they are the two most-typed props in the
+library, and burying them one level down costs more than the symmetry is
+worth.
 
 #### One way to fill an empty object
 

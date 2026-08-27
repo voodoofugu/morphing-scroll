@@ -10,6 +10,7 @@ import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
   ProgressTriggerConfig,
+  WrapperConfig,
 } from "@morphing-scroll/src/types/types";
 
 type Align = "start" | "center" | "end";
@@ -664,9 +665,15 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : [settings.gapX, settings.gapY],
       "value",
     ],
-    ["wrapperMargin", wrapperMargin, "value"],
-    ["wrapperMinSize", wrapperMinSize, "value"],
-    ["wrapperAlign", [settings.wrapperAlignX, settings.wrapperAlignY], "value"],
+    [
+      "wrapper",
+      {
+        align: [settings.wrapperAlignX, settings.wrapperAlignY],
+        margin: wrapperMargin,
+        minSize: wrapperMinSize,
+      },
+      "value",
+    ],
     ["objectsAlign", settings.objectsAlign, "value"],
     ["objectsDirection", settings.objectsDirection, "value"],
     [
@@ -763,7 +770,7 @@ function App() {
     return settings.objectsSizeMode;
   }, [settings.objectHeight, settings.objectWidth, settings.objectsSizeMode]);
 
-  const wrapperMargin = React.useMemo<MorphScrollProps["wrapperMargin"]>(() => {
+  const wrapperMargin = React.useMemo<WrapperConfig["margin"]>(() => {
     const values = [
       settings.wrapperMarginTop,
       settings.wrapperMarginRight,
@@ -779,9 +786,7 @@ function App() {
     settings.wrapperMarginTop,
   ]);
 
-  const wrapperMinSize = React.useMemo<
-    MorphScrollProps["wrapperMinSize"]
-  >(() => {
+  const wrapperMinSize = React.useMemo<WrapperConfig["minSize"]>(() => {
     if (settings.wrapperMinMode === "off") return undefined;
     if (settings.wrapperMinMode === "full") return "full";
     if (settings.wrapperMinMode === "number") return settings.wrapperMinWidth;
@@ -910,9 +915,11 @@ function App() {
       size,
       suspending: settings.suspending,
       mode: settings.mode,
-      wrapperAlign: [settings.wrapperAlignX, settings.wrapperAlignY],
-      wrapperMargin,
-      wrapperMinSize,
+      wrapper: {
+        align: [settings.wrapperAlignX, settings.wrapperAlignY],
+        margin: wrapperMargin,
+        minSize: wrapperMinSize,
+      },
     }),
     [
       edge,
@@ -1115,7 +1122,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="size · objectsSize · crossCount · gap · wrapperMargin · wrapperMinSize"
+          hint="size · objectsSize · crossCount · gap · wrapper"
           title="size"
         >
           <SelectField
@@ -1214,7 +1221,7 @@ function App() {
                 value={settings.wrapperMinMode}
               />
             }
-            label="wrapperMinSize"
+            label="wrapper.minSize"
             open={["number", "pair"].includes(settings.wrapperMinMode)}
           >
             <div className="two-col">
@@ -1233,7 +1240,7 @@ function App() {
             </div>
           </SubGroup>
 
-          <SubGroup label="wrapperMargin">
+          <SubGroup label="wrapper.margin">
             <div className="quad-grid">
               <NumberField
                 label="top"
@@ -1264,18 +1271,18 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="wrapperAlign · objectsAlign · objectsDirection"
+          hint="wrapper.align · objectsAlign · objectsDirection"
           title="layout"
         >
           <div className="two-col">
             <SelectField
-              label="wrapperAlign x"
+              label="wrapper.align x"
               onChange={(value) => update("wrapperAlignX", value)}
               options={alignOptions}
               value={settings.wrapperAlignX}
             />
             <SelectField
-              label="wrapperAlign y"
+              label="wrapper.align y"
               onChange={(value) => update("wrapperAlignY", value)}
               options={alignOptions}
               value={settings.wrapperAlignY}

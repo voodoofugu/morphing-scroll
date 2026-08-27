@@ -29,6 +29,7 @@ export type {
   ArrowsConfig,
   WheelConfig,
   EmptyObjectsConfig,
+  WrapperConfig,
   Pair,
 } from "./types/types";
 export default Morph;

@@ -66,6 +66,16 @@ export type ProgressTriggerConfig = {
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
+/** объектная форма `wrapper` */
+export type WrapperConfig = {
+  /** space around `.ms-objects-wrapper`; 1, 2 or 4 numbers */
+  margin?: SpacingValue;
+  /** the box never gets smaller than this; `"full"` means the `size` prop */
+  minSize?: MinSize | Pair<MinSize>;
+  /** where the box sits when it is smaller than `size` */
+  align?: Align | Pair<Align>;
+};
+
 /** объектная форма `emptyObjects` */
 export type EmptyObjectsConfig = {
   mode: "clear" | "fallback";
@@ -481,57 +491,25 @@ export type MorphScroll = {
   gap?: number | Vec2;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***wrapperMargin***:
-   * margin for the `.ms-objects-wrapper` element.
-   * @note
-   * *It can be a number or an array of 2 or 4 numbers*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   wrapperMargin={10}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  wrapperMargin?: SpacingValue;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***wrapperMinSize***:
-   * minimum height or width of the `.ms-objects-wrapper` element.
+   * ### ***wrapper***:
+   * everything about the `.ms-objects-wrapper` box that holds your objects.
    * @description
-   * - `number` *sets the min-size*
-   * - `"full"` *min-size is equal to property `size`*
-   * @note
-   * - *Can be used as 1 value, or an array of 2 values for width and height.*
+   * - `margin`: *space around the box; 1, 2 or 4 numbers*
+   * - `minSize`: *the box never gets smaller than this; `"full"` means the
+   *   `size` prop*
+   * - `align`: *where the box sits when it is smaller than `size`*
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   wrapperMinSize={"full"}
+   *   wrapper={{ margin: 10, minSize: "full", align: "center" }}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  wrapperMinSize?: MinSize | Pair<MinSize>;
+  wrapper?: WrapperConfig;
 
   // — LAYOUT —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***wrapperAlign***:
-   * horizontal and vertical aligns your content when it is smaller than the `size`.
-   * @note
-   * *Use 1 value to align one or both axes, or an array of 2 values to align both axes*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   wrapperAlign="center"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  wrapperAlign?: Align | Pair<Align>;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***objectsAlign***:

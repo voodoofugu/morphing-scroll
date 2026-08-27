@@ -28,7 +28,7 @@ covered by Playwright, which this number does not see.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
 `edge`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
-`objectsSize` modes, `gap`/`wrapperMargin`/`wrapperMinSize`/`wrapperAlign`/
+`objectsSize` modes, `gap`/`wrapper.margin`/`wrapper.minSize`/`wrapper.align`/
 `objectsAlign`, `progressReverse`, `onRenderedKeysChange`, `onScrollPosition`,
 `scrollPosition` (number/end), `type: sliderMenu` snapping, `autoScrollOnDrag`
 auto-scroll, hybrid `wheel.changeDirection`, plus the pure algorithms

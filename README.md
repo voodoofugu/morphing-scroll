@@ -403,115 +403,51 @@ allows you to set spacing in pixels between list items for rows and columns.<br 
 
 <h2></h2>
 
-<details><summary><b><code>wrapperMargin</code></b></summary><br /><ul><div>
+<details><summary><b><code>wrapper</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-wrapperMargin: 10; // or [x, y] | [t, r, b, l]
+wrapper: {
+  margin: 10,      // or [x, y] | [t, r, b, l]
+  minSize: "full", // or a number | ["full", 10]
+  align: "center", // or "start" | "end" | ["center", "start"]
+}
 ```
 
 <b>Description:</b><em><br />
-defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} wrapperMargin={10}>
-  {children}
-</MorphScroll>
-```
+everything about <b>.ms-objects-wrapper</b>, the box that holds your objects, in one place.<br />
+<br />
+<code><b>margin</b></code>:<br />
+spacing between the objects and their wrapper, which grows the scrollable area by the same amount.<br />
+</em>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMargin.png)
 
-</div></ul></details>
+<em><code><b>minSize</b></code>:<br />
+the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.<br />
+</em>
 
-<h2></h2>
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMinSize.png)
 
-<details><summary><b><code>wrapperMinSize</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
+<em><code><b>align</b></code>:<br />
+where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b>"start"</b>. One value aligns both axes, a pair aligns them separately.<br />
+</em>
 
-<ul>
-  <li><b>Simple</b>:<br />
-  
-```tsx
-wrapperMinSize: 10 // or "full"
-```
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperAlign.png)
 
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-// if direction="hybrid"
-wrapperMinSize: [
-  "full",
-  10,
-] // or one value for both sides
-```
-
-  </li>
-</ul>
-
-<b>Description:</b><em><br />
-defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
-</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} wrapperMinSize={"full"}>
+<MorphScroll {...props} wrapper={{ margin: 10, align: "center" }}>
   {children}
 </MorphScroll>
 ```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMinSize.png)
 
 </div></ul></details>
 
 <h2></h2>
 
 ###### **— LAYOUT —**
-
-<details><summary><b><code>wrapperAlign</code></b></summary><br /><ul><div> 
-<b>Usage:</b><br />
-
-<ul>
-  <li><b>Simple</b>:<br />
-  
-```tsx
-wrapperAlign: "center" // or "start" | "end"
-```
-
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-wrapperAlign: [
-  "center",
-  "start",
-] // or one value for both axes
-```
-
-  </li>
-</ul>
-
-<b>Default:</b><br />
-"start"<br />
-<br />
-<b>Description:</b><em><br />
-aligns the <b>.ms-objects-wrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} wrapperAlign="center">
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperAlign.png)
-
-</div></ul></details>
-
-<h2></h2>
 
 <details><summary><b><code>objectsAlign</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />

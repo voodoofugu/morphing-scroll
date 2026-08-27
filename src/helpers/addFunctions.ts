@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MorphScroll, Vec2 } from "../types/types";
+import { MorphScroll, Vec2, WrapperConfig } from "../types/types";
 import clampValue from "./clampValue";
 import CONST from "../constants";
 import type { Tasks } from "./createTasks";
@@ -130,7 +130,7 @@ const sliderCheck = (
 };
 
 function getWrapperMinSizeStyle(
-  wrapperMinSize: number | "full" | (number | "full")[],
+  wrapperMinSize: NonNullable<WrapperConfig["minSize"]>,
   direction: Exclude<MorphScroll["direction"], undefined>,
   sizeLocal: number[],
   mLocalX: number,
@@ -172,7 +172,7 @@ const getStyleAlign = (algin: "start" | "center" | "end" | undefined) =>
     : undefined;
 
 function getWrapperAlignStyle(
-  wrapperAlign: Exclude<MorphScroll["wrapperAlign"], undefined>,
+  wrapperAlign: NonNullable<WrapperConfig["align"]>,
   sizeLocal: number[],
   objectsWrapperWidthFull: number,
   objectsWrapperHeightFull: number,

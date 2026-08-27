@@ -23,18 +23,18 @@ describe("MorphScroll — layout styles on the objects wrapper", () => {
     expect(wrapperOf(container).style.gap).toContain("15px");
   });
 
-  it("applies wrapperMargin", () => {
+  it("applies wrapper.margin", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} wrapperMargin={10}>
+      <MorphScroll size={[100, 300]} objectsSize={50} wrapper={{ margin: 10 }}>
         {items(3)}
       </MorphScroll>,
     );
     expect(wrapperOf(container).style.margin).toContain("10px");
   });
 
-  it("applies wrapperMinSize as minHeight for direction y", () => {
+  it("applies wrapper.minSize as minHeight for direction y", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} wrapperMinSize={250}>
+      <MorphScroll size={[100, 300]} objectsSize={50} wrapper={{ minSize: 250 }}>
         {items(2)}
       </MorphScroll>,
     );
@@ -86,10 +86,10 @@ describe("MorphScroll — objectsSize modes", () => {
   });
 });
 
-describe("MorphScroll — wrapperAlign", () => {
+describe("MorphScroll — wrapper.align", () => {
   it("centers content smaller than the viewport", () => {
     const { container } = render(
-      <MorphScroll size={300} objectsSize={100} wrapperAlign="center">
+      <MorphScroll size={300} objectsSize={100} wrapper={{ align: "center" }}>
         {items(1)}
       </MorphScroll>,
     );

@@ -28,9 +28,7 @@ export const everyProp = (
     objectsSize={[100, "full"]}
     crossCount={3}
     gap={[10, 20]}
-    wrapperMargin={[5, 5]}
-    wrapperMinSize="full"
-    wrapperAlign={["center", "end"]}
+    wrapper={{ margin: [5, 5], minSize: "full", align: ["center", "end"] }}
     objectsAlign="center"
     objectsDirection="column"
     edge={<span className="fade" />}
@@ -74,8 +72,13 @@ export const badTrigger = <MorphScroll size={100} progressTrigger="thumb" />;
  */
 // @ts-expect-error a typo in a mode used to be swallowed by ReactNode
 export const badEmptyMode = <MorphScroll size={100} emptyObjects="clearr" />;
-// @ts-expect-error an axis pair takes exactly two values
-export const badMinSize = <MorphScroll size={100} wrapperMinSize={[1, 2, 3, 4]} />;
+export const badMinSize = (
+  <MorphScroll
+    size={100}
+    // @ts-expect-error an axis pair takes exactly two values
+    wrapper={{ minSize: [1, 2, 3, 4] }}
+  />
+);
 // @ts-expect-error an axis pair takes exactly two values
 export const badObjectsSize = <MorphScroll size={100} objectsSize={[1, 2, 3]} />;
 export const badReverse = (

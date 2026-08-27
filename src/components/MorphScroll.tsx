@@ -86,9 +86,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsSize,
       crossCount,
       gap,
-      wrapperMargin,
-      wrapperMinSize,
-      wrapperAlign,
+      wrapper,
       objectsAlign,
       objectsDirection = "row",
       edge,
@@ -206,8 +204,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeST,
       objectsSizeST,
       emptyObjectsST,
-      wrapperMinSizeST,
-      wrapperAlignST,
+      wrapperST,
       gapST,
       progressTriggerST,
       objectsKeysEmptyST,
@@ -218,8 +215,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       size,
       objectsSize,
       emptyObjects,
-      wrapperMinSize,
-      wrapperAlign,
+      wrapper,
       gap,
       progressTrigger,
       objectsKeys.current.empty,
@@ -370,8 +366,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
     }, [children, emptyObjectsST, objectsKeysEmptyST]);
 
-    const [mT, mR, mB, mL] = wrapperMargin
-      ? argsFormatter(wrapperMargin)
+    const [mT, mR, mB, mL] = wrapper?.margin
+      ? argsFormatter(wrapper.margin)
       : [0, 0, 0, 0];
     const mLocalY = mT + mB;
     const mLocalX = mL + mR;
@@ -853,16 +849,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     ]);
 
     const wrapperAlignLocal = React.useMemo(() => {
-      if (!sizeLocal?.length || !wrapperAlign) return {};
+      if (!sizeLocal?.length || !wrapper?.align) return {};
 
       return getWrapperAlignStyle(
-        wrapperAlign,
+        wrapper.align,
         sizeLocal,
         objectsWrapperWidthFull,
         objectsWrapperHeightFull,
       );
     }, [
-      wrapperAlign,
+      wrapperST,
       sizeLocal.join(),
       objectsWrapperHeightFull,
       objectsWrapperWidthFull,
@@ -912,7 +908,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
       const common: React.CSSProperties = {
-        margin: wrapperMargin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
+        margin: wrapper?.margin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
         height:
           objectsSizing[1] && objectsSizing[1] !== "none"
             ? `${objectsWrapperHeight}px`
@@ -923,9 +919,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             : "fit-content",
         ...(gap &&
           !renderLocal.mode && { gap: `${gapLocal[0]}px ${gapLocal[1]}px` }),
-        ...(wrapperMinSize &&
+        ...(wrapper?.minSize &&
           getWrapperMinSizeStyle(
-            wrapperMinSize,
+            wrapper.minSize,
             direction,
             sizeLocal,
             mLocalX,
@@ -965,9 +961,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         justifyContent: getStyleAlign(objectsAlign),
       };
     }, [
-      wrapperMargin,
-      wrapperAlignST,
-      wrapperMinSizeST,
+      wrapperST,
       [mT, mR, mB, mL, mLocalX, mLocalY, gapLocal[0], gapLocal[1]].join(),
       sizeLocal.join(),
       gapST,
@@ -1353,13 +1347,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // эффект для нажатия клавиш
       if (isTouchedRef.current || direction !== "hybrid") return;
 
-      const wrapper = objectsWrapperRef.current;
+      const wrapperEl = objectsWrapperRef.current;
       const scrollEl = scrollElementRef.current;
-      if (!wrapper || !scrollEl) return;
+      if (!wrapperEl || !scrollEl) return;
 
       if (
-        wrapper.clientWidth! + mLocalX > scrollEl.clientWidth! &&
-        wrapper.clientHeight! + mLocalY > scrollEl.clientHeight!
+        wrapperEl.clientWidth! + mLocalX > scrollEl.clientWidth! &&
+        wrapperEl.clientHeight! + mLocalY > scrollEl.clientHeight!
       ) {
         scrollEl.addEventListener("keydown", onKeyDown);
         scrollEl.addEventListener("keyup", onKeyUp);
