@@ -1,5 +1,9 @@
 import React from "react";
-import type { MorphScroll, Vec2 } from "../types/types";
+import type {
+  MorphScroll,
+  ProgressTriggerConfig,
+  Vec2,
+} from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
@@ -32,7 +36,7 @@ type ModifiedProps = Pick<
     y: number;
   }>;
   direction: "x" | "y" | "hybrid";
-  progressTrigger: [NonNullable<MorphScroll["progressTrigger"]>, number];
+  progressTrigger: [ProgressTriggerConfig, number];
   maxScrollSize: Vec2;
 };
 

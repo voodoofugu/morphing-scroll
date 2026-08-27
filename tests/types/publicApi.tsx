@@ -54,6 +54,16 @@ export const everyProp = (
   </MorphScroll>
 );
 
+export const triggerShorthand = (
+  <>
+    <MorphScroll size={100} progressTrigger="wheel" />
+    <MorphScroll size={100} progressTrigger={["wheel", "content", "arrows"]} />
+  </>
+);
+
+// @ts-expect-error only the three trigger names are shorthand
+export const badTrigger = <MorphScroll size={100} progressTrigger="thumb" />;
+
 export const shorthands = (
   <MorphScroll size="auto" objectsSize="firstChild" render="lazy" emptyElements="fallback">
     <div key="a" />

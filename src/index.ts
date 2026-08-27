@@ -23,5 +23,7 @@ export type {
   IntersectionTracker as IntersectionTrackerProps,
   MorphScrollHandle,
   ScrollTarget,
+  ProgressTriggerName,
+  ProgressTriggerConfig,
 } from "./types/types";
 export default Morph;

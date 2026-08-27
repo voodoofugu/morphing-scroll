@@ -646,6 +646,13 @@ an edge has no size and no colour of its own, so nothing shows until you give it
 <b>Usage:</b><br />
 
 <ul>
+  <li><b>Shorthand</b>:<br />
+
+```tsx
+progressTrigger: "wheel"; // or ["wheel", "content", "arrows"]
+```
+
+  </li>
   <li><b>Simple</b>:<br />
   
 ```tsx
@@ -685,6 +692,8 @@ progressTrigger: {
 <br />
 <b>Description:</b><em><br />
 this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+<br />
+A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "content"]</code> the same as <code>{ wheel: true, content: true }</code>. Reach for the object form when a trigger needs settings, or to pass <code>progressElement</code>.<br />
 <br />
 <code><b>wheel</b></code>:<br />
 determines whether the progress bar responds to mouse wheel scrolling<br />

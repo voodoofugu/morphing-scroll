@@ -330,3 +330,65 @@ describe("MorphScroll — onRenderedKeysChange", () => {
     });
   });
 });
+
+describe("MorphScroll — progressTrigger shorthand", () => {
+  const boxes3 = () => items(10);
+
+  it("accepts a single trigger name", () => {
+    const { container } = render(
+      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger="arrows">
+        {boxes3()}
+      </MorphScroll>,
+    );
+    expect(container.querySelectorAll(".ms-arrow-box")).toHaveLength(2);
+  });
+
+  it("accepts an array of trigger names", () => {
+    const { container } = render(
+      <MorphScroll
+        size={SIZE}
+        objectsSize={OBJ}
+        progressTrigger={["content", "arrows"]}
+      >
+        {boxes3()}
+      </MorphScroll>,
+    );
+    expect(container.querySelectorAll(".ms-arrow-box")).toHaveLength(2);
+    // content drag also sets the grab cursor on the scroll element
+    expect(
+      container.querySelector<HTMLElement>(".ms-element")!.style.cursor,
+    ).toBe("grab");
+  });
+
+  it("means the same as the object form", () => {
+    const short = render(
+      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger="content">
+        {boxes3()}
+      </MorphScroll>,
+    );
+    const long = render(
+      <MorphScroll
+        size={SIZE}
+        objectsSize={OBJ}
+        progressTrigger={{ content: true }}
+      >
+        {boxes3()}
+      </MorphScroll>,
+    );
+    const cursor = (r: ReturnType<typeof render>) =>
+      r.container.querySelector<HTMLElement>(".ms-element")!.style.cursor;
+
+    expect(cursor(short)).toBe(cursor(long));
+  });
+
+  it("warns when the config is empty", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger={[]}>
+        {boxes3()}
+      </MorphScroll>,
+    );
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("progressTrigger"));
+    spy.mockRestore();
+  });
+});

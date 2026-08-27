@@ -1,11 +1,16 @@
 export type Vec2 = [x: number, y: number];
 
+/** короткая форма для `progressTrigger` */
+export type ProgressTriggerName = "wheel" | "content" | "arrows";
+
+/** `progressTrigger` после разбора короткой формы */
+export type ProgressTriggerConfig = Exclude<
+  NonNullable<MorphScroll["progressTrigger"]>,
+  ProgressTriggerName | ProgressTriggerName[]
+>;
+
 /** значение, которое понимает и `scrollPosition`, и `scrollTo` */
-export type ScrollTarget =
-  | null
-  | number
-  | "end"
-  | (null | number | "end")[];
+export type ScrollTarget = null | number | "end" | (null | number | "end")[];
 
 /**---
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
@@ -570,23 +575,24 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  progressTrigger?: {
-    // TODO добавить "wheel" | "content" | "arrows"
-    wheel?:
-      | boolean
-      | { changeDirection?: boolean; changeDirectionBtn?: string };
-    content?: boolean;
-    progressElement?: boolean | React.ReactNode | React.ReactNode[];
-    arrows?:
-      | boolean
-      | React.ReactNode
-      | {
-          element?: React.ReactNode;
-          size?: number;
-          contentReduce?: boolean;
-          loop?: boolean;
-        };
-  };
+  progressTrigger?:
+    | ProgressTriggerName
+    | ProgressTriggerName[]
+    | {
+        wheel?:
+          boolean | { changeDirection?: boolean; changeDirectionBtn?: string };
+        content?: boolean;
+        progressElement?: boolean | React.ReactNode | React.ReactNode[];
+        arrows?:
+          | boolean
+          | React.ReactNode
+          | {
+              element?: React.ReactNode;
+              size?: number;
+              contentReduce?: boolean;
+              loop?: boolean;
+            };
+      };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***progressReverse***:

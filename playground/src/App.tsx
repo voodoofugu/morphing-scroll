@@ -9,6 +9,7 @@ import logo from "@morphing-scroll/src/assets/morphing-scroll-logo.png";
 import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
+  ProgressTriggerConfig,
 } from "@morphing-scroll/src/types/types";
 
 type Align = "start" | "center" | "end";
@@ -773,7 +774,7 @@ function App() {
   }, [settings.edgeColor, settings.edgeGradient, settings.edgeSize]);
 
   const progressElement = React.useMemo<
-    NonNullable<MorphScrollProps["progressTrigger"]>["progressElement"]
+    ProgressTriggerConfig["progressElement"]
   >(() => {
     if (settings.progressElementMode === "off") return false;
     if (settings.mode === "sliderMenu") return progressMenu;
