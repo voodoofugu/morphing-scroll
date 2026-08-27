@@ -93,9 +93,8 @@ describe("MorphScroll — render: virtual / lazy", () => {
     );
     const tagged = container.querySelectorAll("[ms-wrap-id]");
     expect(tagged).toHaveLength(3);
-    // NOTE: the attribute stores the raw React path ('.$key'); it is only
-    // normalized to the clean key inside getRenderedKeysFromWrapper.
-    expect(tagged[0].getAttribute("ms-wrap-id")).toBe(".$item-0");
+    // атрибут несёт ключ пользователя, а не путь, дорисованный React
+    expect(tagged[0].getAttribute("ms-wrap-id")).toBe("item-0");
   });
 
   it("lazy paints the visible items on the very first render", () => {
@@ -124,7 +123,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
     const tagged = Array.from(container.querySelectorAll("[ms-wrap-id]")).map((n) =>
       n.getAttribute("ms-wrap-id"),
     );
-    expect(tagged).toContain(".$item-0");
+    expect(tagged).toContain("item-0");
   });
 
   it("logs an error when render is combined with objectsSize='none'", () => {

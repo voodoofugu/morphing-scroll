@@ -47,6 +47,7 @@ import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";
+import childKey from "../helpers/childKey";
 import stabilize from "../helpers/stabilize";
 import {
   getRenderedKeysFromWrapper,
@@ -354,7 +355,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return childrenArray
         .map((child) => {
           if (React.isValidElement(child) && child.key) {
-            return String(child.key);
+            return childKey(String(child.key));
           }
           return null;
         })
@@ -1760,7 +1761,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const m = new Map<string, React.ReactElement>();
       childrenArray.forEach((ch) => {
         if (React.isValidElement(ch) && ch.key != null)
-          m.set(String(ch.key), ch);
+          m.set(childKey(String(ch.key)), ch);
       });
       return m;
     }, [childrenArray]);

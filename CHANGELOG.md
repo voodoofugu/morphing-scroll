@@ -149,7 +149,7 @@ away from the bottom, `scrollTo("end")` always runs.
 | `.hover` / `.leave` / `.remove` | `.ms-hover` / `.ms-leave` / `.ms-remove` |
 | `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom` |
 | arrows wrapped in `.ms-arrows` | arrows are direct children of the root again |
-| `[wrap-id]` | `[ms-wrap-id]` |
+| `[wrap-id=".$profile"]` | `[ms-wrap-id="profile"]` — the attribute carries your key, not React's path |
 | `[data-direction]` on a bar | `[ms-direction]` |
 | `--edge-visibility` | `--ms-edge-visibility` |
 | `--content-visibility` | `--ms-content-visibility` |

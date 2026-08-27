@@ -30,19 +30,10 @@ describe("getRenderedKeysFromWrapper", () => {
     expect(getRenderedKeysFromWrapper(wrapper)).toEqual(["a", "c"]);
   });
 
-  it("strips a root React key prefix ('.$Key')", () => {
-    const wrapper = makeWrapper([".$myKey"]);
-    expect(getRenderedKeysFromWrapper(wrapper)).toEqual(["myKey"]);
-  });
-
-  it("decodes React key escapes (=0 -> =, =2 -> :)", () => {
-    const wrapper = makeWrapper([".$user=2id=0x"]);
+  // разворачивает ключ helpers/childKey, ещё до того как он попал в атрибут
+  it("returns the attribute as written", () => {
+    const wrapper = makeWrapper(["user:id=x"]);
     expect(getRenderedKeysFromWrapper(wrapper)).toEqual(["user:id=x"]);
-  });
-
-  it("extracts an explicit nested key after ':$'", () => {
-    const wrapper = makeWrapper([".0:$Key"]);
-    expect(getRenderedKeysFromWrapper(wrapper)).toEqual(["Key"]);
   });
 });
 

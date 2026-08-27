@@ -82,7 +82,7 @@ describe("MorphScroll — emptyObjects", () => {
     const tagged = Array.from(container.querySelectorAll("[ms-wrap-id]")).map((n) =>
       n.getAttribute("ms-wrap-id"),
     );
-    expect(tagged).toEqual([".$item-0", ".$item-2"]);
+    expect(tagged).toEqual(["item-0", "item-2"]);
   });
 });
 
