@@ -604,7 +604,7 @@ edgeGradient: true; // or a node: <MyFade />
 <b>Description:</b><em><br />
 marks the edges where the content is cut off. The library places the slots and reports their state; what they look like is yours.<br />
 <br />
-Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.top</code>, <code>.right</code>, <code>.bottom</code>, <code>.left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
+Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
 <br />
 Passing a node instead of <b>true</b> renders it inside every edge slot.<br />
 <br />
@@ -617,12 +617,12 @@ an edge has no size and no colour of its own, so nothing shows until you give it
   opacity: var(--ms-edge-visibility);
   transition: opacity 0.2s ease-in-out;
 }
-.ms-edge.top,
-.ms-edge.bottom {
+.ms-edge.ms-top,
+.ms-edge.ms-bottom {
   height: 40px;
   background: linear-gradient(#fff, transparent);
 }
-.ms-edge.bottom {
+.ms-edge.ms-bottom {
   transform: scaleY(-1);
 }
 ```

@@ -33,7 +33,7 @@ test.describe("MorphScroll physics (real browser)", () => {
 
   test("clicking the bottom arrow scrolls down", async ({ page }) => {
     await page.goto("/?scenario=arrows");
-    const bottomArrow = page.locator(".ms-arrow-box.bottom");
+    const bottomArrow = page.locator(".ms-arrow-box.ms-bottom");
     await expect(bottomArrow).toBeVisible();
     await bottomArrow.click();
 

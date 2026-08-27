@@ -31,7 +31,7 @@ const Edge = ({ element, visibility, edgeType }: EdgeT) => {
     [CONST.EDGE_VISIBILITY_VAR]: visibility ? 1 : 0,
   };
 
-  const edgeClasses = `ms-edge ${edgeType}${!visibility ? " ms-disabled" : ""}`;
+  const edgeClasses = `ms-edge ms-${edgeType}${!visibility ? " ms-disabled" : ""}`;
 
   return (
     <div className={edgeClasses} style={edgeStyle}>

@@ -20,7 +20,7 @@ const arrows = (extra: Record<string, unknown> = {}) => (
 );
 
 const arrow = (c: HTMLElement, side: string) =>
-  c.querySelector<HTMLElement>(`.ms-arrow-box.${side}`)!;
+  c.querySelector<HTMLElement>(`.ms-arrow-box.ms-${side}`)!;
 
 describe("Arrow — disabled state", () => {
   it("marks the arrow that has nowhere to scroll", () => {

@@ -90,11 +90,11 @@ describe("MorphScroll — render: virtual / lazy", () => {
         {items(10)}
       </MorphScroll>,
     );
-    const tagged = container.querySelectorAll("[wrap-id]");
+    const tagged = container.querySelectorAll("[ms-wrap-id]");
     expect(tagged).toHaveLength(3);
     // NOTE: the attribute stores the raw React path ('.$key'); it is only
     // normalized to the clean key inside getRenderedKeysFromWrapper.
-    expect(tagged[0].getAttribute("wrap-id")).toBe(".$item-0");
+    expect(tagged[0].getAttribute("ms-wrap-id")).toBe(".$item-0");
   });
 
   it("lazy paints the visible items on the very first render", () => {
@@ -120,8 +120,8 @@ describe("MorphScroll — render: virtual / lazy", () => {
     await waitFor(() => {
       expect(boxes(container).length).toBeGreaterThan(3);
     });
-    const tagged = Array.from(container.querySelectorAll("[wrap-id]")).map((n) =>
-      n.getAttribute("wrap-id"),
+    const tagged = Array.from(container.querySelectorAll("[ms-wrap-id]")).map((n) =>
+      n.getAttribute("ms-wrap-id"),
     );
     expect(tagged).toContain(".$item-0");
   });
@@ -202,8 +202,8 @@ describe("MorphScroll — edgeGradient", () => {
         {items(10)}
       </MorphScroll>,
     );
-    const top = container.querySelector<HTMLElement>(".ms-edge.top")!;
-    const bottom = container.querySelector<HTMLElement>(".ms-edge.bottom")!;
+    const top = container.querySelector<HTMLElement>(".ms-edge.ms-top")!;
+    const bottom = container.querySelector<HTMLElement>(".ms-edge.ms-bottom")!;
 
     // sitting at the top: nothing is cut off above, plenty below
     expect(top.style.getPropertyValue("--ms-edge-visibility")).toBe("0");

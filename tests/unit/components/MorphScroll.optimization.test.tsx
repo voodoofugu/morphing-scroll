@@ -42,8 +42,8 @@ describe("MorphScroll — emptyElements", () => {
     await waitFor(() => {
       expect(boxes(container)).toHaveLength(2);
     });
-    const tagged = Array.from(container.querySelectorAll("[wrap-id]")).map((n) =>
-      n.getAttribute("wrap-id"),
+    const tagged = Array.from(container.querySelectorAll("[ms-wrap-id]")).map((n) =>
+      n.getAttribute("ms-wrap-id"),
     );
     expect(tagged).toEqual([".$item-0", ".$item-2"]);
   });
@@ -75,8 +75,8 @@ describe("MorphScroll — render.rootMargin", () => {
     Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
   const rendered = (c: HTMLElement) =>
-    Array.from(c.querySelectorAll("[wrap-id]")).map((n) =>
-      n.getAttribute("wrap-id"),
+    Array.from(c.querySelectorAll("[ms-wrap-id]")).map((n) =>
+      n.getAttribute("ms-wrap-id"),
     );
 
   // rootMargin is documented as [top, right, bottom, left]. Like the CSS

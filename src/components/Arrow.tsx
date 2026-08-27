@@ -78,7 +78,7 @@ const Arrow = ({
   // - render -
   return (
     <div
-      className={`ms-arrow-box ${arrowType}${isDisabled ? " ms-disabled" : ""}`}
+      className={`ms-arrow-box ms-${arrowType}${isDisabled ? " ms-disabled" : ""}`}
       ref={arrowRef}
       style={arrowsStyle}
     >
