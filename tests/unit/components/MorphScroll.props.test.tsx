@@ -195,6 +195,63 @@ describe("MorphScroll — props with no visible markup", () => {
     );
   });
 
+  it("emptyObjects.clickTrigger marks the object it was clicked in", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <MorphScroll
+        size={[300, 300]}
+        objectsSize={100}
+        render="virtual"
+        emptyObjects={{
+          mode: "clear",
+          clickTrigger: { selector: ".kill", delay: 50 },
+        }}
+      >
+        <div key="a">
+          <button className="kill">x</button>
+        </div>
+        <div key="b">b</div>
+      </MorphScroll>,
+    );
+
+    act(() => {
+      fireEvent.click(container.querySelector<HTMLElement>(".kill")!);
+    });
+    expect(container.querySelector(".ms-object-box.ms-remove")).not.toBeNull();
+
+    // класс живёт ровно до срока, потом запускается пересчёт пустых ключей
+    act(() => {
+      vi.advanceTimersByTime(60);
+    });
+    expect(container.querySelector(".ms-object-box.ms-remove")).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it("render.stopLoadOnScroll holds the content back while scrolling", async () => {
+    const { container } = render(
+      <MorphScroll
+        size={[300, 300]}
+        objectsSize={100}
+        crossCount={1}
+        render={{ mode: "virtual", stopLoadOnScroll: true }}
+        fallback={<b className="held" />}
+      >
+        {items(20)}
+      </MorphScroll>,
+    );
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
+    Object.defineProperty(el, "clientHeight", { value: 300, configurable: true });
+    Object.defineProperty(el, "scrollHeight", { value: 2000, configurable: true });
+
+    act(() => {
+      fireEvent.scroll(el, { target: { scrollTop: 900 } });
+    });
+
+    await vi.waitFor(() =>
+      expect(container.querySelector("b.held")).not.toBeNull(),
+    );
+  });
+
   it("suspending puts a boundary around the cells", () => {
     const { container } = render(
       <MorphScroll size={[300, 300]} objectsSize={100} suspending fallback={<b className="sk" />}>
