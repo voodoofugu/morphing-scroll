@@ -14,6 +14,14 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: /touch\.spec\.ts/,
+    },
+    {
+      // touch physics — inertia and the gesture handoff — needs a device with
+      // a coarse pointer, which is what the library branches on
+      name: "mobile",
+      use: { ...devices["Pixel 5"] },
+      testMatch: /touch\.spec\.ts/,
     },
   ],
   webServer: {

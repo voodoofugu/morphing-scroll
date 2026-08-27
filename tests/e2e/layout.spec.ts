@@ -73,3 +73,40 @@ test.describe("MorphScroll type: slider drag (real browser)", () => {
     await expect.poll(async () => (await offsets(page)).top).toBe(0);
   });
 });
+
+test.describe("MorphScroll slider bar drag (real browser)", () => {
+  test("steps a page when the drag passes one slider element", async ({
+    page,
+  }) => {
+    await open(page, "sliderThumbDrag");
+    const bar = page.locator(".ms-slider");
+    await expect(bar).toBeVisible();
+    const box = (await bar.boundingBox())!;
+    const cx = box.x + box.width / 2;
+
+    await page.mouse.move(cx, box.y + 6);
+    await page.mouse.down();
+    // travel further than one element so a step is taken
+    await page.mouse.move(cx, box.y + box.height - 6, { steps: 10 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await offsets(page)).top).toBeGreaterThan(0);
+  });
+
+  test("leaves the scroll alone for a nudge shorter than one element", async ({
+    page,
+  }) => {
+    await open(page, "sliderThumbDrag");
+    const bar = page.locator(".ms-slider");
+    const box = (await bar.boundingBox())!;
+    const cx = box.x + box.width / 2;
+
+    await page.mouse.move(cx, box.y + 6);
+    await page.mouse.down();
+    await page.mouse.move(cx, box.y + 10, { steps: 2 });
+    await page.mouse.up();
+
+    await page.waitForTimeout(300);
+    expect((await offsets(page)).top).toBe(0);
+  });
+});

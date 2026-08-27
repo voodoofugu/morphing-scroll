@@ -184,6 +184,65 @@ scenarios.dragScroll = (
   </MorphScroll>
 );
 
+// type: "slider" with a draggable bar — dragging along it steps pages once the
+// travel passes the size of one slider element.
+scenarios.sliderThumbDrag = (
+  <MorphScroll
+    size={300}
+    objectsSize={300}
+    mode="slider"
+    progressTrigger={{ wheel: true, progressElement: <div className="dot" /> }}
+    onScrollValue={onScrollValue}
+  >
+    {makeItems()}
+  </MorphScroll>
+);
+
+// dragScroll on the horizontal axis, and two containers side by side so a
+// drag can travel from one into the other.
+scenarios.dragScrollX = (
+  <MorphScroll size={300} objectsSize={OBJ} direction="x" dragScroll>
+    {Array.from({ length: 20 }, (_, i) => (
+      <div
+        key={`item-${i}`}
+        className="box"
+        data-testid={`item-${i}`}
+        ms-custom-drag=""
+      >
+        item {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.dragScrollPair = (
+  <div style={{ display: "flex", gap: 40 }}>
+    <div data-testid="left-host">
+      <MorphScroll size={300} objectsSize={OBJ} dragScroll>
+        {Array.from({ length: 20 }, (_, i) => (
+          <div
+            key={`item-${i}`}
+            className="box"
+            data-testid={`left-${i}`}
+            ms-custom-drag=""
+          >
+            left {i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+    <div data-testid="right-host">
+      <MorphScroll size={300} objectsSize={OBJ} dragScroll>
+        {Array.from({ length: 20 }, (_, i) => (
+          <div key={`item-${i}`} className="box" data-testid={`right-${i}`}>
+            right {i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+  </div>
+);
+
 // size: "auto" — dimensions come from a ResizeTracker around the whole scroll,
 // so the host box decides them rather than a numeric prop.
 scenarios.sizeAuto = (
