@@ -22,7 +22,9 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **264 unit + 19 e2e green**, 80% statement coverage of `src`.
+Current status: **283 unit + 31 e2e green**, 80% statement coverage of `src`
+from the unit tier alone — `autoScrollRegistry` and the gesture physics are
+covered by Playwright, which this number does not see.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyElements` (clear/fallback), `suspending`,
 `edgeGradient`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
@@ -106,10 +108,6 @@ code, except the last, which was already fixed and is now held in place:
 - Touch inertia end-to-end (`page.touchscreen` + velocity) — the integrator
   itself is unit-tested; the gesture → inertia handoff is not.
 - `wheel.changeDirectionBtn` (keyboard toggle).
-- `autoScrollRegistry` (25%) — it needs `elementFromPoint`, real drag events
-  and layout, none of which jsdom has. It belongs in tier 3; two e2e tests
-  cover the attribute and the edge auto-scroll, the rest is unexercised.
-- `handleMouseOrTouch` slider-thumb drag and inertia paths (64%).
 
 ## Running
 

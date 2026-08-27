@@ -47,6 +47,7 @@ away from the bottom, `scrollTo("end")` always runs.
 | `.active` while dragging | `.ms-grabbing` |
 | `.hover` / `.leave` / `.remove` | `.ms-hover` / `.ms-leave` / `.ms-remove` |
 | `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom` |
+| arrows wrapped in `.ms-arrows` | arrows are direct children of the root again |
 | `[wrap-id]` | `[ms-wrap-id]` |
 | `--edge-visibility` | `--ms-edge-visibility` |
 
@@ -97,6 +98,10 @@ themselves are no longer transformed and can be positioned from CSS.
 ### Added
 
 - `ref` with `scrollTo(target, { duration })`.
+- `progressTrigger.progressElement` accepts an object —
+  `{ element, edgeGap }` — the same shape `arrows` already had. `edgeGap` is
+  the distance from the side the bar sits on; negative pushes it past the
+  edge.
 - Public types: `MorphScrollProps`, `ResizeTrackerProps`,
   `IntersectionTrackerProps`, `MorphScrollHandle`, `ScrollTarget`,
   `ProgressTriggerName`, `ProgressTriggerConfig`.
@@ -128,6 +133,12 @@ themselves are no longer transformed and can be positioned from CSS.
 - Server rendering hydrates without an attribute mismatch.
 - The wait for scrollable content is bounded instead of spinning forever.
 - `console.error` survives the production build.
+- An element passed inside a prop — a thumb, an arrow icon — used to be
+  frozen at whatever it was on the first render. Elements are hashed by
+  content now, so a changed one updates while an inline one still costs
+  nothing.
+- The horizontal scrollbar named no vertical side and relied on its static
+  position.
 
 ### Changed
 
