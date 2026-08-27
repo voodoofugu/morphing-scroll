@@ -110,6 +110,11 @@ describe("arrow and edge layout", () => {
 
     // one icon, authored pointing right, serves all four sides
     expect(container.querySelectorAll(".ms-arrow .tip")).toHaveLength(4);
+
+    // and the wrapper does nothing but turn it — the icon sizes itself
+    const inner = container.querySelector<HTMLElement>(".ms-arrow")!;
+    expect(inner.style.width).toBe("");
+    expect(inner.style.height).toBe("");
     expect(orientation("right")).toBe("");
     expect(orientation("left")).toBe("scaleX(-1)");
     expect(orientation("bottom")).toBe("rotate(90deg)");
@@ -133,5 +138,76 @@ describe("arrow and edge layout", () => {
     expect(
       container.querySelector<HTMLElement>(".ms-edge.ms-bottom")!.style.transform,
     ).toBe("");
+  });
+});
+
+describe("Arrow — sizing and cursor", () => {
+  const withArrows = (extra: Record<string, unknown> = {}) => (
+    <MorphScroll
+      size={SIZE}
+      objectsSize={OBJ}
+      progressTrigger={{ arrows: { element: <i />, size: 40, ...extra } }}
+    >
+      {items(20)}
+    </MorphScroll>
+  );
+
+  it("sizes only the clickable strip, never the icon", () => {
+    const { container } = render(withArrows());
+    const box = container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom")!;
+    const arrow = container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom .ms-arrow")!;
+
+    expect(box.style.height).toBe("40px");
+    expect(box.style.width).toBe("100%");
+
+    // how big the icon is, is the icon's business
+    expect(arrow.style.width).toBe("");
+    expect(arrow.style.height).toBe("");
+  });
+
+  it("drops the pointer cursor on a dead end", () => {
+    const { container } = render(withArrows());
+
+    expect(
+      container.querySelector<HTMLElement>(".ms-arrow-box.ms-top")!.style.cursor,
+    ).toBe("");
+    expect(
+      container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom")!.style
+        .cursor,
+    ).toBe("pointer");
+  });
+
+  it("keeps the cursor on every arrow when loop is on", () => {
+    const { container } = render(withArrows({ loop: true }));
+
+    for (const side of ["top", "bottom"])
+      expect(
+        container.querySelector<HTMLElement>(`.ms-arrow-box.ms-${side}`)!.style
+          .cursor,
+      ).toBe("pointer");
+  });
+});
+
+describe("Arrow — cursor", () => {
+  it("offers the pointer only where there is somewhere to go", () => {
+    const { container } = render(arrows());
+
+    expect(
+      container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom")!.style.cursor,
+    ).toBe("pointer");
+    // nothing is forced on the dead end, so CSS decides what it looks like
+    expect(
+      container.querySelector<HTMLElement>(".ms-arrow-box.ms-top")!.style.cursor,
+    ).toBe("");
+  });
+
+  it("keeps the pointer on every arrow when loop is on", () => {
+    const { container } = render(arrows({ loop: true }));
+
+    for (const side of ["top", "bottom"])
+      expect(
+        container.querySelector<HTMLElement>(`.ms-arrow-box.ms-${side}`)!.style
+          .cursor,
+      ).toBe("pointer");
   });
 });

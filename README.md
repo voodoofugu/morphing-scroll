@@ -727,11 +727,13 @@ allows you to add custom arrows to the progress bar<br />
 <br />
 <ul>
   <li><code>element</code>: the custom arrow element.</li><br />
-  <li><code>size</code>: thickness of the <b>.ms-arrow-box</b> strip, and the box the icon is drawn in.</li><br />
+  <li><code>size</code>: thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the element you pass.</li><br />
   <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
-All four arrows live in one <b>.ms-arrows</b> box that covers the component, so they stay put instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which is rotated or mirrored per side. Author the icon pointing <b>right</b> and the library turns it for the other three.<br />
+All four arrows live in one <b>.ms-arrows</b> box that covers the component, so they stay put instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
+<br />
+An arrow with nowhere to go is not given <code>cursor: pointer</code>, so it does not advertise a click that does nothing.<br />
 <br />
 An arrow that has nowhere left to scroll gets the <code>ms-disabled</code> class, the same way <b>.ms-edge</b> does. With <code>loop</code> there are no dead ends, so the class is never set.<br />
 While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br />

@@ -31,35 +31,38 @@ const Arrow = ({ visibility, arrows, arrowType, handleArrow }: ArrowT) => {
 
   const isHorizontal = arrowType === "left" || arrowType === "right";
 
-  const boxStyle: React.CSSProperties = {
-    position: "absolute",
-    [arrowType]: 0,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    cursor: "pointer",
-    pointerEvents: "auto", // родитель их не принимает
-
-    ...(isHorizontal
-      ? { top: 0, height: "100%", width: `${arrows.size}px` }
-      : { left: 0, width: "100%", height: `${arrows.size}px` }),
-  };
-
-  const arrowStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    width: `${arrows.size}px`,
-    height: `${arrows.size}px`,
-    transform: ORIENTATION[arrowType],
-  };
-
   /*
    * Класс вешаем на тупик, а не на возможность: так `ms-arrow-box` можно
    * оформить один раз, а недоступное состояние дописать. При `loop` тупиков
    * нет — стрелка всегда перекидывает на другой край.
    */
   const isDisabled = !visibility && !arrows.loop;
+
+  const boxStyle: React.CSSProperties = {
+    position: "absolute",
+    [arrowType]: 0,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    pointerEvents: "auto", // родитель их не принимает
+
+    // у тупика нечего нажимать — курсор не обещаем
+    ...(isDisabled ? {} : { cursor: "pointer" }),
+
+    ...(isHorizontal
+      ? { top: 0, height: "100%", width: `${arrows.size}px` }
+      : { left: 0, width: "100%", height: `${arrows.size}px` }),
+  };
+
+  /*
+   * Обёртка нужна только под разворот: `.ms-arrow-box` — кликабельная полоса
+   * во всю сторону, и повернуть её нельзя, не выкинув с места. Размеры здесь
+   * не задаём — обёртка сжимается по иконке, её величину решает сам элемент.
+   */
+  const arrowStyle: React.CSSProperties = {
+    display: "flex",
+    transform: ORIENTATION[arrowType],
+  };
 
   // - effects -
   React.useEffect(() => {
