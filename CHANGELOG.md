@@ -13,8 +13,8 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `render={{ type: "virtual" }}` | `render={{ mode: "virtual" }}` |
 | `progressTrigger={{ wheel: { changeDirectionKey: "KeyX" } }}` | `changeDirectionBtn: "KeyX"` |
 | `scrollPosition={{ value, updater }}` | `ref.current.scrollTo(value)` — see below |
-| `edgeGradient="#fff"` | `edgeGradient` + your CSS |
-| `edgeGradient={{ color, size }}` | `edgeGradient` + your CSS, or `edgeGradient={<Node />}` |
+| `edgeGradient="#fff"` | `edge` + your CSS |
+| `edgeGradient={{ color, size }}` | `edge` + your CSS, or `edge={<Node />}` |
 | `progressTrigger={{ progressElement: X }}` | `progressTrigger={{ bar: X }}` |
 | `progressReverse={true}` | `progressTrigger={{ bar: { reverse: true } }}` |
 | `scrollBarOnHover` | `progressTrigger={{ bar: { showOnHover: true } }}` |
@@ -24,6 +24,10 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `elementsDirection` | `objectsDirection` |
 | `emptyElements` | `emptyObjects` |
 | `objectsSize="size"` | `objectsSize="full"` |
+| `dragScroll` | `autoScrollOnDrag` |
+| `onScrollValue` | `onScrollPosition` |
+| `isScrolling` | `onScrollingChange` |
+| `progressTrigger={{ arrows: { contentReduce } }}` | `arrows: { reserveSpace }` |
 
 Everything about the scrollbar now lives inside `progressTrigger.bar`, the
 same way everything about the arrows already lived inside
@@ -48,6 +52,22 @@ progressTrigger={{
 `"wheel"`, `["wheel", "content"]`, `"bar"` — which is the same as
 `{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
 unchanged.
+
+#### Names that described something else
+
+Four names pointed away from what they do:
+
+- `dragScroll` was not "scroll by dragging" — that is
+  `progressTrigger.content`. It is the autoscroll that runs near the edges
+  while you drag an element across the list, so it is `autoScrollOnDrag`.
+- `edgeGradient` no longer draws a gradient; it marks the cut-off edges and
+  reports them. It is `edge`, next to `bar` and `arrows`.
+- `isScrolling` was a callback wearing a predicate's name, sitting beside
+  `onScrollValue` and `onRenderedKeysChange`. It is `onScrollingChange`,
+  and `onScrollValue` — which reports a position, not a "value" — is
+  `onScrollPosition`, the pair to the `scrollPosition` prop.
+- `arrows.contentReduce` did not say what shrinks or why. The arrows take a
+  strip away from the content, so it is `arrows.reserveSpace`.
 
 #### One word per thing
 
@@ -89,7 +109,7 @@ away from the bottom, `scrollTo("end")` always runs.
 | 2.x | 3.0 |
 | --- | --- |
 | `.ms-arrow-box.active` | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and is never set with `loop` |
-| `.ms-slider-item.active` | `.ms-slider-item.ms-active` |
+| `.ms-slider-element.active` | `.ms-slider-item.ms-active` |
 | `.active` while dragging | `.ms-grabbing` |
 | `.hover` / `.leave` / `.remove` | `.ms-hover` / `.ms-leave` / `.ms-remove` |
 | `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom` |

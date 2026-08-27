@@ -19,7 +19,7 @@ test.describe("MorphScroll physics (real browser)", () => {
     await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(50);
   });
 
-  test("wheel reports offsets through onScrollValue", async ({ page }) => {
+  test("wheel reports offsets through onScrollPosition", async ({ page }) => {
     await page.goto("/?scenario=wheel");
     const el = page.locator(".ms-viewport");
     const box = await el.boundingBox();

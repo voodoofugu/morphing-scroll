@@ -13,19 +13,19 @@ const items = (n: number) =>
 const scrollElement = (c: HTMLElement) =>
   c.querySelector<HTMLElement>(".ms-viewport")!;
 
-describe("MorphScroll — isScrolling", () => {
+describe("MorphScroll — onScrollingChange", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
   it("reports the start and the end of a scroll burst exactly once", () => {
-    const isScrolling = vi.fn();
+    const onScrollingChange = vi.fn();
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} isScrolling={isScrolling}>
+      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={onScrollingChange}>
         {items(20)}
       </MorphScroll>,
     );
     const el = scrollElement(container);
-    isScrolling.mockClear();
+    onScrollingChange.mockClear();
 
     // one continuous gesture produces a stream of scroll events
     for (const top of [20, 40, 60, 80, 100])
@@ -33,24 +33,24 @@ describe("MorphScroll — isScrolling", () => {
         fireEvent.scroll(el, { target: { scrollTop: top } });
       });
 
-    expect(isScrolling.mock.calls).toEqual([[true]]);
+    expect(onScrollingChange.mock.calls).toEqual([[true]]);
 
     act(() => {
       vi.advanceTimersByTime(CONST.SCROLL_END_DELAY + 50);
     });
 
-    expect(isScrolling.mock.calls).toEqual([[true], [false]]);
+    expect(onScrollingChange.mock.calls).toEqual([[true], [false]]);
   });
 
   it("reports a fresh start after the previous burst ended", () => {
-    const isScrolling = vi.fn();
+    const onScrollingChange = vi.fn();
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} isScrolling={isScrolling}>
+      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={onScrollingChange}>
         {items(20)}
       </MorphScroll>,
     );
     const el = scrollElement(container);
-    isScrolling.mockClear();
+    onScrollingChange.mockClear();
 
     const burst = (from: number) => {
       for (const step of [0, 20])
@@ -65,7 +65,7 @@ describe("MorphScroll — isScrolling", () => {
     burst(20);
     burst(200);
 
-    expect(isScrolling.mock.calls).toEqual([
+    expect(onScrollingChange.mock.calls).toEqual([
       [true],
       [false],
       [true],
@@ -74,21 +74,21 @@ describe("MorphScroll — isScrolling", () => {
   });
 });
 
-describe("MorphScroll — onScrollValue", () => {
+describe("MorphScroll — onScrollPosition", () => {
   it("reports the current offsets on every scroll event", () => {
-    const onScrollValue = vi.fn();
+    const onScrollPosition = vi.fn();
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollValue={onScrollValue}>
+      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollPosition={onScrollPosition}>
         {items(20)}
       </MorphScroll>,
     );
     const el = scrollElement(container);
-    onScrollValue.mockClear();
+    onScrollPosition.mockClear();
 
     fireEvent.scroll(el, { target: { scrollTop: 120 } });
-    expect(onScrollValue).toHaveBeenLastCalledWith(0, 120);
+    expect(onScrollPosition).toHaveBeenLastCalledWith(0, 120);
 
     fireEvent.scroll(el, { target: { scrollLeft: 45, scrollTop: 120 } });
-    expect(onScrollValue).toHaveBeenLastCalledWith(45, 120);
+    expect(onScrollPosition).toHaveBeenLastCalledWith(45, 120);
   });
 });

@@ -164,7 +164,7 @@ describe("MorphScroll — direction & crossCount", () => {
   });
 });
 
-describe("MorphScroll — edgeGradient", () => {
+describe("MorphScroll — edge", () => {
   it("renders no edges by default", () => {
     const { container } = render(
       <MorphScroll size={SIZE} objectsSize={OBJ}>
@@ -176,7 +176,7 @@ describe("MorphScroll — edgeGradient", () => {
 
   it("renders two edges for a single-axis direction", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} edgeGradient>
+      <MorphScroll size={SIZE} objectsSize={OBJ} edge>
         {items(10)}
       </MorphScroll>,
     );
@@ -189,7 +189,7 @@ describe("MorphScroll — edgeGradient", () => {
         size={300}
         objectsSize={OBJ}
         direction="hybrid"
-        edgeGradient
+        edge
       >
         {items(10)}
       </MorphScroll>,
@@ -199,7 +199,7 @@ describe("MorphScroll — edgeGradient", () => {
 
   it("reports each edge's state, and styles nothing itself", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} edgeGradient>
+      <MorphScroll size={SIZE} objectsSize={OBJ} edge>
         {items(10)}
       </MorphScroll>,
     );
@@ -222,7 +222,7 @@ describe("MorphScroll — edgeGradient", () => {
       <MorphScroll
         size={SIZE}
         objectsSize={OBJ}
-        edgeGradient={<span className="fade" />}
+        edge={<span className="fade" />}
       >
         {items(10)}
       </MorphScroll>,

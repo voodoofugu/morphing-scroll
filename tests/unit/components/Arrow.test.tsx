@@ -68,7 +68,7 @@ describe("arrow and edge layout", () => {
       size={[300, 300]}
       objectsSize={100}
       direction="hybrid"
-      edgeGradient={<i className="fade" />}
+      edge={<i className="fade" />}
       progressTrigger={{ arrows: { element: <b className="tip" />, size: 40 } }}
     >
       {items(20)}
@@ -213,7 +213,7 @@ describe("a changed element reaches the DOM", () => {
     <MorphScroll
       size={SIZE}
       objectsSize={OBJ}
-      edgeGradient={<u>{label}</u>}
+      edge={<u>{label}</u>}
       progressTrigger={{ arrows: { element: <i>{label}</i>, size: 40 } }}
     >
       {items(20)}

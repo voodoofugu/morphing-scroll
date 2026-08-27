@@ -59,7 +59,7 @@ type Settings = {
   wrapperAlignY: Align;
   objectsAlign: Align;
   objectsDirection: "row" | "column";
-  edgeGradient: boolean;
+  edge: boolean;
   edgeColor: string;
   edgeSize: number;
   wheel: boolean;
@@ -86,7 +86,7 @@ type Settings = {
   emptyMode: EmptyMode;
   suspending: boolean;
   fallbackText: string;
-  dragScroll: boolean;
+  autoScrollOnDrag: boolean;
 };
 
 type ScrollCommand = {
@@ -138,7 +138,7 @@ const defaultSettings: Settings = {
   wrapperAlignY: "start",
   objectsAlign: "start",
   objectsDirection: "row",
-  edgeGradient: true,
+  edge: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
   wheel: true,
@@ -165,7 +165,7 @@ const defaultSettings: Settings = {
   emptyMode: "off",
   suspending: false,
   fallbackText: "loading",
-  dragScroll: false,
+  autoScrollOnDrag: false,
 };
 
 const presets: Record<string, Partial<Settings>> = {
@@ -183,7 +183,7 @@ const presets: Record<string, Partial<Settings>> = {
     renderMode: "off",
     progressElementMode: "custom",
     contentDrag: false,
-    dragScroll: false,
+    autoScrollOnDrag: false,
   },
   virtual: {
     itemCount: 420,
@@ -200,7 +200,7 @@ const presets: Record<string, Partial<Settings>> = {
     rootMargin: 160,
     progressElementMode: "custom",
     contentDrag: true,
-    dragScroll: true,
+    autoScrollOnDrag: true,
   },
   menu: {
     itemCount: 24,
@@ -217,7 +217,7 @@ const presets: Record<string, Partial<Settings>> = {
     progressElementMode: "custom",
     arrows: true,
     arrowLoop: true,
-    edgeGradient: true,
+    edge: true,
   },
   auto: {
     itemCount: 60,
@@ -621,7 +621,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       ? {
           element: raw("<YourArrow />"),
           size: settings.arrowSize,
-          contentReduce: settings.arrowContentReduce,
+          reserveSpace: settings.arrowContentReduce,
           loop: settings.arrowLoop,
         }
       : false,
@@ -669,8 +669,8 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["objectsAlign", settings.objectsAlign, "value"],
     ["objectsDirection", settings.objectsDirection, "value"],
     [
-      "edgeGradient",
-      settings.edgeGradient
+      "edge",
+      settings.edge
         ? { color: settings.edgeColor, size: settings.edgeSize }
         : undefined,
       "value",
@@ -686,17 +686,17 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : undefined,
       "value",
     ],
-    ["dragScroll", settings.dragScroll || undefined, "boolean"],
+    ["autoScrollOnDrag", settings.autoScrollOnDrag || undefined, "boolean"],
     ["scrollPosition", scrollCommand, "value"],
     [
-      "onScrollValue",
+      "onScrollPosition",
       settings.enableOnScrollValue
         ? raw("(left, top) => console.log({ left, top })")
         : undefined,
       "value",
     ],
     [
-      "isScrolling",
+      "onScrollingChange",
       settings.enableIsScrolling
         ? raw("(motion) => console.log({ motion })")
         : undefined,
@@ -791,8 +791,8 @@ function App() {
     settings.wrapperMinWidth,
   ]);
 
-  const edgeGradient = React.useMemo<MorphScrollProps["edgeGradient"]>(() => {
-    if (!settings.edgeGradient) return false;
+  const edge = React.useMemo<MorphScrollProps["edge"]>(() => {
+    if (!settings.edge) return false;
 
     // размер и цвет теперь дело CSS, поэтому здесь просто узел с ними
     return (
@@ -805,7 +805,7 @@ function App() {
         }}
       />
     );
-  }, [settings.edgeColor, settings.edgeGradient, settings.edgeSize]);
+  }, [settings.edgeColor, settings.edge, settings.edgeSize]);
 
   const progressElement = React.useMemo<
     React.ReactNode | React.ReactNode[] | boolean
@@ -853,8 +853,8 @@ function App() {
         .join(" "),
       crossCount: numberOrUndefined(settings.crossCount),
       direction: settings.direction,
-      dragScroll: settings.dragScroll,
-      edgeGradient,
+      autoScrollOnDrag: settings.autoScrollOnDrag,
+      edge,
       objectsAlign: settings.objectsAlign,
       objectsDirection: settings.objectsDirection,
       emptyObjects,
@@ -863,12 +863,12 @@ function App() {
         settings.gapX === settings.gapY
           ? settings.gapX
           : [settings.gapX, settings.gapY],
-      isScrolling: settings.enableIsScrolling ? setIsScrolling : undefined,
+      onScrollingChange: settings.enableIsScrolling ? setIsScrolling : undefined,
       objectsSize,
       onRenderedKeysChange: settings.enableOnRenderedKeysChange
         ? setRenderedKeys
         : undefined,
-      onScrollValue: settings.enableOnScrollValue
+      onScrollPosition: settings.enableOnScrollValue
         ? (left, top) => {
             setScrollLeft(left);
             setScrollTop(top);
@@ -877,7 +877,7 @@ function App() {
       progressTrigger: {
         arrows: settings.arrows
           ? {
-              contentReduce: settings.arrowContentReduce,
+              reserveSpace: settings.arrowContentReduce,
               element: <span className="arrow-mark">&gt;</span>,
               loop: settings.arrowLoop,
               size: settings.arrowSize,
@@ -912,7 +912,7 @@ function App() {
       wrapperMinSize,
     }),
     [
-      edgeGradient,
+      edge,
       emptyObjects,
       objectsSize,
       progressElement,
@@ -1044,7 +1044,7 @@ function App() {
 
         <ControlGroup
           defaultOpen
-          hint="mode · direction · scrollPosition · dragScroll"
+          hint="mode · direction · scrollPosition · autoScrollOnDrag"
           title="scroll"
         >
           <SelectField
@@ -1060,9 +1060,9 @@ function App() {
             value={settings.direction}
           />
           <ToggleField
-            label="dragScroll"
-            onChange={(value) => update("dragScroll", value)}
-            value={settings.dragScroll}
+            label="autoScrollOnDrag"
+            onChange={(value) => update("autoScrollOnDrag", value)}
+            value={settings.autoScrollOnDrag}
           />
 
           <SubGroup label="scrollPosition">
@@ -1296,7 +1296,7 @@ function App() {
 
         <ControlGroup
           defaultOpen
-          hint="progressTrigger · edgeGradient"
+          hint="progressTrigger · edge"
           title="progress"
         >
           <SubGroup
@@ -1439,7 +1439,7 @@ function App() {
             />
             <div className="two-col">
               <ToggleField
-                label="contentReduce"
+                label="reserveSpace"
                 onChange={(value) => update("arrowContentReduce", value)}
                 value={settings.arrowContentReduce}
               />
@@ -1455,12 +1455,12 @@ function App() {
             control={
               <ToggleField
                 label=""
-                onChange={(value) => update("edgeGradient", value)}
-                value={settings.edgeGradient}
+                onChange={(value) => update("edge", value)}
+                value={settings.edge}
               />
             }
-            label="edgeGradient"
-            open={settings.edgeGradient}
+            label="edge"
+            open={settings.edge}
           >
             <div className="two-col">
               <Field label="color">
@@ -1536,16 +1536,16 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="onScrollValue · isScrolling · onRenderedKeysChange"
+          hint="onScrollPosition · onScrollingChange · onRenderedKeysChange"
           title="events"
         >
           <ToggleField
-            label="onScrollValue"
+            label="onScrollPosition"
             onChange={(value) => update("enableOnScrollValue", value)}
             value={settings.enableOnScrollValue}
           />
           <ToggleField
-            label="isScrolling"
+            label="onScrollingChange"
             onChange={(value) => update("enableIsScrolling", value)}
             value={settings.enableIsScrolling}
           />

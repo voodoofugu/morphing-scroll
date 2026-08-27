@@ -23,7 +23,7 @@ const makeItems = () =>
 const thumb = <div className="thumb" />;
 
 // Expose the latest scroll offsets for assertions.
-const onScrollValue = (left: number, top: number) => {
+const onScrollPosition = (left: number, top: number) => {
   (window as any).__scroll = { left, top };
 };
 
@@ -33,7 +33,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -46,7 +46,7 @@ const scenarios: Record<string, React.ReactElement> = {
       progressTrigger={{
         arrows: { element: <div className="arrow" />, size: 40 },
       }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -57,7 +57,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -68,7 +68,7 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       objectsSize={OBJ}
       progressTrigger={{ content: true }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -80,7 +80,7 @@ const scenarios: Record<string, React.ReactElement> = {
       objectsSize={OBJ}
       render="virtual"
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -92,7 +92,7 @@ const scenarios: Record<string, React.ReactElement> = {
       objectsSize={OBJ}
       render="lazy"
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -104,7 +104,7 @@ const scenarios: Record<string, React.ReactElement> = {
       objectsSize={300}
       mode="sliderMenu"
       progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -116,7 +116,7 @@ const scenarios: Record<string, React.ReactElement> = {
       objectsSize={OBJ}
       scrollPosition={200}
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -128,7 +128,7 @@ const scenarios: Record<string, React.ReactElement> = {
       objectsSize={OBJ}
       scrollPosition="end"
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -150,7 +150,7 @@ scenarios.hybridWheel = (
     crossCount={4}
     direction="hybrid"
     progressTrigger={{ wheel: true, bar: thumb }}
-    onScrollValue={onScrollValue}
+    onScrollPosition={onScrollPosition}
   >
     {hybridItems()}
   </MorphScroll>
@@ -166,16 +166,16 @@ scenarios.hybridChangeDir = (
       wheel: { changeDirection: true },
       bar: thumb,
     }}
-    onScrollValue={onScrollValue}
+    onScrollPosition={onScrollPosition}
   >
     {hybridItems()}
   </MorphScroll>
 );
 
-// dragScroll: items are draggable handles ([ms-custom-drag]) that trigger the
+// autoScrollOnDrag: items are draggable handles ([ms-custom-drag]) that trigger the
 // auto-scroll registry when dragged toward a container edge.
-scenarios.dragScroll = (
-  <MorphScroll size={300} objectsSize={OBJ} dragScroll>
+scenarios.autoScrollOnDrag = (
+  <MorphScroll size={300} objectsSize={OBJ} autoScrollOnDrag>
     {Array.from({ length: 20 }, (_, i) => (
       <div key={`item-${i}`} className="box" data-testid={`item-${i}`} ms-custom-drag="">
         item {i}
@@ -192,16 +192,16 @@ scenarios.sliderThumbDrag = (
     objectsSize={300}
     mode="slider"
     progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
-    onScrollValue={onScrollValue}
+    onScrollPosition={onScrollPosition}
   >
     {makeItems()}
   </MorphScroll>
 );
 
-// dragScroll on the horizontal axis, and two containers side by side so a
+// autoScrollOnDrag on the horizontal axis, and two containers side by side so a
 // drag can travel from one into the other.
-scenarios.dragScrollX = (
-  <MorphScroll size={300} objectsSize={OBJ} direction="x" dragScroll>
+scenarios.autoScrollOnDragX = (
+  <MorphScroll size={300} objectsSize={OBJ} direction="x" autoScrollOnDrag>
     {Array.from({ length: 20 }, (_, i) => (
       <div
         key={`item-${i}`}
@@ -215,10 +215,10 @@ scenarios.dragScrollX = (
   </MorphScroll>
 );
 
-scenarios.dragScrollPair = (
+scenarios.autoScrollOnDragPair = (
   <div style={{ display: "flex", gap: 40 }}>
     <div data-testid="left-host">
-      <MorphScroll size={300} objectsSize={OBJ} dragScroll>
+      <MorphScroll size={300} objectsSize={OBJ} autoScrollOnDrag>
         {Array.from({ length: 20 }, (_, i) => (
           <div
             key={`item-${i}`}
@@ -232,7 +232,7 @@ scenarios.dragScrollPair = (
       </MorphScroll>
     </div>
     <div data-testid="right-host">
-      <MorphScroll size={300} objectsSize={OBJ} dragScroll>
+      <MorphScroll size={300} objectsSize={OBJ} autoScrollOnDrag>
         {Array.from({ length: 20 }, (_, i) => (
           <div key={`item-${i}`} className="box" data-testid={`right-${i}`}>
             right {i}
@@ -251,7 +251,7 @@ scenarios.sizeAuto = (
       size="auto"
       objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
-      onScrollValue={onScrollValue}
+      onScrollPosition={onScrollPosition}
     >
       {makeItems()}
     </MorphScroll>
@@ -266,7 +266,7 @@ scenarios.sliderDrag = (
     objectsSize={300}
     mode="slider"
     progressTrigger={{ content: true, bar: <div className="dot" /> }}
-    onScrollValue={onScrollValue}
+    onScrollPosition={onScrollPosition}
   >
     {makeItems()}
   </MorphScroll>

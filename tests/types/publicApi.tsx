@@ -21,8 +21,8 @@ export const everyProp = (
     mode="sliderMenu"
     direction="hybrid"
     scrollPosition={{ value: "end", duration: 300 }}
-    onScrollValue={(left, top) => void (left + top)}
-    isScrolling={(motion) => void motion}
+    onScrollPosition={(left, top) => void (left + top)}
+    onScrollingChange={(motion) => void motion}
     onRenderedKeysChange={(keys) => void keys.length}
     size={[300, 200]}
     objectsSize={[100, "full"]}
@@ -33,7 +33,7 @@ export const everyProp = (
     wrapperAlign={["center", "end"]}
     objectsAlign="center"
     objectsDirection="column"
-    edgeGradient={<span className="fade" />}
+    edge={<span className="fade" />}
     progressTrigger={{
       wheel: { changeDirection: true },
       content: true,
@@ -51,7 +51,7 @@ export const everyProp = (
     emptyObjects={{ mode: "clear", clickTrigger: { selector: ".x", delay: 100 } }}
     suspending
     fallback={<span />}
-    dragScroll
+    autoScrollOnDrag
   >
     <div key="a" />
   </MorphScroll>

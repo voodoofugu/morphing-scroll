@@ -77,8 +77,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       mode = "scroll",
       direction = "y",
       scrollPosition,
-      onScrollValue,
-      isScrolling,
+      onScrollPosition,
+      onScrollingChange,
       onRenderedKeysChange,
 
       // Visual Settings
@@ -91,7 +91,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       wrapperAlign,
       objectsAlign,
       objectsDirection = "row",
-      edgeGradient,
+      edge,
 
       // Progress Bar
       progressTrigger = { wheel: true },
@@ -103,7 +103,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       fallback,
 
       // Additional
-      dragScroll,
+      autoScrollOnDrag,
     },
     ref,
   ) {
@@ -211,7 +211,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       gapST,
       progressTriggerST,
       objectsKeysEmptyST,
-      edgeGradientST,
+      edgeST,
     ] = stabilize(
       scrollPosition,
       render,
@@ -223,7 +223,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       gap,
       progressTrigger,
       objectsKeys.current.empty,
-      edgeGradient,
+      edge,
     );
 
     /*
@@ -268,8 +268,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // `true` — просто разметить края, узел — отрисовать его внутри каждого
     const edgeElement = React.useMemo(
-      () => (React.isValidElement(edgeGradient) ? edgeGradient : undefined),
-      [edgeGradientST],
+      () => (React.isValidElement(edge) ? edge : undefined),
+      [edgeST],
     );
 
     /*
@@ -317,7 +317,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const arrowsLocal = React.useMemo(() => {
       const arrows = progressTriggerLocal.arrows;
-      const base = { size: defaultSize, contentReduce: true, loop: false };
+      const base = { size: defaultSize, reserveSpace: true, loop: false };
 
       if (React.isValidElement(arrows)) return { ...base, element: arrows };
 
@@ -416,7 +416,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (
         !progressTriggerLocal.arrows ||
         !arrowsLocal.size ||
-        !arrowsLocal.contentReduce
+        !arrowsLocal.reserveSpace
       ) {
         return [x, y, x, y];
       }
@@ -1160,7 +1160,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [emptyObjectsST, updateLoadedElementsKeysLocal],
     );
 
-    // для обработки onScrollValue
+    // для обработки onScrollPosition
     const handleScroll = React.useCallback(
       (event: React.UIEvent<HTMLDivElement>) => {
         tasks.cancelTask("removeHover"); // удаляем task
@@ -1178,7 +1178,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         }
 
         // уведомляем о прокрутке пропс
-        onScrollValue?.(scrollEl.scrollLeft, scrollEl.scrollTop);
+        onScrollPosition?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
         const scrollOrSlider = el.querySelectorAll<HTMLElement>(
           mode === "scroll" ? ".ms-bar" : ".ms-slider",
@@ -1200,7 +1200,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           isScrollingRef.current = true;
           // видно снаружи: по нему вложенные скроллы решают, брать ли колесо
           mainEl.setAttribute(CONST.SCROLLING_ATR, "");
-          isScrolling?.(true);
+          onScrollingChange?.(true);
         }
 
         // debounce для финала через setTask
@@ -1209,7 +1209,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             scrollDirTrackerRef.current.reset(); // сброс
             isScrollingRef.current = false;
             mainEl.removeAttribute(CONST.SCROLLING_ATR);
-            isScrolling?.(false);
+            onScrollingChange?.(false);
             renderLocal.mode && updateLoadedElementsKeysLocal();
 
             if (
@@ -1249,8 +1249,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         });
       },
       [
-        onScrollValue,
-        isScrolling,
+        onScrollPosition,
+        onScrollingChange,
         mode,
         sliderCheckLocal,
         updateLoadedElementsKeysLocal,
@@ -1550,7 +1550,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     React.useEffect(() => {
       const animationFrameId = scrollStateRef.current.animationFrameId;
 
-      isScrolling?.(false); // стартовое состояние
+      onScrollingChange?.(false); // стартовое состояние
 
       // первый рендер
       requestAnimationFrame(() => (firstRender.current = false)); // RAF спасает от двойного вызова smoothScroll в StrictMode
@@ -1576,7 +1576,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // регистрация контейнера для auto drag scroll
     React.useEffect(() => {
-      if (!dragScroll) return;
+      if (!autoScrollOnDrag) return;
 
       const parent = customScrollRef.current;
       const element = scrollElementRef.current;
@@ -1593,7 +1593,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return () => {
         unregisterContainer(container);
       };
-    }, [dragScroll, direction]);
+    }, [autoScrollOnDrag, direction]);
 
     // установка слушателя нажатия на обертку
     React.useEffect(() => {
@@ -1971,7 +1971,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     ]);
 
     const edgesJSX = React.useMemo(() => {
-      if (!edgeGradient) return null;
+      if (!edge) return null;
 
       return getEdgeOrArrowData.map(({ positionType, visibility }) => (
         <Edge
@@ -1981,7 +1981,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           edgeType={positionType as "left" | "right" | "top" | "bottom"}
         />
       ));
-    }, [edgeGradientST, getEdgeOrArrowData, edgeElement, sizeST]);
+    }, [edgeST, getEdgeOrArrowData, edgeElement, sizeST]);
 
     const arrowsJSX = React.useMemo(() => {
       if (!progressTriggerLocal.arrows) return null;
@@ -2095,7 +2095,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       if (
         progressTriggerLocal.arrows &&
-        arrowsLocal.contentReduce &&
+        arrowsLocal.reserveSpace &&
         arrowsLocal.size
       ) {
         if (direction === "x") base.left = `${arrowsLocal.size}px`;

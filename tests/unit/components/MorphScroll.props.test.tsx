@@ -58,8 +58,8 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["wrapperAlign", { size: [900, 900] }, { size: [900, 900], wrapperAlign: "center" }],
   ["objectsAlign", {}, { objectsAlign: "center" }],
   ["objectsDirection", { crossCount: 2 }, { crossCount: 2, objectsDirection: "column" }],
-  ["edgeGradient", {}, { edgeGradient: true }],
-  ["edgeGradient node", { edgeGradient: true }, { edgeGradient: <u /> }],
+  ["edge", {}, { edge: true }],
+  ["edge node", { edge: true }, { edge: <u /> }],
   ["render", {}, { render: "virtual" }],
   ["render.rootMargin", { render: "virtual" }, { render: { mode: "virtual", rootMargin: 300 } }],
   ["render.trackVisibility", { render: "virtual" }, { render: { mode: "virtual", trackVisibility: true } }],
@@ -73,7 +73,7 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["progressTrigger.arrows", {}, { progressTrigger: { arrows: true } }],
   ["arrows.element", { progressTrigger: { arrows: true } }, { progressTrigger: { arrows: { element: <b /> } } }],
   ["arrows.size", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, size: 80 } } }],
-  ["arrows.contentReduce", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, contentReduce: false } } }],
+  ["arrows.reserveSpace", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, reserveSpace: false } } }],
   ["arrows.loop", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, loop: true } } }],
 
   // — progressTrigger.bar —
@@ -123,9 +123,9 @@ describe("MorphScroll — the x-axis bar settings need an x-axis bar", () => {
 });
 
 describe("MorphScroll — props with no visible markup", () => {
-  it("dragScroll registers the container", () => {
+  it("autoScrollOnDrag registers the container", () => {
     const before = getContainers().size;
-    const { unmount } = render(<MorphScroll {...BASE} dragScroll />);
+    const { unmount } = render(<MorphScroll {...BASE} autoScrollOnDrag />);
     expect(getContainers().size).toBe(before + 1);
     unmount();
     expect(getContainers().size).toBe(before);
@@ -153,16 +153,16 @@ describe("MorphScroll — props with no visible markup", () => {
     vi.useRealTimers();
   });
 
-  it("onScrollValue, isScrolling and onRenderedKeysChange all fire", () => {
-    const onScrollValue = vi.fn();
-    const isScrolling = vi.fn();
+  it("onScrollPosition, onScrollingChange and onRenderedKeysChange all fire", () => {
+    const onScrollPosition = vi.fn();
+    const onScrollingChange = vi.fn();
     const onRenderedKeysChange = vi.fn();
 
     const { container } = render(
       <MorphScroll
         {...BASE}
-        onScrollValue={onScrollValue}
-        isScrolling={isScrolling}
+        onScrollPosition={onScrollPosition}
+        onScrollingChange={onScrollingChange}
         onRenderedKeysChange={onRenderedKeysChange}
       />,
     );
@@ -171,8 +171,8 @@ describe("MorphScroll — props with no visible markup", () => {
       fireEvent.scroll(el, { target: { scrollTop: 120 } });
     });
 
-    expect(onScrollValue).toHaveBeenCalled();
-    expect(isScrolling).toHaveBeenCalledWith(true);
+    expect(onScrollPosition).toHaveBeenCalled();
+    expect(onScrollingChange).toHaveBeenCalledWith(true);
     expect(onRenderedKeysChange).toHaveBeenCalled();
   });
 

@@ -66,7 +66,7 @@ describe("class names", () => {
         objectsSize={100}
         direction="hybrid"
         mode="sliderMenu"
-        edgeGradient
+        edge
         progressTrigger={{
           wheel: true,
           content: true,
@@ -91,7 +91,7 @@ describe("class names", () => {
         size={[300, 300]}
         objectsSize={100}
         direction="hybrid"
-        edgeGradient
+        edge
         progressTrigger={{ arrows: { element: <span />, size: 40 } }}
       >
         {items(10)}

@@ -58,16 +58,16 @@ describe("MorphScroll isolation — scheduled tasks", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it("delivers isScrolling(false) to an instance even when another one scrolls", () => {
+  it("delivers onScrollingChange(false) to an instance even when another one scrolls", () => {
     const aScrolling = vi.fn();
     const bScrolling = vi.fn();
 
     const { container } = render(
       <>
-        <MorphScroll size={SIZE} objectsSize={OBJ} isScrolling={aScrolling}>
+        <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={aScrolling}>
           {items(20, "a")}
         </MorphScroll>
-        <MorphScroll size={SIZE} objectsSize={OBJ} isScrolling={bScrolling}>
+        <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={bScrolling}>
           {items(20, "b")}
         </MorphScroll>
       </>,

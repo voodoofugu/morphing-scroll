@@ -18,11 +18,11 @@ const dragTo = async (page: Page, handle: Locator, x: number, y: number) => {
   await page.mouse.move(x, y, { steps: 12 });
 };
 
-test.describe("dragScroll — edges (real browser)", () => {
+test.describe("autoScrollOnDrag — edges (real browser)", () => {
   test("scrolls back up when the drag returns to the top edge", async ({
     page,
   }) => {
-    await page.goto("/?scenario=dragScroll");
+    await page.goto("/?scenario=autoScrollOnDrag");
     const el = page.locator(".ms-viewport");
     const box = (await el.boundingBox())!;
 
@@ -44,7 +44,7 @@ test.describe("dragScroll — edges (real browser)", () => {
   });
 
   test("scrolls sideways for a horizontal container", async ({ page }) => {
-    await page.goto("/?scenario=dragScrollX");
+    await page.goto("/?scenario=autoScrollOnDragX");
     const el = page.locator(".ms-viewport");
     const box = (await el.boundingBox())!;
 
@@ -66,7 +66,7 @@ test.describe("dragScroll — edges (real browser)", () => {
   test("stops and clears the mark once the pointer leaves the container", async ({
     page,
   }) => {
-    await page.goto("/?scenario=dragScroll");
+    await page.goto("/?scenario=autoScrollOnDrag");
     const el = page.locator(".ms-viewport");
     const root = page.locator("[morph-scroll]");
     const box = (await el.boundingBox())!;
@@ -90,7 +90,7 @@ test.describe("dragScroll — edges (real browser)", () => {
   });
 
   test("clears the mark when the drag ends", async ({ page }) => {
-    await page.goto("/?scenario=dragScroll");
+    await page.goto("/?scenario=autoScrollOnDrag");
     const root = page.locator("[morph-scroll]");
     const box = (await page.locator(".ms-viewport").boundingBox())!;
 
@@ -105,9 +105,9 @@ test.describe("dragScroll — edges (real browser)", () => {
   });
 });
 
-test.describe("dragScroll — more than one container (real browser)", () => {
+test.describe("autoScrollOnDrag — more than one container (real browser)", () => {
   test("hands over to the container the pointer moved into", async ({ page }) => {
-    await page.goto("/?scenario=dragScrollPair");
+    await page.goto("/?scenario=autoScrollOnDragPair");
     const [left, right] = await page.locator(".ms-viewport").all();
     const rightBox = (await right.boundingBox())!;
 
@@ -126,7 +126,7 @@ test.describe("dragScroll — more than one container (real browser)", () => {
   });
 
   test("only the container under the pointer is marked", async ({ page }) => {
-    await page.goto("/?scenario=dragScrollPair");
+    await page.goto("/?scenario=autoScrollOnDragPair");
     const roots = page.locator("[morph-scroll]");
     const rightBox = (await page.locator(".ms-viewport").nth(1).boundingBox())!;
 

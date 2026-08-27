@@ -255,11 +255,11 @@ Unlike the declarative <b>"end"</b>, which backs off if the user has scrolled aw
 
 <h2></h2>
 
-<details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
+<details><summary><b><code>autoScrollOnDrag</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-dragScroll: true;
+autoScrollOnDrag: true;
 ```
 
 <b>Description:</b><em><br />
@@ -272,12 +272,12 @@ while auto-scrolling is active, the container receives the <code>ms-under-drag</
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} dragScroll>
+<MorphScroll {...props} autoScrollOnDrag>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-dragScroll.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-autoScrollOnDrag.png)
 
 </div></ul></details>
 
@@ -602,7 +602,7 @@ progressTrigger: {
   arrows: {
     element: <ArrowComponent />,
     size: 60, // default 40px
-    contentReduce: true;
+    reserveSpace: true;
     loop: true,
   }
 }
@@ -709,7 +709,7 @@ allows you to add custom arrows to the progress bar<br />
 <ul>
   <li><code>element</code>: the custom arrow element.</li><br />
   <li><code>size</code>: thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the element you pass.</li><br />
-  <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
+  <li><code>reserveSpace</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
 The component root is positioned, so each arrow sits against it instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
@@ -737,11 +737,11 @@ While the content, a thumb or a slider is being dragged, the element under the p
 
 <h2></h2>
 
-<details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
+<details><summary><b><code>edge</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-edgeGradient: true; // or a node: <MyFade />
+edge: true; // or a node: <MyFade />
 ```
 
 <b>Description:</b><em><br />
@@ -771,12 +771,12 @@ an edge has no size and no colour of its own, so nothing shows until you give it
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} edgeGradient>
+<MorphScroll {...props} edge>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edgeGradient.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edge.png)
 
 </div></ul></details>
 
@@ -967,7 +967,7 @@ It will be used when:
 
 ###### **— EVENTS —**
 
-<details><summary><b><code>onScrollValue</code></b></summary><br /><ul><div>
+<details><summary><b><code>onScrollPosition</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
 <br />
@@ -975,7 +975,7 @@ accepts a callback function that is triggered on every scroll event. The callbac
 
 ```tsx
 <MorphScroll {...props}
-  onScrollValue={
+  onScrollPosition={
     (left, top) => console.log("Scroll position:", left, top),
   }
 >
@@ -987,7 +987,7 @@ accepts a callback function that is triggered on every scroll event. The callbac
 
 <h2></h2>
 
-<details><summary><b><code>isScrolling</code></b></summary><br /><ul><div>
+<details><summary><b><code>onScrollingChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
 <br />
@@ -996,7 +996,7 @@ accepts a callback function that is triggered whenever the scroll status changes
 ```tsx
 <MorphScroll
   {...props}
-  isScrolling={(motion) => {
+  onScrollingChange={(motion) => {
     console.log(motion ? "Scrolling..." : "Scroll stopped.");
   }}
 >

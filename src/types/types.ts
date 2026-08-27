@@ -379,7 +379,7 @@ export type MorphScroll = {
   scrollPosition?: ScrollTarget | { value: ScrollTarget; duration?: number };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***dragScroll***:
+   * ### ***autoScrollOnDrag***:
    * enables automatic scrolling when dragging elements near the edges of the container.
    * @note
    * *Supports attributes:*
@@ -391,13 +391,13 @@ export type MorphScroll = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   dragScroll
+   *   autoScrollOnDrag
    * >
    *   {children}
    * </MorphScroll>
    *  ```
    */
-  dragScroll?: boolean;
+  autoScrollOnDrag?: boolean;
 
   // — SIZE —
   /**---
@@ -593,7 +593,7 @@ export type MorphScroll = {
     | ProgressTriggerConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***edgeGradient***:
+   * ### ***edge***:
    * marks the edges where the content is cut off.
    * @description
    * a place and a signal, not a ready-made gradient: `.ms-edge` is stretched
@@ -604,13 +604,13 @@ export type MorphScroll = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   edgeGradient={<div className="my-fade" />}
+   *   edge={<div className="my-fade" />}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  edgeGradient?: boolean | React.ReactNode;
+  edge?: boolean | React.ReactNode;
 
   // — OPTIMIZATION —
   /**---
@@ -707,35 +707,35 @@ export type MorphScroll = {
   // — EVENTS —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onScrollValue***:
+   * ### ***onScrollPosition***:
    * callback for scroll value.
    * @param left current scroll position on the x-axis.
    * @param top current scroll position on the y-axis.
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   onScrollValue={(left, top) => console.log("Scroll position:", left, top)}
+   *   onScrollPosition={(left, top) => console.log("Scroll position:", left, top)}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  onScrollValue?: (left: number, top: number) => void;
+  onScrollPosition?: (left: number, top: number) => void;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***isScrolling***:
+   * ### ***onScrollingChange***:
    * callback for scroll status.
    * @param motion boolean indicating if scrolling is in progress.
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   isScrolling={(motion) => console.log("Is scrolling:", motion)}
+   *   onScrollingChange={(motion) => console.log("Is scrolling:", motion)}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  isScrolling?: (motion: boolean) => void;
+  onScrollingChange?: (motion: boolean) => void;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onRenderedKeysChange***:

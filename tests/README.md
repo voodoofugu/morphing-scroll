@@ -18,7 +18,7 @@ tests/
     fixture/               # minimal Vite app, scenarios via ?scenario=
     scroll.spec.ts         # tier 3 — wheel / arrows / drag / virtualization
     scrollPosition.spec.ts # tier 3 — scrollPosition + sliderMenu snapping
-    dragScroll.spec.ts     # tier 3 — auto-scroll registry (ms-custom-drag)
+    autoScrollOnDrag.spec.ts     # tier 3 — auto-scroll registry (ms-custom-drag)
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
@@ -27,10 +27,10 @@ from the unit tier alone — `autoScrollRegistry` and the gesture physics are
 covered by Playwright, which this number does not see.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
-`edgeGradient`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
+`edge`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
 `objectsSize` modes, `gap`/`wrapperMargin`/`wrapperMinSize`/`wrapperAlign`/
-`objectsAlign`, `progressReverse`, `onRenderedKeysChange`, `onScrollValue`,
-`scrollPosition` (number/end), `type: sliderMenu` snapping, `dragScroll`
+`objectsAlign`, `progressReverse`, `onRenderedKeysChange`, `onScrollPosition`,
+`scrollPosition` (number/end), `type: sliderMenu` snapping, `autoScrollOnDrag`
 auto-scroll, hybrid `wheel.changeDirection`, plus the pure algorithms
 (`startInertiaScroll`, `overscrollBackAnim`, rAF schedulers, `handleArrow`,
 `updateKeys`, `autoScrollRegistry`) and the wheel/thumb/content-drag/arrow
@@ -63,7 +63,7 @@ Each of these landed test-first, and the test fails on the old code:
 - `render.rootMargin` sides on the horizontal axis (`MorphScroll.optimization`);
 - the wheel no longer steals focus from an input (`handleWheel` — the module
   had no tests at all before);
-- `isScrolling` fires once per burst instead of once per scroll event
+- `onScrollingChange` fires once per burst instead of once per scroll event
   (`MorphScroll.callbacks`);
 - the wheel over a custom scrollbar follows the current scroll range
   (`ScrollBar`);

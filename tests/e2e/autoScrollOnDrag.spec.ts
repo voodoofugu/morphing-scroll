@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("MorphScroll dragScroll (real browser)", () => {
+test.describe("MorphScroll autoScrollOnDrag (real browser)", () => {
   test("auto-scrolls when a draggable item is dragged to the bottom edge", async ({
     page,
   }) => {
-    await page.goto("/?scenario=dragScroll");
+    await page.goto("/?scenario=autoScrollOnDrag");
     const el = page.locator(".ms-viewport");
     await expect(el).toBeVisible();
     const box = (await el.boundingBox())!;
@@ -32,7 +32,7 @@ test.describe("MorphScroll dragScroll (real browser)", () => {
   test("marks the container with the ms-under-drag attribute while dragging", async ({
     page,
   }) => {
-    await page.goto("/?scenario=dragScroll");
+    await page.goto("/?scenario=autoScrollOnDrag");
     const root = page.locator("[morph-scroll]");
     const box = (await page.locator(".ms-viewport").boundingBox())!;
 
