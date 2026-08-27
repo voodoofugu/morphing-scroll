@@ -62,6 +62,22 @@ import {
 
 import CONST from "../constants";
 
+/** сторона, в которую смотрит клавиша — та же, что у кнопок-стрелок */
+const ARROW_KEYS: Record<string, handleArrowT["arrowType"] | undefined> = {
+  ArrowUp: "top",
+  ArrowDown: "bottom",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+};
+
+/** в поле ввода стрелки двигают курсор, и отбирать их нельзя */
+const isTextEntry = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+};
+
 /**---
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***MorphScroll***:
@@ -333,6 +349,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         thumbMinSize: config.thumbMinSize ?? 30,
       };
     }, [progressTriggerST]);
+
+    /*
+     * По умолчанию клавиша делает то, что в этом режиме вообще имеет смысл:
+     * в слайдере листает страницу, в обычном скролле просто подвигает контент.
+     */
+    const keysLocal = React.useMemo(() => {
+      const keys = progressTriggerLocal.keys;
+      if (!keys) return null;
+
+      const config = typeof keys === "object" ? keys : {};
+
+      return {
+        mode: config.mode ?? (mode === "scroll" ? "pan" : "step"),
+        step: config.step ?? 40,
+      };
+    }, [progressTriggerST, mode]);
 
     const arrowsLocal = React.useMemo(() => {
       const arrows = progressTriggerLocal.arrows;
@@ -1145,7 +1177,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [mode, onNavigate, pageNow]);
 
     const handleArrowLocal = React.useCallback(
-      (arrowType: handleArrowT["arrowType"]) => {
+      (
+        arrowType: handleArrowT["arrowType"],
+        // тот же шаг делают и кнопки-стрелки, и клавиши — меняется только след
+        reason: NavigateReason = "arrows",
+      ) => {
         if (!scrollElementRef.current) return;
 
         const moved = handleArrow({
@@ -1160,7 +1196,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         });
 
         // упёрлись в край без loop — никуда не поехали, и метку ставить не за что
-        if (moved) markNavigate("arrows");
+        if (moved) markNavigate(reason);
       },
 
       [
@@ -1358,10 +1394,54 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           e.stopPropagation();
           keyDownX.current = true;
           triggerRAF();
+          return;
         }
+
+        if (!keysLocal) return;
+
+        const side = ARROW_KEYS[e.key];
+        if (!side) return;
+
+        // в поле ввода стрелки принадлежат тексту, а не скроллу
+        if (isTextEntry(e.target)) return;
+
+        const isVertical = side === "top" || side === "bottom";
+        if (direction === "x" && isVertical) return;
+        if (direction === "y" && !isVertical) return;
+
+        // забираем клавишу себе: иначе прокрутит ещё и браузер, и родитель
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (keysLocal.mode === "step") {
+          handleArrowLocal(side, "keys");
+          return;
+        }
+
+        const scrollEl = scrollElementRef.current;
+        if (!scrollEl) return;
+
+        const axis = isVertical ? "y" : "x";
+        const from = axis === "y" ? scrollEl.scrollTop : scrollEl.scrollLeft;
+        const delta =
+          side === "top" || side === "left" ? -keysLocal.step : keysLocal.step;
+
+        /*
+         * Метку не ставим: `pan` — это непрерывное движение, такое же как
+         * колесо или перетаскивание. Если оно доедет до новой страницы
+         * слайдера, это и есть "scroll".
+         */
+        smoothScrollLocal(from + delta, axis, scrollPositionLocal.duration);
       },
 
-      [direction, progressTriggerST],
+      [
+        direction,
+        progressTriggerST,
+        keysLocal,
+        handleArrowLocal,
+        smoothScrollLocal,
+        scrollPositionLocal.duration,
+      ],
     );
     const onKeyUp = React.useCallback((e: KeyboardEvent) => {
       if (keyDownX.current) {
@@ -1371,33 +1451,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         triggerRAF();
       }
     }, []);
-
-    // TODO
-    // const onArrowKey = React.useCallback(
-    //   (e: KeyboardEvent) => {
-    //     raf.schedule(() => {
-    //       const keyMap: Record<string, "top" | "bottom" | "left" | "right"> = {
-    //         ArrowDown: "bottom",
-    //         Down: "bottom",
-    //         ArrowUp: "top",
-    //         Up: "top",
-    //         ArrowLeft: "left",
-    //         Left: "left",
-    //         ArrowRight: "right",
-    //         Right: "right",
-    //       };
-
-    //       const dir = keyMap[e.key];
-    //       if (!dir) return;
-
-    //       if (direction === "x" && (dir === "top" || dir === "bottom")) return;
-    //       if (direction === "y" && (dir === "left" || dir === "right")) return;
-
-    //       handleArrowLocal(dir);
-    //     });
-    //   },
-    //   [handleArrowLocal, direction],
-    // );
 
     // ♦ effects
     React.useEffect(() => {
@@ -1426,19 +1479,27 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     React.useEffect(() => {
       // эффект для нажатия клавиш
-      if (isTouchedRef.current || direction !== "hybrid") return;
+      if (isTouchedRef.current) return;
 
       const wrapperEl = objectsWrapperRef.current;
       const scrollEl = scrollElementRef.current;
       if (!wrapperEl || !scrollEl) return;
 
-      if (
+      /*
+       * `changeDirectionBtn` нужен только там, где есть между чем переключать:
+       * hybrid, и контент вылезает по обеим осям. `keys` таких условий не
+       * ставит — стрелки работают в любом направлении, поэтому слушатель
+       * вешается, если нужен хоть кому-то из них.
+       */
+      const forChangeDirection =
+        direction === "hybrid" &&
         wrapperEl.clientWidth! + mLocalX > scrollEl.clientWidth! &&
-        wrapperEl.clientHeight! + mLocalY > scrollEl.clientHeight!
-      ) {
-        scrollEl.addEventListener("keydown", onKeyDown);
-        scrollEl.addEventListener("keyup", onKeyUp);
-      }
+        wrapperEl.clientHeight! + mLocalY > scrollEl.clientHeight!;
+
+      if (!forChangeDirection && !keysLocal) return;
+
+      scrollEl.addEventListener("keydown", onKeyDown);
+      scrollEl.addEventListener("keyup", onKeyUp);
 
       return () => {
         scrollEl.removeEventListener("keydown", onKeyDown);
@@ -1447,6 +1508,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [
       direction,
       progressTriggerST,
+      keysLocal,
+      onKeyDown,
       // при изменении размеров
       sizeST,
       objectsSizeST,
@@ -1455,21 +1518,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       mLocalX,
       mLocalY,
     ]);
-
-    // TODO
-    // React.useEffect(() => {
-    //   // эффект для нажатия стрелок
-    //   if (isTouchedRef.current) return;
-
-    //   const scrollEl = scrollElementRef.current;
-    //   if (!scrollEl) return;
-
-    //   scrollEl.addEventListener("keydown", onArrowKey);
-
-    //   return () => {
-    //     scrollEl.removeEventListener("keydown", onArrowKey);
-    //   };
-    // }, [onArrowKey]);
 
     React.useEffect(() => {
       if (!emptyObjectsLocal || !renderLocal.mode) return; // ранний выход

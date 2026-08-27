@@ -553,7 +553,7 @@ progressTrigger: {
 <b>Description:</b><em><br />
 this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
 <br />
-A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "content"]</code> the same as <code>{ wheel: true, content: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br />
+A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br />
 <br />
 <code><b>wheel</b></code>:<br />
 determines whether the progress bar responds to mouse wheel scrolling<br />
@@ -564,6 +564,21 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
   <li><code>changeDirectionBtn</code>: enables switching the scroll direction by pressing a specific key.<br />
   To disable this behavior, pass an empty string.<br />
   <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
+</ul>
+<br />
+<code><b>keys</b></code>:<br />
+the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+<br />
+<ul>
+  <li><code>mode</code>: <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along. Defaults to <b>"step"</b> in the slider modes and <b>"pan"</b> in <code>mode="scroll"</code>.</li><br />
+  <li><code>step</code>: how far one press nudges in <b>"pan"</b> ( default <b>40</b> ).</li>
+</ul>
+<br />
+✦ Note:<br />
+<ul>
+  <li>only the keys of the scrolling axis are taken; the other two are left alone.</li>
+  <li>inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll does not touch them.</li>
+  <li>with <code>render="virtual"</code>, tabbing only reaches what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
 </ul>
 <br />
 <code><b>content</b></code>:<br />

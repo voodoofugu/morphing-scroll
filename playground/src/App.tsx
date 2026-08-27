@@ -69,6 +69,9 @@ type Settings = {
   wheelChangeDirection: boolean;
   wheelChangeDirectionBtn: string;
   contentDrag: boolean;
+  keys: boolean;
+  keysMode: "pan" | "step";
+  keysStep: number;
   progressElementMode: ProgressElementMode;
   arrows: boolean;
   arrowSize: number;
@@ -149,6 +152,9 @@ const defaultSettings: Settings = {
   wheelChangeDirection: true,
   wheelChangeDirectionBtn: "KeyX",
   contentDrag: false,
+  keys: true,
+  keysMode: "pan",
+  keysStep: 40,
   progressElementMode: "custom",
   arrows: false,
   arrowSize: 36,
@@ -620,6 +626,9 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         }
       : false,
     content: settings.contentDrag,
+    keys: settings.keys
+      ? { mode: settings.keysMode, step: settings.keysStep }
+      : false,
     bar: barForCode,
     arrows: settings.arrows
       ? {
@@ -904,6 +913,9 @@ function App() {
             }
           : false,
         content: settings.contentDrag,
+        keys: settings.keys
+          ? { mode: settings.keysMode, step: settings.keysStep }
+          : false,
         bar:
           typeof progressElement === "boolean"
             ? progressElement
@@ -1358,6 +1370,34 @@ function App() {
             label="content"
             open={false}
           />
+
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("keys", value)}
+                value={settings.keys}
+              />
+            }
+            label="keys"
+            open={settings.keys}
+          >
+            <SelectField
+              label="mode"
+              onChange={(value) => update("keysMode", value)}
+              options={["pan", "step"] as const}
+              value={settings.keysMode}
+            />
+            {settings.keysMode === "pan" && (
+              <NumberField
+                label="step"
+                max={400}
+                min={4}
+                onChange={(value) => update("keysStep", value)}
+                value={settings.keysStep}
+              />
+            )}
+          </SubGroup>
 
           <SubGroup
             control={

@@ -104,3 +104,50 @@ test.describe("MorphScroll virtualization (real browser)", () => {
     await expect(page.getByTestId("item-0")).toHaveCount(1);
   });
 });
+
+/*
+ * Клавиши работают только когда скролл в фокусе, а фокус в jsdom ведёт себя
+ * иначе, чем в браузере, — поэтому проверка здесь.
+ */
+test.describe("MorphScroll keys (real browser)", () => {
+  test("arrow keys nudge the content in pan mode", async ({ page }) => {
+    await page.goto("/?scenario=keys");
+    const viewport = page.locator(".ms-viewport");
+
+    await viewport.click();
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => scrollTopOf(page)).toBe(60);
+
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => scrollTopOf(page)).toBe(120);
+
+    await page.keyboard.press("ArrowUp");
+    await expect.poll(() => scrollTopOf(page)).toBe(60);
+  });
+
+  test("a slider pages instead, and says the keys did it", async ({ page }) => {
+    await page.goto("/?scenario=keysStep");
+    await expect(page.locator(".ms-slider-item.ms-active")).toHaveCount(1);
+
+    await page.locator(".ms-viewport").click();
+    await page.keyboard.press("ArrowDown");
+
+    await expect.poll(() => scrollTopOf(page)).toBe(300);
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          () =>
+            ((window as unknown as { __navigate?: unknown[] }).__navigate ??
+              []) as { reason: string; to: number }[],
+        ),
+      )
+      .toMatchObject([{ reason: "keys", to: 1 }]);
+  });
+
+  test("does nothing without focus", async ({ page }) => {
+    await page.goto("/?scenario=keys");
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    expect(await scrollTopOf(page)).toBe(0);
+  });
+});

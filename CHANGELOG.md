@@ -218,6 +218,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Added
 
+- `progressTrigger.keys` — the arrow keys move the scroll while it has
+  focus. `mode: "step"` turns a page and reports through `onNavigate` as
+  `"keys"`; `mode: "pan"` nudges by `step` pixels. Defaults to `"step"` in
+  the slider modes and `"pan"` in `mode="scroll"`, takes only the keys of
+  the scrolling axis, and leaves the arrows alone inside a text field.
 - `onNavigate` — fires once when the scroll settles on a page it was not on
   before, with `reason` (`"arrows"` / `"bar"` / `"scroll"`), `axis`, `from`
   and `to`. `onScrollPosition` reports continuous movement; this reports the

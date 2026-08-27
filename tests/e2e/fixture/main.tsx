@@ -104,6 +104,30 @@ const scenarios: Record<string, React.ReactElement> = {
     </MorphScroll>
   ),
 
+  keys: (
+    <MorphScroll
+      size={300}
+      objectsSize={OBJ}
+      progressTrigger={{ keys: { mode: "pan", step: 60 }, bar: thumb }}
+      onScrollPosition={onScrollPosition}
+    >
+      {makeItems()}
+    </MorphScroll>
+  ),
+
+  keysStep: (
+    <MorphScroll
+      size={300}
+      objectsSize={300}
+      mode="slider"
+      progressTrigger={{ keys: true, bar: <div className="dot" /> }}
+      onScrollPosition={onScrollPosition}
+      onNavigate={onNavigate}
+    >
+      {makeItems()}
+    </MorphScroll>
+  ),
+
   sliderMenu: (
     <MorphScroll
       size={300}

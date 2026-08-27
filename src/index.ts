@@ -27,6 +27,7 @@ export type {
   ProgressTriggerConfig,
   BarConfig,
   ArrowsConfig,
+  KeysConfig,
   WheelConfig,
   EmptyObjectsConfig,
   NavigateEvent,

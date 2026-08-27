@@ -9,7 +9,12 @@ type MinSize = number | "full";
 type ObjectSize = number | "full" | "firstChild" | "none";
 
 /** короткая форма для `progressTrigger` */
-export type ProgressTriggerName = "wheel" | "content" | "arrows" | "bar";
+export type ProgressTriggerName =
+  | "wheel"
+  | "content"
+  | "arrows"
+  | "bar"
+  | "keys";
 
 /** объектная форма `progressTrigger.bar` */
 export type BarConfig = {
@@ -46,6 +51,19 @@ export type WheelConfig = {
   changeDirectionBtn?: string;
 };
 
+/** объектная форма `progressTrigger.keys` */
+export type KeysConfig = {
+  /**
+   * what an arrow key does:
+   * - `"step"`: *turns a page, the same move the arrow buttons make*
+   * - `"pan"`: *nudges the content along, the way a plain scroll behaves*
+   * @default `"step"` in the slider modes, `"pan"` in `mode="scroll"`
+   */
+  mode?: "pan" | "step";
+  /** how far one press nudges in `"pan"` */
+  step?: number;
+};
+
 /** объектная форма `progressTrigger.arrows` */
 export type ArrowsConfig = {
   /** the icon; author it pointing right, the library turns it for the rest */
@@ -62,12 +80,13 @@ export type ArrowsConfig = {
 export type ProgressTriggerConfig = {
   wheel?: boolean | WheelConfig;
   content?: boolean;
+  keys?: boolean | KeysConfig;
   bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
 /** что привело скролл на новую страницу */
-export type NavigateReason = "arrows" | "bar" | "scroll";
+export type NavigateReason = "arrows" | "bar" | "keys" | "scroll";
 
 /** аргумент `onNavigate` */
 export type NavigateEvent = {
@@ -545,6 +564,7 @@ export type MorphScroll = {
    * @description
    * - `wheel`: *allow to scroll by mouse wheel*
    * - `content`: *allow to scroll by content drag*
+   * - `keys`: *arrow keys move the scroll while it has focus*
    * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*
    * @note
