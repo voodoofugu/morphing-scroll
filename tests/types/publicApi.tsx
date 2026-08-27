@@ -13,6 +13,7 @@ import Morph, {
   ResizeTracker,
   IntersectionTracker,
 } from "../../src";
+import type { MorphScrollHandle } from "../../src";
 
 export const everyProp = (
   <MorphScroll
@@ -87,6 +88,35 @@ export const noChildren = (
     <MorphScroll size={100} />
   </>
 );
+
+export const imperative = () => {
+  const scroll = React.useRef<MorphScrollHandle>(null);
+
+  scroll.current?.scrollTo(0);
+  scroll.current?.scrollTo("end");
+  scroll.current?.scrollTo([0, "end"], { duration: 0 });
+  scroll.current?.scrollTo(null);
+
+  return (
+    <MorphScroll ref={scroll} size={100}>
+      <div key="k" />
+    </MorphScroll>
+  );
+};
+
+export const noUpdater = (
+  <MorphScroll
+    size={100}
+    // @ts-expect-error scrollPosition lost its updater flag in v3
+    scrollPosition={{ value: 10, updater: true }}
+  />
+);
+
+export const badScrollTo = () => {
+  const scroll = React.useRef<MorphScrollHandle>(null);
+  // @ts-expect-error scrollTo takes a scroll target, not a DOM node
+  scroll.current?.scrollTo(document.body);
+};
 
 // @ts-expect-error `size` is the one required prop
 export const missingSize = <MorphScroll />;

@@ -17,4 +17,11 @@ import MorphScroll from "./components/MorphScroll";
 const Morph = { MorphScroll, ResizeTracker, IntersectionTracker };
 
 export { MorphScroll, ResizeTracker, IntersectionTracker };
+export type {
+  MorphScroll as MorphScrollProps,
+  ResizeTracker as ResizeTrackerProps,
+  IntersectionTracker as IntersectionTrackerProps,
+  MorphScrollHandle,
+  ScrollTarget,
+} from "./types/types";
 export default Morph;

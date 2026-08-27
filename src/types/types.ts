@@ -1,4 +1,35 @@
 export type Vec2 = [x: number, y: number];
+
+/** значение, которое понимает и `scrollPosition`, и `scrollTo` */
+export type ScrollTarget =
+  | null
+  | number
+  | "end"
+  | (null | number | "end")[];
+
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***MorphScrollHandle***:
+ * imperative commands, reachable through a `ref`.
+ * @description
+ * `scrollPosition` describes *where the scroll is* and only reacts when that
+ * value changes. `scrollTo` *does something now*, so it works even when the
+ * target is the same as last time — scrolling back to the top twice, for
+ * example.
+ * @example
+ * ```tsx
+ * const scroll = React.useRef<MorphScrollHandle>(null);
+ *
+ * <MorphScroll ref={scroll} size={300}>{children}</MorphScroll>
+ *
+ * scroll.current?.scrollTo(0);
+ * scroll.current?.scrollTo("end", { duration: 0 });
+ * ```
+ */
+export type MorphScrollHandle = {
+  /** run a scroll now; `duration: 0` jumps without animating */
+  scrollTo: (target: ScrollTarget, options?: { duration?: number }) => void;
+};
 type Size = [width: number, height: number];
 type Edges = [top: number, right: number, bottom: number, left: number];
 type SpacingValue = number | Vec2 | Edges;
@@ -268,13 +299,16 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***scrollPosition***:
-   * set the scroll position value and additional options.
-   * @default { duration: 200; updater: false }
+   * where the scroll should sit.
+   * @default { duration: 200 }
    * @description
    * - `value`: *scroll position value*
    * - `duration`: *duration of the scroll animation*
-   * - `updater`: *helper to force an update when setting the same scroll value repeatedly*
    * @note `value` property can be an array of two values for hybrid directions
+   * @note
+   * this is a description, not a command: it applies when the value changes.
+   * To run the same scroll again — back to the top twice, for instance — use
+   * the `scrollTo` method on the component `ref`.
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -292,8 +326,6 @@ export type MorphScroll = {
     | {
         value: null | number | "end" | (null | number | "end")[];
         duration?: number;
-        updater?: boolean;
-        // callback?: (left: number, top: number) => void; // ! это onScrollValue
       };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)

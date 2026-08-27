@@ -182,7 +182,6 @@ scrollPosition: 10 // or "end" | null | array if direction="hybrid"
 scrollPosition: {
   value: 10; // or "end" | null | array if direction="hybrid"
   duration: 400;
-  updater: true;
 }
 ```
 
@@ -190,7 +189,7 @@ scrollPosition: {
 </ul>
 
 <b>Default:</b><br />
-{ duration: 200; updater: false }<br />
+{ duration: 200 }<br />
 <br />
 <b>Description:</b><em><br />
 allows you to set custom scroll values.<br />
@@ -206,8 +205,8 @@ You can also provide an array of two values to specific positions ( e.g., [ x, y
 <code><b>duration</b></code>:<br />
 property determines the animation speed for scrolling in <b>ms</b>.<br />
 <br />
-<code><b>updater</b></code>:<br />
-property is a helper for the <code>value</code>. When setting the same scroll value repeatedly, React does not register the update and you can use it to force an update</em><br />
+✦ Note:<br />
+<code>scrollPosition</code> describes <b>where the scroll is</b>, so it only reacts when the value changes. To run the same scroll again — back to the top twice, for instance — call <code>scrollTo</code> on the component <code>ref</code>, see below.</em><br />
 <br />
 <b>Example:</b>
 
@@ -218,6 +217,37 @@ property is a helper for the <code>value</code>. When setting the same scroll va
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollPosition.png)
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>ref</code></b> <em>(imperative commands)</em></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+const scroll = useRef<MorphScrollHandle>(null);
+
+<MorphScroll ref={scroll} size={300}>
+  {children}
+</MorphScroll>;
+
+scroll.current?.scrollTo(0);
+scroll.current?.scrollTo("end", { duration: 0 });
+```
+
+<b>Description:</b><em><br />
+props describe state, methods do something now. <code>scrollPosition</code> is the first kind: it applies when its value changes. <code>scrollTo</code> is the second: it runs every time it is called, so asking for a position that is already set works.<br />
+<br />
+<code><b>scrollTo(target, options?)</b></code>:<br />
+
+<ul>
+  <li><code>target</code>: same shape as <code>scrollPosition.value</code> — a <b>number</b>, <b>"end"</b>, <b>null</b>, or an array of two for <code>direction="hybrid"</code>.</li><br />
+  <li><code>options.duration</code>: animation length in <b>ms</b>; <b>0</b> jumps without animating. Defaults to the <code>scrollPosition</code> duration.</li>
+</ul>
+
+Unlike the declarative <b>"end"</b>, which backs off if the user has scrolled away from the bottom, an explicit <code>scrollTo("end")</code> always runs.<br />
+</em>
 
 </div></ul></details>
 

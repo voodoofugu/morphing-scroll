@@ -6,7 +6,10 @@ import {
   ResizeTracker,
 } from "@morphing-scroll/src";
 import logo from "@morphing-scroll/src/assets/morphing-scroll-logo.png";
-import type { MorphScroll as MorphScrollProps } from "@morphing-scroll/src/types/types";
+import type {
+  MorphScroll as MorphScrollProps,
+  MorphScrollHandle,
+} from "@morphing-scroll/src/types/types";
 
 type Align = "start" | "center" | "end";
 type Direction = "x" | "y" | "hybrid";
@@ -86,7 +89,6 @@ type Settings = {
 type ScrollCommand = {
   value: null | number | "end" | (null | number | "end")[];
   duration: number;
-  updater: boolean;
 };
 
 type RawCode = { __raw: string };
@@ -697,9 +699,10 @@ function App() {
   const [scrollXInput, setScrollXInput] = React.useState(0);
   const [scrollYInput, setScrollYInput] = React.useState(0);
   const [scrollDuration, setScrollDuration] = React.useState(220);
+  const scrollRef = React.useRef<MorphScrollHandle>(null);
+
   const [scrollCommand, setScrollCommand] = React.useState<ScrollCommand>({
     duration: 220,
-    updater: false,
     value: null,
   });
   const [copyState, setCopyState] = React.useState<"copied" | "idle">("idle");
@@ -888,7 +891,9 @@ function App() {
 
   const applyScroll = React.useCallback(
     (mode: "clear" | "end" | "start" | "value") => {
-      setScrollCommand((current) => {
+      let nextValue: ScrollCommand["value"] = null;
+
+      setScrollCommand(() => {
         let value: ScrollCommand["value"] = null;
 
         if (mode === "start")
@@ -904,12 +909,17 @@ function App() {
                 : scrollYInput;
         }
 
-        return {
-          duration: scrollDuration,
-          updater: !current.updater,
-          value,
-        };
+        nextValue = value;
+
+        return { duration: scrollDuration, value };
       });
+
+      /*
+       * `scrollPosition` описывает позицию и реагирует на изменение значения,
+       * поэтому повторное нажатие той же кнопки им не поймать. Команда — это
+       * ref: она выполняется всегда.
+       */
+      scrollRef.current?.scrollTo(nextValue, { duration: scrollDuration });
     },
     [scrollDuration, scrollXInput, scrollYInput, settings.direction],
   );
@@ -1461,7 +1471,9 @@ function App() {
               settings.sizeMode === "auto" ? "auto-size" : "",
             ].join(" ")}
           >
-            <MorphScroll {...morphProps}>{children}</MorphScroll>
+            <MorphScroll ref={scrollRef} {...morphProps}>
+              {children}
+            </MorphScroll>
           </div>
         </ResizeTracker>
 
