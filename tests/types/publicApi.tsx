@@ -107,7 +107,6 @@ export const trackers = (
     <IntersectionTracker
       threshold={[0, 0.5, 1]}
       rootMargin={10}
-      visibleContent
       onIntersection={(entry) => void entry.isIntersecting}
     >
       <div />

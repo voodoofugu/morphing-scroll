@@ -22,7 +22,7 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **333 unit + 31 e2e green**, 81% statement coverage of `src`
+Current status: **337 unit + 33 e2e green**, 81% statement coverage of `src`
 from the unit tier alone — `autoScrollRegistry` and the gesture physics are
 covered by Playwright, which this number does not see.
 Covered mechanics include:
@@ -30,6 +30,7 @@ render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
 `edge`, `arrows`, the `bar` scrollbar, `direction`/`crossCount`,
 `objectsSize` modes, `gap`/`wrapper.margin`/`wrapper.minSize`/`wrapper.align`/
 `objectsAlign`, `bar.reverse`, `onRenderedKeysChange`, `onScrollPosition`,
+`onNavigate` (reason/page, one event per gesture),
 `scrollPosition` (number/end), `mode: sliderMenu` snapping, `autoScrollOnDrag`
 auto-scroll, hybrid `wheel.changeDirection`, plus the pure algorithms
 (`startInertiaScroll`, `overscrollBackAnim`, rAF schedulers, `handleArrow`,

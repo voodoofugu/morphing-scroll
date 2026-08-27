@@ -27,6 +27,12 @@ const onScrollPosition = (left: number, top: number) => {
   (window as any).__scroll = { left, top };
 };
 
+// Every page change, in order, so the reason can be asserted.
+const onNavigate = (event: unknown) => {
+  const log = ((window as any).__navigate ??= []);
+  log.push(event);
+};
+
 const scenarios: Record<string, React.ReactElement> = {
   wheel: (
     <MorphScroll
@@ -105,6 +111,7 @@ const scenarios: Record<string, React.ReactElement> = {
       mode="sliderMenu"
       progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
       onScrollPosition={onScrollPosition}
+      onNavigate={onNavigate}
     >
       {makeItems()}
     </MorphScroll>

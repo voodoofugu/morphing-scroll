@@ -1,5 +1,10 @@
 import React from "react";
-import type { MorphScroll, ProgressTriggerConfig, Vec2 } from "../types/types";
+import type {
+  MorphScroll,
+  NavigateReason,
+  ProgressTriggerConfig,
+  Vec2,
+} from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
@@ -23,6 +28,8 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
   thumbSpace: number;
   objLengthPerSize: number;
   sliderCheckLocal: () => void;
+  /** пометить, что следующий переход начал бар, а не сам контент */
+  markNavigate: (reason: NavigateReason) => void;
   duration: number;
   isTouched: boolean;
   scrollStateRef: React.RefObject<ScrollStateRefT>;
@@ -52,6 +59,7 @@ const ScrollBar = ({
   thumbSpace,
   objLengthPerSize,
   sliderCheckLocal,
+  markNavigate,
   duration,
   isTouched,
   scrollStateRef,
@@ -93,6 +101,7 @@ const ScrollBar = ({
         onClick={
           mode === "sliderMenu"
             ? () => {
+                markNavigate("bar");
                 (scrollBarEvent as OnCustomScrollFn)(
                   neededSize * index,
                   axis,
@@ -114,6 +123,7 @@ const ScrollBar = ({
     progressTrigger[1], // только для memo
     duration,
     sliderCheckLocal,
+    markNavigate,
     size[0],
     size[1],
     scrollBarEvent,
@@ -171,13 +181,16 @@ const ScrollBar = ({
     const el = mode === "slider" ? scrollBarRef.current : thumbRef.current;
     if (!el || mode === "sliderMenu") return;
 
-    const handleStart = (e: PointerEvent) =>
+    const handleStart = (e: PointerEvent) => {
+      // страницу перелистнёт снап после отпускания, но начал её бар
+      if (mode === "slider") markNavigate("bar");
       (scrollBarEvent as (e: PointerEvent) => void)(e);
+    };
 
     el.addEventListener("pointerdown", handleStart);
 
     return () => el.removeEventListener("pointerdown", handleStart);
-  }, [scrollBarEvent, mode]);
+  }, [scrollBarEvent, mode, markNavigate]);
 
   React.useEffect(() => {
     // добавление элементов в ref

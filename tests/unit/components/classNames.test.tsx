@@ -108,7 +108,7 @@ describe("class names", () => {
   it("namespaces the trackers", () => {
     const { container } = render(
       <ResizeTracker>
-        <IntersectionTracker visibleContent>
+        <IntersectionTracker>
           <div />
         </IntersectionTracker>
       </ResizeTracker>,

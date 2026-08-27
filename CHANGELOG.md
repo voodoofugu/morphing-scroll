@@ -31,6 +31,7 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `onScrollValue` | `onScrollPosition` |
 | `isScrolling` | `onScrollingChange` |
 | `progressTrigger={{ arrows: { contentReduce } }}` | `arrows: { reserveSpace }` |
+| `<IntersectionTracker visibleContent>` | `<IntersectionTracker>` — оно теперь всегда так |
 
 Everything about the scrollbar now lives inside `progressTrigger.bar`, the
 same way everything about the arrows already lived inside
@@ -55,6 +56,24 @@ progressTrigger={{
 `"wheel"`, `["wheel", "content"]`, `"bar"` — which is the same as
 `{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
 unchanged.
+
+#### IntersectionTracker only watches now
+
+It used to hide its children until they came into view, and `visibleContent`
+turned that off — which is how it was actually used, since the sentinel case
+("tell me when this is seen") had to opt out of the hiding first.
+
+Hiding by visibility is what `MorphScroll`'s `render` is for, and it does it
+better: it works from positions instead of an observer per element. So the
+tracker stopped doing it. `visibleContent` is gone, children are always
+rendered, and a sentinel is one prop:
+
+```tsx
+<IntersectionTracker onIntersection={loadMore}>{children}</IntersectionTracker>
+```
+
+It also stopped re-rendering its subtree every time visibility flipped —
+there is no state left in it to change.
 
 #### One box, one prop
 
@@ -199,6 +218,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Added
 
+- `onNavigate` — fires once when the scroll settles on a page it was not on
+  before, with `reason` (`"arrows"` / `"bar"` / `"scroll"`), `axis`, `from`
+  and `to`. `onScrollPosition` reports continuous movement; this reports the
+  landing, so a sound or a haptic hangs off it without firing per frame — or
+  per page flown past on the way.
 - `ref` with `scrollTo(target, { duration })`.
 - `progressTrigger.bar` accepts an object with everything about the
   scrollbar in it. `edgeGap` is new: the distance from the side the bar sits

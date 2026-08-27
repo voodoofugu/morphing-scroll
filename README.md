@@ -947,6 +947,42 @@ accepts a callback function that is triggered whenever the scroll status changes
 
 <h2></h2>
 
+<details><summary><b><code>onNavigate</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+onNavigate: ({ reason, axis, from, to }) => {};
+```
+
+<b>Description:</b><em><br />
+the discrete half of scrolling: fires once when the scroll comes to rest on a page it was not on before. <code>onScrollPosition</code> reports continuous movement; this one reports the landing, so it is the place to hang a sound, a haptic or an analytics event.<br />
+<br />
+<code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a bar drag), or <b>"scroll"</b> when the content simply arrived by wheel, drag or inertia.<br />
+<br />
+✦ Note:<br />
+<ul>
+  <li>one gesture, one event: a dot click that flies past three pages on its way to the fourth reports the fourth, not all four.</li>
+  <li>in <code>mode="scroll"</code> there are no pages to land on, so only the arrows report.</li>
+</ul>
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  onNavigate={({ reason, from, to }) => {
+    if (reason !== "scroll") playClick();
+    console.log(`${from} -> ${to}`);
+  }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
 <details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
@@ -1199,30 +1235,6 @@ specifies at what percentage of the observed element’s visibility the callback
 
 ```tsx
 <IntersectionTracker threshold={0.5}>{children}</IntersectionTracker>
-```
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>visibleContent</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-visibleContent: true;
-```
-
-<b>Default:</b><br />
-false<br />
-<br />
-<b>Description:</b><em><br />
-if set to <b>true</b>, the tracked elements will always be visible, regardless of their actual intersection status.<br />
-This is useful for testing purposes or when using the <code>onIntersection</code> callback, ensuring that it reliably triggers whenever the element enters the viewport, even if all elements are already visible.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<IntersectionTracker visibleContent>{children}</IntersectionTracker>
 ```
 
 </div></ul></details>

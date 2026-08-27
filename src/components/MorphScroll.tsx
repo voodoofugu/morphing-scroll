@@ -4,6 +4,7 @@ import type {
   BarConfig,
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
+  NavigateReason,
   ProgressTriggerConfig,
   Vec2,
 } from "../types/types";
@@ -48,6 +49,7 @@ import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import createScrollDirTracker from "../helpers/createScrollDirTracker";
 import filterValidChildren from "../helpers/filterValidChildren";
 import childKey from "../helpers/childKey";
+import pageAt from "../helpers/pageAt";
 import stabilize from "../helpers/stabilize";
 import {
   getRenderedKeysFromWrapper,
@@ -80,6 +82,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       scrollPosition,
       onScrollPosition,
       onScrollingChange,
+      onNavigate,
       onRenderedKeysChange,
 
       // Visual Settings
@@ -1070,11 +1073,82 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [onMouseOrTouchDown],
     );
 
+    /*
+     * Причину знает тот, кто начал переход, а сам переход виден только когда
+     * скролл остановился. Между этими двумя моментами метка ждёт здесь.
+     *
+     * Отчитываемся именно по остановке, а не по каждой пройденной странице:
+     * клик по точке слайдера пролетает мимо трёх страниц по дороге к четвёртой,
+     * и три лишних события — это три лишних звука.
+     */
+    const pending = React.useRef<{
+      reason: NavigateReason;
+      from: { x: number | null; y: number | null };
+    } | null>(null);
+    const pageRef = React.useRef<{ x: number | null; y: number | null }>({
+      x: null,
+      y: null,
+    });
+
+    const pageNow = React.useCallback(
+      (axis: "x" | "y") => {
+        const el = scrollElementRef.current;
+        if (!el) return null;
+
+        return axis === "x"
+          ? pageAt(el.scrollLeft, el.clientWidth, gapLocal[0])
+          : pageAt(el.scrollTop, el.clientHeight, gapLocal[1]);
+      },
+      [gapLocal[0], gapLocal[1]],
+    );
+
+    /*
+     * Страницу отправления запоминаем прямо здесь, в момент нажатия: это и
+     * есть то место, где пользователь ещё стоял. Полагаться на последнюю
+     * записанную страницу нельзя — если нажать сразу после монтирования,
+     * записать её ещё не успели, и первое же событие пропало бы.
+     */
+    const markNavigate = React.useCallback(
+      (reason: NavigateReason) => {
+        pending.current = {
+          reason,
+          from: { x: pageNow("x"), y: pageNow("y") },
+        };
+      },
+      [pageNow],
+    );
+
+    /** скролл встал — сверяем страницу с той, с которой уехали */
+    const reportNavigate = React.useCallback(() => {
+      const tagged = pending.current;
+      pending.current = null;
+
+      for (const axis of ["x", "y"] as const) {
+        const now = pageNow(axis);
+        if (now === null) continue;
+
+        const before = tagged ? tagged.from[axis] : pageRef.current[axis];
+        pageRef.current[axis] = now;
+
+        if (before === null || before === now) continue;
+
+        // в обычном скролле страниц нет — их листают только стрелки
+        if (mode === "scroll" && !tagged) continue;
+
+        onNavigate?.({
+          reason: tagged ? tagged.reason : "scroll",
+          axis,
+          from: before,
+          to: now,
+        });
+      }
+    }, [mode, onNavigate, pageNow]);
+
     const handleArrowLocal = React.useCallback(
       (arrowType: handleArrowT["arrowType"]) => {
         if (!scrollElementRef.current) return;
 
-        handleArrow({
+        const moved = handleArrow({
           arrowType: arrowType,
           scrollElement: scrollElementRef.current,
           wrapSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
@@ -1084,6 +1158,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           loop: arrowsLocal.loop,
           gap: gapLocal,
         });
+
+        // упёрлись в край без loop — никуда не поехали, и метку ставить не за что
+        if (moved) markNavigate("arrows");
       },
 
       [
@@ -1095,6 +1172,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         arrowsLocal.loop,
         gapLocal[0],
         gapLocal[1],
+        markNavigate,
       ],
     );
 
@@ -1213,6 +1291,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             isScrollingRef.current = false;
             mainEl.removeAttribute(CONST.SCROLLING_ATR);
             onScrollingChange?.(false);
+            reportNavigate();
             renderLocal.mode && updateLoadedElementsKeysLocal();
 
             if (
@@ -1254,6 +1333,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [
         onScrollPosition,
         onScrollingChange,
+        reportNavigate,
         mode,
         sliderCheckLocal,
         updateLoadedElementsKeysLocal,
@@ -1701,6 +1781,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       raf.schedule("sliderCheckLocal", sliderCheckLocal);
     }, [mode, sliderCheckLocal, sizeLocal.join()]);
 
+    /*
+     * Стартовую страницу надо запомнить до первого перехода, иначе первому
+     * же нажатию стрелки не с чем будет сравниться и оно потеряется.
+     */
+    React.useEffect(() => {
+      if (!onNavigate) return;
+
+      raf.schedule("navigateStart", () => {
+        pageRef.current = { x: pageNow("x"), y: pageNow("y") };
+      });
+    }, [!!onNavigate, pageNow, sizeLocal.join()]);
+
     // ♦ contents
     const scrollObjectWrapper = React.useCallback(
       (
@@ -2042,6 +2134,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             thumbSpace={args.thumbSpace}
             objLengthPerSize={args.objLengthPerSize}
             sliderCheckLocal={sliderCheckLocal}
+            markNavigate={markNavigate}
             duration={scrollPositionLocal.duration}
             isTouched={isTouchedRef.current}
             scrollStateRef={scrollStateRef}

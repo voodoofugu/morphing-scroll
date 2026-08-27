@@ -29,6 +29,8 @@ export type {
   ArrowsConfig,
   WheelConfig,
   EmptyObjectsConfig,
+  NavigateEvent,
+  NavigateReason,
   WrapperConfig,
   Pair,
 } from "./types/types";

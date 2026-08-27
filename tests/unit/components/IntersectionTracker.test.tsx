@@ -5,51 +5,51 @@ import IntersectionTracker from "@morphing-scroll/src/components/IntersectionTra
 import { intersectionObservers } from "../../setup";
 
 describe("IntersectionTracker", () => {
-  it("hides children until the element intersects", () => {
+  it("renders children right away", () => {
     const { container } = render(
       <IntersectionTracker>
-        <span>lazy</span>
-      </IntersectionTracker>,
-    );
-    const root = container.querySelector("[intersection-tracker]");
-    expect(root).toBeInTheDocument();
-    expect(root).toBeEmptyDOMElement();
-  });
-
-  it("renders children immediately when visibleContent is true", () => {
-    const { container } = render(
-      <IntersectionTracker visibleContent>
         <span>always</span>
       </IntersectionTracker>,
     );
     expect(container).toHaveTextContent("always");
   });
 
-  it("reveals children once it intersects", () => {
-    const { container } = render(
-      <IntersectionTracker>
-        <span>revealed</span>
-      </IntersectionTracker>,
-    );
-    expect(container).not.toHaveTextContent("revealed");
-
-    act(() => {
-      intersectionObservers[0].emit({ isIntersecting: true });
-    });
-
-    expect(container).toHaveTextContent("revealed");
-  });
-
-  it("hides children again when it leaves the viewport", () => {
+  /*
+   * Прятать по видимости — работа `MorphScroll render`, и он делает это по
+   * позициям, без наблюдателя на каждый элемент. Трекер только сообщает.
+   */
+  it("keeps them there whatever the observer says", () => {
     const { container } = render(
       <IntersectionTracker>
         <span>toggle</span>
       </IntersectionTracker>,
     );
+
     act(() => intersectionObservers[0].emit({ isIntersecting: true }));
     expect(container).toHaveTextContent("toggle");
+
     act(() => intersectionObservers[0].emit({ isIntersecting: false }));
-    expect(container).not.toHaveTextContent("toggle");
+    expect(container).toHaveTextContent("toggle");
+  });
+
+  it("does not re-render its children when visibility flips", () => {
+    let renders = 0;
+    const Counted = () => {
+      renders += 1;
+      return <span>counted</span>;
+    };
+
+    render(
+      <IntersectionTracker>
+        <Counted />
+      </IntersectionTracker>,
+    );
+    const afterMount = renders;
+
+    act(() => intersectionObservers[0].emit({ isIntersecting: true }));
+    act(() => intersectionObservers[0].emit({ isIntersecting: false }));
+
+    expect(renders).toBe(afterMount);
   });
 
   it("forwards a normalized entry to onIntersection", () => {

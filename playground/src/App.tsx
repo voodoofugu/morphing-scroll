@@ -9,6 +9,7 @@ import logo from "@morphing-scroll/src/assets/morphing-scroll-logo.png";
 import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
+  NavigateEvent,
   ProgressTriggerConfig,
   WrapperConfig,
 } from "@morphing-scroll/src/types/types";
@@ -36,6 +37,7 @@ type Settings = {
   interactiveItems: boolean;
   enableOnScrollValue: boolean;
   enableIsScrolling: boolean;
+  enableOnNavigate: boolean;
   enableOnRenderedKeysChange: boolean;
   mode: ScrollMode;
   direction: Direction;
@@ -115,6 +117,7 @@ const defaultSettings: Settings = {
   interactiveItems: true,
   enableOnScrollValue: true,
   enableIsScrolling: true,
+  enableOnNavigate: true,
   enableOnRenderedKeysChange: true,
   mode: "scroll",
   direction: "y",
@@ -710,6 +713,13 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       "value",
     ],
     [
+      "onNavigate",
+      settings.enableOnNavigate
+        ? raw("({ reason, from, to }) => console.log(reason, from, to)")
+        : undefined,
+      "value",
+    ],
+    [
       "onRenderedKeysChange",
       settings.enableOnRenderedKeysChange
         ? raw("(keys) => console.log(keys)")
@@ -735,6 +745,8 @@ function App() {
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const [scrollTop, setScrollTop] = React.useState(0);
   const [isScrolling, setIsScrolling] = React.useState(false);
+  const [lastNavigate, setLastNavigate] =
+    React.useState<NavigateEvent | null>(null);
   const [renderedKeys, setRenderedKeys] = React.useState<string[]>([]);
   const [resizeRect, setResizeRect] = React.useState({ width: 0, height: 0 });
   const [isProbeVisible, setIsProbeVisible] = React.useState(false);
@@ -872,6 +884,7 @@ function App() {
           : [settings.gapX, settings.gapY],
       onScrollingChange: settings.enableIsScrolling ? setIsScrolling : undefined,
       objectsSize,
+      onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
       onRenderedKeysChange: settings.enableOnRenderedKeysChange
         ? setRenderedKeys
         : undefined,
@@ -1545,7 +1558,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="onScrollPosition · onScrollingChange · onRenderedKeysChange"
+          hint="onScrollPosition · onScrollingChange · onNavigate · onRenderedKeysChange"
           title="events"
         >
           <ToggleField
@@ -1557,6 +1570,11 @@ function App() {
             label="onScrollingChange"
             onChange={(value) => update("enableIsScrolling", value)}
             value={settings.enableIsScrolling}
+          />
+          <ToggleField
+            label="onNavigate"
+            onChange={(value) => update("enableOnNavigate", value)}
+            value={settings.enableOnNavigate}
           />
           <ToggleField
             label="onRenderedKeysChange"
@@ -1602,7 +1620,6 @@ function App() {
         <IntersectionTracker
           className="intersection-probe"
           onIntersection={handleIntersection}
-          visibleContent
         >
           <span>
             IntersectionTracker: {isProbeVisible ? "visible" : "hidden"}
@@ -1634,6 +1651,14 @@ function App() {
           <div>
             <span>motion</span>
             <b>{isScrolling ? "yes" : "no"}</b>
+          </div>
+          <div>
+            <span>navigate</span>
+            <b>
+              {lastNavigate
+                ? `${lastNavigate.reason} ${lastNavigate.from}→${lastNavigate.to}`
+                : "—"}
+            </b>
           </div>
           <div>
             <span>surface</span>

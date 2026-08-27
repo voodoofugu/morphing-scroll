@@ -66,6 +66,18 @@ export type ProgressTriggerConfig = {
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
+/** что привело скролл на новую страницу */
+export type NavigateReason = "arrows" | "bar" | "scroll";
+
+/** аргумент `onNavigate` */
+export type NavigateEvent = {
+  /** `"scroll"` — контент доехал сам: перетаскиванием, колесом, инерцией */
+  reason: NavigateReason;
+  axis: "x" | "y";
+  from: number;
+  to: number;
+};
+
 /** объектная форма `wrapper` */
 export type WrapperConfig = {
   /** space around `.ms-objects-wrapper`; 1, 2 or 4 numbers */
@@ -277,21 +289,6 @@ export type IntersectionTracker = {
    * ```
    */
   threshold?: number | number[];
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***visibleContent***:
-   * renders children regardless of their visibility in the viewport.
-   * @default false
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *   visibleContent
-   * >
-   *   {children}
-   * </IntersectionTracker>
-   * ```
-   */
-  visibleContent?: boolean;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onIntersection***:
@@ -722,6 +719,32 @@ export type MorphScroll = {
    * ```
    */
   onScrollingChange?: (motion: boolean) => void;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***onNavigate***:
+   * callback for a finished move from one page to another.
+   * @param event which page the scroll left, which one it landed on, and what
+   * put it there.
+   * @description
+   * this is the discrete half of scrolling — an arrow press, a slider dot, a
+   * drag that settled on the next page. Continuous movement is
+   * `onScrollPosition`; this one fires once per page, so it is the place to
+   * hang a sound, a haptic, or an analytics event.
+   * @note
+   * *in `mode="scroll"` only the arrows page the content, so only they report*
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   onNavigate={({ reason, from, to }) => {
+   *     if (reason !== "scroll") playClick();
+   *     console.log(`${from} -> ${to}`);
+   *   }}
+   * >
+   *   {children}
+   * </MorphScroll>
+   * ```
+   */
+  onNavigate?: (event: NavigateEvent) => void;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onRenderedKeysChange***:

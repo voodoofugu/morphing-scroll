@@ -1,3 +1,5 @@
+import pageAt from "./pageAt";
+
 type handleArrowT = {
   arrowType: "left" | "right" | "top" | "bottom";
   scrollElement: Element;
@@ -50,34 +52,53 @@ const handleArrow = ({
     return step * nextPage;
   };
 
+  const pageOn = (dir: "x" | "y", value: number) => {
+    const isX = dir === "x";
+
+    return pageAt(
+      value,
+      scrollElement[isX ? "clientWidth" : "clientHeight"],
+      isX ? gap[0] : gap[1],
+    );
+  };
+
   const scrollTo = (dir: "x" | "y", delta: 1 | -1, loop?: boolean) => {
     const value = loop ? getMaxValue(dir, delta) : getNewPosition(dir, delta);
 
     smoothScroll(value, dir, duration);
+
+    // наружу отдаём сам переход — из него собирается onNavigate
+    return {
+      axis: dir,
+      from: pageOn(dir, dir === "x" ? left : top),
+      to: pageOn(dir, value),
+    };
   };
 
   // - logic -
   switch (arrowType) {
     case "top":
-      if (top > 0) scrollTo("y", -1);
-      else if (loop) scrollTo("y", -1, true);
+      if (top > 0) return scrollTo("y", -1);
+      if (loop) return scrollTo("y", -1, true);
       break;
 
     case "left":
-      if (left > 0) scrollTo("x", -1);
-      else if (loop) scrollTo("x", -1, true);
+      if (left > 0) return scrollTo("x", -1);
+      if (loop) return scrollTo("x", -1, true);
       break;
 
     case "right":
-      if (left + scrollSize[0] < width) scrollTo("x", 1);
-      else if (loop) scrollTo("x", 1, true);
+      if (left + scrollSize[0] < width) return scrollTo("x", 1);
+      if (loop) return scrollTo("x", 1, true);
       break;
 
     case "bottom":
-      if (top + scrollSize[1] < height) scrollTo("y", 1);
-      else if (loop) scrollTo("y", 1, true);
+      if (top + scrollSize[1] < height) return scrollTo("y", 1);
+      if (loop) return scrollTo("y", 1, true);
       break;
   }
+
+  return null; // упёрлись в край без loop — никуда не поехали
 };
 
 export default handleArrow;
