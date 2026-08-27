@@ -278,16 +278,52 @@ function useStoredSettings() {
 
 function ControlGroup({
   children,
+  defaultOpen = false,
+  hint,
   title,
 }: {
   children: React.ReactNode;
+  defaultOpen?: boolean;
+  hint?: string;
   title: string;
 }) {
   return (
-    <details className="control-group">
-      <summary>{title}</summary>
+    <details className="control-group" open={defaultOpen}>
+      <summary>
+        <span className="group-title">{title}</span>
+        {hint ? <span className="group-hint">{hint}</span> : null}
+      </summary>
       <div className="control-group-body">{children}</div>
     </details>
+  );
+}
+
+/**
+ * Вложенный параметр: настройки живут под своим ключом и появляются только
+ * когда родитель включён — иначе панель предлагает крутить то, что сейчас
+ * ни на что не влияет.
+ */
+function SubGroup({
+  children,
+  control,
+  label,
+  open = true,
+}: {
+  children?: React.ReactNode;
+  control?: React.ReactNode;
+  label: string;
+  open?: boolean;
+}) {
+  return (
+    <div className={`sub-group${open ? "" : " is-off"}`}>
+      <div className="sub-group-head">
+        <span className="sub-group-label">{label}</span>
+        {control}
+      </div>
+      {open && children ? (
+        <div className="sub-group-body">{children}</div>
+      ) : null}
+    </div>
   );
 }
 
@@ -973,7 +1009,11 @@ function App() {
           ))}
         </div>
 
-        <ControlGroup title="General / children">
+        <ControlGroup
+          defaultOpen
+          hint="className · children"
+          title="general"
+        >
           <Field label="className">
             <input
               onChange={(event) => update("className", event.target.value)}
@@ -988,19 +1028,25 @@ function App() {
             onChange={(value) => update("itemCount", value)}
             value={settings.itemCount}
           />
-          <ToggleField
-            label="children variant"
-            onChange={(value) => update("variableItems", value)}
-            value={settings.variableItems}
-          />
-          <ToggleField
-            label="children buttons"
-            onChange={(value) => update("interactiveItems", value)}
-            value={settings.interactiveItems}
-          />
+          <div className="two-col">
+            <ToggleField
+              label="mixed sizes"
+              onChange={(value) => update("variableItems", value)}
+              value={settings.variableItems}
+            />
+            <ToggleField
+              label="buttons inside"
+              onChange={(value) => update("interactiveItems", value)}
+              value={settings.interactiveItems}
+            />
+          </div>
         </ControlGroup>
 
-        <ControlGroup title="Scroll">
+        <ControlGroup
+          defaultOpen
+          hint="mode · direction · scrollPosition · dragScroll"
+          title="scroll"
+        >
           <SelectField
             label="mode"
             onChange={(value) => update("mode", value)}
@@ -1018,148 +1064,57 @@ function App() {
             onChange={(value) => update("dragScroll", value)}
             value={settings.dragScroll}
           />
-          <ToggleField
-            label="progressTrigger.content"
-            onChange={(value) => update("contentDrag", value)}
-            value={settings.contentDrag}
-          />
-          <ToggleField
-            label="progressTrigger.wheel"
-            onChange={(value) => update("wheel", value)}
-            value={settings.wheel}
-          />
-          <ToggleField
-            label="wheel.changeDirection"
-            onChange={(value) => update("wheelChangeDirection", value)}
-            value={settings.wheelChangeDirection}
-          />
-          <Field label="wheel.changeDirectionBtn">
-            <input
-              onChange={(event) =>
-                update("wheelChangeDirectionBtn", event.target.value)
-              }
-              value={settings.wheelChangeDirectionBtn}
-            />
-          </Field>
-        </ControlGroup>
 
-        <ControlGroup title="scrollPosition">
-          <div className="two-col">
+          <SubGroup label="scrollPosition">
+            <div className="two-col">
+              {settings.direction !== "y" && (
+                <NumberField
+                  label="value x"
+                  max={20000}
+                  onChange={setScrollXInput}
+                  value={scrollXInput}
+                />
+              )}
+              {settings.direction !== "x" && (
+                <NumberField
+                  label="value y"
+                  max={20000}
+                  onChange={setScrollYInput}
+                  value={scrollYInput}
+                />
+              )}
+            </div>
             <NumberField
-              label="value x"
-              max={20000}
-              onChange={setScrollXInput}
-              value={scrollXInput}
+              label="duration"
+              max={5000}
+              onChange={setScrollDuration}
+              value={scrollDuration}
             />
-            <NumberField
-              label="value y"
-              max={20000}
-              onChange={setScrollYInput}
-              value={scrollYInput}
-            />
-          </div>
-          <NumberField
-            label="duration"
-            max={5000}
-            onChange={setScrollDuration}
-            value={scrollDuration}
-          />
-          <div className="scroll-command-row">
-            <button onClick={() => applyScroll("value")} type="button">
-              value
-            </button>
-            <button onClick={() => applyScroll("start")} type="button">
-              0
-            </button>
-            <button onClick={() => applyScroll("end")} type="button">
-              end
-            </button>
-            <button onClick={() => applyScroll("clear")} type="button">
-              null
-            </button>
-          </div>
+            <div className="scroll-command-row">
+              <button onClick={() => applyScroll("value")} type="button">
+                value
+              </button>
+              <button onClick={() => applyScroll("start")} type="button">
+                0
+              </button>
+              <button onClick={() => applyScroll("end")} type="button">
+                end
+              </button>
+              <button onClick={() => applyScroll("clear")} type="button">
+                null
+              </button>
+            </div>
+            <p className="sub-note">
+              buttons call <code>ref.scrollTo()</code> — the same target twice
+              works
+            </p>
+          </SubGroup>
         </ControlGroup>
 
-        <ControlGroup title="Callbacks">
-          <ToggleField
-            label="onScrollValue"
-            onChange={(value) => update("enableOnScrollValue", value)}
-            value={settings.enableOnScrollValue}
-          />
-          <ToggleField
-            label="isScrolling"
-            onChange={(value) => update("enableIsScrolling", value)}
-            value={settings.enableIsScrolling}
-          />
-          <ToggleField
-            label="onRenderedKeysChange"
-            onChange={(value) => update("enableOnRenderedKeysChange", value)}
-            value={settings.enableOnRenderedKeysChange}
-          />
-        </ControlGroup>
-
-        <ControlGroup title="Hybrid">
-          <SegmentedField
-            label="direction"
-            onChange={(value) => update("direction", value)}
-            options={directionOptions}
-            value={settings.direction}
-          />
-          <div className="preset-row compact">
-            <button
-              onClick={() =>
-                setSettings((current) => ({
-                  ...current,
-                  ...presets.virtual,
-                  direction: "hybrid",
-                }))
-              }
-              type="button"
-            >
-              virtual
-            </button>
-            <button
-              onClick={() =>
-                setSettings((current) => ({
-                  ...current,
-                  direction: "hybrid",
-                  progressElementMode: "custom",
-                  mode: "scroll",
-                }))
-              }
-              type="button"
-            >
-              scroll
-            </button>
-            <button
-              onClick={() =>
-                setSettings((current) => ({
-                  ...current,
-                  direction: "hybrid",
-                  progressElementMode: "custom",
-                  mode: "slider",
-                }))
-              }
-              type="button"
-            >
-              slider
-            </button>
-          </div>
-          <div className="two-col">
-            <ToggleField
-              label="bar.reverse[0]"
-              onChange={(value) => update("barReverseX", value)}
-              value={settings.barReverseX}
-            />
-            <ToggleField
-              label="bar.reverse[1]"
-              onChange={(value) => update("barReverseY", value)}
-              value={settings.barReverseY}
-            />
-          </div>
-        </ControlGroup>
-
-        <ControlGroup title="Sizing">
+        <ControlGroup
+          hint="size · objectsSize · crossCount · gap · wrapperMargin · wrapperMinSize"
+          title="size"
+        >
           <SelectField
             label="size"
             onChange={(value) => update("sizeMode", value)}
@@ -1246,9 +1201,69 @@ function App() {
               value={settings.gapY}
             />
           </div>
+
+          <SubGroup
+            control={
+              <SelectField
+                label=""
+                onChange={(value) => update("wrapperMinMode", value)}
+                options={["off", "number", "pair", "full"] as const}
+                value={settings.wrapperMinMode}
+              />
+            }
+            label="wrapperMinSize"
+            open={["number", "pair"].includes(settings.wrapperMinMode)}
+          >
+            <div className="two-col">
+              <NumberField
+                label="x"
+                max={1600}
+                onChange={(value) => update("wrapperMinWidth", value)}
+                value={settings.wrapperMinWidth}
+              />
+              <NumberField
+                label="y"
+                max={1600}
+                onChange={(value) => update("wrapperMinHeight", value)}
+                value={settings.wrapperMinHeight}
+              />
+            </div>
+          </SubGroup>
+
+          <SubGroup label="wrapperMargin">
+            <div className="quad-grid">
+              <NumberField
+                label="top"
+                max={200}
+                onChange={(value) => update("wrapperMarginTop", value)}
+                value={settings.wrapperMarginTop}
+              />
+              <NumberField
+                label="right"
+                max={200}
+                onChange={(value) => update("wrapperMarginRight", value)}
+                value={settings.wrapperMarginRight}
+              />
+              <NumberField
+                label="bottom"
+                max={200}
+                onChange={(value) => update("wrapperMarginBottom", value)}
+                value={settings.wrapperMarginBottom}
+              />
+              <NumberField
+                label="left"
+                max={200}
+                onChange={(value) => update("wrapperMarginLeft", value)}
+                value={settings.wrapperMarginLeft}
+              />
+            </div>
+          </SubGroup>
         </ControlGroup>
 
-        <ControlGroup title="Wrapper">
+        <ControlGroup
+          hint="wrapperAlign · elementsAlign · elementsDirection"
+          title="layout"
+        >
           <div className="two-col">
             <SelectField
               label="wrapperAlign x"
@@ -1277,187 +1292,230 @@ function App() {
               value={settings.elementsDirection}
             />
           </div>
-          <SelectField
-            label="wrapperMinSize"
-            onChange={(value) => update("wrapperMinMode", value)}
-            options={["off", "number", "pair", "full"] as const}
-            value={settings.wrapperMinMode}
-          />
-          {["number", "pair"].includes(settings.wrapperMinMode) && (
-            <div className="two-col">
-              <NumberField
-                label="wrapperMinSize x"
-                max={1600}
-                onChange={(value) => update("wrapperMinWidth", value)}
-                value={settings.wrapperMinWidth}
-              />
-              <NumberField
-                label="wrapperMinSize y"
-                max={1600}
-                onChange={(value) => update("wrapperMinHeight", value)}
-                value={settings.wrapperMinHeight}
-              />
-            </div>
-          )}
-          <div className="quad-grid">
-            <NumberField
-              label="wrapperMargin top"
-              max={200}
-              onChange={(value) => update("wrapperMarginTop", value)}
-              value={settings.wrapperMarginTop}
-            />
-            <NumberField
-              label="wrapperMargin right"
-              max={200}
-              onChange={(value) => update("wrapperMarginRight", value)}
-              value={settings.wrapperMarginRight}
-            />
-            <NumberField
-              label="wrapperMargin bottom"
-              max={200}
-              onChange={(value) => update("wrapperMarginBottom", value)}
-              value={settings.wrapperMarginBottom}
-            />
-            <NumberField
-              label="wrapperMargin left"
-              max={200}
-              onChange={(value) => update("wrapperMarginLeft", value)}
-              value={settings.wrapperMarginLeft}
-            />
-          </div>
         </ControlGroup>
 
-        <ControlGroup title="progressTrigger">
-          <SelectField
-            label="bar.element"
-            onChange={(value) => update("progressElementMode", value)}
-            options={["custom", "native", "off"] as const}
-            value={settings.progressElementMode}
+        <ControlGroup
+          defaultOpen
+          hint="progressTrigger · edgeGradient"
+          title="progress"
+        >
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("wheel", value)}
+                value={settings.wheel}
+              />
+            }
+            label="wheel"
+            open={settings.wheel && settings.direction === "hybrid"}
+          >
+            <ToggleField
+              label="changeDirection"
+              onChange={(value) => update("wheelChangeDirection", value)}
+              value={settings.wheelChangeDirection}
+            />
+            <Field label="changeDirectionBtn">
+              <input
+                onChange={(event) =>
+                  update("wheelChangeDirectionBtn", event.target.value)
+                }
+                value={settings.wheelChangeDirectionBtn}
+              />
+            </Field>
+          </SubGroup>
+
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("contentDrag", value)}
+                value={settings.contentDrag}
+              />
+            }
+            label="content"
+            open={false}
           />
-          <ToggleField
-            label="arrows"
-            onChange={(value) => update("arrows", value)}
-            value={settings.arrows}
-          />
-          <div className="two-col">
+
+          <SubGroup
+            control={
+              <SelectField
+                label=""
+                onChange={(value) => update("progressElementMode", value)}
+                options={["custom", "native", "off"] as const}
+                value={settings.progressElementMode}
+              />
+            }
+            label="bar"
+            open={settings.progressElementMode === "custom"}
+          >
+            <ToggleField
+              label="showOnHover"
+              onChange={(value) => update("barShowOnHover", value)}
+              value={settings.barShowOnHover}
+            />
             <NumberField
-              label="arrows.size"
+              label="thumbMinSize"
+              max={400}
+              min={8}
+              onChange={(value) => update("barThumbMinSize", value)}
+              value={settings.barThumbMinSize}
+            />
+            {/* половина пары действует на бар своей оси — при одной оси
+                второй бар не существует, и поле только путало */}
+            {settings.direction !== "y" && (
+              <div className="axis-block">
+                <div className="axis-head">
+                  <span className="axis-tag">x bar</span>
+                  <ToggleField
+                    label="reverse"
+                    onChange={(value) => update("barReverseX", value)}
+                    value={settings.barReverseX}
+                  />
+                </div>
+                <div className="two-col">
+                  <NumberField
+                    label="trackGap"
+                    max={100}
+                    onChange={(value) => update("barTrackGapX", value)}
+                    value={settings.barTrackGapX}
+                  />
+                  <NumberField
+                    label="edgeGap"
+                    max={100}
+                    min={-100}
+                    onChange={(value) => update("barEdgeGapX", value)}
+                    value={settings.barEdgeGapX}
+                  />
+                </div>
+              </div>
+            )}
+            {settings.direction !== "x" && (
+              <div className="axis-block">
+                <div className="axis-head">
+                  <span className="axis-tag">y bar</span>
+                  <ToggleField
+                    label="reverse"
+                    onChange={(value) => update("barReverseY", value)}
+                    value={settings.barReverseY}
+                  />
+                </div>
+                <div className="two-col">
+                  <NumberField
+                    label="trackGap"
+                    max={100}
+                    onChange={(value) => update("barTrackGapY", value)}
+                    value={settings.barTrackGapY}
+                  />
+                  <NumberField
+                    label="edgeGap"
+                    max={100}
+                    min={-100}
+                    onChange={(value) => update("barEdgeGapY", value)}
+                    value={settings.barEdgeGapY}
+                  />
+                </div>
+              </div>
+            )}
+          </SubGroup>
+
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("arrows", value)}
+                value={settings.arrows}
+              />
+            }
+            label="arrows"
+            open={settings.arrows}
+          >
+            <NumberField
+              label="size"
               max={120}
               min={16}
               onChange={(value) => update("arrowSize", value)}
               value={settings.arrowSize}
             />
-            <NumberField
-              label="bar.thumbMinSize"
-              max={160}
-              min={8}
-              onChange={(value) => update("barThumbMinSize", value)}
-              value={settings.barThumbMinSize}
-            />
-          </div>
-          <ToggleField
-            label="arrows.contentReduce"
-            onChange={(value) => update("arrowContentReduce", value)}
-            value={settings.arrowContentReduce}
-          />
-          <ToggleField
-            label="arrows.loop"
-            onChange={(value) => update("arrowLoop", value)}
-            value={settings.arrowLoop}
-          />
-          <ToggleField
-            label="bar.showOnHover"
-            onChange={(value) => update("barShowOnHover", value)}
-            value={settings.barShowOnHover}
-          />
-          <div className="two-col">
-            <ToggleField
-              label="bar.reverse x"
-              onChange={(value) => update("barReverseX", value)}
-              value={settings.barReverseX}
-            />
-            <ToggleField
-              label="bar.reverse y"
-              onChange={(value) => update("barReverseY", value)}
-              value={settings.barReverseY}
-            />
-          </div>
-          <div className="two-col">
-            <NumberField
-              label="bar.trackGap x"
-              max={100}
-              onChange={(value) => update("barTrackGapX", value)}
-              value={settings.barTrackGapX}
-            />
-            <NumberField
-              label="bar.trackGap y"
-              max={100}
-              onChange={(value) => update("barTrackGapY", value)}
-              value={settings.barTrackGapY}
-            />
-          </div>
-          <div className="two-col">
-            <NumberField
-              label="bar.edgeGap x"
-              max={100}
-              min={-100}
-              onChange={(value) => update("barEdgeGapX", value)}
-              value={settings.barEdgeGapX}
-            />
-            <NumberField
-              label="bar.edgeGap y"
-              max={100}
-              min={-100}
-              onChange={(value) => update("barEdgeGapY", value)}
-              value={settings.barEdgeGapY}
-            />
-          </div>
+            <div className="two-col">
+              <ToggleField
+                label="contentReduce"
+                onChange={(value) => update("arrowContentReduce", value)}
+                value={settings.arrowContentReduce}
+              />
+              <ToggleField
+                label="loop"
+                onChange={(value) => update("arrowLoop", value)}
+                value={settings.arrowLoop}
+              />
+            </div>
+          </SubGroup>
+
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("edgeGradient", value)}
+                value={settings.edgeGradient}
+              />
+            }
+            label="edgeGradient"
+            open={settings.edgeGradient}
+          >
+            <div className="two-col">
+              <Field label="color">
+                <input
+                  onChange={(event) => update("edgeColor", event.target.value)}
+                  type="color"
+                  value={settings.edgeColor}
+                />
+              </Field>
+              <NumberField
+                label="size"
+                max={180}
+                onChange={(value) => update("edgeSize", value)}
+                value={settings.edgeSize}
+              />
+            </div>
+          </SubGroup>
         </ControlGroup>
 
-        <ControlGroup title="edgeGradient">
-          <ToggleField
-            label="enabled"
-            onChange={(value) => update("edgeGradient", value)}
-            value={settings.edgeGradient}
-          />
-          <Field label="color">
-            <input
-              onChange={(event) => update("edgeColor", event.target.value)}
-              type="color"
-              value={settings.edgeColor}
+        <ControlGroup
+          hint="render · emptyElements · suspending · fallback"
+          title="optimization"
+        >
+          <SubGroup
+            control={
+              <SelectField
+                label=""
+                onChange={(value) => update("renderMode", value)}
+                options={renderOptions}
+                value={settings.renderMode}
+              />
+            }
+            label="render"
+            open={settings.renderMode !== "off"}
+          >
+            <NumberField
+              label="rootMargin"
+              max={800}
+              onChange={(value) => update("rootMargin", value)}
+              value={settings.rootMargin}
             />
-          </Field>
-          <NumberField
-            label="edgeGradient.size"
-            max={180}
-            onChange={(value) => update("edgeSize", value)}
-            value={settings.edgeSize}
-          />
-        </ControlGroup>
+            <div className="two-col">
+              <ToggleField
+                label="stopLoadOnScroll"
+                onChange={(value) => update("stopLoadOnScroll", value)}
+                value={settings.stopLoadOnScroll}
+              />
+              <ToggleField
+                label="trackVisibility"
+                onChange={(value) => update("trackVisibility", value)}
+                value={settings.trackVisibility}
+              />
+            </div>
+          </SubGroup>
 
-        <ControlGroup title="render / emptyElements">
-          <SelectField
-            label="render.mode"
-            onChange={(value) => update("renderMode", value)}
-            options={renderOptions}
-            value={settings.renderMode}
-          />
-          <NumberField
-            label="render.rootMargin"
-            max={800}
-            onChange={(value) => update("rootMargin", value)}
-            value={settings.rootMargin}
-          />
-          <ToggleField
-            label="render.stopLoadOnScroll"
-            onChange={(value) => update("stopLoadOnScroll", value)}
-            value={settings.stopLoadOnScroll}
-          />
-          <ToggleField
-            label="render.trackVisibility"
-            onChange={(value) => update("trackVisibility", value)}
-            value={settings.trackVisibility}
-          />
           <SelectField
             label="emptyElements"
             onChange={(value) => update("emptyMode", value)}
@@ -1475,6 +1533,29 @@ function App() {
               value={settings.fallbackText}
             />
           </Field>
+        </ControlGroup>
+
+        <ControlGroup
+          hint="onScrollValue · isScrolling · onRenderedKeysChange"
+          title="events"
+        >
+          <ToggleField
+            label="onScrollValue"
+            onChange={(value) => update("enableOnScrollValue", value)}
+            value={settings.enableOnScrollValue}
+          />
+          <ToggleField
+            label="isScrolling"
+            onChange={(value) => update("enableIsScrolling", value)}
+            value={settings.enableIsScrolling}
+          />
+          <ToggleField
+            label="onRenderedKeysChange"
+            onChange={(value) =>
+              update("enableOnRenderedKeysChange", value)
+            }
+            value={settings.enableOnRenderedKeysChange}
+          />
         </ControlGroup>
       </aside>
 

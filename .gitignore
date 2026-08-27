@@ -8,3 +8,6 @@ coverage
 playwright-report
 test-results
 .playwright
+
+# local tooling
+.claude

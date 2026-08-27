@@ -142,19 +142,145 @@ input[type="color"] {
   border: 1px solid #d8e0dc;
   border-radius: 8px;
   background: #ffffff;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .control-group summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   cursor: pointer;
-  font-weight: 700;
   padding: 9px 11px;
+  list-style: none;
+}
+
+.control-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.control-group summary::before {
+  content: "";
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #9aa8a4;
+  transition: transform 0.15s ease;
+}
+
+.control-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.control-group[open] > summary {
+  border-bottom: 1px solid #edf1ef;
+}
+
+.group-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.group-hint {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #93a09c;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* вложенный параметр: свой ключ слева, переключатель справа */
+.sub-group {
+  border: 1px solid #e4eae7;
+  border-radius: 7px;
+  background: #fafcfb;
+}
+
+.sub-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+}
+
+.sub-group-head .field,
+.sub-group-head .toggle-field {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.sub-group-head .field > span:empty,
+.sub-group-head .toggle-field span:empty {
+  display: none;
+}
+
+.sub-group-label {
+  color: #1d2a28;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sub-group.is-off .sub-group-label {
+  color: #9aa8a4;
+}
+
+.sub-group-body {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #edf1ef;
+  padding: 9px;
+}
+
+.sub-note {
+  margin: 0;
+  color: #93a09c;
+  font-size: 11px;
+}
+
+.sub-note code {
+  font-size: 11px;
+}
+
+/* настройки одного бегунка — своя ось названа явно */
+.axis-block {
+  display: grid;
+  gap: 7px;
+  border-left: 2px solid #dbe6e3;
+  padding-left: 9px;
+}
+
+.axis-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.axis-head .toggle-field {
+  min-height: 0;
+}
+
+.axis-tag {
+  color: #6f7d79;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* в узкой колонке подпись над полем, иначе число не помещается */
+.axis-block .field,
+.sub-group-body .quad-grid .field {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
 }
 
 .control-group-body {
   display: grid;
-  gap: 9px;
-  border-top: 1px solid #edf1ef;
+  gap: 8px;
   padding: 10px;
 }
 
@@ -407,22 +533,35 @@ input[type="color"] {
 }
 
 .playground-scroll .ms-bar {
+  width: 14px;
   border-radius: 999px;
-  background: rgba(26, 35, 33, 0.12);
-  backdrop-filter: blur(6px);
+  background: rgba(26, 35, 33, 0.07);
+  /* v3: showOnHover сообщает состояние переменной, оформляем сами */
+  opacity: var(--ms-bar-visibility, 1);
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease;
 }
 
-.playground-scroll .ms-bar.hover,
-.playground-scroll .ms-slider.hover {
-  background: rgba(16, 139, 145, 0.18);
+.playground-scroll .ms-bar.ms-hover,
+.playground-scroll .ms-slider.ms-hover {
+  background: rgba(16, 139, 145, 0.14);
 }
 
 .playground-scroll .ms-thumb {
-  width: 28px;
+  width: 14px;
   min-height: 28px;
   border-radius: 999px;
-  background: #0b8c92;
-  box-shadow: 0 2px 8px rgba(3, 84, 88, 0.28);
+  background: linear-gradient(180deg, #14a0a6, #0b8c92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 1px 6px rgba(3, 84, 88, 0.25);
+  transition: background 0.18s ease;
+}
+
+.playground-scroll .ms-bar:hover .ms-thumb,
+.playground-scroll .ms-thumb.ms-grabbing {
+  background: linear-gradient(180deg, #0d8f95, #07767b);
 }
 
 .thumb-content {
