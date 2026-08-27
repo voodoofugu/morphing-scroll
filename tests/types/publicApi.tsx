@@ -89,6 +89,17 @@ export const badReverse = (
   />
 );
 
+/*
+ * Команды с `ref` принимают своё имя причины — этим к скроллу подключается
+ * устройство, о котором библиотека не знает.
+ */
+export const commands = (handle: MorphScrollHandle) => {
+  handle.step("bottom");
+  handle.step("left", { reason: "gamepad" });
+  handle.pan({ y: 12 });
+  handle.pan({ x: -8, y: 4 }, { duration: 0, reason: "remote" });
+};
+
 export const emptyObjectsConfig = (
   <MorphScroll
     size={100}

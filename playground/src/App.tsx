@@ -1142,6 +1142,58 @@ function App() {
               buttons call <code>ref.scrollTo()</code> — the same target twice
               works
             </p>
+
+            <div className="scroll-command-row">
+              <button
+                onClick={() =>
+                  scrollRef.current?.step(
+                    settings.direction === "x" ? "left" : "top",
+                    { reason: "playground" },
+                  )
+                }
+                type="button"
+              >
+                step ←
+              </button>
+              <button
+                onClick={() =>
+                  scrollRef.current?.step(
+                    settings.direction === "x" ? "right" : "bottom",
+                    { reason: "playground" },
+                  )
+                }
+                type="button"
+              >
+                step →
+              </button>
+              <button
+                onClick={() =>
+                  scrollRef.current?.pan(
+                    settings.direction === "x" ? { x: -80 } : { y: -80 },
+                    { reason: "playground" },
+                  )
+                }
+                type="button"
+              >
+                pan ←
+              </button>
+              <button
+                onClick={() =>
+                  scrollRef.current?.pan(
+                    settings.direction === "x" ? { x: 80 } : { y: 80 },
+                    { reason: "playground" },
+                  )
+                }
+                type="button"
+              >
+                pan →
+              </button>
+            </div>
+            <p className="sub-note">
+              <code>ref.step()</code> / <code>ref.pan()</code> — how any other
+              device connects; the reason reaches <code>onNavigate</code> as
+              given
+            </p>
           </SubGroup>
         </ControlGroup>
 

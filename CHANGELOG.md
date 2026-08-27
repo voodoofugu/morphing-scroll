@@ -228,7 +228,12 @@ themselves are no longer transformed and can be positioned from CSS.
   and `to`. `onScrollPosition` reports continuous movement; this reports the
   landing, so a sound or a haptic hangs off it without firing per frame — or
   per page flown past on the way.
-- `ref` with `scrollTo(target, { duration })`.
+- `ref` with `scrollTo(target, { duration })`, plus `step(side, { reason })`
+  and `pan({ x, y }, { reason })` — the two moves the library makes for its
+  own triggers, named so anything else can make them too. `reason` takes any
+  string and comes back out of `onNavigate` unchanged, which is how a
+  gamepad, a remote or your own hotkeys reach the scroll without the library
+  growing a driver for each of them.
 - `progressTrigger.bar` accepts an object with everything about the
   scrollbar in it. `edgeGap` is new: the distance from the side the bar sits
   on, negative pushes it past the edge.

@@ -249,7 +249,35 @@ props describe state, methods do something now. <code>scrollPosition</code> is t
 </ul>
 
 Unlike the declarative <b>"end"</b>, which backs off if the user has scrolled away from the bottom, an explicit <code>scrollTo("end")</code> always runs.<br />
+<br />
+<code><b>step(side, options?)</b></code>:<br />
+turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run unless <code>arrows.loop</code> is on.<br />
+<br />
+<code><b>pan(delta, options?)</b></code>:<br />
+nudges the content by <code>{ x, y }</code> pixels. Plain movement, so it shows up in <code>onScrollPosition</code>; it only reaches <code>onNavigate</code> if it settles on a new page of a slider.<br />
+<br />
+<code><b>options.reason</b></code>:<br />
+any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
 </em>
+
+```tsx
+// геймпад: опрос — ваш, действие — библиотеки
+function poll() {
+  const pad = navigator.getGamepads()[0];
+  if (!pad) return;
+
+  if (pad.buttons[13].pressed)
+    scroll.current?.step("bottom", { reason: "gamepad" });
+
+  const stick = pad.axes[3];
+  if (Math.abs(stick) > 0.15)
+    scroll.current?.pan({ y: stick * 12 }, { reason: "gamepad", duration: 0 });
+
+  requestAnimationFrame(poll);
+}
+```
+
+<em>A game already has an input layer and a frame loop; a second polling loop inside the scroll would only have to guess which scroll on the page the stick was meant for.</em>
 
 </div></ul></details>
 

@@ -86,7 +86,17 @@ export type ProgressTriggerConfig = {
 };
 
 /** что привело скролл на новую страницу */
-export type NavigateReason = "arrows" | "bar" | "keys" | "scroll";
+/**
+ * Что привело скролл на новую страницу. Свои имена тоже подходят: команда с
+ * `ref` принимает любую строку, и она приезжает в `onNavigate` как есть.
+ */
+export type NavigateReason =
+  | "arrows"
+  | "bar"
+  | "keys"
+  | "scroll"
+  // `& {}` не даёт литералам выше раствориться в `string` и потерять подсказки
+  | (string & {});
 
 /** аргумент `onNavigate` */
 export type NavigateEvent = {
@@ -125,9 +135,13 @@ export type ScrollTarget = null | number | "end" | (null | number | "end")[];
  * imperative commands, reachable through a `ref`.
  * @description
  * `scrollPosition` describes *where the scroll is* and only reacts when that
- * value changes. `scrollTo` *does something now*, so it works even when the
- * target is the same as last time — scrolling back to the top twice, for
- * example.
+ * value changes. These *do something now*, so they work even when the target
+ * is the same as last time — scrolling back to the top twice, for example.
+ *
+ * They are also the way to drive the scroll from an input the library knows
+ * nothing about. A gamepad, a remote, a MIDI pedal: your code decides what a
+ * button means, calls `step` or `pan`, and passes a `reason` that comes back
+ * out of `onNavigate` unchanged.
  * @example
  * ```tsx
  * const scroll = React.useRef<MorphScrollHandle>(null);
@@ -137,10 +151,37 @@ export type ScrollTarget = null | number | "end" | (null | number | "end")[];
  * scroll.current?.scrollTo(0);
  * scroll.current?.scrollTo("end", { duration: 0 });
  * ```
+ * @example
+ * ```tsx
+ * // геймпад: опрос — ваш, действие — библиотеки
+ * const pad = navigator.getGamepads()[0];
+ *
+ * if (pad?.buttons[13].pressed)
+ *   scroll.current?.step("bottom", { reason: "gamepad" });
+ *
+ * scroll.current?.pan({ y: pad.axes[3] * 12 }, { reason: "gamepad" });
+ * ```
  */
 export type MorphScrollHandle = {
   /** run a scroll now; `duration: 0` jumps without animating */
   scrollTo: (target: ScrollTarget, options?: { duration?: number }) => void;
+  /**
+   * turn one page toward that side — the move the arrow buttons make.
+   * Does nothing at the end of the run unless `arrows.loop` is on.
+   */
+  step: (
+    side: "top" | "right" | "bottom" | "left",
+    options?: { reason?: NavigateReason },
+  ) => void;
+  /**
+   * nudge the content by this many pixels. This is plain movement, so it
+   * lands in `onScrollPosition`; it only reaches `onNavigate` if it settles
+   * on a new page of a slider.
+   */
+  pan: (
+    delta: { x?: number; y?: number },
+    options?: { duration?: number; reason?: NavigateReason },
+  ) => void;
 };
 
 export type ResizeTracker = {

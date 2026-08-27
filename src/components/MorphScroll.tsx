@@ -1690,8 +1690,37 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             options?.duration ?? scrollPositionLocal.duration,
             false,
           ),
+
+        /*
+         * Те же два действия, что библиотека делает по своим триггерам, но
+         * названные наружу. Опрашивать геймпад, слушать пульт или разбирать
+         * свои горячие клавиши — не её дело: устройство знает приложение, а
+         * `reason` довозит это знание до `onNavigate` нетронутым.
+         */
+        step: (side, options) =>
+          handleArrowLocal(side, options?.reason ?? "arrows"),
+
+        pan: (delta, options) => {
+          const scrollEl = scrollElementRef.current;
+          if (!scrollEl) return;
+
+          if (options?.reason) markNavigate(options.reason);
+
+          const duration = options?.duration ?? scrollPositionLocal.duration;
+
+          if (delta.x)
+            smoothScrollLocal(scrollEl.scrollLeft + delta.x, "x", duration);
+          if (delta.y)
+            smoothScrollLocal(scrollEl.scrollTop + delta.y, "y", duration);
+        },
       }),
-      [applyScrollPosition, scrollPositionLocal.duration],
+      [
+        applyScrollPosition,
+        scrollPositionLocal.duration,
+        handleArrowLocal,
+        smoothScrollLocal,
+        markNavigate,
+      ],
     );
 
     // эффект запускается раз при старте
