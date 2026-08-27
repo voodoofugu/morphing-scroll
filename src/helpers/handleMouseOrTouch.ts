@@ -429,6 +429,14 @@ function handleMouseOrTouch(args: HandleMouseT) {
    */
   const isOwnPointer = (e: PointerEvent) => e.pointerId === args.pointerId;
 
+  /*
+   * Ссылки и картинки браузер переносит сам: жест уходит в нативный drag,
+   * приходит pointercancel — и прокрутка обрывается на полпути. Пока тащим мы,
+   * нативный перенос не нужен. Элементы со своим переносом сюда не попадают:
+   * жест на них не начинается вовсе.
+   */
+  document.addEventListener("dragstart", (e) => e.preventDefault(), { signal });
+
   document.addEventListener(
     "pointermove",
     (e) => {

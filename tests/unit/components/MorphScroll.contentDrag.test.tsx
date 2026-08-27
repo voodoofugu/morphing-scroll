@@ -88,6 +88,53 @@ describe("MorphScroll — content drag", () => {
   });
 });
 
+describe("MorphScroll — a menu built out of buttons", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const buttons = () =>
+    Array.from({ length: COUNT }, (_, i) => (
+      <button key={`item-${i}`} type="button">
+        item {i}
+      </button>
+    ));
+
+  it("drags from a button with a mouse", () => {
+    setTouchDevice(false);
+    const { el, container } = mount(
+      { progressTrigger: { content: true } },
+      buttons(),
+    );
+
+    const button = container.querySelector<HTMLElement>("button")!;
+    drag(button, [
+      [50, 250],
+      [50, 240],
+      [50, 150],
+    ]);
+    pointer("pointerup", 50, 150, document);
+
+    expect(el.scrollTop).toBeGreaterThan(0);
+  });
+
+  it("lets a press that went nowhere stay a press", () => {
+    // тап по пункту меню обязан остаться тапом: до 2px это ещё не прокрутка
+    setTouchDevice(false);
+    const { el, container } = mount(
+      { progressTrigger: { content: true } },
+      buttons(),
+    );
+
+    const button = container.querySelector<HTMLElement>("button")!;
+    drag(button, [
+      [50, 250],
+      [50, 249],
+    ]);
+    pointer("pointerup", 50, 249, document);
+
+    expect(el.scrollTop).toBe(0);
+  });
+});
+
 describe("MorphScroll — a menu built out of links", () => {
   afterEach(() => vi.unstubAllGlobals());
 
@@ -106,7 +153,8 @@ describe("MorphScroll — a menu built out of links", () => {
     expect(el.scrollTop).toBeGreaterThan(0);
   });
 
-  it("leaves anchors alone for a mouse, where a drag is text selection", () => {
+  it("scrolls with a mouse from an anchor too", () => {
+    // мышь была исключением, и меню из кнопок просто не таскалось
     setTouchDevice(false);
     const { el, container } = mount({ progressTrigger: { content: true } }, links());
 
@@ -118,7 +166,27 @@ describe("MorphScroll — a menu built out of links", () => {
     ]);
     pointer("pointerup", 50, 150, document);
 
-    expect(el.scrollTop).toBe(0);
+    expect(el.scrollTop).toBeGreaterThan(0);
+  });
+
+  it("keeps the browser from carrying the link away mid-gesture", () => {
+    setTouchDevice(false);
+    const { container } = mount({ progressTrigger: { content: true } }, links());
+
+    const anchor = container.querySelector<HTMLElement>("a")!;
+    drag(anchor, [
+      [50, 250],
+      [50, 240],
+    ]);
+
+    const dragStart = new Event("dragstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    anchor.dispatchEvent(dragStart);
+    pointer("pointerup", 50, 240, document);
+
+    expect(dragStart.defaultPrevented).toBe(true);
   });
 });
 

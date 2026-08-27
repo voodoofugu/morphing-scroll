@@ -660,10 +660,11 @@ the arrow keys move the scroll while it has focus — clicking it is enough, the
 <br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-By using <code>content</code> drag scrolling will not work in these cases:<br />
+A press turns into a scroll only after 2px of movement, so a menu of buttons or links still takes clicks: below that it stays a click, above it the wrapper drops <code>pointer-events</code> and the click never lands. While the gesture runs, the native drag of links and images is suppressed.<br />
+The drag does not start at all in these cases:<br />
 
 <ul>
-  <li><b>interactive elements</b>: <code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code></li><br />
+  <li><b>text fields</b>: <code>input</code>, <code>textarea</code>, <code>select</code></li><br />
   <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
 </ul>
 <br />

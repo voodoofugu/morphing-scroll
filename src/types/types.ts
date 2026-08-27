@@ -614,7 +614,7 @@ export type MorphScroll = {
    * - *`bar` renders as a thumb or as a slider depending on `mode`*
    * - *`bar: true` with `mode="scroll"` hands the job to the browser's own
    *   scrollbar*
-   * - *by using `content` drag scrolling will not work with interactive elements like button ([more...](https://www.npmjs.com/package/morphing-scroll))*
+   * - *`content` skips text fields and anything that carries its own drag ([more...](https://www.npmjs.com/package/morphing-scroll))*
    * @example
    * ```tsx
    * <MorphScroll {...props}
