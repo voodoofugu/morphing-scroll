@@ -177,3 +177,63 @@ describe("ScrollBar — a changed progressElement", () => {
     expect(container.querySelector(".ms-slider-element")).toBe(first);
   });
 });
+
+describe("ScrollBar — edgeGap", () => {
+  const bar = (progressElement: unknown, extra: Record<string, unknown> = {}) =>
+    render(
+      <MorphScroll
+        size={[100, VIEW]}
+        objectsSize={OBJ}
+        progressTrigger={{ wheel: true, progressElement: progressElement as never }}
+        {...extra}
+      >
+        {items(20)}
+      </MorphScroll>,
+    ).container.querySelector<HTMLElement>(".ms-bar")!;
+
+  it("sits flush against its side by default", () => {
+    expect(bar(<i />).style.right).toBe("0px");
+  });
+
+  it("pushes the bar inward for a positive value", () => {
+    expect(bar({ element: <i />, edgeGap: 12 }).style.right).toBe("12px");
+  });
+
+  it("pushes the bar past the edge for a negative value", () => {
+    expect(bar({ element: <i />, edgeGap: -20 }).style.right).toBe("-20px");
+  });
+
+  it("moves to the other side together with progressReverse", () => {
+    const el = bar({ element: <i />, edgeGap: 8 }, { progressReverse: true });
+    expect(el.style.left).toBe("8px");
+    expect(el.style.right).toBe("");
+  });
+
+  it("still renders the element passed in the object form", () => {
+    const el = bar({ element: <i className="knob" /> });
+    expect(el.querySelector(".knob")).not.toBeNull();
+  });
+
+  it("takes the axis pair for a hybrid scroll", () => {
+    const { container } = render(
+      <MorphScroll
+        size={[300, 300]}
+        objectsSize={100}
+        direction="hybrid"
+        crossCount={4}
+        progressTrigger={{
+          wheel: true,
+          progressElement: { element: <i />, edgeGap: [4, 16] },
+        }}
+      >
+        {items(20)}
+      </MorphScroll>,
+    );
+    const bars = Array.from(container.querySelectorAll<HTMLElement>(".ms-bar"));
+    const vertical = bars.find((b) => b.dataset.direction === "y")!;
+    const horizontal = bars.find((b) => b.dataset.direction === "x")!;
+
+    expect(vertical.style.right).toBe("16px");
+    expect(horizontal.style.bottom).toBe("4px");
+  });
+});

@@ -1,5 +1,10 @@
 import React from "react";
-import type { MorphScroll, ProgressTriggerConfig, Vec2 } from "../types/types";
+import type {
+  MorphScroll,
+  ProgressElementConfig,
+  ProgressTriggerConfig,
+  Vec2,
+} from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
@@ -36,6 +41,27 @@ type ModifiedProps = Pick<
   maxScrollSize: Vec2;
 };
 
+/*
+ * `progressElement` принимает и голый узел, и объект с настройками — так же,
+ * как `arrows`. Разбираем один раз.
+ */
+const isElementConfig = (
+  value: ProgressTriggerConfig["progressElement"],
+): value is ProgressElementConfig =>
+  !!value &&
+  typeof value === "object" &&
+  !Array.isArray(value) &&
+  !React.isValidElement(value) &&
+  "element" in value;
+
+const readProgressElement = (value: ProgressTriggerConfig["progressElement"]) =>
+  isElementConfig(value)
+    ? { element: value.element, edgeGap: value.edgeGap }
+    : {
+        element: value as React.ReactNode | React.ReactNode[],
+        edgeGap: undefined as ProgressElementConfig["edgeGap"],
+      };
+
 const ScrollBar = ({
   mode,
   direction,
@@ -71,6 +97,20 @@ const ScrollBar = ({
       ? thumbSpace + dampeningOverscroll
       : thumbSpace;
 
+  const { element: progressElement, edgeGap } = React.useMemo(
+    () => readProgressElement(progressTrigger[0].progressElement),
+    [progressTrigger[1]],
+  );
+
+  /** зазор до своей стороны: [для бара оси x, для бара оси y] */
+  const edgeGapLocal = React.useMemo<[number, number]>(() => {
+    if (typeof edgeGap === "number") return [edgeGap, edgeGap];
+    if (Array.isArray(edgeGap))
+      return [edgeGap[0] ?? 0, edgeGap[1] ?? edgeGap[0] ?? 0];
+
+    return [0, 0];
+  }, [edgeGap]);
+
   // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
     if (mode === "scroll") return;
@@ -99,9 +139,9 @@ const ScrollBar = ({
             : undefined
         }
       >
-        {Array.isArray(progressTrigger[0].progressElement)
-          ? progressTrigger[0].progressElement[index]
-          : progressTrigger[0].progressElement}
+        {Array.isArray(progressElement)
+          ? progressElement[index]
+          : progressElement}
       </div>
     ));
   }, [
@@ -206,21 +246,32 @@ const ScrollBar = ({
             ...commonStyles,
             width: "fit-content",
             height: `${axisSize}px`,
+            /*
+             * `edgeGap` отодвигает бар от той стороны, на которой он стоит;
+             * отрицательное значение уводит его за край. Раньше сторона
+             * задавалась нулём, а у горизонтального бара — и вовсе не
+             * задавалась, из-за чего он вставал куда придётся.
+             */
             ...(direction === "x"
               ? {
                   transformOrigin: "left top",
                   left: "50%",
                   ...(progressReverse
                     ? {
-                        top: 0,
+                        top: `${edgeGapLocal[0]}px`,
                         transform: "rotate(-90deg) translate(-100%, -50%)",
                       }
-                    : { transform: "rotate(-90deg) translateY(-50%)" }),
+                    : {
+                        bottom: `${edgeGapLocal[0]}px`,
+                        transform: "rotate(-90deg) translateY(-50%)",
+                      }),
                 }
               : {
                   top: "50%",
                   transform: "translateY(-50%)",
-                  ...(progressReverse ? { left: 0 } : { right: 0 }),
+                  ...(progressReverse
+                    ? { left: `${edgeGapLocal[1]}px` }
+                    : { right: `${edgeGapLocal[1]}px` }),
                 }),
           }}
         >
@@ -231,7 +282,7 @@ const ScrollBar = ({
               height: `${thumbSizeLocal}px`,
               // willChange: "transform, height", // свойство убирает артефакты во время анимации
               transform: `translateY(${thumbSpaceLocal}px)`,
-              ...(progressTrigger[0].progressElement && {
+              ...(progressElement && {
                 cursor: "grab",
               }),
               // стили помогающие выровнять thumb что бы он не вылетал за края (если добавлена анимация)
@@ -239,12 +290,12 @@ const ScrollBar = ({
               alignItems: thumbFlex,
             }}
           >
-            {progressTrigger[0].progressElement}
+            {progressElement}
           </div>
         </div>
       ) : (
         objLengthPerSize > 1 && // что бы не показывать один бегунок при size: 1
-        progressTrigger[0].progressElement && (
+        progressElement && (
           <div
             className={`ms-slider ms-${dataDirection}`}
             ref={scrollBarRef}
@@ -260,13 +311,17 @@ const ScrollBar = ({
                     transformOrigin: "left top",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    ...(progressReverse ? { top: 0 } : { bottom: 0 }),
+                    ...(progressReverse
+                      ? { top: `${edgeGapLocal[0]}px` }
+                      : { bottom: `${edgeGapLocal[0]}px` }),
                   }
                 : {
                     flexDirection: "column",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                    ...(progressReverse
+                      ? { left: `${edgeGapLocal[1]}px` }
+                      : { right: `${edgeGapLocal[1]}px` }),
                   }),
             }}
           >

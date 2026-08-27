@@ -25,5 +25,6 @@ export type {
   ScrollTarget,
   ProgressTriggerName,
   ProgressTriggerConfig,
+  ProgressElementConfig,
 } from "./types/types";
 export default Morph;

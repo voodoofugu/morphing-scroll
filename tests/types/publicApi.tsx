@@ -37,7 +37,7 @@ export const everyProp = (
     progressTrigger={{
       wheel: { changeDirection: true },
       content: true,
-      progressElement: <i />,
+      progressElement: { element: <i />, edgeGap: [4, -8] },
       arrows: { element: <b />, size: 40, loop: true },
     }}
     progressReverse={[true, false]}

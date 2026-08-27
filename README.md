@@ -648,6 +648,18 @@ determines how the scroll progress is managed<br />
   <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
+
+For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:
+
+```tsx
+progressElement: {
+  element: <ScrollThumbComponent />,
+  edgeGap: 8, // or [x, y] for direction="hybrid"
+}
+```
+
+<code><b>edgeGap</b></code> is the distance between the bar and the side it sits on. A negative value pushes it past that edge, which is the usual reason to reach for CSS here. It follows <code>progressReverse</code>, so the gap is always measured from whichever side the bar is actually on.<br />
+<br />
 <code><b>arrows</b></code>:<br />
 allows you to add custom arrows to the progress bar<br />
 <br />

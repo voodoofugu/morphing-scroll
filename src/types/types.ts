@@ -3,6 +3,16 @@ export type Vec2 = [x: number, y: number];
 /** короткая форма для `progressTrigger` */
 export type ProgressTriggerName = "wheel" | "content" | "arrows";
 
+/** объектная форма `progressTrigger.progressElement` */
+export type ProgressElementConfig = {
+  element?: React.ReactNode | React.ReactNode[];
+  /**
+   * distance between the bar and the side it sits on;
+   * a negative value pushes it past the edge
+   */
+  edgeGap?: number | Vec2;
+};
+
 /** `progressTrigger` после разбора короткой формы */
 export type ProgressTriggerConfig = Exclude<
   NonNullable<MorphScroll["progressTrigger"]>,
@@ -543,7 +553,11 @@ export type MorphScroll = {
         wheel?:
           boolean | { changeDirection?: boolean; changeDirectionBtn?: string };
         content?: boolean;
-        progressElement?: boolean | React.ReactNode | React.ReactNode[];
+        progressElement?:
+          | boolean
+          | React.ReactNode
+          | React.ReactNode[]
+          | ProgressElementConfig;
         arrows?:
           | boolean
           | React.ReactNode
