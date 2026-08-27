@@ -31,11 +31,26 @@ const Edge = ({ element, visibility, edgeType }: EdgeT) => {
     [CONST.EDGE_VISIBILITY_VAR]: visibility ? 1 : 0,
   };
 
+  /*
+   * Отражение живёт на внутреннем элементе, а не на слоте: слот отвечает за
+   * положение и размер, и трансформация на нём дралась бы с пользовательским
+   * CSS. Смысл отражения прежний — один градиент обслуживает обе стороны оси,
+   * чтобы не готовить четыре.
+   */
+  const innerStyle: React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+    ...(edgeType === "left" && { transform: "scaleX(-1)" }),
+    ...(edgeType === "bottom" && { transform: "scaleY(-1)" }),
+  };
+
   const edgeClasses = `ms-edge ms-${edgeType}${!visibility ? " ms-disabled" : ""}`;
 
   return (
     <div className={edgeClasses} style={edgeStyle}>
-      {element}
+      <div className="ms-edge-inner" style={innerStyle}>
+        {element}
+      </div>
     </div>
   );
 };

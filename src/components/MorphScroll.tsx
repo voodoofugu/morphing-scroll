@@ -1918,6 +1918,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const containerStyle = React.useMemo(
       (): React.CSSProperties => ({
+        // стрелки позиционируются внутри компонента — без этого они уезжали
+        // к любому позиционированному предку выше по дереву
+        position: "relative",
         width: `${sizeLocal[2]}px`,
         height: `${sizeLocal[3]}px`,
       }),
@@ -1972,7 +1975,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           arrows={arrowsLocal}
           arrowType={positionType as handleArrowT["arrowType"]}
           handleArrow={handleArrowLocal}
-          size={sizeLocal[0]}
         />
       ));
     }, [
@@ -1980,7 +1982,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       getEdgeOrArrowData,
       arrowsLocal,
       handleArrowLocal,
-      sizeLocal[0],
     ]);
 
     const scrollBarConfigs = () => {
@@ -2156,7 +2157,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           {scrollBarsJSX()}
         </div>
 
-        {arrowsJSX}
+        {arrowsJSX && (
+          <div
+            className="ms-arrows"
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none", // клики принимают сами стрелки
+            }}
+          >
+            {arrowsJSX}
+          </div>
+        )}
       </div>
     );
 

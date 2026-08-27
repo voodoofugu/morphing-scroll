@@ -607,7 +607,7 @@ marks the edges where the content is cut off. The library places the slots and r
 <br />
 Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
 <br />
-Passing a node instead of <b>true</b> renders it inside every edge slot.<br />
+Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. That wrapper is mirrored — <code>scaleY(-1)</code> at the bottom, <code>scaleX(-1)</code> on the left — so a single gradient authored once serves both ends of an axis instead of four. The slot itself is never transformed, so your CSS can size and place it predictably.<br />
 <br />
 ✦ Note:<br />
 an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
@@ -622,9 +622,6 @@ an edge has no size and no colour of its own, so nothing shows until you give it
 .ms-edge.ms-bottom {
   height: 40px;
   background: linear-gradient(#fff, transparent);
-}
-.ms-edge.ms-bottom {
-  transform: scaleY(-1);
 }
 ```
 
@@ -730,10 +727,12 @@ allows you to add custom arrows to the progress bar<br />
 <br />
 <ul>
   <li><code>element</code>: the custom arrow element.</li><br />
-  <li><code>size</code>: adds a custom size to the <b>.ms-arrow-box</b>.</li><br />
+  <li><code>size</code>: thickness of the <b>.ms-arrow-box</b> strip, and the box the icon is drawn in.</li><br />
   <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
+All four arrows live in one <b>.ms-arrows</b> box that covers the component, so they stay put instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which is rotated or mirrored per side. Author the icon pointing <b>right</b> and the library turns it for the other three.<br />
+<br />
 An arrow that has nowhere left to scroll gets the <code>ms-disabled</code> class, the same way <b>.ms-edge</b> does. With <code>loop</code> there are no dead ends, so the class is never set.<br />
 While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br />
 </em><br />
