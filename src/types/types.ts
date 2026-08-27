@@ -66,6 +66,15 @@ export type ProgressTriggerConfig = {
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
+/** объектная форма `emptyObjects` */
+export type EmptyObjectsConfig = {
+  mode: "clear" | "fallback";
+  /** what stands in for an empty object; the `fallback` prop when omitted */
+  fallback?: React.ReactNode;
+  /** start clearing when something matching this selector is clicked */
+  clickTrigger?: string | { selector: string; delay?: number };
+};
+
 /** значение, которое понимает и `scrollPosition`, и `scrollTo` */
 export type ScrollTarget = null | number | "end" | (null | number | "end")[];
 
@@ -647,11 +656,12 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***emptyObjects***:
-   * handling of empty scroll elements.
+   * what to do with objects that render nothing.
    * @description
-   * - `"clear"`: *removes empty elements from the DOM*
-   * - `fallback`: *replaces empty elements with a fallback element*
-   * - `clickTrigger`: *start clearing elements when passed selector is clicked*
+   * - `"clear"`: *removes the empty objects from the DOM*
+   * - `"fallback"`: *puts a placeholder in their place*
+   * - `fallback`: *the placeholder to use; defaults to the `fallback` prop*
+   * - `clickTrigger`: *also start clearing when the selector is clicked*
    * @example
    * ```tsx
    * <MorphScroll {...props}
@@ -660,15 +670,13 @@ export type MorphScroll = {
    *   {children}
    * </MorphScroll>
    *  ```
+   * @example
+   * ```tsx
+   * // with settings
+   * emptyObjects={{ mode: "fallback", fallback: <Empty />, clickTrigger: ".btn" }}
+   * ```
    */
-  emptyObjects?:
-    | "clear"
-    | "fallback"
-    | React.ReactNode
-    | {
-        mode: "clear" | "fallback" | { fallback: React.ReactNode };
-        clickTrigger?: string | { selector: string; delay?: number };
-      };
+  emptyObjects?: "clear" | "fallback" | EmptyObjectsConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***suspending***:

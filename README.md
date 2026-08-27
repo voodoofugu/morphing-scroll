@@ -851,7 +851,7 @@ sets the <code>--ms-content-visibility</code> variable for list item wrapper sty
   <li><b>Simple</b>:<br />
   
 ```tsx
-emptyObjects: "clear" // or "fallback" | <FallbackComponent />
+emptyObjects: "clear" // or "fallback"
 ```
 
   </li>
@@ -859,7 +859,8 @@ emptyObjects: "clear" // or "fallback" | <FallbackComponent />
   
 ```tsx
 emptyObjects: {
-  mode: "clear", // or "fallback" | <FallbackComponent /> (required)
+  mode: "clear", // or "fallback" (required)
+  fallback: <YourEmptyPlaceholder />, // optional, wins over the fallback prop
   clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
 }
 ```
@@ -873,10 +874,12 @@ this option allows you to remove or replace empty list items during the initial 
 <code><b>mode</b></code>:<br />
 
 <ul>
-  <li><b>"clear"</b> – automatically removes empty elements.</li>
-  <li><b>"fallback"</b> – replaces empty elements with the value from the <code>fallback</code> props.</li>
-  <li><b>{ fallback: React.ReactNode }</b> – allows you to override the default <code>fallback</code> content for this instance.</li>
+  <li><b>"clear"</b> – automatically removes empty objects.</li>
+  <li><b>"fallback"</b> – replaces empty objects with a placeholder.</li>
 </ul>
+<br />
+<code><b>fallback</b></code>:<br />
+the placeholder for this scroll. Without it the <code>fallback</code> prop is used, so you only need this when one scroll should show something different from the rest.<br />
 <br />
 <code><b>clickTrigger</b></code>:<br />
 use this option if removal should be triggered by a click action.<br />
@@ -950,7 +953,7 @@ It will be used when:
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
-  <li><code>emptyObjects.mode</code> is set to <b>"fallback"</b>.</li> 
+  <li><code>emptyObjects.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
 </ul>
 </em><br />
 <b>Example:</b>

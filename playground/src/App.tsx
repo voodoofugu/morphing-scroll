@@ -643,9 +643,10 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       : settings.emptyMode === "clear"
         ? "clear"
         : settings.emptyMode === "fallback"
-          ? { mode: { fallback: raw("<YourEmptyFallback />") } }
+          ? { fallback: raw("<YourEmptyFallback />"), mode: "fallback" }
           : {
-              mode: { fallback: raw("<YourEmptyFallback />") },
+              fallback: raw("<YourEmptyFallback />"),
+              mode: "fallback",
               clickTrigger: { selector: ".item-action", delay: 220 },
             };
 
@@ -838,11 +839,13 @@ function App() {
     if (settings.emptyMode === "clear") return "clear";
     if (settings.emptyMode === "fallback")
       return {
-        mode: { fallback: <div className="empty-fallback">empty</div> },
+        fallback: <div className="empty-fallback">empty</div>,
+        mode: "fallback",
       };
     return {
       clickTrigger: { delay: 220, selector: ".item-action" },
-      mode: { fallback: <div className="empty-fallback">empty</div> },
+      fallback: <div className="empty-fallback">empty</div>,
+      mode: "fallback",
     };
   }, [settings.emptyMode]);
 

@@ -53,6 +53,24 @@ progressTrigger={{
 `{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
 unchanged.
 
+#### One way to fill an empty object
+
+`emptyObjects` accepted a placeholder three ways — a bare node, the word
+`"fallback"` plus the `fallback` prop, and `mode: { fallback }` — and the
+type could not tell them apart, because `React.ReactNode` in the union
+swallowed the string literals: `emptyObjects="clearr"` compiled, with no
+completion for `"clear"` anywhere. One shape now:
+
+```tsx
+emptyObjects="clear"
+emptyObjects="fallback"                                   // uses the fallback prop
+emptyObjects={{ mode: "fallback", fallback: <Empty /> }}   // its own placeholder
+emptyObjects={{ mode: "clear", clickTrigger: ".btn" }}
+```
+
+`emptyObjects={<Empty />}` and `mode: { fallback: <Empty /> }` are gone;
+both become `{ mode: "fallback", fallback: <Empty /> }`.
+
 #### Names that described something else
 
 Four names pointed away from what they do:

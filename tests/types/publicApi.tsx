@@ -64,8 +64,34 @@ export const triggerShorthand = (
   </>
 );
 
-// @ts-expect-error only the three trigger names are shorthand
+// @ts-expect-error only the four trigger names are shorthand
 export const badTrigger = <MorphScroll size={100} progressTrigger="thumb" />;
+
+/*
+ * Эти четыре компилировались в 2.x. `React.ReactNode` в объединении съедал
+ * литералы, а «пара» была массивом любой длины — опечатка и лишний элемент
+ * проходили молча.
+ */
+// @ts-expect-error a typo in a mode used to be swallowed by ReactNode
+export const badEmptyMode = <MorphScroll size={100} emptyObjects="clearr" />;
+// @ts-expect-error an axis pair takes exactly two values
+export const badMinSize = <MorphScroll size={100} wrapperMinSize={[1, 2, 3, 4]} />;
+// @ts-expect-error an axis pair takes exactly two values
+export const badObjectsSize = <MorphScroll size={100} objectsSize={[1, 2, 3]} />;
+export const badReverse = (
+  <MorphScroll
+    size={100}
+    // @ts-expect-error an axis pair takes exactly two values
+    progressTrigger={{ bar: { reverse: [true, false, true] } }}
+  />
+);
+
+export const emptyObjectsConfig = (
+  <MorphScroll
+    size={100}
+    emptyObjects={{ mode: "fallback", fallback: <b />, clickTrigger: ".btn" }}
+  />
+);
 
 export const shorthands = (
   <MorphScroll size="auto" objectsSize="firstChild" render="lazy" emptyObjects="fallback">

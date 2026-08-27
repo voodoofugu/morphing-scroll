@@ -263,6 +263,25 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return { value, duration };
     }, [scrollPositionST]);
 
+    /*
+     * Заглушку раньше можно было задать тремя способами — голым узлом,
+     * словом "fallback" плюс общий проп, и `mode: { fallback }`, — и разбор
+     * этих форм расползался лесенкой тернарников по всему компоненту.
+     * Форма теперь одна, разбирается здесь.
+     */
+    const emptyObjectsLocal = React.useMemo(() => {
+      if (!emptyObjects) return null;
+
+      if (typeof emptyObjects === "string")
+        return { mode: emptyObjects, fallback: undefined, clickTrigger: undefined };
+
+      return {
+        mode: emptyObjects.mode,
+        fallback: emptyObjects.fallback,
+        clickTrigger: emptyObjects.clickTrigger,
+      };
+    }, [emptyObjectsST]);
+
     // ♦ variables
     const defaultSize = 40;
 
@@ -344,18 +363,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           return null;
         })
         .filter((key): key is string => key !== null)
-        .filter((key) => {
-          if (
-            emptyObjects === "clear" ||
-            (emptyObjects &&
-              typeof emptyObjects === "object" &&
-              "mode" in emptyObjects &&
-              emptyObjects.mode === "clear")
-          ) {
-            return !objectsKeys.current.empty?.has(key);
-          }
-          return true;
-        });
+        .filter((key) =>
+          emptyObjectsLocal?.mode === "clear"
+            ? !objectsKeys.current.empty?.has(key)
+            : true,
+        );
     }, [children, emptyObjectsST, objectsKeysEmptyST]);
 
     const [mT, mR, mB, mL] = wrapperMargin
@@ -500,7 +512,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const fallbackLocal = React.useMemo(() => {
       // делаем заглушку что бы не удалять всё подряд при emptyObjects
-      if (render && emptyObjects && !fallback)
+      if (render && emptyObjectsLocal && !fallback)
         return <div className="ms-empty-object"></div>;
 
       return fallback;
@@ -1143,14 +1155,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // для обновления ключей при emptyObjects
     const updateEmptyKeysClickLocal = React.useCallback(
       (event: React.MouseEvent) => {
-        if (
-          typeof emptyObjects === "object" &&
-          "clickTrigger" in emptyObjects! &&
-          emptyObjects.clickTrigger !== undefined
-        ) {
+        if (emptyObjectsLocal?.clickTrigger !== undefined) {
           updateEmptyKeysClick(
             event,
-            emptyObjects.clickTrigger,
+            emptyObjectsLocal.clickTrigger,
             updateLoadedElementsKeysLocal,
             tasks,
           );
@@ -1389,7 +1397,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // }, [onArrowKey]);
 
     React.useEffect(() => {
-      if (!emptyObjects || !renderLocal.mode) return; // ранний выход
+      if (!emptyObjectsLocal || !renderLocal.mode) return; // ранний выход
 
       updateLoadedElementsKeysLocal(); // запуск проверки ключей
     }, [
@@ -1728,14 +1736,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return (
           <div
             key={key}
-            {...(renderLocal.mode || emptyObjects
+            {...(renderLocal.mode || emptyObjectsLocal
               ? {
                   [CONST.WRAP_ATR]: `${key}`,
                 }
               : {})}
             className="ms-object-box"
             style={wrapStyle}
-            onClick={emptyObjects ? updateEmptyKeysClickLocal : undefined}
+            onClick={emptyObjectsLocal ? updateEmptyKeysClickLocal : undefined}
           >
             {content}
           </div>
@@ -1779,17 +1787,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         !objectsKeys.current.loaded.has(key)
           ? fallbackLocal
           : objectsKeys.current.empty?.has(key)
-            ? emptyObjects &&
-              typeof emptyObjects === "object" &&
-              React.isValidElement(emptyObjects)
-              ? emptyObjects
-              : emptyObjects &&
-                  typeof emptyObjects === "object" &&
-                  "mode" in emptyObjects &&
-                  typeof emptyObjects.mode === "object" &&
-                  "fallback" in emptyObjects.mode
-                ? emptyObjects.mode.fallback
-                : fallbackLocal
+            ? (emptyObjectsLocal?.fallback ?? fallbackLocal)
             : child;
 
       // доп обработка для ResizeTracker

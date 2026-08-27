@@ -32,6 +32,43 @@ describe("MorphScroll — emptyObjects", () => {
     expect(boxes(container)).toHaveLength(3);
   });
 
+  it("takes its own fallback over the shared one", async () => {
+    const { container } = render(
+      <MorphScroll
+        size={SIZE}
+        objectsSize={OBJ}
+        render="virtual"
+        fallback={<i className="shared" />}
+        emptyObjects={{ mode: "fallback", fallback: <b className="mine" /> }}
+      >
+        {mixed()}
+      </MorphScroll>,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector("b.mine")).toBeInTheDocument();
+    });
+    expect(container.querySelector("i.shared")).toBeNull();
+  });
+
+  it("falls back to the shared fallback when it has none of its own", async () => {
+    const { container } = render(
+      <MorphScroll
+        size={SIZE}
+        objectsSize={OBJ}
+        render="virtual"
+        fallback={<i className="shared" />}
+        emptyObjects={{ mode: "fallback" }}
+      >
+        {mixed()}
+      </MorphScroll>,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector("i.shared")).toBeInTheDocument();
+    });
+  });
+
   it("clear: drops the empty box from the tree", async () => {
     const { container } = render(
       <MorphScroll size={SIZE} objectsSize={OBJ} render="virtual" emptyObjects="clear">

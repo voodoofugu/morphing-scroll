@@ -26,5 +26,9 @@ export type {
   ProgressTriggerName,
   ProgressTriggerConfig,
   BarConfig,
+  ArrowsConfig,
+  WheelConfig,
+  EmptyObjectsConfig,
+  Pair,
 } from "./types/types";
 export default Morph;
