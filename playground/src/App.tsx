@@ -72,6 +72,7 @@ type Settings = {
   keys: boolean;
   keysMode: "pan" | "step";
   keysStep: number;
+  gamepad: boolean;
   progressElementMode: ProgressElementMode;
   arrows: boolean;
   arrowSize: number;
@@ -155,6 +156,7 @@ const defaultSettings: Settings = {
   keys: true,
   keysMode: "pan",
   keysStep: 40,
+  gamepad: false,
   progressElementMode: "custom",
   arrows: false,
   arrowSize: 36,
@@ -749,6 +751,105 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
   return `${imports}\n\n${helpers.join("\n\n")}\n\nexport function Example() {\n  return (\n    <MorphScroll\n${propLines.join("\n")}\n    >\n      {items}\n    </MorphScroll>\n  );\n}\n`;
 }
 
+type PadSample = {
+  axes: [number, number];
+  buttons: number[];
+  id: string;
+};
+
+const DEAD_ZONE = 0.15; // сколько стик отдаёт, лёжа в покое
+const PAN_PER_SECOND = 900; // px при полностью отклонённом стике
+const REPEAT = { first: 400, next: 120 }; // автоповтор удержанной кнопки, ms
+const DPAD = { 12: "top", 13: "bottom", 14: "left", 15: "right" } as const;
+
+/**
+ * Рецепт из README, слово в слово, плюс отчёт о том, что пришло с устройства:
+ * в playground важно видеть не только результат, но и сам ввод — какие оси и
+ * какие кнопки геймпад отдаёт прямо сейчас.
+ */
+function useGamepadScroll(
+  scroll: React.RefObject<MorphScrollHandle | null>,
+  enabled: boolean,
+  onSample: (sample: PadSample | null) => void,
+) {
+  React.useEffect(() => {
+    if (!enabled) {
+      onSample(null);
+      return;
+    }
+
+    let frame = 0;
+    let last = performance.now();
+    let reported = "";
+    const held = new Map<number, number>(); // кнопка -> когда сработает снова
+
+    const report = (sample: PadSample | null) => {
+      // состояние отдаём только на изменение, иначе рендер на каждый кадр
+      const next = JSON.stringify(sample);
+      if (next === reported) return;
+
+      reported = next;
+      onSample(sample);
+    };
+
+    const tick = (now: number) => {
+      frame = requestAnimationFrame(tick);
+
+      // кадр мог быть длинным: считаем от времени, а не от количества кадров
+      const delta = Math.min(now - last, 100) / 1000;
+      last = now;
+
+      const pad = navigator.getGamepads().find(Boolean);
+      if (!pad) {
+        held.clear();
+        report(null);
+        return;
+      }
+
+      // — правый стик: непрерывное движение —
+      const [x, y] = [pad.axes[2] ?? 0, pad.axes[3] ?? 0].map((value) =>
+        Math.abs(value) < DEAD_ZONE ? 0 : value,
+      );
+
+      if (x || y)
+        scroll.current?.pan(
+          { x: x * PAN_PER_SECOND * delta, y: y * PAN_PER_SECOND * delta },
+          { duration: 0, reason: "gamepad" },
+        );
+
+      // — крестовина: шаг на нажатие, а не на кадр —
+      for (const [index, side] of Object.entries(DPAD)) {
+        const button = Number(index);
+
+        if (!pad.buttons[button]?.pressed) {
+          held.delete(button);
+          continue;
+        }
+
+        const due = held.get(button);
+        if (due === undefined) {
+          scroll.current?.step(side, { reason: "gamepad" });
+          held.set(button, now + REPEAT.first);
+        } else if (now >= due) {
+          scroll.current?.step(side, { reason: "gamepad" });
+          held.set(button, now + REPEAT.next);
+        }
+      }
+
+      report({
+        axes: [Math.round(x * 20) / 20, Math.round(y * 20) / 20],
+        buttons: pad.buttons
+          .map((b, i) => (b.pressed ? i : -1))
+          .filter((i) => i >= 0),
+        id: pad.id,
+      });
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [enabled, onSample, scroll]);
+}
+
 function App() {
   const [settings, setSettings, update] = useStoredSettings();
   const [scrollLeft, setScrollLeft] = React.useState(0);
@@ -762,7 +863,10 @@ function App() {
   const [scrollXInput, setScrollXInput] = React.useState(0);
   const [scrollYInput, setScrollYInput] = React.useState(0);
   const [scrollDuration, setScrollDuration] = React.useState(220);
+  const [pad, setPad] = React.useState<PadSample | null>(null);
   const scrollRef = React.useRef<MorphScrollHandle>(null);
+
+  useGamepadScroll(scrollRef, settings.gamepad, setPad);
 
   const [scrollCommand, setScrollCommand] = React.useState<ScrollCommand>({
     duration: 220,
@@ -1194,6 +1298,17 @@ function App() {
               device connects; the reason reaches <code>onNavigate</code> as
               given
             </p>
+
+            <ToggleField
+              label="gamepad"
+              onChange={(value) => update("gamepad", value)}
+              value={settings.gamepad}
+            />
+            <p className="sub-note">
+              the README recipe, running live: right stick pans, d-pad steps.
+              Browsers hide a pad until it sends something — press a button
+              once. The reading is in the <code>gamepad</code> meter below
+            </p>
           </SubGroup>
         </ControlGroup>
 
@@ -1449,6 +1564,10 @@ function App() {
                 value={settings.keysStep}
               />
             )}
+            <p className="sub-note">
+              the arrows work while the scroll has focus — click it, or Tab to
+              it, and only the keys of the scrolling axis are taken
+            </p>
           </SubGroup>
 
           <SubGroup
@@ -1756,6 +1875,18 @@ function App() {
             <span>surface</span>
             <b>
               {resizeRect.width} x {resizeRect.height}
+            </b>
+          </div>
+          <div>
+            <span>gamepad</span>
+            <b>
+              {!settings.gamepad
+                ? "off"
+                : !pad
+                  ? "waiting"
+                  : `${pad.axes[0]}, ${pad.axes[1]}${
+                      pad.buttons.length ? ` · ${pad.buttons.join(" ")}` : ""
+                    }`}
             </b>
           </div>
           <div className="keys-meter">
