@@ -215,6 +215,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       progressTriggerST,
       objectsKeysEmptyST,
       scrollBarEdgeST,
+      edgeGradientST,
     ] = stabilize(
       scrollPosition,
       render,
@@ -227,6 +228,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       progressTrigger,
       objectsKeys.current.empty,
       scrollBarEdge,
+      edgeGradient,
     );
 
     /*
@@ -272,7 +274,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // `true` — просто разметить края, узел — отрисовать его внутри каждого
     const edgeElement = React.useMemo(
       () => (React.isValidElement(edgeGradient) ? edgeGradient : undefined),
-      [edgeGradient],
+      [edgeGradientST],
     );
 
     const arrowsLocal = React.useMemo(() => {
@@ -1963,7 +1965,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           edgeType={positionType as "left" | "right" | "top" | "bottom"}
         />
       ));
-    }, [edgeGradient, getEdgeOrArrowData, edgeElement, sizeST]);
+    }, [edgeGradientST, getEdgeOrArrowData, edgeElement, sizeST]);
 
     const arrowsJSX = React.useMemo(() => {
       if (!progressTriggerLocal.arrows) return null;

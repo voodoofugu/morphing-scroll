@@ -207,3 +207,41 @@ describe("Arrow — cursor", () => {
       ).toBe("pointer");
   });
 });
+
+describe("a changed element reaches the DOM", () => {
+  const withArrow = (label: string) => (
+    <MorphScroll
+      size={SIZE}
+      objectsSize={OBJ}
+      edgeGradient={<u>{label}</u>}
+      progressTrigger={{ arrows: { element: <i>{label}</i>, size: 40 } }}
+    >
+      {items(20)}
+    </MorphScroll>
+  );
+
+  it("updates the arrow icon", () => {
+    const { container, rerender } = render(withArrow("A"));
+    expect(container.querySelector(".ms-arrow")).toHaveTextContent("A");
+
+    rerender(withArrow("B"));
+    expect(container.querySelector(".ms-arrow")).toHaveTextContent("B");
+  });
+
+  it("updates the edge content", () => {
+    const { container, rerender } = render(withArrow("A"));
+    expect(container.querySelector(".ms-edge-inner")).toHaveTextContent("A");
+
+    rerender(withArrow("B"));
+    expect(container.querySelector(".ms-edge-inner")).toHaveTextContent("B");
+  });
+
+  it("keeps the edges as they are when nothing actually changed", () => {
+    const { container, rerender } = render(withArrow("A"));
+    const first = container.querySelector(".ms-edge");
+
+    rerender(withArrow("A"));
+
+    expect(container.querySelector(".ms-edge")).toBe(first);
+  });
+});

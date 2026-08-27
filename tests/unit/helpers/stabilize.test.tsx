@@ -24,9 +24,52 @@ describe("stabilize", () => {
     expect(stabilize(b)[0]).toBe(5);
   });
 
-  it("hashes all React elements to the same sentinel", () => {
-    expect(stabilize(<div />)[0]).toBe(6);
-    expect(stabilize(<span key="x">hi</span>)[0]).toBe(6);
+  describe("React elements", () => {
+    // Hashed by content, not by identity: an element written inline is a new
+    // object on every render and must not look changed, while an element that
+    // really did change must not look the same.
+    it("treats an identical element written twice as unchanged", () => {
+      expect(stabilize(<div className="thumb" />)).toEqual(
+        stabilize(<div className="thumb" />),
+      );
+    });
+
+    it("notices changed props", () => {
+      expect(stabilize(<div className="a" />)[0]).not.toBe(
+        stabilize(<div className="b" />)[0],
+      );
+    });
+
+    it("notices changed children", () => {
+      expect(stabilize(<b>one</b>)[0]).not.toBe(stabilize(<b>two</b>)[0]);
+    });
+
+    it("notices a different tag", () => {
+      expect(stabilize(<div />)[0]).not.toBe(stabilize(<span />)[0]);
+    });
+
+    it("notices a different component", () => {
+      const One = () => null;
+      const Two = () => null;
+      expect(stabilize(<One />)[0]).not.toBe(stabilize(<Two />)[0]);
+    });
+
+    it("notices a changed key", () => {
+      expect(stabilize(<i key="a" />)[0]).not.toBe(stabilize(<i key="b" />)[0]);
+    });
+
+    it("walks nested elements", () => {
+      expect(stabilize(<div><b>one</b></div>)[0]).not.toBe(
+        stabilize(<div><b>two</b></div>)[0],
+      );
+    });
+
+    it("survives an element carrying a ref and a handler", () => {
+      const ref = React.createRef<HTMLDivElement>();
+      expect(() =>
+        stabilize(<div ref={ref} onClick={() => {}} />),
+      ).not.toThrow();
+    });
   });
 
   it("produces equal hashes for equal numbers and strings", () => {

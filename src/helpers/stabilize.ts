@@ -17,7 +17,36 @@ export function stabilize(...args: unknown[]): number[] {
     }
     if (typeof val === "undefined") return 4;
     if (typeof val === "function") return 5; // для функций лучше использовать ref паттерн
-    if (React.isValidElement(val)) return 6;
+
+    /*
+     * React-элемент хешируем по содержимому, а не по ссылке.
+     *
+     * Раньше он давал константу, и получалось, что переданный внутрь пропа
+     * элемент — иконка стрелки, бегунок — уже никогда не обновлялся: хеш не
+     * менялся, memo не пересчитывался, в DOM оставался первый вариант. По
+     * ссылке тоже нельзя: элемент, написанный прямо в пропсах, создаётся
+     * заново на каждый рендер и сбрасывал бы всю мемоизацию.
+     *
+     * Обходим только `type`, `key` и `props` — общий обход объекта утащил бы
+     * за собой служебные поля React, среди которых есть циклические ссылки.
+     */
+    if (React.isValidElement(val)) {
+      const el = val as React.ReactElement<Record<string, unknown>> & {
+        type: unknown;
+      };
+      const type = el.type;
+      const typeHash =
+        typeof type === "string"
+          ? hashValue(type)
+          : hashValue(
+              (type as { displayName?: string; name?: string })?.displayName ??
+                (type as { name?: string })?.name ??
+                "anonymous",
+            );
+
+      return (((typeHash * 31 + hashValue(el.key)) >>> 0) * 31 +
+        hashValue(el.props)) >>> 0;
+    }
 
     if (Array.isArray(val)) {
       let h = 0;

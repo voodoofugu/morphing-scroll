@@ -128,3 +128,52 @@ describe("ScrollBar — scrollBarOnHover", () => {
     expect(container.querySelector(".ms-bar.leave")).toBeNull();
   });
 });
+
+describe("ScrollBar — a changed progressElement", () => {
+  const withThumb = (label: string) => (
+    <MorphScroll
+      size={[100, VIEW]}
+      objectsSize={OBJ}
+      progressTrigger={{ wheel: true, progressElement: <b>{label}</b> }}
+    >
+      {items(20)}
+    </MorphScroll>
+  );
+
+  const withDots = (label: string) => (
+    <MorphScroll
+      size={[100, VIEW]}
+      objectsSize={VIEW}
+      mode="sliderMenu"
+      progressTrigger={{ wheel: true, progressElement: <b>{label}</b> }}
+    >
+      {items(9)}
+    </MorphScroll>
+  );
+
+  it("reaches the thumb", () => {
+    const { container, rerender } = render(withThumb("A"));
+    expect(container.querySelector(".ms-thumb")).toHaveTextContent("A");
+
+    rerender(withThumb("B"));
+    expect(container.querySelector(".ms-thumb")).toHaveTextContent("B");
+  });
+
+  it("reaches the slider elements", () => {
+    const { container, rerender } = render(withDots("A"));
+    expect(container.querySelector(".ms-slider-element")).toHaveTextContent("A");
+
+    rerender(withDots("B"));
+    expect(container.querySelector(".ms-slider-element")).toHaveTextContent("B");
+  });
+
+  it("does not rebuild the slider when the element is merely re-created", () => {
+    const { container, rerender } = render(withDots("A"));
+    const first = container.querySelector(".ms-slider-element");
+
+    rerender(withDots("A"));
+
+    // same content, so the memoized list is kept as it was
+    expect(container.querySelector(".ms-slider-element")).toBe(first);
+  });
+});
