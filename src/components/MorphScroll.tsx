@@ -2157,18 +2157,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           {scrollBarsJSX()}
         </div>
 
-        {arrowsJSX && (
-          <div
-            className="ms-arrows"
-            style={{
-              position: "absolute",
-              inset: 0,
-              pointerEvents: "none", // клики принимают сами стрелки
-            }}
-          >
-            {arrowsJSX}
-          </div>
-        )}
+        {arrowsJSX}
       </div>
     );
 

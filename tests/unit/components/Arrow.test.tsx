@@ -84,16 +84,12 @@ describe("arrow and edge layout", () => {
     expect(root.style.position).toBe("relative");
   });
 
-  it("collects the arrows under one parent that does not eat clicks", () => {
+  it("hangs the arrows off the component root, with no wrapper in between", () => {
     const { container } = render(hybrid);
-    const parent = container.querySelector<HTMLElement>(".ms-arrows")!;
+    const root = container.querySelector<HTMLElement>("[morph-scroll]")!;
 
-    expect(parent).not.toBeNull();
-    expect(parent.querySelectorAll(".ms-arrow-box")).toHaveLength(4);
-    expect(parent.style.pointerEvents).toBe("none");
-    expect(
-      container.querySelector<HTMLElement>(".ms-arrow-box")!.style.pointerEvents,
-    ).toBe("auto");
+    const boxes = root.querySelectorAll(":scope > .ms-arrow-box");
+    expect(boxes).toHaveLength(4);
   });
 
   it("keeps the slot free of transforms and orients the icon instead", () => {
