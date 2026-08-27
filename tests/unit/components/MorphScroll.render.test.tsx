@@ -1,7 +1,8 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, waitFor, fireEvent } from "@testing-library/react";
+import { render, waitFor, fireEvent, act } from "@testing-library/react";
 import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
+import { resizeObservers } from "../../setup";
 
 /**
  * Tier 2: prop-logic tests.
@@ -390,5 +391,48 @@ describe("MorphScroll — progressTrigger shorthand", () => {
     );
     expect(spy).toHaveBeenCalledWith(expect.stringContaining("progressTrigger"));
     spy.mockRestore();
+  });
+});
+
+describe("MorphScroll — objectsSize: firstChild with render", () => {
+  // every ResizeTracker in the tree reports the same box, which is what a
+  // one-item-per-row layout looks like in a real browser
+  const measured = (rect: Partial<DOMRectReadOnly>) =>
+    act(() => resizeObservers.forEach((observer) => observer.emit(rect)));
+
+  it("renders the first child so it can be measured", () => {
+    // chicken and egg: the size comes from the first child, but with
+    // virtualization the first child was only rendered once a size was known
+    const { container } = render(
+      <MorphScroll size={SIZE} objectsSize="firstChild" render="virtual">
+        {items(10)}
+      </MorphScroll>,
+    );
+
+    expect(boxes(container).length).toBeGreaterThan(0);
+  });
+
+  it("fills in the rest once the first child has been measured", async () => {
+    const { container } = render(
+      <MorphScroll size={SIZE} objectsSize="firstChild" render="virtual">
+        {items(10)}
+      </MorphScroll>,
+    );
+    measured({ width: 100, height: 100 });
+
+    await waitFor(() => {
+      // viewport 300 tall / 100 per item -> three visible
+      expect(boxes(container)).toHaveLength(3);
+    });
+  });
+
+  it("works the same for lazy", () => {
+    const { container } = render(
+      <MorphScroll size={SIZE} objectsSize="firstChild" render="lazy">
+        {items(10)}
+      </MorphScroll>,
+    );
+
+    expect(boxes(container).length).toBeGreaterThan(0);
   });
 });

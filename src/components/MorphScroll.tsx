@@ -467,6 +467,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeLocal.join(),
     ]);
 
+    /* размер ячейки ещё не измерен, а взять его больше неоткуда */
+    const needsFirstChildMeasure =
+      (objectsSizing[0] === "firstChild" || objectsSizing[1] === "firstChild") &&
+      !receivedChildSizeRef.current.width &&
+      !receivedChildSizeRef.current.height;
+
     const fallbackLocal = React.useMemo(() => {
       // делаем заглушку что бы не удалять всё подряд при emptyElements
       if (render && emptyElements && !fallback)
@@ -1554,7 +1560,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const scrollEl = scrollElementRef.current;
       if (!scrollEl) return;
 
+      /*
+       * С нативным скроллбаром (`progressElement: true`) сам бегунок остаётся
+       * частью элемента прокрутки, и нажатие по нему не должно превращаться в
+       * перенос контента. Раньше ради этого перенос отключали целиком — то
+       * есть `content: true` рядом с `progressElement: true` просто не работал.
+       * Отсекаем только полосу: clientWidth/clientHeight её не включают.
+       */
+      const isOnNativeBar = (event: PointerEvent) => {
+        if (progressTriggerLocal.progressElement !== true) return false;
+
+        const rect = scrollEl.getBoundingClientRect();
+        return (
+          event.clientX > rect.left + scrollEl.clientWidth ||
+          event.clientY > rect.top + scrollEl.clientHeight
+        );
+      };
+
       const handler = (event: PointerEvent) => {
+        if (isOnNativeBar(event)) return;
+
         onMouseOrTouchDown("wrapp", event);
       };
 
@@ -1564,11 +1589,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         (!progressTriggerLocal.content &&
           isTouchedRef.current &&
           progressTriggerLocal.wheel)
-      ) {
-        if (progressTriggerLocal.progressElement === true) return;
-
+      )
         scrollEl.addEventListener("pointerdown", handler);
-      }
 
       return () => {
         scrollEl.removeEventListener("pointerdown", handler);
@@ -1745,6 +1767,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // ===== NO VIRTUAL =====
       if (!renderLocal.mode) return scrollObjectWrapper(key, 0, 0, childLocal);
+
+      /*
+       * Курица и яйцо: при `objectsSize: "firstChild"` размер ячейки берётся
+       * из первого ребёнка, а он завёрнут в ResizeTracker внутри этой же
+       * функции. Пока размер неизвестен, все координаты нулевые, проверка
+       * видимости даёт 0, и первый ребёнок не рендерится — значит и не
+       * измеряется. Список так и оставался пустым.
+       *
+       * Поэтому первого ребёнка показываем безусловно, пока мерять нечего.
+       */
+      if (needsFirstChildMeasure && index === 0)
+        return scrollObjectWrapper(key, 0, 0, childLocal);
 
       // обработка виртуализации
       const { top, bottom, left, right } = memoizedChildrenData[index];
