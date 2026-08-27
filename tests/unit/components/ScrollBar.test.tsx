@@ -236,6 +236,33 @@ describe("ScrollBar — edgeGap", () => {
     const horizontal = bars.find((b) => axis(b) === "x")!;
 
     expect(vertical.style.right).toBe("16px");
-    expect(horizontal.style.bottom).toBe("4px");
+    /*
+     * Горизонтальный бар до поворота — столбик длиной во всю ширину скролла,
+     * поэтому его нельзя цеплять за `bottom`: оно отсчитывает по этой длине и
+     * уносит бар выше скролла. Якорь — нижний край, отсюда `calc`.
+     */
+    expect(horizontal.style.bottom).toBe("");
+    expect(horizontal.style.top).toBe("calc(100% - 4px)");
+  });
+
+  it("gives a single horizontal scroll the x half of the pair", () => {
+    const { container } = render(
+      <MorphScroll
+        size={[300, 300]}
+        objectsSize={100}
+        direction="x"
+        progressTrigger={{
+          wheel: true,
+          bar: { element: <i />, edgeGap: [4, 16], reverse: [true, false] },
+        }}
+      >
+        {items(20)}
+      </MorphScroll>,
+    );
+    const el = container.querySelector<HTMLElement>(".ms-bar")!;
+
+    // единственный бар здесь горизонтальный, и настройки берёт по своей оси
+    expect(el.getAttribute("ms-direction")).toBe("x");
+    expect(el.style.top).toBe("4px"); // reverse[0] === true — бар наверху
   });
 });

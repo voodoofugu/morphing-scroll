@@ -2113,8 +2113,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (!barLocal.present || barLocal.native) return null;
 
       return scrollBarConfigs().map((args) => {
-        // индекс 0 — бар оси x, 1 — оси y
-        const axis = args.progressReverseIndex === 1 ? 0 : 1;
+        /*
+         * Половину пары выбирает ось самого бара, а не его место в списке:
+         * первый бар бывает и горизонтальным — при `direction="x"`, — и тогда
+         * по индексу ему доставались настройки вертикального.
+         */
+        const axis = args.direction === "x" ? 0 : 1;
 
         return (
           <ScrollBar
