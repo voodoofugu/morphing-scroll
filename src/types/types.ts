@@ -346,15 +346,7 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  scrollPosition?:
-    | null
-    | number
-    | "end"
-    | (null | number | "end")[]
-    | {
-        value: null | number | "end" | (null | number | "end")[];
-        duration?: number;
-      };
+  scrollPosition?: ScrollTarget | { value: ScrollTarget; duration?: number };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***dragScroll***:
@@ -591,12 +583,17 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***edgeGradient***:
-   * gradient overlay at the edges of the scroll area.
-   * @default { size: 40 }
+   * marks the edges where the content is cut off.
+   * @description
+   * a place and a signal, not a ready-made gradient: `.ms-edge` is stretched
+   * along its side and carries `--ms-edge-visibility` (`0` / `1`). What it
+   * looks like is up to your CSS or the node you pass in.
+   * @note
+   * *the node is mirrored for you — one gradient serves both ends of an axis*
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   edgeGradient="rgba(0,0,0,0.4)"
+   *   edgeGradient={<div className="my-fade" />}
    * >
    *   {children}
    * </MorphScroll>
@@ -615,7 +612,7 @@ export type MorphScroll = {
    *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
    * - `stopLoadOnScroll`: *stops loading content when scrolling*
-   * - `trackVisibility`: *sets the `--content-visibility` variable*
+   * - `trackVisibility`: *sets the `--ms-content-visibility` variable*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
    * @example

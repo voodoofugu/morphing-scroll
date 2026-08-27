@@ -712,7 +712,7 @@ allows you to add custom arrows to the progress bar<br />
   <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
-All four arrows live in one <b>.ms-arrows</b> box that covers the component, so they stay put instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
+The component root is positioned, so each arrow sits against it instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
 <br />
 An arrow with nowhere to go is not given <code>cursor: pointer</code>, so it does not advertise a click that does nothing.<br />
 <br />
@@ -826,7 +826,7 @@ controls the threshold for loading content. It is the distance for loading from 
 controls whether to stop loading content when scrolling.<br />
 <br />
 <code><b>trackVisibility</b></code>:<br />
-sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.<br />
+sets the <code>--ms-content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--ms-content-visibility);</code>.<br />
 <br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.<br />
@@ -890,7 +890,7 @@ use this option if removal should be triggered by a click action.<br />
   <li>The cleanup runs on the initial render, when the number of elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
   <li>If you use <code>clickTrigger</code>:<br />
   - consider increasing <code>delay</code>, since the cleanup may run before removal.<br />
-  - the wrapper <code>.ms-object-box</code> also gets the <code>remove</code> class, which you can use e.g. for fade-out animations.</li>
+  - the wrapper <code>.ms-object-box</code> also gets the <code>ms-remove</code> class, which you can use e.g. for fade-out animations.</li>
 </ul>
 </em><br />
 <b>Example:</b>

@@ -231,8 +231,9 @@ describe("ScrollBar — edgeGap", () => {
       </MorphScroll>,
     );
     const bars = Array.from(container.querySelectorAll<HTMLElement>(".ms-bar"));
-    const vertical = bars.find((b) => b.dataset.direction === "y")!;
-    const horizontal = bars.find((b) => b.dataset.direction === "x")!;
+    const axis = (b: HTMLElement) => b.getAttribute("ms-direction");
+    const vertical = bars.find((b) => axis(b) === "y")!;
+    const horizontal = bars.find((b) => axis(b) === "x")!;
 
     expect(vertical.style.right).toBe("16px");
     expect(horizontal.style.bottom).toBe("4px");

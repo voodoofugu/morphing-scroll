@@ -85,7 +85,7 @@ const setBarVisibility = (scrollBar: HTMLElement, visible: boolean) =>
   scrollBar.style.setProperty(CONST.BAR_VISIBILITY_VAR, visible ? "1" : "0");
 
 const removeHover = (scrollBar: HTMLElement, tasks: Tasks) => {
-  const dir = scrollBar.getAttribute("data-direction"); // важно для cancelTask различать scrolls
+  const dir = scrollBar.getAttribute(CONST.BAR_AXIS_ATR); // важно для cancelTask различать scrolls
 
   setBarVisibility(scrollBar, false);
   scrollBar.classList.remove("ms-hover");
@@ -100,7 +100,7 @@ const removeHover = (scrollBar: HTMLElement, tasks: Tasks) => {
 };
 
 const addHover = (scrollBar: HTMLElement, tasks: Tasks) => {
-  const dir = scrollBar.getAttribute("data-direction");
+  const dir = scrollBar.getAttribute(CONST.BAR_AXIS_ATR);
 
   tasks.cancelTask(`remove${dir}`);
 

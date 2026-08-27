@@ -16,14 +16,47 @@ const items = (n: number) =>
 
 const classesIn = (root: HTMLElement) => {
   const found = new Set<string>();
-  root.querySelectorAll("*").forEach((el) =>
-    el.classList.forEach((name) => found.add(name)),
-  );
+  root
+    .querySelectorAll("*")
+    .forEach((el) => el.classList.forEach((name) => found.add(name)));
   return found;
 };
 
 const unprefixed = (root: HTMLElement) =>
   [...classesIn(root)].filter((name) => !name.startsWith("ms-")).sort();
+
+/*
+ * Классы — не единственное, что библиотека оставляет на странице: есть ещё
+ * атрибуты и css-переменные, и как раз переменная однажды уехала без
+ * префикса. Стандартные атрибуты разметки пропускаем, остальное — наше.
+ */
+const STANDARD_ATTRS = new Set(["class", "style", "tabindex", "role"]);
+// маркер корня носит полное имя библиотеки — столкнуться с ним не с чем
+const OWN_ATTRS = new Set(["morph-scroll"]);
+
+const attributesIn = (root: HTMLElement) => {
+  const found = new Set<string>();
+  root.querySelectorAll("*").forEach((el) => {
+    for (const attr of el.attributes) found.add(attr.name);
+  });
+  return [...found]
+    .filter(
+      (name) =>
+        !STANDARD_ATTRS.has(name) &&
+        !OWN_ATTRS.has(name) &&
+        !name.startsWith("ms-"),
+    )
+    .sort();
+};
+
+const customPropsIn = (root: HTMLElement) => {
+  const found = new Set<string>();
+  root.querySelectorAll<HTMLElement>("[style]").forEach((el) => {
+    const style = el.getAttribute("style") ?? "";
+    for (const [, name] of style.matchAll(/(--[\w-]+)\s*:/g)) found.add(name);
+  });
+  return [...found].filter((name) => !name.startsWith("--ms-")).sort();
+};
 
 describe("class names", () => {
   it("namespaces everything MorphScroll renders", () => {
@@ -48,6 +81,8 @@ describe("class names", () => {
     );
 
     expect(unprefixed(container)).toEqual([]);
+    expect(attributesIn(container)).toEqual([]);
+    expect(customPropsIn(container)).toEqual([]);
   });
 
   it("namespaces the edges and arrows on every side", () => {

@@ -7,7 +7,7 @@ const build = (pages: number) => {
   Object.defineProperty(scrollEl, "clientWidth", { value: 300, configurable: true });
 
   const bar = document.createElement("div");
-  bar.setAttribute("data-direction", "y");
+  bar.setAttribute("ms-direction", "y");
   for (let i = 0; i < pages; i++) {
     const el = document.createElement("div");
     el.className = "ms-slider-element";

@@ -177,18 +177,19 @@ function getWrapperAlignStyle(
   objectsWrapperWidthFull: number,
   objectsWrapperHeightFull: number,
 ): React.CSSProperties {
-  const [verticalAlign, horizontalAlign = "start"] =
+  const [alignX, alignY = "start"] =
     typeof wrapperAlign === "string"
       ? [wrapperAlign, wrapperAlign]
       : wrapperAlign;
 
   const alignStyles: React.CSSProperties = { display: "flex" };
 
+  // ряд по умолчанию: главная ось — горизонталь, поперечная — вертикаль
   if (sizeLocal[0] > objectsWrapperWidthFull)
-    alignStyles.justifyContent = getStyleAlign(verticalAlign);
+    alignStyles.justifyContent = getStyleAlign(alignX);
 
   if (sizeLocal[1] > objectsWrapperHeightFull) {
-    alignStyles.alignItems = getStyleAlign(horizontalAlign);
+    alignStyles.alignItems = getStyleAlign(alignY);
   }
 
   return alignStyles;

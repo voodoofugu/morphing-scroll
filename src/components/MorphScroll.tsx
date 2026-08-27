@@ -620,7 +620,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const childsGap =
         objectsPerDirection[1] < 1
           ? 1
-          : objectsPerDirection[0] * gapLocal[0] - gapLocal[0];
+          : objectsPerDirection[1] * gapLocal[0] - gapLocal[0];
 
       return objectsSizeLocal[1]
         ? direction === "x"
@@ -1009,7 +1009,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (checkClickedBar) {
           axisFromAtr = target
             .closest(mode === "scroll" ? ".ms-bar" : ".ms-slider")
-            ?.getAttribute("data-direction") as "x" | "y";
+            ?.getAttribute(CONST.BAR_AXIS_ATR) as "x" | "y";
         }
 
         clickedObject.current = clicked;
@@ -1715,7 +1715,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             transform: `translate(${left}px, ${elementTop}px)`,
           }),
           ...(typeof visibility === "number" && {
-            "--content-visibility": visibility,
+            [CONST.CONTENT_VISIBILITY_VAR]: visibility,
           }),
         };
 

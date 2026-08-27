@@ -40,11 +40,10 @@ progressTrigger={{
 }}
 ```
 
-`progressTrigger` also accepts `"bar"` as a shorthand name now.
-
-`progressTrigger` also accepts a name or a list of names now —
-`"wheel"`, `["wheel", "content"]` — which is the same as `{ wheel: true }`
-and `{ wheel: true, content: true }`. The object form is unchanged.
+`progressTrigger` also accepts a name or a list of names —
+`"wheel"`, `["wheel", "content"]`, `"bar"` — which is the same as
+`{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
+unchanged.
 
 #### Repeating the same scroll
 
@@ -75,17 +74,19 @@ away from the bottom, `scrollTo("end")` always runs.
 | `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom` |
 | arrows wrapped in `.ms-arrows` | arrows are direct children of the root again |
 | `[wrap-id]` | `[ms-wrap-id]` |
+| `[data-direction]` on a bar | `[ms-direction]` |
 | `--edge-visibility` | `--ms-edge-visibility` |
+| `--content-visibility` | `--ms-content-visibility` |
 
 New: a scroll that is running marks its root with `ms-scrolling`, and a
-scrollbar under `scrollBarOnHover` carries `--ms-bar-visibility`.
+scrollbar under `bar.showOnHover` carries `--ms-bar-visibility`.
 
 #### Styling you now own
 
 Three things no longer style themselves. Each needs a couple of lines to
 look like it did in 2.x.
 
-`scrollBarOnHover` reports state instead of writing `opacity`:
+`bar.showOnHover` reports state instead of writing `opacity`:
 
 ```css
 .ms-bar {
@@ -115,7 +116,7 @@ you pass decides its own size.
 
 The component root now sets `position: relative` — arrows resolved against
 whatever was positioned further up the page before, which is why they could
-end up in the wrong place. All arrows live in one `.ms-arrows` box; the icon
+end up in the wrong place. Each arrow is a direct child of the root; the icon
 sits in `.ms-arrow` inside each `.ms-arrow-box`, and an edge's content sits
 in `.ms-edge-inner`. Those inner elements carry the rotation and mirroring,
 so one icon and one gradient still serve all four sides — the slots

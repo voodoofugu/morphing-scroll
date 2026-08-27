@@ -205,7 +205,7 @@ const ScrollBar = ({
         <div
           className={`ms-bar ms-${dataDirection}`}
           ref={scrollBarRef}
-          data-direction={dataDirection} // доп логика
+          {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
           style={{
             ...commonStyles,
             width: "fit-content",
@@ -263,7 +263,7 @@ const ScrollBar = ({
           <div
             className={`ms-slider ms-${dataDirection}`}
             ref={scrollBarRef}
-            data-direction={dataDirection} // доп логика
+            {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
             style={{
               ...commonStyles,
               display: "flex",
