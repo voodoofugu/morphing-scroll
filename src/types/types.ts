@@ -242,7 +242,7 @@ export type IntersectionTracker = {
 };
 
 export type MorphScroll = {
-  // — General Settings —
+  // — GENERAL —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***className***:
@@ -270,7 +270,7 @@ export type MorphScroll = {
    * */
   children?: React.ReactNode;
 
-  // — Scroll Settings —
+  // — SCROLL —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***mode***:
@@ -334,55 +334,27 @@ export type MorphScroll = {
       };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onScrollValue***:
-   * callback for scroll value.
-   * @param left current scroll position on the x-axis.
-   * @param top current scroll position on the y-axis.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   onScrollValue={(left, top) => console.log("Scroll position:", left, top)}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  onScrollValue?: (left: number, top: number) => void;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***isScrolling***:
-   * callback for scroll status.
-   * @param motion boolean indicating if scrolling is in progress.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   isScrolling={(motion) => console.log("Is scrolling:", motion)}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  isScrolling?: (motion: boolean) => void;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onRenderedKeysChange***:
-   * callback for keys that are currently rendered inside `MorphScroll`.
-   * @param keys array of rendered child keys.
+   * ### ***dragScroll***:
+   * enables automatic scrolling when dragging elements near the edges of the container.
    * @note
-   * *Use explicit React keys to receive meaningful names.*
+   * *Supports attributes:*
+   * - *`draggable="true"`*
+   * - *`ms-custom-drag`*
+   *
+   * *Set attribute: `ms-under-drag`*
+   *
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   onRenderedKeysChange={(keys) => console.log("Rendered:", keys)}
+   *   dragScroll
    * >
-   *   <Card key="profile" />
-   *   <Card key="settings" />
+   *   {children}
    * </MorphScroll>
-   * ```
+   *  ```
    */
-  onRenderedKeysChange?: (keys: string[]) => void;
+  dragScroll?: boolean;
 
-  // — Visual Settings —
+  // — SIZE —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***size***:
@@ -493,6 +465,8 @@ export type MorphScroll = {
    * ```
    */
   wrapperMinSize?: number | "full" | (number | "full")[];
+
+  // — LAYOUT —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***wrapperAlign***:
@@ -538,21 +512,8 @@ export type MorphScroll = {
    * ```
    */
   elementsDirection?: "row" | "column";
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***edgeGradient***:
-   * gradient overlay at the edges of the scroll area.
-   * @default { size: 40 }
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   edgeGradient="rgba(0,0,0,0.4)"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  edgeGradient?: boolean | React.ReactNode;
+
+  // — PROGRESS —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***progressTrigger***:
@@ -658,8 +619,23 @@ export type MorphScroll = {
    * ```
    */
   thumbMinSize?: number;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***edgeGradient***:
+   * gradient overlay at the edges of the scroll area.
+   * @default { size: 40 }
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   edgeGradient="rgba(0,0,0,0.4)"
+   * >
+   *   {children}
+   * </MorphScroll>
+   * ```
+   */
+  edgeGradient?: boolean | React.ReactNode;
 
-  // — Optimization —
+  // — OPTIMIZATION —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***render***:
@@ -751,26 +727,54 @@ export type MorphScroll = {
    */
   fallback?: React.ReactNode;
 
-  // — Additional —
+  // — EVENTS —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***dragScroll***:
-   * enables automatic scrolling when dragging elements near the edges of the container.
-   * @note
-   * *Supports attributes:*
-   * - *`draggable="true"`*
-   * - *`ms-custom-drag`*
-   *
-   * *Set attribute: `ms-under-drag`*
-   *
+   * ### ***onScrollValue***:
+   * callback for scroll value.
+   * @param left current scroll position on the x-axis.
+   * @param top current scroll position on the y-axis.
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   dragScroll
+   *   onScrollValue={(left, top) => console.log("Scroll position:", left, top)}
    * >
    *   {children}
    * </MorphScroll>
-   *  ```
+   * ```
    */
-  dragScroll?: boolean;
+  onScrollValue?: (left: number, top: number) => void;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***isScrolling***:
+   * callback for scroll status.
+   * @param motion boolean indicating if scrolling is in progress.
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   isScrolling={(motion) => console.log("Is scrolling:", motion)}
+   * >
+   *   {children}
+   * </MorphScroll>
+   * ```
+   */
+  isScrolling?: (motion: boolean) => void;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***onRenderedKeysChange***:
+   * callback for keys that are currently rendered inside `MorphScroll`.
+   * @param keys array of rendered child keys.
+   * @note
+   * *Use explicit React keys to receive meaningful names.*
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   onRenderedKeysChange={(keys) => console.log("Rendered:", keys)}
+   * >
+   *   <Card key="profile" />
+   *   <Card key="settings" />
+   * </MorphScroll>
+   * ```
+   */
+  onRenderedKeysChange?: (keys: string[]) => void;
 };

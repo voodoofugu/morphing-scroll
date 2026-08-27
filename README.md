@@ -254,69 +254,35 @@ Unlike the declarative <b>"end"</b>, which backs off if the user has scrolled aw
 
 <h2></h2>
 
-<details><summary><b><code>onScrollValue</code></b></summary><br /><ul><div>
+<details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+dragScroll: true;
+```
+
 <b>Description:</b><em><br />
-accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
+enables automatic scrolling when dragging elements near the edges of the container.<br />
+Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
 <br />
+✦ Note:<br />
+while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props}
-  onScrollValue={
-    (left, top) => console.log("Scroll position:", left, top),
-  }
->
+<MorphScroll {...props} dragScroll>
   {children}
 </MorphScroll>
 ```
 
-</div></ul></details>
-  
-<h2></h2>
-
-<details><summary><b><code>isScrolling</code></b></summary><br /><ul><div>
-<b>Description:</b><em><br />
-accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  isScrolling={(motion) => {
-    console.log(motion ? "Scrolling..." : "Scroll stopped.");
-  }}
->
-  {children}
-</MorphScroll>
-```
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-dragScroll.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
-<b>Description:</b><em><br />
-accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  onRenderedKeysChange={(keys) => {
-    console.log("Rendered keys:", keys);
-  }}
->
-  {children}
-</MorphScroll>
-```
-
-</div></ul></details>
-
-<h2></h2>
-
-###### **— VISUAL —**
+###### **— SIZE —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -501,6 +467,8 @@ defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which 
 
 <h2></h2>
 
+###### **— LAYOUT —**
+
 <details><summary><b><code>wrapperAlign</code></b></summary><br /><ul><div> 
 <b>Usage:</b><br />
 
@@ -595,50 +563,7 @@ changes the order of the provided elements based on the provided value.</em><br 
 
 <h2></h2>
 
-<details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-edgeGradient: true; // or a node: <MyFade />
-```
-
-<b>Description:</b><em><br />
-marks the edges where the content is cut off. The library places the slots and reports their state; what they look like is yours.<br />
-<br />
-Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
-<br />
-Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. That wrapper is mirrored — <code>scaleY(-1)</code> at the bottom, <code>scaleX(-1)</code> on the left — so a single gradient authored once serves both ends of an axis instead of four. The slot itself is never transformed, so your CSS can size and place it predictably.<br />
-<br />
-✦ Note:<br />
-an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
-</em>
-
-```css
-.ms-edge {
-  opacity: var(--ms-edge-visibility);
-  transition: opacity 0.2s ease-in-out;
-}
-.ms-edge.ms-top,
-.ms-edge.ms-bottom {
-  height: 40px;
-  background: linear-gradient(#fff, transparent);
-}
-```
-
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} edgeGradient>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edgeGradient.png)
-
-</div></ul></details>
-
-<h2></h2>
+###### **— PROGRESS —**
 
 <details><summary><b><code>progressTrigger</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -878,7 +803,52 @@ this parameter is only used when <code>mode="scroll"</code> is set.<br />
 
 <h2></h2>
 
-###### **— OPTIMIZATIONS —**
+<details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+edgeGradient: true; // or a node: <MyFade />
+```
+
+<b>Description:</b><em><br />
+marks the edges where the content is cut off. The library places the slots and reports their state; what they look like is yours.<br />
+<br />
+Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
+<br />
+Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. That wrapper is mirrored — <code>scaleY(-1)</code> at the bottom, <code>scaleX(-1)</code> on the left — so a single gradient authored once serves both ends of an axis instead of four. The slot itself is never transformed, so your CSS can size and place it predictably.<br />
+<br />
+✦ Note:<br />
+an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
+</em>
+
+```css
+.ms-edge {
+  opacity: var(--ms-edge-visibility);
+  transition: opacity 0.2s ease-in-out;
+}
+.ms-edge.ms-top,
+.ms-edge.ms-bottom {
+  height: 40px;
+  background: linear-gradient(#fff, transparent);
+}
+```
+
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} edgeGradient>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edgeGradient.png)
+
+</div></ul></details>
+
+<h2></h2>
+
+###### **— OPTIMIZATION —**
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1052,31 +1022,65 @@ It will be used when:
 
 <h2></h2>
 
-###### **— ADDITIONAL —**
+###### **— EVENTS —**
 
-<details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-dragScroll: true;
-```
-
+<details><summary><b><code>onScrollValue</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-enables automatic scrolling when dragging elements near the edges of the container.<br />
-Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
+accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
 <br />
-✦ Note:<br />
-while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
-</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} dragScroll>
+<MorphScroll {...props}
+  onScrollValue={
+    (left, top) => console.log("Scroll position:", left, top),
+  }
+>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-dragScroll.png)
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>isScrolling</code></b></summary><br /><ul><div>
+<b>Description:</b><em><br />
+accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  isScrolling={(motion) => {
+    console.log(motion ? "Scrolling..." : "Scroll stopped.");
+  }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
+<b>Description:</b><em><br />
+accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  onRenderedKeysChange={(keys) => {
+    console.log("Rendered keys:", keys);
+  }}
+>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
   
