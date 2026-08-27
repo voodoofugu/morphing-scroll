@@ -31,6 +31,24 @@ test.describe("MorphScroll physics (real browser)", () => {
       .toBeGreaterThan(50);
   });
 
+  test("the wheel over the bar leaves the page where it was", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=barWheel");
+    const bar = page.locator(".ms-bar");
+    await expect(bar).toBeVisible();
+
+    const box = await bar.boundingBox();
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.mouse.wheel(0, 400);
+
+    await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(50);
+
+    // страницу браузер катит своим ходом и не сразу — ждём, прежде чем верить
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
   test("clicking the bottom arrow scrolls down", async ({ page }) => {
     await page.goto("/?scenario=arrows");
     const bottomArrow = page.locator(".ms-arrow-box.ms-bottom");

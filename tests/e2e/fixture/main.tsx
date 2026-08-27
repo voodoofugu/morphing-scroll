@@ -303,6 +303,24 @@ scenarios.sliderDrag = (
   </MorphScroll>
 );
 
+/*
+ * Страница нарочно длиннее окна: колесо над баром двигало её вместе с
+ * содержимым скролла — браузер отдавал прокрутку ближайшему предку.
+ */
+scenarios.barWheel = (
+  <>
+    <MorphScroll
+      size={300}
+      objectsSize={OBJ}
+      progressTrigger={{ wheel: true, bar: thumb }}
+      onScrollPosition={onScrollPosition}
+    >
+      {makeItems()}
+    </MorphScroll>
+    <div style={{ height: "150vh" }} />
+  </>
+);
+
 const params = new URLSearchParams(window.location.search);
 const scenario = params.get("scenario") ?? "wheel";
 
