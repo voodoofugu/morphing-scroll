@@ -758,7 +758,18 @@ function App() {
 
   const edgeGradient = React.useMemo<MorphScrollProps["edgeGradient"]>(() => {
     if (!settings.edgeGradient) return false;
-    return { color: settings.edgeColor, size: settings.edgeSize };
+
+    // размер и цвет теперь дело CSS, поэтому здесь просто узел с ними
+    return (
+      <div
+        className="playground-edge"
+        style={{
+          background: `linear-gradient(${settings.edgeColor}, transparent)`,
+          height: `${settings.edgeSize}px`,
+          width: "100%",
+        }}
+      />
+    );
   }, [settings.edgeColor, settings.edgeGradient, settings.edgeSize]);
 
   const progressElement = React.useMemo<

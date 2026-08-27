@@ -33,7 +33,7 @@ export const everyProp = (
     wrapperAlign={["center", "end"]}
     elementsAlign="center"
     elementsDirection="column"
-    edgeGradient={{ color: "#000", size: 20 }}
+    edgeGradient={<span className="fade" />}
     progressTrigger={{
       wheel: { changeDirection: true },
       content: true,

@@ -547,7 +547,7 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  edgeGradient?: boolean | string | { color?: string; size?: number };
+  edgeGradient?: boolean | React.ReactNode;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***progressTrigger***:

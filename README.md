@@ -597,48 +597,41 @@ changes the order of the provided elements based on the provided value.</em><br 
 <details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
-<ul>
-  <li><b>Simple</b>:<br />
-  
 ```tsx
-edgeGradient: true // or "#fff"
+edgeGradient: true; // or a node: <MyFade />
 ```
 
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-edgeGradient: {
-  color: "#fff",
-  size: 60, // default 40px
+<b>Description:</b><em><br />
+marks the edges where the content is cut off. The library places the slots and reports their state; what they look like is yours.<br />
+<br />
+Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.top</code>, <code>.right</code>, <code>.bottom</code>, <code>.left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
+<br />
+Passing a node instead of <b>true</b> renders it inside every edge slot.<br />
+<br />
+✦ Note:<br />
+an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
+</em>
+
+```css
+.ms-edge {
+  opacity: var(--ms-edge-visibility);
+  transition: opacity 0.2s ease-in-out;
+}
+.ms-edge.top,
+.ms-edge.bottom {
+  height: 40px;
+  background: linear-gradient(#fff, transparent);
+}
+.ms-edge.bottom {
+  transform: scaleY(-1);
 }
 ```
 
-  </li>
-</ul>
-
-<b>Description:</b><em><br />
-parameter creates several edge elements responsible for darkening the edges of the scroll when it overflows.<br />
-<br />
-<code><b>color</b></code>:<br />
-property accepts any valid color format.
-If you provide it, the library will generate a gradient transitioning from the custom color to transparent.
-If you provide just <b>true</b>, the edge elements will have no color, allowing for custom styling via CSS class <code>.ms-edge</code>.<br />
-<br />
-<code><b>size</b></code>:<br />
-property changes the height of the edges for the horizontal and the width of the edges for the vertical.<br />
-<br />
-If the edge element is inactive, it gets the <code>"ms-disabled"</code> class.<br />
-Also, each edge element gets the <code>--edge-visibility</code> variable in the styles with value 0 or 1.
-</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 60 }}
->
+<MorphScroll {...props} edgeGradient>
   {children}
 </MorphScroll>
 ```

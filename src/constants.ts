@@ -1,6 +1,7 @@
 const CONST = {
   WRAP_ATR: "wrap-id", // Attribute for identifying scroll wrappers
   BAR_VISIBILITY_VAR: "--ms-bar-visibility", // 0/1 while scrollBarOnHover is on
+  EDGE_VISIBILITY_VAR: "--ms-edge-visibility", // 0/1 when content is cut off at an edge
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
   SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation

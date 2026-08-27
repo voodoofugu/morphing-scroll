@@ -252,14 +252,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // ♦ variables
     const defaultSize = 40;
-    const edgeGradientDefault = { color: null, size: defaultSize };
-    const edgeGradientLocal = React.useMemo(() => {
-      return typeof edgeGradient === "object"
-        ? { ...edgeGradientDefault, ...edgeGradient }
-        : typeof edgeGradient === "string"
-          ? { color: edgeGradient, size: defaultSize }
-          : edgeGradientDefault;
-    }, [edgeGradient]);
+
+    // `true` — просто разметить края, узел — отрисовать его внутри каждого
+    const edgeElement = React.useMemo(
+      () => (React.isValidElement(edgeGradient) ? edgeGradient : undefined),
+      [edgeGradient],
+    );
 
     const arrowsLocal = React.useMemo(() => {
       const arrows = progressTrigger.arrows;
@@ -1884,12 +1882,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return getEdgeOrArrowData.map(({ positionType, visibility }) => (
         <Edge
           key={`edge-${positionType}`}
-          edgeGradient={edgeGradientLocal}
+          element={edgeElement}
           visibility={visibility}
           edgeType={positionType as "left" | "right" | "top" | "bottom"}
         />
       ));
-    }, [edgeGradient, getEdgeOrArrowData, edgeGradientLocal, sizeST]);
+    }, [edgeGradient, getEdgeOrArrowData, edgeElement, sizeST]);
 
     const arrowsJSX = React.useMemo(() => {
       if (!progressTrigger.arrows) return null;

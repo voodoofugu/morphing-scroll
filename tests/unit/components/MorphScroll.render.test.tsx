@@ -195,6 +195,39 @@ describe("MorphScroll — edgeGradient", () => {
     );
     expect(container.querySelectorAll(".ms-edge")).toHaveLength(4);
   });
+
+  it("reports each edge's state, and styles nothing itself", () => {
+    const { container } = render(
+      <MorphScroll size={SIZE} objectsSize={OBJ} edgeGradient>
+        {items(10)}
+      </MorphScroll>,
+    );
+    const top = container.querySelector<HTMLElement>(".ms-edge.top")!;
+    const bottom = container.querySelector<HTMLElement>(".ms-edge.bottom")!;
+
+    // sitting at the top: nothing is cut off above, plenty below
+    expect(top.style.getPropertyValue("--ms-edge-visibility")).toBe("0");
+    expect(bottom.style.getPropertyValue("--ms-edge-visibility")).toBe("1");
+    expect(top).toHaveClass("ms-disabled");
+    expect(bottom).not.toHaveClass("ms-disabled");
+
+    // the look belongs to the consumer
+    expect(bottom.style.background).toBe("");
+    expect(bottom.style.opacity).toBe("");
+  });
+
+  it("renders a custom node inside every edge", () => {
+    const { container } = render(
+      <MorphScroll
+        size={SIZE}
+        objectsSize={OBJ}
+        edgeGradient={<span className="fade" />}
+      >
+        {items(10)}
+      </MorphScroll>,
+    );
+    expect(container.querySelectorAll(".ms-edge .fade")).toHaveLength(2);
+  });
 });
 
 describe("MorphScroll — arrows", () => {
