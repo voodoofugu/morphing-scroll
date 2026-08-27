@@ -1545,7 +1545,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? "x"
           : direction;
 
-      const directionForWheel =
+      const preferredDirection =
         (direction === "hybrid" &&
           objectsWrapperHeight + mLocalY <= sizeLocal[1]) ||
         keyDownX.current
@@ -1554,6 +1554,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             ? "x"
             : "y"
           : directionWithPriority;
+
+      /*
+       * Приоритет остаётся приоритетом, но только пока по выбранной оси есть
+       * что прокручивать. Иначе `changeDirection` уводил колесо на ось, где
+       * контент никуда не выходит — например при hybrid и таком `crossCount`,
+       * при котором ряд помещается целиком, — и скролл замирал совсем.
+       */
+      const roomOn = (axis: "x" | "y") =>
+        maxScrollSize[axis === "x" ? 0 : 1] > 0;
+
+      const other = preferredDirection === "x" ? "y" : "x";
+      const directionForWheel =
+        preferredDirection !== "hybrid" &&
+        !roomOn(preferredDirection) &&
+        roomOn(other)
+          ? other
+          : preferredDirection;
 
       const wheelHandler = (e: WheelEvent) => {
         /*
