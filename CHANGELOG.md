@@ -292,9 +292,20 @@ themselves are no longer transformed and can be positioned from CSS.
   nothing.
 - The horizontal scrollbar named no vertical side and relied on its static
   position.
+- A running scroll animation re-aims when its target moves. A chat that
+  received a second batch of messages while travelling to the end of the
+  first one stopped short of the bottom: the animation lock dropped the new
+  request instead of retargeting.
+- Both axes animate at once in `direction="hybrid"`; the frame queue keyed
+  them together, so only the last of the two requests arrived.
+- The wheel over a scrollbar no longer moves the page underneath as well.
 
 ### Changed
 
+- `progressTrigger.content` drags from buttons and links with a mouse too.
+  It stays a click below 2px of movement, and the native drag of links and
+  images is suppressed while the gesture runs. Text fields and anything
+  carrying its own drag are still left alone.
 - The published types are generated from source, so they cannot drift from
   the implementation.
 - `children` is optional on all three components.
