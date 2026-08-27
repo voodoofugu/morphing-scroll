@@ -22,7 +22,7 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **209 unit + 19 e2e green**, 74% statement coverage of `src`.
+Current status: **264 unit + 19 e2e green**, 80% statement coverage of `src`.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyElements` (clear/fallback), `suspending`,
 `edgeGradient`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
@@ -82,6 +82,24 @@ Gestures now track the `pointerId` that started them, so two fingers on two
 lists no longer fight (`MorphScroll.isolation.test.tsx`), and `render="lazy"`
 paints the visible items on the first pass instead of the next tick.
 
+### Reported bugs (v3, stage 4)
+
+Six problems came in from real use; each has a test that fails on the old
+code, except the last, which was already fixed and is now held in place:
+
+- content drag did nothing next to `progressElement: true`
+  (`MorphScroll.contentDrag`);
+- `objectsSize="firstChild"` with `render` rendered nothing at all
+  (`MorphScroll.render`);
+- a scroll inside a scroll moved both (`MorphScroll.nested`);
+- the rubber band never engaged when the DOM stopped short of the computed
+  maximum (`MorphScroll.overscroll`) — `stubLayout` had to start clamping
+  scroll offsets the way a browser does before the jsdom tier could see it;
+- unprefixed classes: the side names on edges and arrows
+  (`classNames.test.tsx` now walks the whole tree and fails on any class
+  outside `ms-`);
+- a menu built out of anchors would not scroll with a finger.
+
 ### Still uncovered (candidates for the next pass)
 - `handleMouseOrTouch` full flow beyond thumb/content drag (rubber-band, slider
   drag with snapping on release) — needs real `getBoundingClientRect`, so e2e.
@@ -91,7 +109,7 @@ paints the visible items on the first pass instead of the next tick.
 - `autoScrollRegistry` (25%) — it needs `elementFromPoint`, real drag events
   and layout, none of which jsdom has. It belongs in tier 3; two e2e tests
   cover the attribute and the edge auto-scroll, the rest is unexercised.
-- `handleMouseOrTouch` rubber-band and slider-thumb drag paths (52%).
+- `handleMouseOrTouch` slider-thumb drag and inertia paths (64%).
 
 ## Running
 
