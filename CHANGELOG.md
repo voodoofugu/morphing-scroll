@@ -66,9 +66,8 @@ wrapper={{ margin: 10, minSize: "full", align: "center" }}
 ```
 
 That is 24 top-level props down to 22. `objectsSize`, `crossCount` and
-`gap` stay where they are: they are the two most-typed props in the
-library, and burying them one level down costs more than the symmetry is
-worth.
+`gap` stay where they are: they are the most-typed props in the library,
+and burying them one level down costs more than the symmetry is worth.
 
 #### One way to fill an empty object
 
@@ -171,7 +170,7 @@ look like it did in 2.x.
 }
 ```
 
-`edgeGradient` marks the edges instead of drawing a gradient:
+`edge` marks the edges instead of drawing a gradient:
 
 ```css
 .ms-edge {
@@ -206,7 +205,16 @@ themselves are no longer transformed and can be positioned from CSS.
   on, negative pushes it past the edge.
 - Public types: `MorphScrollProps`, `ResizeTrackerProps`,
   `IntersectionTrackerProps`, `MorphScrollHandle`, `ScrollTarget`,
-  `ProgressTriggerName`, `ProgressTriggerConfig`.
+  `ProgressTriggerName`, `ProgressTriggerConfig`, `WheelConfig`,
+  `BarConfig`, `ArrowsConfig`, `WrapperConfig`, `EmptyObjectsConfig`,
+  `Pair`.
+- `Pair<T>` is the one way an axis pair is written. `Vec2` is
+  `Pair<number>`, and the loose `boolean[]` / `(number | "full")[]` forms
+  are gone — an axis pair no longer accepts an array of any length, so
+  `wrapperMinSize={[1, 2, 3, 4]}` stops compiling.
+- `ProgressTriggerConfig` is written out instead of being subtracted from
+  the prop with `Exclude<>`, so its shape is readable and its halves have
+  names.
 - `progressTrigger` shorthand.
 - `ms-scrolling` on the root while a scroll is running.
 
