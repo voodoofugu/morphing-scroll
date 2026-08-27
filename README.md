@@ -50,6 +50,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
 > - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements.
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
+> - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
 > - Due to frequent DOM updates for customization, performance may decrease when DevTools are open, as the browser needs extra resources to track changes.
 > - ! This library is currently under development. APIs and behavior may change in future releases.
 

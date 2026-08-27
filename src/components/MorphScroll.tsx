@@ -469,7 +469,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     /* размер ячейки ещё не измерен, а взять его больше неоткуда */
     const needsFirstChildMeasure =
-      (objectsSizing[0] === "firstChild" || objectsSizing[1] === "firstChild") &&
+      (objectsSizing[0] === "firstChild" ||
+        objectsSizing[1] === "firstChild") &&
       !receivedChildSizeRef.current.width &&
       !receivedChildSizeRef.current.height;
 
@@ -1179,6 +1180,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         // а прокрутка началась один раз
         if (!isScrollingRef.current) {
           isScrollingRef.current = true;
+          // видно снаружи: по нему вложенные скроллы решают, брать ли колесо
+          mainEl.setAttribute(CONST.SCROLLING_ATR, "");
           isScrolling?.(true);
         }
 
@@ -1187,6 +1190,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           () => {
             scrollDirTrackerRef.current.reset(); // сброс
             isScrollingRef.current = false;
+            mainEl.removeAttribute(CONST.SCROLLING_ATR);
             isScrolling?.(false);
             renderLocal.mode && updateLoadedElementsKeysLocal();
 
@@ -1403,6 +1407,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           : directionWithPriority;
 
       const wheelHandler = (e: WheelEvent) => {
+        /*
+         * Событие всплывает, поэтому во вложенных скроллах его ловил и
+         * внутренний, и внешний — контент уезжал в обоих сразу. Колесо должно
+         * доставаться самому внутреннему.
+         *
+         * Исключение — внешний скролл прямо сейчас едет. Перехватывать у него
+         * колесо посреди движения значит ловить пользователя списком, мимо
+         * которого он пролетал; в этом случае пропускаем событие дальше
+         * нетронутым.
+         */
+        if (
+          customScrollRef.current?.parentElement?.closest(
+            `[${CONST.SCROLLING_ATR}]`,
+          )
+        )
+          return;
+
+        e.stopPropagation();
         e.preventDefault();
         handleWheel(
           e,

@@ -1,9 +1,5 @@
 import React from "react";
-import type {
-  MorphScroll,
-  ProgressTriggerConfig,
-  Vec2,
-} from "../types/types";
+import type { MorphScroll, ProgressTriggerConfig, Vec2 } from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
@@ -150,7 +146,9 @@ const ScrollBar = ({
     const scrollElem = scrollEl.current;
     if (!el || !scrollElem) return;
 
-    const onWheel = (e: WheelEvent) =>
+    const onWheel = (e: WheelEvent) => {
+      e.stopPropagation(); // бар лежит внутри контента — колесо наружу не отдаём
+
       handleWheel(
         e,
         scrollElem,
@@ -158,6 +156,7 @@ const ScrollBar = ({
         scrollStateRef.current!,
         dataDirection,
       );
+    };
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
