@@ -51,6 +51,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements.
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
+> - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressElement={<Thumb />}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
 > - Due to frequent DOM updates for customization, performance may decrease when DevTools are open, as the browser needs extra resources to track changes.
 > - ! This library is currently under development. APIs and behavior may change in future releases.
 
@@ -984,12 +985,21 @@ suspending: true;
 false<br />
 <br />
 <b>Description:</b><em><br />
-adds React Suspense to the MorphScroll component for async rendering.</em><br />
+wraps every cell in a React <code>Suspense</code> boundary, so a child that suspends — a <code>lazy()</code> component, a data fetch — shows <code>fallback</code> instead of taking the whole tree down with it.<br />
 <br />
+✦ Not to be confused with <code>render</code>:
+
+<ul>
+  <li><code>render</code> decides <b>whether a child is mounted at all</b>, based on whether it is in view. That is MorphScroll's own decision.</li><br />
+  <li><code>suspending</code> decides <b>what happens while a mounted child is not ready</b>. That is React's decision, and MorphScroll only provides the boundary.</li>
+</ul>
+
+They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, which both use as the placeholder.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} suspending>
+<MorphScroll {...props} suspending fallback={<Skeleton />}>
   {children}
 </MorphScroll>
 ```
