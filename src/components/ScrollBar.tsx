@@ -161,7 +161,13 @@ const ScrollBar = ({
     if (!el || !scrollElem) return;
 
     const onWheel = (e: WheelEvent) => {
-      e.stopPropagation(); // бар лежит внутри контента — колесо наружу не отдаём
+      /*
+       * stopPropagation молчит только для чужих слушателей, а прокрутку по
+       * умолчанию браузер всё равно отдаёт ближайшему прокручиваемому предку:
+       * колесо над баром двигало и содержимое скролла, и страницу под ним.
+       */
+      e.stopPropagation();
+      e.preventDefault();
 
       handleWheel(
         e,

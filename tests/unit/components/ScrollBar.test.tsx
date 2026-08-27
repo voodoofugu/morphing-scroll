@@ -39,6 +39,25 @@ describe("ScrollBar — wheel over the bar", () => {
     expect(el.scrollTop).toBe(200);
   });
 
+  /*
+   * stopPropagation молчит только для слушателей — браузер всё равно катит
+   * ближайшего прокручиваемого предка. Поэтому колесо над баром двигало и
+   * содержимое скролла, и страницу под ним.
+   */
+  it("keeps the page out of it", () => {
+    const { container } = render(withBar(20));
+    const bar = container.querySelector<HTMLElement>(".ms-bar")!;
+
+    const event = new WheelEvent("wheel", {
+      deltaY: 200,
+      bubbles: true,
+      cancelable: true,
+    });
+    bar.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it("follows the new scroll range after the child count changes", () => {
     // 5 items -> max scroll 200; 20 items -> max scroll 1700
     const { container, rerender } = render(withBar(5));
