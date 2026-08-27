@@ -49,15 +49,15 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["direction", {}, { direction: "x" }],
   ["size", {}, { size: [200, 150] }],
   ["objectsSize", {}, { objectsSize: 60 }],
-  ["objectsSize: size", {}, { objectsSize: "size" }],
+  ["objectsSize: full", {}, { objectsSize: "full" }],
   ["crossCount", {}, { crossCount: 2 }],
   ["gap", {}, { gap: 20 }],
   ["gap pair", { gap: 20 }, { gap: [20, 5] }],
   ["wrapperMargin", {}, { wrapperMargin: 15 }],
   ["wrapperMinSize", {}, { wrapperMinSize: 900 }],
   ["wrapperAlign", { size: [900, 900] }, { size: [900, 900], wrapperAlign: "center" }],
-  ["elementsAlign", {}, { elementsAlign: "center" }],
-  ["elementsDirection", { crossCount: 2 }, { crossCount: 2, elementsDirection: "column" }],
+  ["objectsAlign", {}, { objectsAlign: "center" }],
+  ["objectsDirection", { crossCount: 2 }, { crossCount: 2, objectsDirection: "column" }],
   ["edgeGradient", {}, { edgeGradient: true }],
   ["edgeGradient node", { edgeGradient: true }, { edgeGradient: <u /> }],
   ["render", {}, { render: "virtual" }],
@@ -136,7 +136,7 @@ describe("MorphScroll — props with no visible markup", () => {
     const { container } = render(
       <MorphScroll {...BASE} crossCount={1} scrollPosition={200} />,
     );
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
     Object.defineProperty(el, "clientHeight", { value: 300, configurable: true });
     Object.defineProperty(el, "scrollHeight", { value: 1200, configurable: true });
 
@@ -166,7 +166,7 @@ describe("MorphScroll — props with no visible markup", () => {
         onRenderedKeysChange={onRenderedKeysChange}
       />,
     );
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
     act(() => {
       fireEvent.scroll(el, { target: { scrollTop: 120 } });
     });
@@ -176,14 +176,14 @@ describe("MorphScroll — props with no visible markup", () => {
     expect(onRenderedKeysChange).toHaveBeenCalled();
   });
 
-  it("emptyElements removes an empty cell", async () => {
+  it("emptyObjects removes an empty cell", async () => {
     const Empty = () => null;
     const { container } = render(
       <MorphScroll
         size={[300, 300]}
         objectsSize={100}
         render="virtual"
-        emptyElements="clear"
+        emptyObjects="clear"
       >
         <div key="a">a</div>
         <Empty key="b" />

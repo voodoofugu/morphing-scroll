@@ -22,7 +22,7 @@ const nested = (
 const mount = () => {
   const utils = render(nested);
   const [outer, inner] = Array.from(
-    utils.container.querySelectorAll<HTMLElement>(".ms-element"),
+    utils.container.querySelectorAll<HTMLElement>(".ms-viewport"),
   );
   const roots = Array.from(
     utils.container.querySelectorAll<HTMLElement>("[morph-scroll]"),

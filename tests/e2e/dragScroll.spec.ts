@@ -5,7 +5,7 @@ test.describe("MorphScroll dragScroll (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=dragScroll");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     await expect(el).toBeVisible();
     const box = (await el.boundingBox())!;
 
@@ -34,7 +34,7 @@ test.describe("MorphScroll dragScroll (real browser)", () => {
   }) => {
     await page.goto("/?scenario=dragScroll");
     const root = page.locator("[morph-scroll]");
-    const box = (await page.locator(".ms-element").boundingBox())!;
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
 
     const handle = page.getByTestId("item-0");
     const hb = (await handle.boundingBox())!;

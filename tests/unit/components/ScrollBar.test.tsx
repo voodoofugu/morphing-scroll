@@ -31,7 +31,7 @@ describe("ScrollBar — wheel over the bar", () => {
   it("scrolls the content when the wheel is used over the bar", () => {
     const { container } = render(withBar(20));
     const bar = container.querySelector<HTMLElement>(".ms-bar")!;
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
 
     fireEvent.wheel(bar, { deltaY: 200 });
     settle();
@@ -43,7 +43,7 @@ describe("ScrollBar — wheel over the bar", () => {
     // 5 items -> max scroll 200; 20 items -> max scroll 1700
     const { container, rerender } = render(withBar(5));
     const bar = container.querySelector<HTMLElement>(".ms-bar")!;
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
 
     rerender(withBar(20));
 
@@ -93,7 +93,7 @@ describe("ScrollBar — showOnHover", () => {
   it("moves the variable and the state classes across a scroll", () => {
     const { container } = render(onHover);
     const bar = container.querySelector<HTMLElement>(".ms-bar")!;
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
 
     act(() => {
       fireEvent.scroll(el, { target: { scrollTop: 100 } });
@@ -120,7 +120,7 @@ describe("ScrollBar — showOnHover", () => {
 
   it("never uses the unprefixed hover/leave classes", () => {
     const { container } = render(onHover);
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
 
     act(() => {
       fireEvent.scroll(el, { target: { scrollTop: 100 } });
@@ -163,20 +163,20 @@ describe("ScrollBar — a changed progressElement", () => {
 
   it("reaches the slider elements", () => {
     const { container, rerender } = render(withDots("A"));
-    expect(container.querySelector(".ms-slider-element")).toHaveTextContent("A");
+    expect(container.querySelector(".ms-slider-item")).toHaveTextContent("A");
 
     rerender(withDots("B"));
-    expect(container.querySelector(".ms-slider-element")).toHaveTextContent("B");
+    expect(container.querySelector(".ms-slider-item")).toHaveTextContent("B");
   });
 
   it("does not rebuild the slider when the element is merely re-created", () => {
     const { container, rerender } = render(withDots("A"));
-    const first = container.querySelector(".ms-slider-element");
+    const first = container.querySelector(".ms-slider-item");
 
     rerender(withDots("A"));
 
     // same content, so the memoized list is kept as it was
-    expect(container.querySelector(".ms-slider-element")).toBe(first);
+    expect(container.querySelector(".ms-slider-item")).toBe(first);
   });
 });
 

@@ -40,7 +40,7 @@ const mount = (props: Record<string, unknown>, children = plain()) => {
       {children}
     </MorphScroll>,
   );
-  const el = utils.container.querySelector<HTMLElement>(".ms-element")!;
+  const el = utils.container.querySelector<HTMLElement>(".ms-viewport")!;
   stubLayout(el, {
     clientWidth: 100,
     clientHeight: VIEW,

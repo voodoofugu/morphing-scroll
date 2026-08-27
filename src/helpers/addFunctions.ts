@@ -101,7 +101,7 @@ const sliderCheck = (
     // Обновляем кэш только если изменилось количество элементов
     if (!cache || cache.elements.length !== objLengthPerSize[axisIndex]) {
       const elements = Array.from(
-        msSlider.querySelectorAll(".ms-slider-element"),
+        msSlider.querySelectorAll(".ms-slider-item"),
       );
 
       cache = { elements, lastIndex: -1 };

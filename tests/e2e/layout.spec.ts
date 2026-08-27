@@ -22,7 +22,7 @@ test.describe("MorphScroll size: auto (real browser)", () => {
 
   test("scrolls within the measured range", async ({ page }) => {
     await open(page, "sizeAuto");
-    const element = page.locator(".ms-element");
+    const element = page.locator(".ms-viewport");
     await element.hover();
 
     await page.mouse.wheel(0, 400);
@@ -44,7 +44,7 @@ test.describe("MorphScroll type: slider drag (real browser)", () => {
     page,
   }) => {
     await open(page, "sliderDrag");
-    const element = page.locator(".ms-element");
+    const element = page.locator(".ms-viewport");
     const box = (await element.boundingBox())!;
     const cx = box.x + box.width / 2;
 
@@ -61,7 +61,7 @@ test.describe("MorphScroll type: slider drag (real browser)", () => {
     page,
   }) => {
     await open(page, "sliderDrag");
-    const element = page.locator(".ms-element");
+    const element = page.locator(".ms-viewport");
     const box = (await element.boundingBox())!;
     const cx = box.x + box.width / 2;
 

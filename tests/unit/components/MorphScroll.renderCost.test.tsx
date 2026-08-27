@@ -40,7 +40,7 @@ const mount = () => {
   );
   return {
     ...utils,
-    el: utils.container.querySelector<HTMLElement>(".ms-element")!,
+    el: utils.container.querySelector<HTMLElement>(".ms-viewport")!,
     commits: () => commits,
     reset: () => {
       commits = 0;

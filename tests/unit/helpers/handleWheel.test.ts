@@ -14,7 +14,7 @@ const makeState = (): ScrollStateRefT => ({
 
 const makeScrollEl = () => {
   const el = document.createElement("div");
-  el.tabIndex = 0; // .ms-element carries tabIndex for the key handlers
+  el.tabIndex = 0; // .ms-viewport carries tabIndex for the key handlers
   document.body.appendChild(el);
   return el;
 };

@@ -23,7 +23,7 @@ const items = (n: number, prefix: string) =>
   ));
 
 const elements = (container: HTMLElement) =>
-  Array.from(container.querySelectorAll<HTMLElement>(".ms-element"));
+  Array.from(container.querySelectorAll<HTMLElement>(".ms-viewport"));
 
 // the library reports bar visibility through a CSS variable, not opacity
 const visibility = (bars: HTMLElement[]) =>

@@ -19,7 +19,7 @@ type ObjectsSizeMode =
   | "default"
   | "number"
   | "pair"
-  | "size"
+  | "full"
   | "firstChild"
   | "none";
 type ProgressElementMode = "custom" | "native" | "off";
@@ -57,8 +57,8 @@ type Settings = {
   wrapperMinHeight: number;
   wrapperAlignX: Align;
   wrapperAlignY: Align;
-  elementsAlign: Align;
-  elementsDirection: "row" | "column";
+  objectsAlign: Align;
+  objectsDirection: "row" | "column";
   edgeGradient: boolean;
   edgeColor: string;
   edgeSize: number;
@@ -136,8 +136,8 @@ const defaultSettings: Settings = {
   wrapperMinHeight: 0,
   wrapperAlignX: "start",
   wrapperAlignY: "start",
-  elementsAlign: "start",
-  elementsDirection: "row",
+  objectsAlign: "start",
+  objectsDirection: "row",
   edgeGradient: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
@@ -637,7 +637,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
           trackVisibility: settings.trackVisibility,
         };
 
-  const emptyElements: CodeValue | undefined =
+  const emptyObjects: CodeValue | undefined =
     settings.emptyMode === "off"
       ? undefined
       : settings.emptyMode === "clear"
@@ -666,8 +666,8 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["wrapperMargin", wrapperMargin, "value"],
     ["wrapperMinSize", wrapperMinSize, "value"],
     ["wrapperAlign", [settings.wrapperAlignX, settings.wrapperAlignY], "value"],
-    ["elementsAlign", settings.elementsAlign, "value"],
-    ["elementsDirection", settings.elementsDirection, "value"],
+    ["objectsAlign", settings.objectsAlign, "value"],
+    ["objectsDirection", settings.objectsDirection, "value"],
     [
       "edgeGradient",
       settings.edgeGradient
@@ -677,7 +677,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ],
     ["progressTrigger", progressTrigger, "value"],
     ["render", render, "value"],
-    ["emptyElements", emptyElements, "value"],
+    ["emptyObjects", emptyObjects, "value"],
     ["suspending", settings.suspending || undefined, "boolean"],
     [
       "fallback",
@@ -833,7 +833,7 @@ function App() {
     settings.trackVisibility,
   ]);
 
-  const emptyElements = React.useMemo<MorphScrollProps["emptyElements"]>(() => {
+  const emptyObjects = React.useMemo<MorphScrollProps["emptyObjects"]>(() => {
     if (settings.emptyMode === "off") return undefined;
     if (settings.emptyMode === "clear") return "clear";
     if (settings.emptyMode === "fallback")
@@ -855,9 +855,9 @@ function App() {
       direction: settings.direction,
       dragScroll: settings.dragScroll,
       edgeGradient,
-      elementsAlign: settings.elementsAlign,
-      elementsDirection: settings.elementsDirection,
-      emptyElements,
+      objectsAlign: settings.objectsAlign,
+      objectsDirection: settings.objectsDirection,
+      emptyObjects,
       fallback: <div className="cell-fallback">{settings.fallbackText}</div>,
       gap:
         settings.gapX === settings.gapY
@@ -913,7 +913,7 @@ function App() {
     }),
     [
       edgeGradient,
-      emptyElements,
+      emptyObjects,
       objectsSize,
       progressElement,
       render,
@@ -1156,7 +1156,7 @@ function App() {
                 "default",
                 "number",
                 "pair",
-                "size",
+                "full",
                 "firstChild",
                 "none",
               ] as const
@@ -1261,7 +1261,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="wrapperAlign · elementsAlign · elementsDirection"
+          hint="wrapperAlign · objectsAlign · objectsDirection"
           title="layout"
         >
           <div className="two-col">
@@ -1280,16 +1280,16 @@ function App() {
           </div>
           <div className="two-col">
             <SelectField
-              label="elementsAlign"
-              onChange={(value) => update("elementsAlign", value)}
+              label="objectsAlign"
+              onChange={(value) => update("objectsAlign", value)}
               options={alignOptions}
-              value={settings.elementsAlign}
+              value={settings.objectsAlign}
             />
             <SelectField
-              label="elementsDirection"
-              onChange={(value) => update("elementsDirection", value)}
+              label="objectsDirection"
+              onChange={(value) => update("objectsDirection", value)}
               options={["row", "column"] as const}
-              value={settings.elementsDirection}
+              value={settings.objectsDirection}
             />
           </div>
         </ControlGroup>
@@ -1481,7 +1481,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="render · emptyElements · suspending · fallback"
+          hint="render · emptyObjects · suspending · fallback"
           title="optimization"
         >
           <SubGroup
@@ -1517,7 +1517,7 @@ function App() {
           </SubGroup>
 
           <SelectField
-            label="emptyElements"
+            label="emptyObjects"
             onChange={(value) => update("emptyMode", value)}
             options={["off", "clear", "fallback", "fallbackWithClick"] as const}
             value={settings.emptyMode}

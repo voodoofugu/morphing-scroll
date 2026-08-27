@@ -113,7 +113,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
         {items(10)}
       </MorphScroll>,
     );
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
 
     fireEvent.scroll(el, { target: { scrollTop: 500 } });
 
@@ -357,7 +357,7 @@ describe("MorphScroll — progressTrigger shorthand", () => {
     expect(container.querySelectorAll(".ms-arrow-box")).toHaveLength(2);
     // content drag also sets the grab cursor on the scroll element
     expect(
-      container.querySelector<HTMLElement>(".ms-element")!.style.cursor,
+      container.querySelector<HTMLElement>(".ms-viewport")!.style.cursor,
     ).toBe("grab");
   });
 
@@ -377,7 +377,7 @@ describe("MorphScroll — progressTrigger shorthand", () => {
       </MorphScroll>,
     );
     const cursor = (r: ReturnType<typeof render>) =>
-      r.container.querySelector<HTMLElement>(".ms-element")!.style.cursor;
+      r.container.querySelector<HTMLElement>(".ms-viewport")!.style.cursor;
 
     expect(cursor(short)).toBe(cursor(long));
   });

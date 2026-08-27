@@ -9,7 +9,7 @@ const items = (n: number) =>
 const wrapperOf = (c: HTMLElement) =>
   c.querySelector(".ms-objects-wrapper") as HTMLElement;
 const elementOf = (c: HTMLElement) =>
-  c.querySelector(".ms-element") as HTMLElement;
+  c.querySelector(".ms-viewport") as HTMLElement;
 const firstBox = (c: HTMLElement) =>
   c.querySelector(".ms-object-box") as HTMLElement;
 
@@ -41,9 +41,9 @@ describe("MorphScroll — layout styles on the objects wrapper", () => {
     expect(wrapperOf(container).style.minHeight).toBe("250px");
   });
 
-  it("maps elementsAlign to justifyContent (flex layout)", () => {
+  it("maps objectsAlign to justifyContent (flex layout)", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} elementsAlign="center">
+      <MorphScroll size={[100, 300]} objectsSize={50} objectsAlign="center">
         {items(2)}
       </MorphScroll>,
     );

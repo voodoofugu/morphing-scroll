@@ -57,8 +57,8 @@ describe("slider elements", () => {
         {items(6)}
       </MorphScroll>,
     );
-    expect(container.querySelectorAll(".ms-slider-element").length).toBeGreaterThan(1);
-    expect(container.querySelector(".ms-slider-element.active")).toBeNull();
+    expect(container.querySelectorAll(".ms-slider-item").length).toBeGreaterThan(1);
+    expect(container.querySelector(".ms-slider-item.active")).toBeNull();
   });
 });
 

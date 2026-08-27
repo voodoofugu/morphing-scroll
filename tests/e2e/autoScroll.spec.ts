@@ -23,7 +23,7 @@ test.describe("dragScroll — edges (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=dragScroll");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const box = (await el.boundingBox())!;
 
     // start far enough down that the climb back takes a while
@@ -45,7 +45,7 @@ test.describe("dragScroll — edges (real browser)", () => {
 
   test("scrolls sideways for a horizontal container", async ({ page }) => {
     await page.goto("/?scenario=dragScrollX");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const box = (await el.boundingBox())!;
 
     await dragTo(
@@ -67,7 +67,7 @@ test.describe("dragScroll — edges (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=dragScroll");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const root = page.locator("[morph-scroll]");
     const box = (await el.boundingBox())!;
 
@@ -92,7 +92,7 @@ test.describe("dragScroll — edges (real browser)", () => {
   test("clears the mark when the drag ends", async ({ page }) => {
     await page.goto("/?scenario=dragScroll");
     const root = page.locator("[morph-scroll]");
-    const box = (await page.locator(".ms-element").boundingBox())!;
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
 
     await dragTo(page, page.getByTestId("item-0"), box.x + box.width / 2, box.y + box.height - 10);
     await expect(root).toHaveAttribute("ms-under-drag", /.*/, { timeout: 3000 });
@@ -108,7 +108,7 @@ test.describe("dragScroll — edges (real browser)", () => {
 test.describe("dragScroll — more than one container (real browser)", () => {
   test("hands over to the container the pointer moved into", async ({ page }) => {
     await page.goto("/?scenario=dragScrollPair");
-    const [left, right] = await page.locator(".ms-element").all();
+    const [left, right] = await page.locator(".ms-viewport").all();
     const rightBox = (await right.boundingBox())!;
 
     // grab in the left list, carry the drag into the right one
@@ -128,7 +128,7 @@ test.describe("dragScroll — more than one container (real browser)", () => {
   test("only the container under the pointer is marked", async ({ page }) => {
     await page.goto("/?scenario=dragScrollPair");
     const roots = page.locator("[morph-scroll]");
-    const rightBox = (await page.locator(".ms-element").nth(1).boundingBox())!;
+    const rightBox = (await page.locator(".ms-viewport").nth(1).boundingBox())!;
 
     await dragTo(
       page,

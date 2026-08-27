@@ -319,7 +319,7 @@ adds the <code>ResizeTracker</code> component to measure the width and height of
 <b>Usage:</b><br />
 
 ```tsx
-objectsSize: 100; // or [100, 70] | "size" | "firstChild" | "none"
+objectsSize: 100; // or [100, 70] | "full" | "firstChild" | "none"
 ```
 
 <b>Description:</b><em><br />
@@ -328,7 +328,7 @@ defines the <b>[width, height]</b> of cells for each of your objects.<br />
 <code>number</code>:<br />
 sets a fixed size for your custom objects.<br />
 <br />
-<code><b>"size"</b></code>:<br />
+<code><b>"full"</b></code>:<br />
 the dimensions will be taken from <code>size</code>.<br />
 <br />
 <code><b>"firstChild"</b></code>:<br />
@@ -362,7 +362,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 ✦ Note:<br />
 <ul>
   <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
-  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of the <code>elementsDirection</code>, but not exceeding the total number of passed elements.</li>
+  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of the <code>objectsDirection</code>, but not exceeding the total number of passed elements.</li>
 </ul></em><br />
 <br />
 <b>Example:</b>
@@ -513,11 +513,11 @@ aligns the <b>.ms-objects-wrapper</b>, which contains all the provided elements,
 
 <h2></h2>
 
-<details><summary><b><code>elementsAlign</code></b></summary><br /><ul><div>
+<details><summary><b><code>objectsAlign</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-elementsAlign: "center"; // or "start" | "end"
+objectsAlign: "center"; // or "start" | "end"
 ```
 
 <b>Default:</b><br />
@@ -526,22 +526,22 @@ elementsAlign: "center"; // or "start" | "end"
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} elementsAlign="center">
+<MorphScroll {...props} objectsAlign="center">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-elementsAlign.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsAlign.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>elementsDirection</code></b></summary><br /><ul><div>
+<details><summary><b><code>objectsDirection</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-elementsDirection: "row"; // or "column"
+objectsDirection: "row"; // or "column"
 ```
 
 <b>Default:</b><br />
@@ -553,12 +553,12 @@ changes the order of the provided elements based on the provided value.</em><br 
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} elementsDirection="column">
+<MorphScroll {...props} objectsDirection="column">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-elementsDirection.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsDirection.png)
 
 </div></ul></details>
 
@@ -644,7 +644,7 @@ determines how the scroll progress is managed<br />
 <br />
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
+  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-item</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
   <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>bar</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
@@ -820,7 +820,7 @@ When used, a container is created for each scrollable object, and its absolute p
 </ul>
 <br />
 <code><b>rootMargin</b></code>:<br />
-controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px.<br />
+controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-viewport</b>) in px.<br />
 <br />
 <code><b>stopLoadOnScroll</b></code>:<br />
 controls whether to stop loading content when scrolling.<br />
@@ -845,20 +845,20 @@ sets the <code>--ms-content-visibility</code> variable for list item wrapper sty
 
 <h2></h2>
 
-<details><summary><b><code>emptyElements</code></b></summary><br /><ul><div>
+<details><summary><b><code>emptyObjects</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 <ul>
   <li><b>Simple</b>:<br />
   
 ```tsx
-emptyElements: "clear" // or "fallback" | <FallbackComponent />
+emptyObjects: "clear" // or "fallback" | <FallbackComponent />
 ```
 
   </li>
   <li><b>Advanced</b>:<br />
   
 ```tsx
-emptyElements: {
+emptyObjects: {
   mode: "clear", // or "fallback" | <FallbackComponent /> (required)
   clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
 }
@@ -896,12 +896,12 @@ use this option if removal should be triggered by a click action.<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} emptyElements="clear">
+<MorphScroll {...props} emptyObjects="clear">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyElements.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyObjects.png)
 
 </div></ul></details>
 
@@ -950,7 +950,7 @@ It will be used when:
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
-  <li><code>emptyElements.mode</code> is set to <b>"fallback"</b>.</li> 
+  <li><code>emptyObjects.mode</code> is set to <b>"fallback"</b>.</li> 
 </ul>
 </em><br />
 <b>Example:</b>

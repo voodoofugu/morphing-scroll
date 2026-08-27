@@ -1,4 +1,12 @@
-export type Vec2 = [x: number, y: number];
+/** пара «по осям»: первым всегда x, вторым y */
+export type Pair<T> = [x: T, y: T];
+export type Vec2 = Pair<number>;
+
+type Edges = [top: number, right: number, bottom: number, left: number];
+type SpacingValue = number | Vec2 | Edges;
+type Align = "start" | "center" | "end";
+type MinSize = number | "full";
+type ObjectSize = number | "full" | "firstChild" | "none";
 
 /** короткая форма для `progressTrigger` */
 export type ProgressTriggerName = "wheel" | "content" | "arrows" | "bar";
@@ -15,7 +23,7 @@ export type BarConfig = {
   /** shortens the track by this much at each of its two ends */
   trackGap?: number | Vec2;
   /** put the bar on the opposite side */
-  reverse?: boolean | boolean[];
+  reverse?: boolean | Pair<boolean>;
   /**
    * report the bar as idle unless it is hovered, touched or the content is
    * moving — through `--ms-bar-visibility` and the `ms-hover` / `ms-leave`
@@ -26,11 +34,37 @@ export type BarConfig = {
   thumbMinSize?: number;
 };
 
-/** `progressTrigger` после разбора короткой формы */
-export type ProgressTriggerConfig = Exclude<
-  NonNullable<MorphScroll["progressTrigger"]>,
-  ProgressTriggerName | ProgressTriggerName[]
->;
+/** объектная форма `progressTrigger.wheel` */
+export type WheelConfig = {
+  /** let the wheel switch the axis it scrolls */
+  changeDirection?: boolean;
+  /**
+   * `KeyboardEvent.code` that switches the axis while held;
+   * an empty string turns it off
+   * @default "KeyX"
+   */
+  changeDirectionBtn?: string;
+};
+
+/** объектная форма `progressTrigger.arrows` */
+export type ArrowsConfig = {
+  /** the icon; author it pointing right, the library turns it for the rest */
+  element?: React.ReactNode;
+  /** thickness of the `.ms-arrow-box` strip */
+  size?: number;
+  /** the strip takes its thickness from the content instead of covering it */
+  reserveSpace?: boolean;
+  /** the last step wraps around to the other end */
+  loop?: boolean;
+};
+
+/** объектная форма `progressTrigger` */
+export type ProgressTriggerConfig = {
+  wheel?: boolean | WheelConfig;
+  content?: boolean;
+  bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
+  arrows?: boolean | React.ReactNode | ArrowsConfig;
+};
 
 /** значение, которое понимает и `scrollPosition`, и `scrollTo` */
 export type ScrollTarget = null | number | "end" | (null | number | "end")[];
@@ -58,10 +92,6 @@ export type MorphScrollHandle = {
   /** run a scroll now; `duration: 0` jumps without animating */
   scrollTo: (target: ScrollTarget, options?: { duration?: number }) => void;
 };
-type Size = [width: number, height: number];
-type Edges = [top: number, right: number, bottom: number, left: number];
-type SpacingValue = number | Vec2 | Edges;
-type Align = "start" | "center" | "end";
 
 export type ResizeTracker = {
   /**---
@@ -388,7 +418,7 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  size: number | "auto" | Size;
+  size: number | "auto" | Vec2;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***objectsSize***:
@@ -396,7 +426,7 @@ export type MorphScroll = {
    * @default size prop value
    * @description
    * - `number` *sets the width and height, can be an array of 2 numbers*
-   * - `"size"` *all objects will take the dimensions from the `size` prop*
+   * - `"full"` *all objects will take the dimensions from the `size` prop*
    * - `"firstChild"` *all objects will have the same size as the first child*
    * - `"none"` *objects will be created without defined size*
    *
@@ -409,12 +439,7 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  objectsSize?:
-    | number
-    | "size"
-    | "firstChild"
-    | "none"
-    | (number | "size" | "firstChild" | "none")[];
+  objectsSize?: ObjectSize | Pair<ObjectSize>;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***crossCount***:
@@ -479,7 +504,7 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  wrapperMinSize?: number | "full" | (number | "full")[];
+  wrapperMinSize?: MinSize | Pair<MinSize>;
 
   // — LAYOUT —
   /**---
@@ -497,36 +522,36 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  wrapperAlign?: Align | [x: Align, y: Align];
+  wrapperAlign?: Align | Pair<Align>;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***elementsAlign***:
+   * ### ***objectsAlign***:
    * aligns the objects inside `MorphScroll`.
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   elementsAlign="center"
+   *   objectsAlign="center"
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  elementsAlign?: Align;
+  objectsAlign?: Align;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***elementsDirection***:
+   * ### ***objectsDirection***:
    * direction of the provided elements.
    * @default "row"
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   elementsDirection="column"
+   *   objectsDirection="column"
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  elementsDirection?: "row" | "column";
+  objectsDirection?: "row" | "column";
 
   // — PROGRESS —
   /**---
@@ -565,21 +590,7 @@ export type MorphScroll = {
   progressTrigger?:
     | ProgressTriggerName
     | ProgressTriggerName[]
-    | {
-        wheel?:
-          boolean | { changeDirection?: boolean; changeDirectionBtn?: string };
-        content?: boolean;
-        bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
-        arrows?:
-          | boolean
-          | React.ReactNode
-          | {
-              element?: React.ReactNode;
-              size?: number;
-              contentReduce?: boolean;
-              loop?: boolean;
-            };
-      };
+    | ProgressTriggerConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***edgeGradient***:
@@ -635,7 +646,7 @@ export type MorphScroll = {
       };
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***emptyElements***:
+   * ### ***emptyObjects***:
    * handling of empty scroll elements.
    * @description
    * - `"clear"`: *removes empty elements from the DOM*
@@ -644,13 +655,13 @@ export type MorphScroll = {
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   emptyElements="clear"
+   *   emptyObjects="clear"
    * >
    *   {children}
    * </MorphScroll>
    *  ```
    */
-  emptyElements?:
+  emptyObjects?:
     | "clear"
     | "fallback"
     | React.ReactNode
@@ -680,7 +691,7 @@ export type MorphScroll = {
    * *Used when:*
    * - *`suspending === true`*
    * - *`render.stopLoadOnScroll === true`*
-   * - *`emptyElements.mode === "fallback"`*
+   * - *`emptyObjects.mode === "fallback"`*
    *
    * @example
    * ```tsx

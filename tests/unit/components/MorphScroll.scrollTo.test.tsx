@@ -21,7 +21,7 @@ const mount = (props: Record<string, unknown> = {}) => {
       {items()}
     </MorphScroll>,
   );
-  const el = utils.container.querySelector<HTMLElement>(".ms-element")!;
+  const el = utils.container.querySelector<HTMLElement>(".ms-viewport")!;
   stubLayout(el, {
     clientWidth: 100,
     clientHeight: VIEW,
@@ -62,7 +62,7 @@ describe("MorphScroll — scrollPosition (declarative)", () => {
       </MorphScroll>
     );
     const { container, rerender } = render(scroll);
-    const el = container.querySelector<HTMLElement>(".ms-element")!;
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
     stubLayout(el, {
       clientWidth: 100,
       clientHeight: VIEW,

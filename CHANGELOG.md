@@ -20,6 +20,10 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `scrollBarOnHover` | `progressTrigger={{ bar: { showOnHover: true } }}` |
 | `scrollBarEdge={10}` | `progressTrigger={{ bar: { trackGap: 10 } }}` |
 | `thumbMinSize={24}` | `progressTrigger={{ bar: { thumbMinSize: 24 } }}` |
+| `elementsAlign` | `objectsAlign` |
+| `elementsDirection` | `objectsDirection` |
+| `emptyElements` | `emptyObjects` |
+| `objectsSize="size"` | `objectsSize="full"` |
 
 Everything about the scrollbar now lives inside `progressTrigger.bar`, the
 same way everything about the arrows already lived inside
@@ -45,6 +49,23 @@ progressTrigger={{
 `{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
 unchanged.
 
+#### One word per thing
+
+`element` used to mean four different things at once: the scrolling viewport
+(`.ms-element`), a child (`elementsAlign`, `emptyElements`), a slider dot
+(`.ms-slider-element`) and the node you hand in (`bar.element`). A child is
+an **object** everywhere now — the word `objectsSize` and `.ms-object-box`
+already used — and `element` is left to mean only the node you pass:
+
+| 2.x | 3.0 |
+| --- | --- |
+| `.ms-element` | `.ms-viewport` |
+| `.ms-empty-element` | `.ms-empty-object` |
+| `.ms-slider-element` | `.ms-slider-item` |
+
+`objectsSize` used `"size"` for "same as the `size` prop" while
+`wrapperMinSize` spelled the same idea `"full"`. Both say `"full"` now.
+
 #### Repeating the same scroll
 
 `scrollPosition` describes where the scroll is and applies when its value
@@ -68,7 +89,7 @@ away from the bottom, `scrollTo("end")` always runs.
 | 2.x | 3.0 |
 | --- | --- |
 | `.ms-arrow-box.active` | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and is never set with `loop` |
-| `.ms-slider-element.active` | `.ms-slider-element.ms-active` |
+| `.ms-slider-item.active` | `.ms-slider-item.ms-active` |
 | `.active` while dragging | `.ms-grabbing` |
 | `.hover` / `.leave` / `.remove` | `.ms-hover` / `.ms-leave` / `.ms-remove` |
 | `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom` |

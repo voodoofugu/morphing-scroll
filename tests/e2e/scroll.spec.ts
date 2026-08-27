@@ -1,15 +1,15 @@
 import { test, expect, Page } from "@playwright/test";
 
-const scrollTopOf = (page: Page, selector = ".ms-element") =>
+const scrollTopOf = (page: Page, selector = ".ms-viewport") =>
   page.locator(selector).evaluate((el) => (el as HTMLElement).scrollTop);
 
-const scrollLeftOf = (page: Page, selector = ".ms-element") =>
+const scrollLeftOf = (page: Page, selector = ".ms-viewport") =>
   page.locator(selector).evaluate((el) => (el as HTMLElement).scrollLeft);
 
 test.describe("MorphScroll physics (real browser)", () => {
   test("wheel scrolls the content vertically", async ({ page }) => {
     await page.goto("/?scenario=wheel");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     await expect(el).toBeVisible();
 
     const box = await el.boundingBox();
@@ -21,7 +21,7 @@ test.describe("MorphScroll physics (real browser)", () => {
 
   test("wheel reports offsets through onScrollValue", async ({ page }) => {
     await page.goto("/?scenario=wheel");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const box = await el.boundingBox();
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.mouse.wheel(0, 400);
@@ -56,7 +56,7 @@ test.describe("MorphScroll physics (real browser)", () => {
 
   test("content drag (grab) scrolls the content", async ({ page }) => {
     await page.goto("/?scenario=contentDrag");
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const box = await el.boundingBox();
 
     const cx = box!.x + box!.width / 2;
@@ -76,7 +76,7 @@ test.describe("MorphScroll virtualization (real browser)", () => {
     await page.goto("/?scenario=virtual");
     await expect(page.getByTestId("item-0")).toBeVisible();
 
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const box = await el.boundingBox();
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
     // scroll far past the first rows
@@ -94,7 +94,7 @@ test.describe("MorphScroll virtualization (real browser)", () => {
     // lazy needs a tick to paint the first visible items
     await expect(page.getByTestId("item-0")).toBeVisible();
 
-    const el = page.locator(".ms-element");
+    const el = page.locator(".ms-viewport");
     const box = await el.boundingBox();
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
     for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 400);

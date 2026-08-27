@@ -74,7 +74,7 @@ describe("class names", () => {
           arrows: { element: <span />, size: 40 },
         }}
         render="virtual"
-        emptyElements="fallback"
+        emptyObjects="fallback"
       >
         {items(10)}
       </MorphScroll>,

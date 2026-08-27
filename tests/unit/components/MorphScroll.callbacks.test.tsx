@@ -11,7 +11,7 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const scrollElement = (c: HTMLElement) =>
-  c.querySelector<HTMLElement>(".ms-element")!;
+  c.querySelector<HTMLElement>(".ms-viewport")!;
 
 describe("MorphScroll — isScrolling", () => {
   beforeEach(() => vi.useFakeTimers());

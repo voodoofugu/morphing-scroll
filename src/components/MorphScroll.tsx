@@ -89,8 +89,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       wrapperMargin,
       wrapperMinSize,
       wrapperAlign,
-      elementsAlign,
-      elementsDirection = "row",
+      objectsAlign,
+      objectsDirection = "row",
       edgeGradient,
 
       // Progress Bar
@@ -98,7 +98,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // Optimization
       render,
-      emptyElements,
+      emptyObjects,
       suspending = false,
       fallback,
 
@@ -205,7 +205,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderST,
       sizeST,
       objectsSizeST,
-      emptyElementsST,
+      emptyObjectsST,
       wrapperMinSizeST,
       wrapperAlignST,
       gapST,
@@ -217,7 +217,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       render,
       size,
       objectsSize,
-      emptyElements,
+      emptyObjects,
       wrapperMinSize,
       wrapperAlign,
       gap,
@@ -346,17 +346,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         .filter((key): key is string => key !== null)
         .filter((key) => {
           if (
-            emptyElements === "clear" ||
-            (emptyElements &&
-              typeof emptyElements === "object" &&
-              "mode" in emptyElements &&
-              emptyElements.mode === "clear")
+            emptyObjects === "clear" ||
+            (emptyObjects &&
+              typeof emptyObjects === "object" &&
+              "mode" in emptyObjects &&
+              emptyObjects.mode === "clear")
           ) {
             return !objectsKeys.current.empty?.has(key);
           }
           return true;
         });
-    }, [children, emptyElementsST, objectsKeysEmptyST]);
+    }, [children, emptyObjectsST, objectsKeysEmptyST]);
 
     const [mT, mR, mB, mL] = wrapperMargin
       ? argsFormatter(wrapperMargin)
@@ -467,7 +467,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const { height, width } = receivedChildSizeRef.current;
 
       const getSize = (
-        val: number | "none" | "firstChild" | "size" | null,
+        val: number | "none" | "firstChild" | "full" | null,
         receivedSize: number,
         sizeLocal: number,
       ) =>
@@ -475,7 +475,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? receivedSize
           : typeof val === "number"
             ? val
-            : val === "size"
+            : val === "full"
               ? sizeLocal
               : 0;
 
@@ -499,12 +499,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       !receivedChildSizeRef.current.height;
 
     const fallbackLocal = React.useMemo(() => {
-      // делаем заглушку что бы не удалять всё подряд при emptyElements
-      if (render && emptyElements && !fallback)
-        return <div className="ms-empty-element"></div>;
+      // делаем заглушку что бы не удалять всё подряд при emptyObjects
+      if (render && emptyObjects && !fallback)
+        return <div className="ms-empty-object"></div>;
 
       return fallback;
-    }, [!!fallback, renderST, emptyElementsST]);
+    }, [!!fallback, renderST, emptyObjectsST]);
 
     // ♦ calculations
     const objectsPerDirection = React.useMemo(() => {
@@ -513,7 +513,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return [1, validChildrenKeys.length];
 
       const isX = direction === "x" ? 1 : 0;
-      const isRow = elementsDirection === "row";
+      const isRow = objectsDirection === "row";
 
       const localObjSize = sizeLocal[isX];
       const objectSize = objectsSizeLocal[isX]
@@ -575,7 +575,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       return [validated(rowObjects), validated(columnObjects)];
     }, [
-      elementsDirection,
+      objectsDirection,
       gapLocal[0],
       gapLocal[1],
       objectsSizeLocal[0],
@@ -757,7 +757,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       let alignSpace: number = 0;
 
       const isX = direction === "x";
-      const isRow = elementsDirection === "row";
+      const isRow = objectsDirection === "row";
       const isRowInDir = (isX && !isRow) || (!isX && isRow);
 
       const stepX = objectsSizeLocal[0] + gapLocal[1];
@@ -784,8 +784,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const emptySlots = itemsPerLine - itemsInLastLine.size;
       const offset = emptySlots > 0 ? (size + gap) * emptySlots : 0;
 
-      if (elementsAlign === "center") alignSpace = Math.round(offset / 2);
-      else if (elementsAlign === "end") alignSpace = offset;
+      if (objectsAlign === "center") alignSpace = Math.round(offset / 2);
+      else if (objectsAlign === "end") alignSpace = offset;
 
       // -- получаем координаты
       return validChildrenKeys.map((_, childIndex) => {
@@ -831,12 +831,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsSizeLocal[1],
       gapLocal[0],
       gapLocal[1],
-      elementsAlign,
+      objectsAlign,
       validChildrenKeys.length,
       objectsPerDirection[0],
       objectsPerDirection[1],
       renderLocal.mode,
-      elementsDirection,
+      objectsDirection,
       direction,
     ]);
 
@@ -934,7 +934,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? direction === "y"
             ? "column"
             : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
-          : elementsDirection;
+          : objectsDirection;
 
       // выравнивание элементы в линию когда размер неизвестен при direction !== "y"
       const flexWrap =
@@ -950,7 +950,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         display: "flex",
         flexDirection,
         flexWrap,
-        justifyContent: getStyleAlign(elementsAlign),
+        justifyContent: getStyleAlign(objectsAlign),
       };
     }, [
       wrapperMargin,
@@ -966,8 +966,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderLocal.mode,
       direction,
       objectsPerDirection[0],
-      elementsDirection,
-      elementsAlign,
+      objectsDirection,
+      objectsAlign,
     ]);
 
     // ♦ events
@@ -1140,24 +1140,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       );
     }, [renderST]);
 
-    // для обновления ключей при emptyElements
+    // для обновления ключей при emptyObjects
     const updateEmptyKeysClickLocal = React.useCallback(
       (event: React.MouseEvent) => {
         if (
-          typeof emptyElements === "object" &&
-          "clickTrigger" in emptyElements! &&
-          emptyElements.clickTrigger !== undefined
+          typeof emptyObjects === "object" &&
+          "clickTrigger" in emptyObjects! &&
+          emptyObjects.clickTrigger !== undefined
         ) {
           updateEmptyKeysClick(
             event,
-            emptyElements.clickTrigger,
+            emptyObjects.clickTrigger,
             updateLoadedElementsKeysLocal,
             tasks,
           );
         }
       },
 
-      [emptyElementsST, updateLoadedElementsKeysLocal],
+      [emptyObjectsST, updateLoadedElementsKeysLocal],
     );
 
     // для обработки onScrollValue
@@ -1337,7 +1337,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (!sizeLocal[0] || !sizeLocal[1]) return;
 
       // логика получения массива ключей
-      // (кейсы: первый рендер и при удалении с emptyElements)
+      // (кейсы: первый рендер и при удалении с emptyObjects)
       onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
     }, [validChildrenKeys.join("|"), sizeLocal.join()]);
 
@@ -1389,11 +1389,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // }, [onArrowKey]);
 
     React.useEffect(() => {
-      if (!emptyElements || !renderLocal.mode) return; // ранний выход
+      if (!emptyObjects || !renderLocal.mode) return; // ранний выход
 
       updateLoadedElementsKeysLocal(); // запуск проверки ключей
     }, [
-      emptyElementsST,
+      emptyObjectsST,
       renderLocal.mode,
       updateLoadedElementsKeysLocal,
       validChildrenKeys.length, // при изменении количества детей
@@ -1728,14 +1728,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return (
           <div
             key={key}
-            {...(renderLocal.mode || emptyElements
+            {...(renderLocal.mode || emptyObjects
               ? {
                   [CONST.WRAP_ATR]: `${key}`,
                 }
               : {})}
             className="ms-object-box"
             style={wrapStyle}
-            onClick={emptyElements ? updateEmptyKeysClickLocal : undefined}
+            onClick={emptyObjects ? updateEmptyKeysClickLocal : undefined}
           >
             {content}
           </div>
@@ -1747,7 +1747,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsSizeLocal[0],
         objectsSizeLocal[1],
         renderST,
-        emptyElementsST,
+        emptyObjectsST,
         objectsPerDirection[0],
         updateEmptyKeysClickLocal,
         renderLocal.mode,
@@ -1779,16 +1779,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         !objectsKeys.current.loaded.has(key)
           ? fallbackLocal
           : objectsKeys.current.empty?.has(key)
-            ? emptyElements &&
-              typeof emptyElements === "object" &&
-              React.isValidElement(emptyElements)
-              ? emptyElements
-              : emptyElements &&
-                  typeof emptyElements === "object" &&
-                  "mode" in emptyElements &&
-                  typeof emptyElements.mode === "object" &&
-                  "fallback" in emptyElements.mode
-                ? emptyElements.mode.fallback
+            ? emptyObjects &&
+              typeof emptyObjects === "object" &&
+              React.isValidElement(emptyObjects)
+              ? emptyObjects
+              : emptyObjects &&
+                  typeof emptyObjects === "object" &&
+                  "mode" in emptyObjects &&
+                  typeof emptyObjects.mode === "object" &&
+                  "fallback" in emptyObjects.mode
+                ? emptyObjects.mode.fallback
                 : fallbackLocal
             : child;
 
@@ -2135,7 +2135,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           }}
         >
           <div
-            className="ms-element"
+            className="ms-viewport"
             ref={scrollElementRef}
             onScroll={handleScroll}
             tabIndex={0} // ! для работы событий onKeyDown и onKeyUp

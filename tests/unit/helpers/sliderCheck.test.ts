@@ -10,7 +10,7 @@ const build = (pages: number) => {
   bar.setAttribute("ms-direction", "y");
   for (let i = 0; i < pages; i++) {
     const el = document.createElement("div");
-    el.className = "ms-slider-element";
+    el.className = "ms-slider-item";
     bar.appendChild(el);
   }
   document.body.append(scrollEl, bar);
@@ -69,6 +69,6 @@ describe("sliderCheck", () => {
     const { scrollEl, bars } = build(4);
     sliderCheck(scrollEl as HTMLDivElement, bars, "y", [1, 4]);
 
-    expect(document.querySelector(".ms-slider-element.active")).toBeNull();
+    expect(document.querySelector(".ms-slider-item.active")).toBeNull();
   });
 });

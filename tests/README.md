@@ -26,10 +26,10 @@ Current status: **283 unit + 31 e2e green**, 80% statement coverage of `src`
 from the unit tier alone — `autoScrollRegistry` and the gesture physics are
 covered by Playwright, which this number does not see.
 Covered mechanics include:
-render `virtual`/`lazy`, `emptyElements` (clear/fallback), `suspending`,
+render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
 `edgeGradient`, `arrows`, `progressElement` scrollbar, `direction`/`crossCount`,
 `objectsSize` modes, `gap`/`wrapperMargin`/`wrapperMinSize`/`wrapperAlign`/
-`elementsAlign`, `progressReverse`, `onRenderedKeysChange`, `onScrollValue`,
+`objectsAlign`, `progressReverse`, `onRenderedKeysChange`, `onScrollValue`,
 `scrollPosition` (number/end), `type: sliderMenu` snapping, `dragScroll`
 auto-scroll, hybrid `wheel.changeDirection`, plus the pure algorithms
 (`startInertiaScroll`, `overscrollBackAnim`, rAF schedulers, `handleArrow`,

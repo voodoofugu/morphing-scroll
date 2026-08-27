@@ -42,7 +42,7 @@ const swipe = async (
 
 const openScroll = async (page: Page) => {
   await page.goto("/?scenario=wheel");
-  const el = page.locator(".ms-element");
+  const el = page.locator(".ms-viewport");
   await expect(el).toBeVisible();
   return { el, box: (await el.boundingBox())! };
 };
@@ -117,7 +117,7 @@ test.describe("MorphScroll touch (real device emulation)", () => {
     );
 
     expect(
-      await page.locator(".ms-element").evaluate((n) => (n as HTMLElement).scrollTop),
+      await page.locator(".ms-viewport").evaluate((n) => (n as HTMLElement).scrollTop),
     ).toBe(0);
   });
 });

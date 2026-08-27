@@ -25,14 +25,14 @@ export const everyProp = (
     isScrolling={(motion) => void motion}
     onRenderedKeysChange={(keys) => void keys.length}
     size={[300, 200]}
-    objectsSize={[100, "size"]}
+    objectsSize={[100, "full"]}
     crossCount={3}
     gap={[10, 20]}
     wrapperMargin={[5, 5]}
     wrapperMinSize="full"
     wrapperAlign={["center", "end"]}
-    elementsAlign="center"
-    elementsDirection="column"
+    objectsAlign="center"
+    objectsDirection="column"
     edgeGradient={<span className="fade" />}
     progressTrigger={{
       wheel: { changeDirection: true },
@@ -48,7 +48,7 @@ export const everyProp = (
       arrows: { element: <b />, size: 40, loop: true },
     }}
     render={{ mode: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
-    emptyElements={{ mode: "clear", clickTrigger: { selector: ".x", delay: 100 } }}
+    emptyObjects={{ mode: "clear", clickTrigger: { selector: ".x", delay: 100 } }}
     suspending
     fallback={<span />}
     dragScroll
@@ -68,7 +68,7 @@ export const triggerShorthand = (
 export const badTrigger = <MorphScroll size={100} progressTrigger="thumb" />;
 
 export const shorthands = (
-  <MorphScroll size="auto" objectsSize="firstChild" render="lazy" emptyElements="fallback">
+  <MorphScroll size="auto" objectsSize="firstChild" render="lazy" emptyObjects="fallback">
     <div key="a" />
   </MorphScroll>
 );

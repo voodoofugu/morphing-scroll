@@ -30,7 +30,7 @@ const mount = (realScrollWidth: number) => {
       {items()}
     </MorphScroll>,
   );
-  const el = utils.container.querySelector<HTMLElement>(".ms-element")!;
+  const el = utils.container.querySelector<HTMLElement>(".ms-viewport")!;
   stubLayout(el, {
     clientWidth: VIEW,
     clientHeight: 100,
