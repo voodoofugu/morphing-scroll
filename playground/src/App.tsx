@@ -319,20 +319,43 @@ function SubGroup({
   children,
   control,
   label,
-  open = true,
+  enabled = true,
 }: {
   children?: React.ReactNode;
   control?: React.ReactNode;
   label: string;
-  open?: boolean;
+  /** выключенная настройка своих подпараметров не показывает */
+  enabled?: boolean;
 }) {
+  const [open, setOpen] = React.useState(false);
+  const canOpen = enabled && !!children;
+
+  // включили настройку — значит собираются её настраивать
+  const wasEnabled = React.useRef(enabled);
+  React.useEffect(() => {
+    if (enabled && !wasEnabled.current) setOpen(true);
+    wasEnabled.current = enabled;
+  }, [enabled]);
+
   return (
-    <div className={`sub-group${open ? "" : " is-off"}`}>
+    <div
+      className={`sub-group${enabled ? "" : " is-off"}${
+        canOpen && open ? " is-open" : ""
+      }`}
+    >
       <div className="sub-group-head">
-        <span className="sub-group-label">{label}</span>
+        <button
+          aria-expanded={canOpen && open}
+          className="sub-group-toggle"
+          disabled={!canOpen}
+          onClick={() => setOpen((current) => !current)}
+          type="button"
+        >
+          <span className="sub-group-label">{label}</span>
+        </button>
         {control}
       </div>
-      {open && children ? (
+      {canOpen && open ? (
         <div className="sub-group-body">{children}</div>
       ) : null}
     </div>
@@ -548,15 +571,7 @@ function formatCodeValue(value: CodeValue, indent = 0): string {
 }
 
 function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
-  const imports = `import { MorphScroll } from "morphing-scroll";`;
-  const menuCount = clamp(Math.ceil(settings.itemCount / 2), 8, 140);
   const needsMenu = settings.mode === "sliderMenu";
-  const helpers = [
-    `const items = Array.from({ length: ${settings.itemCount} }, (_, index) => (\n  <div key={\`item-\${index + 1}\`}>Item {index + 1}</div>\n));`,
-    needsMenu
-      ? `const menuItems = Array.from({ length: ${menuCount} }, (_, index) => (\n  <button key={\`menu-\${index + 1}\`} type="button">\n    {index + 1}\n  </button>\n));`
-      : "",
-  ].filter(Boolean);
 
   const size: CodeValue =
     settings.sizeMode === "auto"
@@ -744,13 +759,14 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
   const propLines = props
     .filter(([, value]) => value !== undefined)
     .map(([name, value, mode]) => {
-      if (mode === "boolean" && value === true) return `      ${name}`;
+      if (mode === "boolean" && value === true) return `  ${name}`;
       if (typeof value === "string")
-        return `      ${name}=${JSON.stringify(value)}`;
-      return `      ${name}={${formatCodeValue(value as CodeValue, 8)}}`;
+        return `  ${name}=${JSON.stringify(value)}`;
+      return `  ${name}={${formatCodeValue(value as CodeValue, 4)}}`;
     });
 
-  return `${imports}\n\n${helpers.join("\n\n")}\n\nexport function Example() {\n  return (\n    <MorphScroll\n${propLines.join("\n")}\n    >\n      {items}\n    </MorphScroll>\n  );\n}\n`;
+  // только сам компонент: остальное в копии всё равно лишнее
+  return `<MorphScroll\n${propLines.join("\n")}\n>\n  {items}\n</MorphScroll>\n`;
 }
 
 type PadSample = {
@@ -1335,7 +1351,7 @@ function App() {
               />
             }
             label="gamepad"
-            open={settings.gamepad}
+            enabled={settings.gamepad}
           >
             <p className="sub-note">
               the README recipe, running live on the same <code>ref</code>:
@@ -1451,7 +1467,7 @@ function App() {
               />
             }
             label="wrapper.minSize"
-            open={["number", "pair"].includes(settings.wrapperMinMode)}
+            enabled={["number", "pair"].includes(settings.wrapperMinMode)}
           >
             <div className="two-col">
               <NumberField
@@ -1547,7 +1563,7 @@ function App() {
               />
             }
             label="wheel"
-            open={settings.wheel && settings.direction === "hybrid"}
+            enabled={settings.wheel && settings.direction === "hybrid"}
           >
             <ToggleField
               label="changeDirection"
@@ -1573,7 +1589,6 @@ function App() {
               />
             }
             label="content"
-            open={false}
           />
 
           <SubGroup
@@ -1585,7 +1600,7 @@ function App() {
               />
             }
             label="keys"
-            open={settings.keys}
+            enabled={settings.keys}
           >
             <SelectField
               label="mode"
@@ -1620,7 +1635,7 @@ function App() {
               />
             }
             label="bar"
-            open={settings.progressElementMode === "custom"}
+            enabled={settings.progressElementMode === "custom"}
           >
             <ToggleField
               label="showOnHover"
@@ -1701,7 +1716,7 @@ function App() {
               />
             }
             label="arrows"
-            open={settings.arrows}
+            enabled={settings.arrows}
           >
             <NumberField
               label="size"
@@ -1733,7 +1748,7 @@ function App() {
               />
             }
             label="edge"
-            open={settings.edge}
+            enabled={settings.edge}
           >
             <div className="two-col">
               <Field label="color">
@@ -1767,7 +1782,7 @@ function App() {
               />
             }
             label="render"
-            open={settings.renderMode !== "off"}
+            enabled={settings.renderMode !== "off"}
           >
             <NumberField
               label="rootMargin"

@@ -218,6 +218,41 @@ input[type="color"] {
   display: none;
 }
 
+.sub-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.sub-group-toggle:disabled {
+  cursor: default;
+}
+
+.sub-group-toggle::before {
+  content: "";
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #9aa8a4;
+  transition: transform 0.15s ease;
+}
+
+.sub-group.is-open .sub-group-toggle::before {
+  transform: rotate(90deg);
+}
+
+.sub-group-toggle:disabled::before {
+  opacity: 0.3;
+}
+
 .sub-group-label {
   color: #1d2a28;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
