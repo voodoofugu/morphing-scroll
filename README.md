@@ -327,7 +327,42 @@ function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
 }
 ```
 
-<em>Swap <code>step</code> for <code>moveFocus</code> in the d-pad branch and the same loop walks the objects instead of turning pages — a highlight moving card to card, which is what a controller usually wants.<br />
+<em>Swap <code>step</code> for <code>moveFocus</code> in the d-pad branch and the same loop walks the objects instead of turning pages — a highlight moving card to card, which is what a controller usually wants.</em>
+
+<b>The stick, moving through objects instead of panning:</b>
+
+<em>A stick is a position, not an event, so the discrete move belongs to the crossing: it fires when the stick leaves the centre, and coming back re-arms it. Everything else is the same loop.</em>
+
+```tsx
+const THRESHOLD = 0.5;
+const aimed = { x: 0, y: 0 }; // куда стик отклонён сейчас: -1, 0 или 1
+
+const tilt = (value: number) =>
+  value > THRESHOLD ? 1 : value < -THRESHOLD ? -1 : 0;
+
+// внутри tick, вместо ветки со стиком
+const next = { x: tilt(pad.axes[2] ?? 0), y: tilt(pad.axes[3] ?? 0) };
+
+for (const axis of ["x", "y"] as const) {
+  if (next[axis] === aimed[axis]) continue; // отклонение то же — шаг уже был
+
+  aimed[axis] = next[axis];
+  if (!next[axis]) continue; // вернулся в центр — просто взводим обратно
+
+  const side =
+    axis === "x"
+      ? next.x > 0
+        ? "right"
+        : "left"
+      : next.y > 0
+        ? "bottom"
+        : "top";
+
+  scroll.current?.moveFocus(side, { reason: "gamepad" });
+}
+```
+
+<em>For auto-repeat while it is held, reach for the same <code>held</code> map the d-pad uses: remember when the next one is due and compare against <code>now</code>.<br />
 <br />
 Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
 <br />
