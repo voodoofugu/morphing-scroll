@@ -98,7 +98,21 @@ export const commands = (handle: MorphScrollHandle) => {
   handle.step("left", { reason: "gamepad" });
   handle.pan({ y: 12 });
   handle.pan({ x: -8, y: 4 }, { duration: 0, reason: "remote" });
+  handle.moveFocus("right");
+  handle.moveFocus("top", { duration: 0, reason: "gamepad" });
 };
+
+export const keysModes = (
+  <MorphScroll size={100} progressTrigger={{ keys: { mode: "focus" } }} />
+);
+
+export const keysModeIsClosed = (
+  <MorphScroll
+    size={100}
+    // @ts-expect-error a key does one of three things, and "jump" is not one
+    progressTrigger={{ keys: { mode: "jump" } }}
+  />
+);
 
 export const emptyObjectsConfig = (
   <MorphScroll
