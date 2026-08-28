@@ -220,9 +220,12 @@ themselves are no longer transformed and can be positioned from CSS.
 
 - `progressTrigger.keys` — the arrow keys move the scroll while it has
   focus. `mode: "step"` turns a page and reports through `onNavigate` as
-  `"keys"`; `mode: "pan"` nudges by `step` pixels. Defaults to `"step"` in
-  the slider modes and `"pan"` in `mode="scroll"`, takes only the keys of
-  the scrolling axis, and leaves the arrows alone inside a text field.
+  `"keys"`; `mode: "pan"` nudges by `step` pixels; `mode: "focus"` moves
+  focus to the neighbouring object and the scroll follows it, picking the
+  neighbour by geometry so a grid walks its row and drops to the next one.
+  Defaults to `"step"` in the slider modes and `"pan"` in `mode="scroll"`,
+  takes only the keys of the scrolling axis in those two, and leaves the
+  arrows alone inside a text field.
 - `scrollPosition: "end"` sticks to the bottom by position instead of by the
   direction of the last movement. It followed new content only while a
   reading of "the user was going down" survived, and that reading is wiped
@@ -237,9 +240,10 @@ themselves are no longer transformed and can be positioned from CSS.
   and `to`. `onScrollPosition` reports continuous movement; this reports the
   landing, so a sound or a haptic hangs off it without firing per frame — or
   per page flown past on the way.
-- `ref` with `scrollTo(target, { duration })`, plus `step(side, { reason })`
-  and `pan({ x, y }, { reason })` — the two moves the library makes for its
-  own triggers, named so anything else can make them too. `reason` takes any
+- `ref` with `scrollTo(target, { duration })`, plus `step(side, { reason })`,
+  `pan({ x, y }, { reason })` and `moveFocus(side, { reason })` — the moves
+  the library makes for its own triggers, named so anything else can make
+  them too. `reason` takes any
   string and comes back out of `onNavigate` unchanged, which is how a
   gamepad, a remote or your own hotkeys reach the scroll without the library
   growing a driver for each of them.
@@ -299,6 +303,9 @@ themselves are no longer transformed and can be positioned from CSS.
 - Both axes animate at once in `direction="hybrid"`; the frame queue keyed
   them together, so only the last of the two requests arrived.
 - The wheel over a scrollbar no longer moves the page underneath as well.
+- `pan` with `duration: 0` moves in the same frame. It travelled through the
+  animation lock and arrived a frame late, so a gamepad stick — which sends
+  one every frame — jerked in place instead of moving.
 
 ### Changed
 

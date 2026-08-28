@@ -256,6 +256,9 @@ turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"
 <code><b>pan(delta, options?)</b></code>:<br />
 nudges the content by <code>{ x, y }</code> pixels. Plain movement, so it shows up in <code>onScrollPosition</code>; it only reaches <code>onNavigate</code> if it settles on a new page of a slider.<br />
 <br />
+<code><b>moveFocus(side, options?)</b></code>:<br />
+moves focus to the neighbouring object and brings it into view — the same move <code>keys: { mode: "focus" }</code> makes, for a device that has no arrow keys. Nothing happens at the edge of the run.<br />
+<br />
 <code><b>options.reason</b></code>:<br />
 any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
 </em>
@@ -324,7 +327,9 @@ function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
 }
 ```
 
-<em>Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
+<em>Swap <code>step</code> for <code>moveFocus</code> in the d-pad branch and the same loop walks the objects instead of turning pages — a highlight moving card to card, which is what a controller usually wants.<br />
+<br />
+Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
 <br />
 Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is the reason polling stays out here: a game already has an input layer and a frame loop, and a loop inside the scroll would have to guess which of several scrolls on the page the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect exactly the same way; only the reason changes.</em>
 
@@ -647,13 +652,16 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
 <br />
 <ul>
-  <li><code>mode</code>: <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along. Defaults to <b>"step"</b> in the slider modes and <b>"pan"</b> in <code>mode="scroll"</code>.</li><br />
+  <li><code>mode</code>: <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along; <b>"focus"</b> walks the objects. Defaults to <b>"step"</b> in the slider modes and <b>"pan"</b> in <code>mode="scroll"</code>.</li><br />
   <li><code>step</code>: how far one press nudges in <b>"pan"</b> ( default <b>40</b> ).</li>
 </ul>
 <br />
+<b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
+The object itself takes focus unless it holds something focusable — a link, a button — in which case that does, so <code>Enter</code> keeps working on a card built out of one. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
+<br />
 ✦ Note:<br />
 <ul>
-  <li>only the keys of the scrolling axis are taken; the other two are left alone.</li>
+  <li>in <b>"pan"</b> and <b>"step"</b> only the keys of the scrolling axis are taken; the other two are left alone. <b>"focus"</b> takes all four — a vertical list can still be a grid.</li>
   <li>inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll does not touch them.</li>
   <li>with <code>render="virtual"</code>, tabbing only reaches what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
 </ul>
