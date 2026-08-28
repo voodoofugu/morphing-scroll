@@ -462,6 +462,15 @@ input[type="color"] {
   background: #f8faf6;
 }
 
+/*
+ * Край гаснет, когда обрезать нечего. Библиотека говорит это дважды: классом
+ * `ms-disabled` на слоте и переменной — переменная удобнее, она плавная.
+ */
+.playground-scroll .playground-edge {
+  opacity: var(--ms-edge-visibility, 1);
+  transition: opacity 180ms ease;
+}
+
 .playground-scroll .ms-viewport {
   border-radius: 8px;
 }
