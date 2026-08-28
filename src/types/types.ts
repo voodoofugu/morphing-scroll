@@ -188,10 +188,9 @@ export type MorphScrollHandle = {
    * aimed: the neighbour is picked by geometry, so a grid moves across its
    * row and down to the next one.
    *
-   * The object itself takes focus unless it holds something focusable, in
-   * which case that does — so `Enter` keeps working on a card built out of a
-   * button. Where the focus went is reported by the DOM, through the `focus`
-   * events of your own items.
+   * Focus lands on the `.ms-object-box` itself, so the highlight is the whole
+   * card and there is one thing to style. Where it went is reported by the
+   * DOM, through the `focus` events of your own items.
    */
   moveFocus: (
     side: "top" | "right" | "bottom" | "left",

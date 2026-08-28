@@ -1,18 +1,5 @@
 type Side = "top" | "right" | "bottom" | "left";
 
-/**
- * Что браузер умеет фокусировать сам. Если такое есть внутри объекта, фокус
- * отдаём ему: тогда Enter и Space работают нативно, как на любой кнопке.
- */
-const FOCUSABLE = [
-  "a[href]",
-  "button:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-].join(",");
-
 const boxesOf = (wrapper: HTMLElement) =>
   Array.from(wrapper.children).filter(
     (el): el is HTMLElement =>
@@ -136,11 +123,14 @@ function focusStep(
   const next = current ? pickNeighbour(boxes, current, side) : firstInView(boxes, view);
   if (!next) return null;
 
-  const target = next.querySelector<HTMLElement>(FOCUSABLE) ?? next;
-  // фокусируемым объект делаем в этот момент, а не в разметке всем подряд
-  if (target === next && !next.hasAttribute("tabindex")) next.tabIndex = -1;
+  /*
+   * Фокус получает сам объект, а не то, что внутри него: подсветка идёт по
+   * карточке целиком, и приложению есть что стилизовать — `.ms-object-box`.
+   * Фокусируемым он становится в этот момент, а не в разметке всем подряд.
+   */
+  if (!next.hasAttribute("tabindex")) next.tabIndex = -1;
 
-  target.focus({ preventScroll: true });
+  next.focus({ preventScroll: true });
 
   return {
     box: next,

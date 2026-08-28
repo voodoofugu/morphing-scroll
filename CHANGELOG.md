@@ -222,7 +222,8 @@ themselves are no longer transformed and can be positioned from CSS.
   focus. `mode: "step"` turns a page and reports through `onNavigate` as
   `"keys"`; `mode: "pan"` nudges by `step` pixels; `mode: "focus"` moves
   focus to the neighbouring object and the scroll follows it, picking the
-  neighbour by geometry so a grid walks its row and drops to the next one.
+  neighbour by geometry so a grid walks its row and drops to the next one
+  and focus landing on the `.ms-object-box` itself, to style as one card.
   Defaults to `"step"` in the slider modes and `"pan"` in `mode="scroll"`,
   takes only the keys of the scrolling axis in those two, and leaves the
   arrows alone inside a text field.

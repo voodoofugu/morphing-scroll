@@ -131,16 +131,19 @@ describe("focusStep", () => {
     expect(below?.delta.y).toBe(40); // 240 - 200
   });
 
-  it("hands focus to what is inside, so Enter keeps working", () => {
-    const { wrapper, scrollEl } = build(GRID, (i) => `<button>go ${i}</button>`);
+  it("focuses the object itself, not what it holds", () => {
+    // подсветка идёт по карточке целиком, иначе выделяется кнопка внутри
+    const { wrapper, scrollEl, boxes } = build(
+      GRID,
+      (i) => `<button>go ${i}</button>`,
+    );
 
     focusStep(wrapper, scrollEl, "bottom");
 
-    expect(document.activeElement?.tagName).toBe("BUTTON");
-    expect(focusedIndex()).toBe("0");
+    expect(document.activeElement).toBe(boxes[0]);
   });
 
-  it("makes a plain object focusable only when it has to", () => {
+  it("makes an object focusable only when it has to", () => {
     const { wrapper, scrollEl, boxes } = build();
 
     expect(boxes[0].hasAttribute("tabindex")).toBe(false);
@@ -148,6 +151,16 @@ describe("focusStep", () => {
     focusStep(wrapper, scrollEl, "bottom");
 
     expect(boxes[0].tabIndex).toBe(-1);
+    expect(document.activeElement).toBe(boxes[0]);
+  });
+
+  it("leaves a tabindex the author set alone", () => {
+    const { wrapper, scrollEl, boxes } = build();
+    boxes[0].tabIndex = 0;
+
+    focusStep(wrapper, scrollEl, "bottom");
+
+    expect(boxes[0].tabIndex).toBe(0);
     expect(document.activeElement).toBe(boxes[0]);
   });
 
