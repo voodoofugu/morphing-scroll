@@ -1324,17 +1324,28 @@ function App() {
               given
             </p>
 
-            <ToggleField
-              label="gamepad"
-              onChange={(value) => update("gamepad", value)}
-              value={settings.gamepad}
-            />
+          </SubGroup>
+
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("gamepad", value)}
+                value={settings.gamepad}
+              />
+            }
+            label="gamepad"
+            open={settings.gamepad}
+          >
             <p className="sub-note">
-              the README recipe, running live: right stick pans, d-pad steps
-              (or walks the objects, when <code>keys</code> is set to{" "}
-              <code>focus</code>).
-              Browsers hide a pad until it sends something — press a button
-              once. The reading is in the <code>gamepad</code> meter below
+              the README recipe, running live on the same <code>ref</code>:
+              right stick pans, d-pad steps — or walks the objects, when{" "}
+              <code>keys</code> is set to <code>focus</code>.
+            </p>
+            <p className="sub-note">
+              browsers hide a pad until it sends something: press any button
+              once. What it sends — every axis by index, and the buttons held
+              — shows in the <code>gamepad</code> meter under the surface.
             </p>
           </SubGroup>
         </ControlGroup>
