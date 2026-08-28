@@ -441,6 +441,13 @@ input[type="color"] {
     transform 160ms ease;
 }
 
+/* keys: focus — видно, куда ушёл фокус; сам объект стал фокусируемым */
+.playground-scroll .ms-object-box:focus,
+.playground-scroll .ms-object-box :focus-visible {
+  outline: 2px solid #0b8c92;
+  outline-offset: -2px;
+}
+
 .playground-scroll .ms-object-box.remove {
   opacity: 0.28;
   transform: scale(0.96);

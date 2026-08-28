@@ -70,7 +70,7 @@ type Settings = {
   wheelChangeDirectionBtn: string;
   contentDrag: boolean;
   keys: boolean;
-  keysMode: "pan" | "step";
+  keysMode: "pan" | "step" | "focus";
   keysStep: number;
   gamepad: boolean;
   progressElementMode: ProgressElementMode;
@@ -629,7 +629,9 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       : false,
     content: settings.contentDrag,
     keys: settings.keys
-      ? { mode: settings.keysMode, step: settings.keysStep }
+      ? settings.keysMode === "pan"
+        ? { mode: settings.keysMode, step: settings.keysStep }
+        : { mode: settings.keysMode }
       : false,
     bar: barForCode,
     arrows: settings.arrows
@@ -752,7 +754,8 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
 }
 
 type PadSample = {
-  axes: [number, number];
+  /** все оси, как их отдаёт устройство: [индекс, значение] */
+  axes: [number, number][];
   buttons: number[];
   id: string;
 };
@@ -771,6 +774,8 @@ function useGamepadScroll(
   scroll: React.RefObject<MorphScrollHandle | null>,
   enabled: boolean,
   onSample: (sample: PadSample | null) => void,
+  /** playground гоняет крестовину тем же способом, что выбран для клавиш */
+  dpad: "step" | "focus",
 ) {
   React.useEffect(() => {
     if (!enabled) {
@@ -826,18 +831,33 @@ function useGamepadScroll(
           continue;
         }
 
+        const move = () =>
+          dpad === "focus"
+            ? scroll.current?.moveFocus(side, { reason: "gamepad" })
+            : scroll.current?.step(side, { reason: "gamepad" });
+
         const due = held.get(button);
         if (due === undefined) {
-          scroll.current?.step(side, { reason: "gamepad" });
+          move();
           held.set(button, now + REPEAT.first);
         } else if (now >= due) {
-          scroll.current?.step(side, { reason: "gamepad" });
+          move();
           held.set(button, now + REPEAT.next);
         }
       }
 
+      /*
+       * Показываем все оси, а не только ту пару, которую крутит рецепт:
+       * раскладка у геймпадов разная, и когда стик «не работает», первое,
+       * что надо увидеть, — какой индекс он на самом деле шевелит.
+       */
       report({
-        axes: [Math.round(x * 20) / 20, Math.round(y * 20) / 20],
+        axes: pad.axes
+          .map((value, index): [number, number] => [
+            index,
+            Math.round(value * 20) / 20,
+          ])
+          .filter(([, value]) => Math.abs(value) >= 0.1),
         buttons: pad.buttons
           .map((b, i) => (b.pressed ? i : -1))
           .filter((i) => i >= 0),
@@ -847,7 +867,7 @@ function useGamepadScroll(
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [enabled, onSample, scroll]);
+  }, [dpad, enabled, onSample, scroll]);
 }
 
 function App() {
@@ -866,7 +886,12 @@ function App() {
   const [pad, setPad] = React.useState<PadSample | null>(null);
   const scrollRef = React.useRef<MorphScrollHandle>(null);
 
-  useGamepadScroll(scrollRef, settings.gamepad, setPad);
+  useGamepadScroll(
+    scrollRef,
+    settings.gamepad,
+    setPad,
+    settings.keys && settings.keysMode === "focus" ? "focus" : "step",
+  );
 
   const [scrollCommand, setScrollCommand] = React.useState<ScrollCommand>({
     duration: 220,
@@ -1305,7 +1330,9 @@ function App() {
               value={settings.gamepad}
             />
             <p className="sub-note">
-              the README recipe, running live: right stick pans, d-pad steps.
+              the README recipe, running live: right stick pans, d-pad steps
+              (or walks the objects, when <code>keys</code> is set to{" "}
+              <code>focus</code>).
               Browsers hide a pad until it sends something — press a button
               once. The reading is in the <code>gamepad</code> meter below
             </p>
@@ -1552,7 +1579,7 @@ function App() {
             <SelectField
               label="mode"
               onChange={(value) => update("keysMode", value)}
-              options={["pan", "step"] as const}
+              options={["pan", "step", "focus"] as const}
               value={settings.keysMode}
             />
             {settings.keysMode === "pan" && (
@@ -1566,7 +1593,9 @@ function App() {
             )}
             <p className="sub-note">
               the arrows work while the scroll has focus — click it, or Tab to
-              it, and only the keys of the scrolling axis are taken
+              it. <code>pan</code> and <code>step</code> take only the keys of
+              the scrolling axis; <code>focus</code> walks the objects and
+              takes all four
             </p>
           </SubGroup>
 
@@ -1877,17 +1906,21 @@ function App() {
               {resizeRect.width} x {resizeRect.height}
             </b>
           </div>
-          <div>
+          <div className="keys-meter">
             <span>gamepad</span>
             <b>
-              {!settings.gamepad
-                ? "off"
-                : !pad
-                  ? "waiting"
-                  : `${pad.axes[0]}, ${pad.axes[1]}${
-                      pad.buttons.length ? ` · ${pad.buttons.join(" ")}` : ""
-                    }`}
+              {!settings.gamepad ? "off" : !pad ? "waiting" : "connected"}
             </b>
+            {pad && (
+              <code>
+                {[
+                  pad.axes.map(([i, v]) => `${i}:${v}`).join(" "),
+                  pad.buttons.length ? `btn ${pad.buttons.join(" ")}` : "",
+                ]
+                  .filter(Boolean)
+                  .join("  ·  ") || "idle"}
+              </code>
+            )}
           </div>
           <div className="keys-meter">
             <span>rendered keys</span>

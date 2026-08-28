@@ -57,9 +57,10 @@ export type KeysConfig = {
    * what an arrow key does:
    * - `"step"`: *turns a page, the same move the arrow buttons make*
    * - `"pan"`: *nudges the content along, the way a plain scroll behaves*
+   * - `"focus"`: *moves focus from object to object and follows it*
    * @default `"step"` in the slider modes, `"pan"` in `mode="scroll"`
    */
-  mode?: "pan" | "step";
+  mode?: "pan" | "step" | "focus";
   /** how far one press nudges in `"pan"` */
   step?: number;
 };
@@ -180,6 +181,20 @@ export type MorphScrollHandle = {
    */
   pan: (
     delta: { x?: number; y?: number },
+    options?: { duration?: number; reason?: NavigateReason },
+  ) => void;
+  /**
+   * move focus to the neighbouring object and bring it into view — Tab, but
+   * aimed: the neighbour is picked by geometry, so a grid moves across its
+   * row and down to the next one.
+   *
+   * The object itself takes focus unless it holds something focusable, in
+   * which case that does — so `Enter` keeps working on a card built out of a
+   * button. Where the focus went is reported by the DOM, through the `focus`
+   * events of your own items.
+   */
+  moveFocus: (
+    side: "top" | "right" | "bottom" | "left",
     options?: { duration?: number; reason?: NavigateReason },
   ) => void;
 };

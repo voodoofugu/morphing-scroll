@@ -23,6 +23,7 @@ import Edge from "./Edge";
 import Arrow from "./Arrow";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
+import focusStep from "../helpers/focusStep";
 import handleMouseOrTouch from "../helpers/handleMouseOrTouch";
 import {
   objectsPerSize,
@@ -1410,6 +1411,40 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ],
     );
 
+    /*
+     * Стрелки как Tab, только прицельно: фокус переходит на соседний объект,
+     * а прокрутка догоняет его — ровно настолько, что бы он оказался в окне.
+     */
+    const moveFocusLocal = React.useCallback(
+      (
+        side: handleArrowT["arrowType"],
+        reason: NavigateReason,
+        duration: number,
+      ) => {
+        const scrollEl = scrollElementRef.current;
+        const moved = focusStep(objectsWrapperRef.current, scrollEl, side);
+        if (!moved || !scrollEl) return;
+
+        const axes: ("x" | "y")[] =
+          direction === "hybrid" ? ["x", "y"] : [direction];
+
+        const shift = axes.filter((axis) => moved.delta[axis]);
+        if (!shift.length) return; // объект и так в окне — двигать нечего
+
+        markNavigate(reason);
+
+        shift.forEach((axis) =>
+          smoothScrollLocal(
+            (axis === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop) +
+              moved.delta[axis],
+            axis,
+            duration,
+          ),
+        );
+      },
+      [direction, markNavigate, smoothScrollLocal],
+    );
+
     const onKeyDown = React.useCallback(
       (e: KeyboardEvent) => {
         if (keyDownX.current) return; // ранний выход
@@ -1437,12 +1472,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (isTextEntry(e.target)) return;
 
         const isVertical = side === "top" || side === "bottom";
-        if (direction === "x" && isVertical) return;
-        if (direction === "y" && !isVertical) return;
+
+        /*
+         * По оси прокрутки клавиши делятся только там, где стрелка её и
+         * двигает. В режиме фокуса она ходит по сетке, а сетка живёт поперёк
+         * оси тоже: в вертикальном списке в два столбца «вправо» — это шаг к
+         * соседу, а не попытка прокрутить вбок.
+         */
+        if (keysLocal.mode !== "focus") {
+          if (direction === "x" && isVertical) return;
+          if (direction === "y" && !isVertical) return;
+        }
 
         // забираем клавишу себе: иначе прокрутит ещё и браузер, и родитель
         e.preventDefault();
         e.stopPropagation();
+
+        if (keysLocal.mode === "focus") {
+          moveFocusLocal(side, "keys", scrollPositionLocal.duration);
+          return;
+        }
 
         if (keysLocal.mode === "step") {
           handleArrowLocal(side, "keys");
@@ -1470,6 +1519,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         progressTriggerST,
         keysLocal,
         handleArrowLocal,
+        moveFocusLocal,
         smoothScrollLocal,
         scrollPositionLocal.duration,
       ],
@@ -1739,11 +1789,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           if (delta.y)
             smoothScrollLocal(scrollEl.scrollTop + delta.y, "y", duration);
         },
+
+        moveFocus: (side, options) =>
+          moveFocusLocal(
+            side,
+            options?.reason ?? "keys",
+            options?.duration ?? scrollPositionLocal.duration,
+          ),
       }),
       [
         applyScrollPosition,
         scrollPositionLocal.duration,
         handleArrowLocal,
+        moveFocusLocal,
         smoothScrollLocal,
         markNavigate,
       ],

@@ -1,7 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { MorphScroll } from "@morphing-scroll/src";
-import type { MorphScroll as MorphScrollProps } from "@morphing-scroll/src/types/types";
+import type {
+  MorphScroll as MorphScrollProps,
+  MorphScrollHandle,
+} from "@morphing-scroll/src/types/types";
 
 /**
  * Minimal, deterministic fixtures for Playwright. Scenario is picked from the
@@ -320,6 +323,46 @@ scenarios.barWheel = (
     <div style={{ height: "150vh" }} />
   </>
 );
+
+/*
+ * Стрелки водят фокус по объектам, а прокрутка идёт за ним. Сетка нарочно в
+ * два столбца: шаг вбок должен работать и в вертикальном списке.
+ */
+scenarios.keysFocus = (
+  <MorphScroll
+    size={300}
+    objectsSize={100}
+    crossCount={2}
+    progressTrigger={{ keys: { mode: "focus" } }}
+    onScrollPosition={onScrollPosition}
+  >
+    {makeItems()}
+  </MorphScroll>
+);
+
+/** тот же список, но управляемый снаружи — как это делал бы геймпад */
+function FocusRig() {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  React.useEffect(() => {
+    (window as any).__ms = ref.current;
+  }, []);
+
+  return (
+    <MorphScroll
+      ref={ref}
+      size={300}
+      objectsSize={100}
+      crossCount={2}
+      onScrollPosition={onScrollPosition}
+      onNavigate={onNavigate}
+    >
+      {makeItems()}
+    </MorphScroll>
+  );
+}
+
+scenarios.focusCommand = <FocusRig />;
 
 const params = new URLSearchParams(window.location.search);
 const scenario = params.get("scenario") ?? "wheel";

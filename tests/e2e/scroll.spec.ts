@@ -169,3 +169,59 @@ test.describe("MorphScroll keys (real browser)", () => {
     expect(await scrollTopOf(page)).toBe(0);
   });
 });
+
+test.describe("MorphScroll keys: focus (real browser)", () => {
+  const focused = (page: Page) =>
+    page.evaluate(() => document.activeElement?.textContent ?? "");
+
+  test("the first arrow takes what is on screen, the next moves on", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=keysFocus");
+    await page.locator(".ms-viewport").click({ position: { x: 250, y: 20 } });
+
+    await page.keyboard.press("ArrowDown");
+    expect(await focused(page)).toBe("item 0");
+
+    // сетка в два столбца: вниз — это через строку
+    await page.keyboard.press("ArrowDown");
+    expect(await focused(page)).toBe("item 2");
+  });
+
+  test("sideways works in a vertical list too", async ({ page }) => {
+    await page.goto("/?scenario=keysFocus");
+    await page.locator(".ms-viewport").click({ position: { x: 250, y: 20 } });
+
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowRight");
+
+    expect(await focused(page)).toBe("item 1");
+  });
+
+  test("the scroll follows the focus out of view", async ({ page }) => {
+    await page.goto("/?scenario=keysFocus");
+    await page.locator(".ms-viewport").click({ position: { x: 250, y: 20 } });
+
+    for (let i = 0; i < 6; i++) await page.keyboard.press("ArrowDown");
+
+    await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(100);
+    expect(await focused(page)).toBe("item 10");
+
+    // и уехало ровно настолько, что бы объект попал в окно, а не на страницу
+    await expect.poll(() => scrollTopOf(page)).toBeLessThan(400);
+  });
+
+  test("moveFocus does the same for a device the library never heard of", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=focusCommand");
+
+    await page.evaluate(() => (window as any).__ms.moveFocus("bottom"));
+    expect(await focused(page)).toBe("item 0");
+
+    await page.evaluate(() =>
+      (window as any).__ms.moveFocus("bottom", { reason: "gamepad" }),
+    );
+    expect(await focused(page)).toBe("item 2");
+  });
+});
