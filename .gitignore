@@ -11,3 +11,6 @@ test-results
 
 # local tooling
 .claude
+
+# рабочие скрипты миграции проектов — не часть библиотеки
+migration/
