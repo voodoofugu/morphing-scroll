@@ -261,3 +261,29 @@ describe("MorphScroll — props with no visible markup", () => {
     expect(container.querySelector(".sk")).not.toBeNull();
   });
 });
+
+describe("MorphScroll — size auto before anything is measured", () => {
+  /*
+   * `size="auto"` до первого измерения — ноль, а страниц слайдера ровно
+   * столько, сколько окон помещается в контенте: деление на этот ноль
+   * давало бесконечность, и бар пытался отрисовать бесконечный список точек.
+   */
+  it("renders a slider that does not know its viewport yet", () => {
+    expect(() =>
+      render(
+        <MorphScroll
+          size="auto"
+          mode="slider"
+          direction="hybrid"
+          objectsSize={[155, 112]}
+          crossCount={3}
+          progressTrigger={{ wheel: true, bar: <i /> }}
+        >
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={`item-${i}`}>item {i}</div>
+          ))}
+        </MorphScroll>,
+      ),
+    ).not.toThrow();
+  });
+});

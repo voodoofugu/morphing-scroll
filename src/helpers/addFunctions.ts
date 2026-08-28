@@ -6,10 +6,16 @@ import CONST from "../constants";
 import type { Tasks } from "./createTasks";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
-  if (availableSize <= objectSize) return 1;
+  /*
+   * Пока размер окна не измерен, он ноль — а делить на ноль значит получить
+   * бесконечность и попытаться отрисовать бесконечный список точек слайдера.
+   * До первого измерения страница ровно одна.
+   */
+  if (!(objectSize > 0) || availableSize <= objectSize) return 1;
+
   const objects = Math.floor(availableSize / objectSize);
 
-  return objects;
+  return Number.isFinite(objects) ? objects : 1;
 }
 
 /*
