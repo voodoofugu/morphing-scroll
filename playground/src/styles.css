@@ -644,17 +644,28 @@ input[type="color"] {
   font-weight: 800;
 }
 
-.playground-scroll .ms-slider-item.active {
+/* класс из 2.x назывался `active`; в 3.0 у всех классов есть префикс */
+.playground-scroll .ms-slider-item.ms-active {
   background: #0b8c92;
   color: #ffffff;
 }
 
 .slider-progress-dot {
   display: block;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: currentColor;
+  opacity: 0.55;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+/* страница, на которой стоим: точка в активном пункте */
+.playground-scroll .ms-slider-item.ms-active .slider-progress-dot {
+  opacity: 1;
+  transform: scale(1.35);
 }
 
 .slider-menu-button {
