@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, act, fireEvent } from "@testing-library/react";
 import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
 import type { MorphScrollHandle } from "@morphing-scroll/src/types/types";
@@ -106,5 +106,41 @@ describe("MorphScroll — step and pan", () => {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     expect(onNavigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("MorphScroll — pan as a stick sends it", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  /*
+   * Стик опрашивают каждый кадр и двигают на маленькую долю, а не на
+   * страницу: `duration: 0` значит «поставь сюда сейчас», без анимации.
+   */
+  const stick = (ref: React.RefObject<MorphScrollHandle | null>, frames: number) => {
+    act(() => vi.advanceTimersToNextFrame()); // кадр после монтирования
+
+    for (let i = 0; i < frames; i++) {
+      act(() => ref.current!.pan({ y: 14 }, { duration: 0 }));
+      act(() => vi.advanceTimersToNextFrame());
+    }
+  };
+
+  it("adds up frame after frame", () => {
+    const { el, ref } = mount();
+
+    stick(ref, 20);
+
+    expect(el.scrollTop).toBeGreaterThan(250);
+  });
+
+  it("moves in the same frame it was asked", () => {
+    // кадр задержки на каждом опросе и есть дёрганье вместо движения
+    const { el, ref } = mount();
+    act(() => vi.advanceTimersToNextFrame());
+
+    act(() => ref.current!.pan({ y: 14 }, { duration: 0 }));
+
+    expect(el.scrollTop).toBe(14);
   });
 });

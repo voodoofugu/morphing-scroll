@@ -28,10 +28,19 @@ async function checkScrollReady(el: Element) {
 }
 
 /*
- * Куда едет анимация каждой оси — по элементу, а значит по инстансу.
- * Нужно, что бы отличить повторный запрос той же цели от новой.
+ * Куда едет анимация каждой оси — по элементу, а значит по инстансу. Нужно,
+ * что бы отличить повторный запрос той же цели от новой, а `alive` гасит
+ * кадры прошлой анимации: снятая задача их уже не остановит.
  */
-const aimedAt = new WeakMap<Element, { x: number | null; y: number | null }>();
+type Aim = { target: number; alive: boolean };
+const aimedAt = new WeakMap<Element, { x: Aim | null; y: Aim | null }>();
+
+const aimsOf = (el: Element) => {
+  let aims = aimedAt.get(el);
+  if (!aims) aimedAt.set(el, (aims = { x: null, y: null }));
+
+  return aims;
+};
 
 async function smoothScroll(
   direction: "x" | "y",
@@ -69,6 +78,26 @@ async function smoothScroll(
    */
   const rafKey = `smoothScroll${direction}`;
 
+  const aims = aimsOf(scrollEl);
+
+  const drop = () => {
+    if (aims[direction]) aims[direction]!.alive = false;
+    aims[direction] = null;
+    tasks.cancelTask(lockKey);
+  };
+
+  /*
+   * Ноль — это не анимация в ноль секунд, а «поставь сюда сейчас». Стик
+   * геймпада шлёт такой сдвиг каждый кадр, и лишний кадр задержки на каждом
+   * из них превращал движение в дёрганье на месте.
+   */
+  if (duration <= 0) {
+    drop();
+    scrollEl[topOrLeft] = clampedTargetScroll;
+
+    return;
+  }
+
   /*
    * Замок бережёт анимацию от рестарта на каждом кадре, но цель умеет уезжать
    * из-под неё: в чате дорастал контент, пока мы ехали к прежнему концу, и
@@ -76,20 +105,21 @@ async function smoothScroll(
    * Та же цель по-прежнему игнорируется, новая — перенацеливает.
    */
   if (tasks.hasTask(lockKey)) {
-    if (aimedAt.get(scrollEl)?.[direction] === clampedTargetScroll) return;
+    if (aims[direction]?.target === clampedTargetScroll) return;
 
-    tasks.cancelTask(lockKey);
+    drop();
   }
 
-  const aim = aimedAt.get(scrollEl) ?? { x: null, y: null };
-  aim[direction] = clampedTargetScroll;
-  aimedAt.set(scrollEl, aim);
+  const aim: Aim = { target: clampedTargetScroll, alive: true };
+  aims[direction] = aim;
 
   tasks.setLockTask(
     () => {
       const startTime = performance.now();
 
       const animate = () => {
+        if (!aim.alive) return; // цель сменилась — этот кадр уже не наш
+
         const currentTime = performance.now();
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
