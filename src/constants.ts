@@ -1,9 +1,17 @@
 const CONST = {
-  WRAP_ATR: "wrap-id", // Attribute for identifying scroll wrappers
+  WRAP_ATR: "ms-wrap-id", // Attribute for identifying scroll wrappers
+  BAR_AXIS_ATR: "ms-direction", // which axis a bar belongs to
+  BAR_VISIBILITY_VAR: "--ms-bar-visibility", // 0/1 while progressTrigger.bar.showOnHover is on
+  EDGE_VISIBILITY_VAR: "--ms-edge-visibility", // 0/1 when content is cut off at an edge
+  CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while render.trackVisibility is on
+  SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
   SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation
   SCROLL_END_DELAY: 200, // Delay before marking scroll as ended (ms)
+  END_STICK_THRESHOLD: 16, // px — на таком расстоянии от конца скролл всё ещё «внизу»
+  SCROLL_READY_MAX_FRAMES: 60, // Frames to wait for the content to become scrollable
+  SLIDER_AIM_DURATION: 120, // ms — перелёт к пункту, в который целится жест по бару
 
   // инерция для прокрутки
   MIN_VELOCITY: 0.05, // px/ms

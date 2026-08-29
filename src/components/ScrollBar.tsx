@@ -1,7 +1,13 @@
 import React from "react";
-import type { MorphScroll, Vec2 } from "../types/types";
+import type {
+  MorphScroll,
+  NavigateReason,
+  ProgressTriggerConfig,
+  Vec2,
+} from "../types/types";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
+import CONST from "../constants";
 
 type OnCustomScrollFn = (
   targetScrollTop: number,
@@ -10,16 +16,20 @@ type OnCustomScrollFn = (
   callback?: () => void,
 ) => void;
 
-type ModifiedProps = Pick<
-  MorphScroll,
-  "type" | "progressReverse" | "scrollBarOnHover" // выбираю нужное
-> & {
+type ModifiedProps = Pick<MorphScroll, "mode"> & {
+  /** уже разобранная конфигурация бегунка, по одной оси */
+  element: React.ReactNode | React.ReactNode[];
+  reverse: boolean;
+  edgeGap: number;
+  showOnHover: boolean;
   size: number[];
   scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
   sliderCheckLocal: () => void;
+  /** пометить, что следующий переход начал бар, а не сам контент */
+  markNavigate: (reason: NavigateReason) => void;
   duration: number;
   isTouched: boolean;
   scrollStateRef: React.RefObject<ScrollStateRefT>;
@@ -31,22 +41,25 @@ type ModifiedProps = Pick<
     y: number;
   }>;
   direction: "x" | "y" | "hybrid";
-  progressTrigger: [NonNullable<MorphScroll["progressTrigger"]>, number];
+  progressTrigger: [ProgressTriggerConfig, number];
   maxScrollSize: Vec2;
 };
 
 const ScrollBar = ({
-  type,
+  mode,
   direction,
-  progressReverse,
+  element: progressElement,
+  reverse: progressReverse,
+  edgeGap,
+  showOnHover: scrollBarOnHover,
   size,
   progressTrigger,
-  scrollBarOnHover,
   scrollBarEvent,
   thumbSize,
   thumbSpace,
   objLengthPerSize,
   sliderCheckLocal,
+  markNavigate,
   duration,
   isTouched,
   scrollStateRef,
@@ -72,22 +85,23 @@ const ScrollBar = ({
 
   // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
-    if (type === "scroll") return;
+    if (mode === "scroll") return;
 
     const neededSize = size[axis === "x" ? 0 : 1];
 
     return Array.from({ length: objLengthPerSize }, (_, index) => (
       <div
         key={index}
-        className="ms-slider-element"
+        className="ms-slider-item"
         style={{
-          ...(type === "sliderMenu" && {
+          ...(mode === "sliderMenu" && {
             cursor: "pointer",
           }),
         }}
         onClick={
-          type === "sliderMenu"
+          mode === "sliderMenu"
             ? () => {
+                markNavigate("bar");
                 (scrollBarEvent as OnCustomScrollFn)(
                   neededSize * index,
                   axis,
@@ -98,17 +112,18 @@ const ScrollBar = ({
             : undefined
         }
       >
-        {Array.isArray(progressTrigger[0].progressElement)
-          ? progressTrigger[0].progressElement[index]
-          : progressTrigger[0].progressElement}
+        {Array.isArray(progressElement)
+          ? progressElement[index]
+          : progressElement}
       </div>
     ));
   }, [
     objLengthPerSize,
-    type,
+    mode,
     progressTrigger[1], // только для memo
     duration,
     sliderCheckLocal,
+    markNavigate,
     size[0],
     size[1],
     scrollBarEvent,
@@ -122,11 +137,19 @@ const ScrollBar = ({
 
   // для позиционирования пользовательского бегунка (стабилизирует анимацию на height)
   const thumbFlex =
-    type !== "scroll"
+    mode !== "scroll"
       ? ""
       : thumbSize + thumbSpace * 2 > axisSize
         ? "flex-end"
         : "flex-start";
+
+  /*
+   * Диапазон прокрутки меняется вместе с контентом, а слушатель колеса
+   * вешается один раз — держим актуальное значение в ref, иначе колесо над
+   * баром считает по размеру, который был на момент монтирования.
+   */
+  const maxScrollSizeRef = React.useRef(maxScrollSize);
+  maxScrollSizeRef.current = maxScrollSize;
 
   // - effects -
   React.useEffect(() => {
@@ -137,35 +160,43 @@ const ScrollBar = ({
     const scrollElem = scrollEl.current;
     if (!el || !scrollElem) return;
 
-    let prev = el.previousElementSibling as HTMLElement | null;
-    while (prev && !prev.classList.contains("ms-element"))
-      prev = prev.previousElementSibling as HTMLElement | null;
+    const onWheel = (e: WheelEvent) => {
+      /*
+       * stopPropagation молчит только для чужих слушателей, а прокрутку по
+       * умолчанию браузер всё равно отдаёт ближайшему прокручиваемому предку:
+       * колесо над баром двигало и содержимое скролла, и страницу под ним.
+       */
+      e.stopPropagation();
+      e.preventDefault();
 
-    const onWheel = (e: WheelEvent) =>
       handleWheel(
         e,
         scrollElem,
-        maxScrollSize,
+        maxScrollSizeRef.current,
         scrollStateRef.current!,
         dataDirection,
       );
+    };
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [dataDirection]);
+  }, [dataDirection, isTouched, progressTrigger[1]]);
 
   React.useEffect(() => {
     // добавление клика на scrollBar или thumb
-    const el = type === "slider" ? scrollBarRef.current : thumbRef.current;
-    if (!el || type === "sliderMenu") return;
+    const el = mode === "slider" ? scrollBarRef.current : thumbRef.current;
+    if (!el || mode === "sliderMenu") return;
 
-    const handleStart = (e: PointerEvent) =>
+    const handleStart = (e: PointerEvent) => {
+      // страницу перелистнёт снап после отпускания, но начал её бар
+      if (mode === "slider") markNavigate("bar");
       (scrollBarEvent as (e: PointerEvent) => void)(e);
+    };
 
     el.addEventListener("pointerdown", handleStart);
 
     return () => el.removeEventListener("pointerdown", handleStart);
-  }, [scrollBarEvent, type]);
+  }, [scrollBarEvent, mode, markNavigate]);
 
   React.useEffect(() => {
     // добавление элементов в ref
@@ -182,39 +213,53 @@ const ScrollBar = ({
 
   const commonStyles: React.CSSProperties = {
     position: "absolute",
-    ...(scrollBarOnHover && {
-      opacity: 0,
-      transition: "opacity 0.2s ease-in-out",
-    }),
+    // стартовое состояние; дальше его двигают addHover/removeHover
+    ...(scrollBarOnHover && { [CONST.BAR_VISIBILITY_VAR]: 0 }),
   };
 
   // - render -
   const content = (
     <React.Fragment>
-      {type === "scroll" ? (
+      {mode === "scroll" ? (
         <div
           className={`ms-bar ms-${dataDirection}`}
           ref={scrollBarRef}
-          data-direction={dataDirection} // доп логика
+          {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
           style={{
             ...commonStyles,
             width: "fit-content",
             height: `${axisSize}px`,
+            /*
+             * `edgeGap` отодвигает бар от той стороны, на которой он стоит;
+             * отрицательное значение уводит его за край.
+             *
+             * По оси x бар лежит боком: до поворота это высокий столбик длиной
+             * во всю ширину скролла, и привязывать его к низу через `bottom`
+             * нельзя — `bottom` считает по неповёрнутой высоте, то есть по
+             * длине бара, и уносит его на эту длину вверх. После поворота
+             * вокруг левого верхнего угла бар висит НАД точкой привязки, так
+             * что якорем должен быть его нижний край.
+             */
             ...(direction === "x"
               ? {
                   transformOrigin: "left top",
                   left: "50%",
                   ...(progressReverse
                     ? {
-                        top: 0,
+                        top: `${edgeGap}px`,
                         transform: "rotate(-90deg) translate(-100%, -50%)",
                       }
-                    : { transform: "rotate(-90deg) translateY(-50%)" }),
+                    : {
+                        top: `calc(100% - ${edgeGap}px)`,
+                        transform: "rotate(-90deg) translateY(-50%)",
+                      }),
                 }
               : {
                   top: "50%",
                   transform: "translateY(-50%)",
-                  ...(progressReverse ? { left: 0 } : { right: 0 }),
+                  ...(progressReverse
+                    ? { left: `${edgeGap}px` }
+                    : { right: `${edgeGap}px` }),
                 }),
           }}
         >
@@ -225,7 +270,7 @@ const ScrollBar = ({
               height: `${thumbSizeLocal}px`,
               // willChange: "transform, height", // свойство убирает артефакты во время анимации
               transform: `translateY(${thumbSpaceLocal}px)`,
-              ...(progressTrigger[0].progressElement && {
+              ...(progressElement && {
                 cursor: "grab",
               }),
               // стили помогающие выровнять thumb что бы он не вылетал за края (если добавлена анимация)
@@ -233,20 +278,20 @@ const ScrollBar = ({
               alignItems: thumbFlex,
             }}
           >
-            {progressTrigger[0].progressElement}
+            {progressElement}
           </div>
         </div>
       ) : (
         objLengthPerSize > 1 && // что бы не показывать один бегунок при size: 1
-        progressTrigger[0].progressElement && (
+        progressElement && (
           <div
             className={`ms-slider ms-${dataDirection}`}
             ref={scrollBarRef}
-            data-direction={dataDirection} // доп логика
+            {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
             style={{
               ...commonStyles,
               display: "flex",
-              ...(type === "slider" && {
+              ...(mode === "slider" && {
                 cursor: "grab",
               }),
               ...(direction === "x"
@@ -254,13 +299,17 @@ const ScrollBar = ({
                     transformOrigin: "left top",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    ...(progressReverse ? { top: 0 } : { bottom: 0 }),
+                    ...(progressReverse
+                      ? { top: `${edgeGap}px` }
+                      : { bottom: `${edgeGap}px` }),
                   }
                 : {
                     flexDirection: "column",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    ...(progressReverse ? { left: 0 } : { right: 0 }),
+                    ...(progressReverse
+                      ? { left: `${edgeGap}px` }
+                      : { right: `${edgeGap}px` }),
                   }),
             }}
           >

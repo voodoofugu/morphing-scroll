@@ -50,6 +50,8 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
 > - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements.
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
+> - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
+> - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressTrigger={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
 > - Due to frequent DOM updates for customization, performance may decrease when DevTools are open, as the browser needs extra resources to track changes.
 > - ! This library is currently under development. APIs and behavior may change in future releases.
 
@@ -101,18 +103,18 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 ###### **— SCROLL —**
 
-<details><summary><b><code>type</code></b></summary><br /><ul><div>
+<details><summary><b><code>mode</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-type: "slider"; // or "scroll" | "sliderMenu"
+mode: "slider"; // or "scroll" | "sliderMenu"
 ```
 
 <b>Default:</b><br />
 "scroll"<br />
 <br />
 <b>Description:</b><em><br />
-defines how the provided <code>progressElement</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
+defines how the provided <code>bar</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
 <br />
 <code><b>scroll</b></code>:<br />
 the default value and represents a standard scrollbar.<br />
@@ -121,17 +123,17 @@ the default value and represents a standard scrollbar.<br />
 displays distinct elements indicating the number of full scroll steps within the list.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-like <code>slider</code>, but the <code>progressElement</code> is a menu, an you can provide custom buttons as an array in the <code>progressElement</code>.<br />
+like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
 </em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} type="slider">
+<MorphScroll {...props} mode="slider">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-type.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-mode.png)
 
 </div></ul></details>
 
@@ -141,14 +143,14 @@ like <code>slider</code>, but the <code>progressElement</code> is a menu, an you
 <b>Usage:</b><br />
 
 ```tsx
-size: "x"; // or "y" | "hybrid"
+direction: "x"; // or "y" | "hybrid"
 ```
 
 <b>Default:</b><br />
 "y"<br />
 <br />
 <b>Description:</b><em><br />
-changes the scroll or slider type direction based on the provided value.<br />
+changes the scroll or slider direction based on the provided value.<br />
 You can set the value to horizontal, vertical or hybrid positions to customize the component according to your needs.</em><br />
 <br />
 <b>Example:</b>
@@ -182,7 +184,6 @@ scrollPosition: 10 // or "end" | null | array if direction="hybrid"
 scrollPosition: {
   value: 10; // or "end" | null | array if direction="hybrid"
   duration: 400;
-  updater: true;
 }
 ```
 
@@ -190,7 +191,7 @@ scrollPosition: {
 </ul>
 
 <b>Default:</b><br />
-{ duration: 200; updater: false }<br />
+{ duration: 200 }<br />
 <br />
 <b>Description:</b><em><br />
 allows you to set custom scroll values.<br />
@@ -206,8 +207,8 @@ You can also provide an array of two values to specific positions ( e.g., [ x, y
 <code><b>duration</b></code>:<br />
 property determines the animation speed for scrolling in <b>ms</b>.<br />
 <br />
-<code><b>updater</b></code>:<br />
-property is a helper for the <code>value</code>. When setting the same scroll value repeatedly, React does not register the update and you can use it to force an update</em><br />
+✦ Note:<br />
+<code>scrollPosition</code> describes <b>where the scroll is</b>, so it only reacts when the value changes. To run the same scroll again — back to the top twice, for instance — call <code>scrollTo</code> on the component <code>ref</code>, see below.</em><br />
 <br />
 <b>Example:</b>
 
@@ -223,69 +224,183 @@ property is a helper for the <code>value</code>. When setting the same scroll va
 
 <h2></h2>
 
-<details><summary><b><code>onScrollValue</code></b></summary><br /><ul><div>
+<details><summary><b><code>ref</code></b> <em>(imperative commands)</em></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+const scroll = useRef<MorphScrollHandle>(null);
+
+<MorphScroll ref={scroll} size={300}>
+  {children}
+</MorphScroll>;
+
+scroll.current?.scrollTo(0);
+scroll.current?.scrollTo("end", { duration: 0 });
+```
+
 <b>Description:</b><em><br />
-accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
+props describe state, methods do something now. <code>scrollPosition</code> is the first kind: it applies when its value changes. <code>scrollTo</code> is the second: it runs every time it is called, so asking for a position that is already set works.<br />
 <br />
+<code><b>scrollTo(target, options?)</b></code>:<br />
+
+<ul>
+  <li><code>target</code>: same shape as <code>scrollPosition.value</code> — a <b>number</b>, <b>"end"</b>, <b>null</b>, or an array of two for <code>direction="hybrid"</code>.</li><br />
+  <li><code>options.duration</code>: animation length in <b>ms</b>; <b>0</b> jumps without animating. Defaults to the <code>scrollPosition</code> duration.</li>
+</ul>
+
+Unlike the declarative <b>"end"</b>, which keeps following new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
+<br />
+<code><b>step(side, options?)</b></code>:<br />
+turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run unless <code>arrows.loop</code> is on.<br />
+<br />
+<code><b>pan(delta, options?)</b></code>:<br />
+nudges the content by <code>{ x, y }</code> pixels. Plain movement, so it shows up in <code>onScrollPosition</code>; it only reaches <code>onNavigate</code> if it settles on a new page of a slider.<br />
+<br />
+<code><b>moveFocus(side, options?)</b></code>:<br />
+moves focus to the neighbouring object and brings it into view — the same move <code>keys: { mode: "focus" }</code> makes, for a device that has no arrow keys. Nothing happens at the edge of the run.<br />
+<br />
+<code><b>options.reason</b></code>:<br />
+any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
+</em>
+
+<b>Recipe — a gamepad:</b>
+
+<em>The Gamepad API has no events, only a snapshot you read per frame, so driving a scroll with one is a loop plus two rules: the stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
+
+```tsx
+const DEAD_ZONE = 0.15; // сколько стик отдаёт, лёжа в покое
+const PAN_PER_SECOND = 900; // px при полностью отклонённом стике
+const REPEAT = { first: 400, next: 120 }; // автоповтор удержанной кнопки, ms
+
+function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
+  React.useEffect(() => {
+    let frame = 0;
+    let last = performance.now();
+    const held = new Map<number, number>(); // кнопка -> когда сработает снова
+
+    const DPAD = { 12: "top", 13: "bottom", 14: "left", 15: "right" } as const;
+
+    const tick = (now: number) => {
+      frame = requestAnimationFrame(tick);
+
+      // кадр мог быть длинным: считаем от времени, а не от количества кадров
+      const delta = Math.min(now - last, 100) / 1000;
+      last = now;
+
+      const pad = navigator.getGamepads().find(Boolean);
+      if (!pad) return held.clear();
+
+      // — правый стик: непрерывное движение —
+      const [x, y] = [pad.axes[2] ?? 0, pad.axes[3] ?? 0].map((value) =>
+        Math.abs(value) < DEAD_ZONE ? 0 : value,
+      );
+
+      if (x || y)
+        scroll.current?.pan(
+          { x: x * PAN_PER_SECOND * delta, y: y * PAN_PER_SECOND * delta },
+          { duration: 0, reason: "gamepad" },
+        );
+
+      // — крестовина: шаг на нажатие, а не на кадр —
+      for (const [index, side] of Object.entries(DPAD)) {
+        const button = Number(index);
+
+        if (!pad.buttons[button]?.pressed) {
+          held.delete(button);
+          continue;
+        }
+
+        const due = held.get(button);
+        if (due === undefined) {
+          scroll.current?.step(side, { reason: "gamepad" });
+          held.set(button, now + REPEAT.first);
+        } else if (now >= due) {
+          scroll.current?.step(side, { reason: "gamepad" });
+          held.set(button, now + REPEAT.next);
+        }
+      }
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [scroll]);
+}
+```
+
+<em>Swap <code>step</code> for <code>moveFocus</code> in the d-pad branch and the same loop walks the objects instead of turning pages — a highlight moving card to card, which is what a controller usually wants.</em>
+
+<b>The stick, moving through objects instead of panning:</b>
+
+<em>A stick is a position, not an event, so the discrete move belongs to the crossing: it fires when the stick leaves the centre, and coming back re-arms it. Everything else is the same loop.</em>
+
+```tsx
+const THRESHOLD = 0.5;
+const aimed = { x: 0, y: 0 }; // куда стик отклонён сейчас: -1, 0 или 1
+
+const tilt = (value: number) =>
+  value > THRESHOLD ? 1 : value < -THRESHOLD ? -1 : 0;
+
+// внутри tick, вместо ветки со стиком
+const next = { x: tilt(pad.axes[2] ?? 0), y: tilt(pad.axes[3] ?? 0) };
+
+for (const axis of ["x", "y"] as const) {
+  if (next[axis] === aimed[axis]) continue; // отклонение то же — шаг уже был
+
+  aimed[axis] = next[axis];
+  if (!next[axis]) continue; // вернулся в центр — просто взводим обратно
+
+  const side =
+    axis === "x"
+      ? next.x > 0
+        ? "right"
+        : "left"
+      : next.y > 0
+        ? "bottom"
+        : "top";
+
+  scroll.current?.moveFocus(side, { reason: "gamepad" });
+}
+```
+
+<em>For auto-repeat while it is held, reach for the same <code>held</code> map the d-pad uses: remember when the next one is due and compare against <code>now</code>.<br />
+<br />
+Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
+<br />
+Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is the reason polling stays out here: a game already has an input layer and a frame loop, and a loop inside the scroll would have to guess which of several scrolls on the page the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect exactly the same way; only the reason changes.</em>
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>autoScrollOnDrag</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+autoScrollOnDrag: true;
+```
+
+<b>Description:</b><em><br />
+enables automatic scrolling when dragging elements near the edges of the container.<br />
+Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
+<br />
+✦ Note:<br />
+while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props}
-  onScrollValue={
-    (left, top) => console.log("Scroll position:", left, top),
-  }
->
+<MorphScroll {...props} autoScrollOnDrag>
   {children}
 </MorphScroll>
 ```
 
-</div></ul></details>
-  
-<h2></h2>
-
-<details><summary><b><code>isScrolling</code></b></summary><br /><ul><div>
-<b>Description:</b><em><br />
-accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  isScrolling={(motion) => {
-    console.log(motion ? "Scrolling..." : "Scroll stopped.");
-  }}
->
-  {children}
-</MorphScroll>
-```
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-autoScrollOnDrag.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
-<b>Description:</b><em><br />
-accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  onRenderedKeysChange={(keys) => {
-    console.log("Rendered keys:", keys);
-  }}
->
-  {children}
-</MorphScroll>
-```
-
-</div></ul></details>
-
-<h2></h2>
-
-###### **— VISUAL —**
+###### **— SIZE —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -321,7 +436,7 @@ adds the <code>ResizeTracker</code> component to measure the width and height of
 <b>Usage:</b><br />
 
 ```tsx
-objectsSize: 100; // or [100, 70] | "size" | "firstChild" | "none"
+objectsSize: 100; // or [100, 70] | "full" | "firstChild" | "none"
 ```
 
 <b>Description:</b><em><br />
@@ -330,7 +445,7 @@ defines the <b>[width, height]</b> of cells for each of your objects.<br />
 <code>number</code>:<br />
 sets a fixed size for your custom objects.<br />
 <br />
-<code><b>"size"</b></code>:<br />
+<code><b>"full"</b></code>:<br />
 the dimensions will be taken from <code>size</code>.<br />
 <br />
 <code><b>"firstChild"</b></code>:<br />
@@ -364,7 +479,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 ✦ Note:<br />
 <ul>
   <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
-  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of the <code>elementsDirection</code>, but not exceeding the total number of passed elements.</li>
+  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of the <code>objectsDirection</code>, but not exceeding the total number of passed elements.</li>
 </ul></em><br />
 <br />
 <b>Example:</b>
@@ -405,119 +520,57 @@ allows you to set spacing in pixels between list items for rows and columns.<br 
 
 <h2></h2>
 
-<details><summary><b><code>wrapperMargin</code></b></summary><br /><ul><div>
+<details><summary><b><code>wrapper</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-wrapperMargin: 10; // or [v, h] | [t, r, b, l]
+wrapper: {
+  margin: 10,      // or [x, y] | [t, r, b, l]
+  minSize: "full", // or a number | ["full", 10]
+  align: "center", // or "start" | "end" | ["center", "start"]
+}
 ```
 
 <b>Description:</b><em><br />
-defines the spacing between the list items and their wrapper, effectively increasing the width or height of the scrollable area.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} wrapperMargin={10}>
-  {children}
-</MorphScroll>
-```
+everything about <b>.ms-objects-wrapper</b>, the box that holds your objects, in one place.<br />
+<br />
+<code><b>margin</b></code>:<br />
+spacing between the objects and their wrapper, which grows the scrollable area by the same amount.<br />
+</em>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMargin.png)
 
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>wrapperMinSize</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-<ul>
-  <li><b>Simple</b>:<br />
-  
-```tsx
-wrapperMinSize: 10 // or "full"
-```
-
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-// if direction="hybrid"
-wrapperMinSize: [
-  "full",
-  10,
-] // or one value for both sides
-```
-
-  </li>
-</ul>
-
-<b>Description:</b><em><br />
-defines the minimum height or width of the <b>.ms-objects-wrapper</b>, to which CSS properties like <code>min-height</code> or <code>min-width</code> will be applied.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} wrapperMinSize={"full"}>
-  {children}
-</MorphScroll>
-```
+<em><code><b>minSize</b></code>:<br />
+the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.<br />
+</em>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMinSize.png)
 
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>wrapperAlign</code></b></summary><br /><ul><div> 
-<b>Usage:</b><br />
-
-<ul>
-  <li><b>Simple</b>:<br />
-  
-```tsx
-wrapperAlign: "center" // or "start" | "end"
-```
-
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-wrapperAlign: [
-  "center",
-  "start",
-] // or one value for both axes
-```
-
-  </li>
-</ul>
-
-<b>Default:</b><br />
-"start"<br />
-<br />
-<b>Description:</b><em><br />
-aligns the <b>.ms-objects-wrapper</b>, which contains all the provided elements, relative to the scroll or the <code>size</code>.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} wrapperAlign="center">
-  {children}
-</MorphScroll>
-```
+<em><code><b>align</b></code>:<br />
+where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b>"start"</b>. One value aligns both axes, a pair aligns them separately.<br />
+</em>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperAlign.png)
 
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} wrapper={{ margin: 10, align: "center" }}>
+  {children}
+</MorphScroll>
+```
+
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>elementsAlign</code></b></summary><br /><ul><div>
+###### **— LAYOUT —**
+
+<details><summary><b><code>objectsAlign</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-elementsAlign: "center"; // or "start" | "end"
+objectsAlign: "center"; // or "start" | "end"
 ```
 
 <b>Default:</b><br />
@@ -526,22 +579,22 @@ elementsAlign: "center"; // or "start" | "end"
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} elementsAlign="center">
+<MorphScroll {...props} objectsAlign="center">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-elementsAlign.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsAlign.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>elementsDirection</code></b></summary><br /><ul><div>
+<details><summary><b><code>objectsDirection</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-elementsDirection: "row"; // or "column"
+objectsDirection: "row"; // or "column"
 ```
 
 <b>Default:</b><br />
@@ -553,83 +606,37 @@ changes the order of the provided elements based on the provided value.</em><br 
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} elementsDirection="column">
+<MorphScroll {...props} objectsDirection="column">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-elementsDirection.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsDirection.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>edgeGradient</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-<ul>
-  <li><b>Simple</b>:<br />
-  
-```tsx
-edgeGradient: true // or "#fff"
-```
-
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-edgeGradient: {
-  color: "#fff",
-  size: 60, // default 40px
-}
-```
-
-  </li>
-</ul>
-
-<b>Description:</b><em><br />
-parameter creates several edge elements responsible for darkening the edges of the scroll when it overflows.<br />
-<br />
-<code><b>color</b></code>:<br />
-property accepts any valid color format.
-If you provide it, the library will generate a gradient transitioning from the custom color to transparent.
-If you provide just <b>true</b>, the edge elements will have no color, allowing for custom styling via CSS class <code>.ms-edge</code>.<br />
-<br />
-<code><b>size</b></code>:<br />
-property changes the height of the edges for the horizontal and the width of the edges for the vertical.<br />
-<br />
-If the edge element is inactive, it gets the <code>"ms-disabled"</code> class.<br />
-Also, each edge element gets the <code>--edge-visibility</code> variable in the styles with value 0 or 1.
-</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  edgeGradient={{ color: "rgba(0, 0, 0, 0.5)", size: 60 }}
->
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edgeGradient.png)
-
-</div></ul></details>
-
-<h2></h2>
+###### **— PROGRESS —**
 
 <details><summary><b><code>progressTrigger</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 <ul>
+  <li><b>Shorthand</b>:<br />
+
+```tsx
+progressTrigger: "wheel"; // or ["wheel", "content", "arrows", "bar"]
+```
+
+  </li>
   <li><b>Simple</b>:<br />
   
 ```tsx
 progressTrigger: {
   wheel: true,
   content: true,
-  progressElement: true, // or <ScrollThumbComponent />
+  bar: true, // or <ScrollThumbComponent />
   arrows: true, // or <ArrowComponent />
 }
 ```
@@ -642,13 +649,13 @@ progressTrigger: {
   wheel: {
     // if direction="hybrid"
     changeDirection: true,
-    changeDirectionKey: "someKay" // default "KeyX"
+    changeDirectionBtn: "KeyZ" // default "KeyX", "" to disable
   },
-  progressElement: [<Elem1 />, <Elem2 />, <Elem3 />],
+  bar: [<Elem1 />, <Elem2 />, <Elem3 />],
   arrows: {
     element: <ArrowComponent />,
     size: 60, // default 40px
-    contentReduce: true;
+    reserveSpace: true;
     loop: true,
   }
 }
@@ -663,44 +670,128 @@ progressTrigger: {
 <b>Description:</b><em><br />
 this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
 <br />
+A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br />
+<br />
 <code><b>wheel</b></code>:<br />
 determines whether the progress bar responds to mouse wheel scrolling<br />
 If you use <code>direction="hybrid"</code>, you can use:<br />
 
 <ul>
   <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li><br />
-  <li><code>changeDirectionKey</code>: enables switching the scroll direction by pressing a specific key.<br />
+  <li><code>changeDirectionBtn</code>: enables switching the scroll direction by pressing a specific key.<br />
   To disable this behavior, pass an empty string.<br />
   <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
 </ul>
 <br />
+<code><b>keys</b></code>:<br />
+the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+<br />
+<ul>
+  <li><code>mode</code>: <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along; <b>"focus"</b> walks the objects. Defaults to <b>"step"</b> in the slider modes and <b>"pan"</b> in <code>mode="scroll"</code>.</li><br />
+  <li><code>step</code>: how far one press nudges in <b>"pan"</b> ( default <b>40</b> ).</li>
+</ul>
+<br />
+<b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
+The object stops a <code>gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place.<br />
+Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. The box is made focusable at that moment — give it a <code>tabIndex</code> of your own and the library leaves it alone. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
+<br />
+✦ Note:<br />
+<ul>
+  <li>in <b>"pan"</b> and <b>"step"</b> only the keys of the scrolling axis are taken; the other two are left alone. <b>"focus"</b> takes all four — a vertical list can still be a grid.</li>
+  <li>inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll does not touch them.</li>
+  <li>with <code>render="virtual"</code>, tabbing only reaches what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
+</ul>
+<br />
 <code><b>content</b></code>:<br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-By using <code>content</code> drag scrolling will not work in these cases:<br />
+A press turns into a scroll only after 2px of movement, so a menu of buttons or links still takes clicks: below that it stays a click, above it the wrapper drops <code>pointer-events</code> and the click never lands. While the gesture runs, the native drag of links and images is suppressed.<br />
+The drag does not start at all in these cases:<br />
 
 <ul>
-  <li><b>interactive elements</b>: <code>input</code>, <code>textarea</code>, <code>select</code>, <code>button</code>, <code>a</code></li><br />
+  <li><b>text fields</b>: <code>input</code>, <code>textarea</code>, <code>select</code></li><br />
   <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
 </ul>
 <br />
-<code><b>progressElement</b></code>:<br />
+<code><b>bar</b></code>:<br />
 determines how the scroll progress is managed<br />
 <br />
 <ul>
-  <li>When using <code>type="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-  <li>When using <code>type="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-element</b> elements that visually represent the scroll progress. One of them will always have the <code>active</code> class depending on the current position.</li><br />
-  <li>When using <code>type="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>progressElement</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+  <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
+  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-item</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
+  <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>bar</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
+<br />
+
+For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:
+
+```tsx
+bar: {
+  element: <ScrollThumbComponent />,
+  edgeGap: 8,        // or [x, y] for direction="hybrid"
+  trackGap: 10,
+  reverse: true,
+  showOnHover: true,
+  thumbMinSize: 24,
+}
+```
+
+<ul>
+  <li><code>element</code>: what the bar is made of. An array feeds one node per slider element.</li><br />
+  <li><code>edgeGap</code>: distance between the bar and the side it sits on. A negative value pushes it past that edge — the usual reason to reach for CSS here. It follows <code>reverse</code>, so the gap is always measured from whichever side the bar actually ended up on.</li><br />
+  <li><code>trackGap</code>: shortens the track by this much at each of its two ends. Not to be confused with <code>edgeGap</code>: this one runs along the track, that one across it.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+<br />
+  <li><code>reverse</code>: put the bar on the opposite side.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
+<br />
+  <li><code>showOnHover</code>: report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
+<br />
+  <li><code>thumbMinSize</code>: the thumb never shrinks below this.</li>
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-thumbMinSize.png)
+</ul>
+
+<br />
+✦ Note:<br />
+with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
+
+```css
+.ms-bar,
+.ms-slider {
+  opacity: var(--ms-bar-visibility, 1);
+  transition: opacity 0.2s ease-in-out;
+}
+```
+
+<em>which also means you are not limited to <code>opacity</code>:</em>
+
+```css
+.ms-bar {
+  transform: scaleX(var(--ms-bar-visibility, 1));
+  transition: transform 0.2s ease-in-out;
+}
+```
+<br />
 <br />
 <code><b>arrows</b></code>:<br />
 allows you to add custom arrows to the progress bar<br />
 <br />
 <ul>
   <li><code>element</code>: the custom arrow element.</li><br />
-  <li><code>size</code>: adds a custom size to the <b>.ms-arrow-box</b>.</li><br />
-  <li><code>contentReduce</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
+  <li><code>size</code>: thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the element you pass.</li><br />
+  <li><code>reserveSpace</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
   <li><code>loop</code>: enables infinite scrolling.</li>
 </ul><br />
+The component root is positioned, so each arrow sits against it instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
+<br />
+An arrow with nowhere to go is not given <code>cursor: pointer</code>, so it does not advertise a click that does nothing.<br />
+<br />
+An arrow that has nowhere left to scroll gets the <code>ms-disabled</code> class, the same way <b>.ms-edge</b> does. With <code>loop</code> there are no dead ends, so the class is never set.<br />
+While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br />
 </em><br />
 <b>Example:</b>
 
@@ -709,7 +800,7 @@ allows you to add custom arrows to the progress bar<br />
   {...props}
   progressTrigger={{
     wheel: true,
-    progressElement: <div className="your-scroll-thumb" />,
+    bar: <div className="your-scroll-thumb" />,
   }}
 >
   {children}
@@ -720,107 +811,52 @@ allows you to add custom arrows to the progress bar<br />
 
 <h2></h2>
 
-<details><summary><b><code>progressReverse</code></b></summary><br /><ul><div>
+<details><summary><b><code>edge</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-progressReverse: true; // or [true, false] if direction="hybrid"
+edge: true; // or a node: <MyFade />
 ```
 
 <b>Description:</b><em><br />
-this parameter changes the position of the progress bar in the opposite direction and depends on the <code>direction</code> property.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} progressReverse>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>scrollBarOnHover</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-scrollBarOnHover: true;
-```
-
-<b>Description:</b><em><br />
-this parameter controls the visibility of the progress bar regardless of the <code>type</code> value.<br />
-When you use it, the <b>"hover"</b> class is applied to the <b>.ms-bar</b> when the cursor is over it (or the finger touches it on touchscreens), and <b>"leave"</b> is applied when it is no longer hovered. This allows you to easily customize its appearance on interaction.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} scrollBarOnHover>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>scrollBarEdge</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-scrollBarEdge: 10; // or [10, 20] for control each bar if direction="hybrid"
-```
-
-<b>Description:</b><em><br />
-defines the margin (in <b>px</b>) applied to the edges of the scroll bar, effectively reducing its size.<br />
+marks the edges where the content is cut off. The library places the slots and reports their state; what they look like is yours.<br />
+<br />
+Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
+<br />
+Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. That wrapper is mirrored — <code>scaleY(-1)</code> at the bottom, <code>scaleX(-1)</code> on the left — so a single gradient authored once serves both ends of an axis instead of four. The slot itself is never transformed, so your CSS can size and place it predictably.<br />
 <br />
 ✦ Note:<br />
-this parameter is only used when <code>type="scroll"</code> is set.<br />
-</em><br />
+an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
+</em>
+
+```css
+.ms-edge {
+  opacity: var(--ms-edge-visibility);
+  transition: opacity 0.2s ease-in-out;
+}
+.ms-edge.ms-top,
+.ms-edge.ms-bottom {
+  height: 40px;
+  background: linear-gradient(#fff, transparent);
+}
+```
+
+<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} scrollBarEdge={10}>
+<MorphScroll {...props} edge>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-edge.png)
 
 </div></ul></details>
 
 <h2></h2>
 
-<details><summary><b><code>thumbMinSize</code></b></summary><br /><ul><div>
-<b>Default:</b><br />
-30px<br />
-<br />
-<b>Description:</b><em><br />
-if the scrollable content is long, this option sets the minimum size (in <b>px</b>) of the scroll bar thumb automatically.<br />
-<br />
-✦ Note:<br />
-this parameter is only used when <code>type="scroll"</code> is set.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} thumbMinSize={40}>
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-thumbMinSize.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-###### **— OPTIMIZATIONS —**
+###### **— OPTIMIZATION —**
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -836,8 +872,8 @@ render: "lazy" // or "virtual"
   
 ```tsx
 render: {
-  type: "lazy", // or "virtual" (required)
-  rootMargin: 100, // or [v, h] | [t, r, b, l]
+  mode: "lazy", // or "virtual" (required)
+  rootMargin: 100, // or [x, y] | [t, r, b, l]
   stopLoadOnScroll: true,
   trackVisibility: true
 }
@@ -850,7 +886,7 @@ render: {
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
 <br />
-<code><b>type</b></code>:
+<code><b>mode</b></code>:
 
 <ul>
   <li><b>"lazy"</b> - render once when visible.</li>
@@ -858,13 +894,13 @@ When used, a container is created for each scrollable object, and its absolute p
 </ul>
 <br />
 <code><b>rootMargin</b></code>:<br />
-controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-element</b>) in px.<br />
+controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-viewport</b>) in px.<br />
 <br />
 <code><b>stopLoadOnScroll</b></code>:<br />
 controls whether to stop loading content when scrolling.<br />
 <br />
 <code><b>trackVisibility</b></code>:<br />
-sets the <code>--content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--content-visibility);</code>.<br />
+sets the <code>--ms-content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--ms-content-visibility);</code>.<br />
 <br />
 ✦ Note:<br />
 <code>render</code> is not compatible with <code>objectsSize: "none"</code>.<br />
@@ -883,21 +919,22 @@ sets the <code>--content-visibility</code> variable for list item wrapper styles
 
 <h2></h2>
 
-<details><summary><b><code>emptyElements</code></b></summary><br /><ul><div>
+<details><summary><b><code>emptyObjects</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 <ul>
   <li><b>Simple</b>:<br />
   
 ```tsx
-emptyElements: "clear" // or "fallback" | <FallbackComponent />
+emptyObjects: "clear" // or "fallback"
 ```
 
   </li>
   <li><b>Advanced</b>:<br />
   
 ```tsx
-emptyElements: {
-  mode: "clear", // or "fallback" | <FallbackComponent /> (required)
+emptyObjects: {
+  mode: "clear", // or "fallback" (required)
+  fallback: <YourEmptyPlaceholder />, // optional, wins over the fallback prop
   clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
 }
 ```
@@ -911,10 +948,12 @@ this option allows you to remove or replace empty list items during the initial 
 <code><b>mode</b></code>:<br />
 
 <ul>
-  <li><b>"clear"</b> – automatically removes empty elements.</li>
-  <li><b>"fallback"</b> – replaces empty elements with the value from the <code>fallback</code> props.</li>
-  <li><b>{ fallback: React.ReactNode }</b> – allows you to override the default <code>fallback</code> content for this instance.</li>
+  <li><b>"clear"</b> – automatically removes empty objects.</li>
+  <li><b>"fallback"</b> – replaces empty objects with a placeholder.</li>
 </ul>
+<br />
+<code><b>fallback</b></code>:<br />
+the placeholder for this scroll. Without it the <code>fallback</code> prop is used, so you only need this when one scroll should show something different from the rest.<br />
 <br />
 <code><b>clickTrigger</b></code>:<br />
 use this option if removal should be triggered by a click action.<br />
@@ -928,18 +967,18 @@ use this option if removal should be triggered by a click action.<br />
   <li>The cleanup runs on the initial render, when the number of elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
   <li>If you use <code>clickTrigger</code>:<br />
   - consider increasing <code>delay</code>, since the cleanup may run before removal.<br />
-  - the wrapper <code>.ms-object-box</code> also gets the <code>remove</code> class, which you can use e.g. for fade-out animations.</li>
+  - the wrapper <code>.ms-object-box</code> also gets the <code>ms-remove</code> class, which you can use e.g. for fade-out animations.</li>
 </ul>
 </em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} emptyElements="clear">
+<MorphScroll {...props} emptyObjects="clear">
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyElements.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyObjects.png)
 
 </div></ul></details>
 
@@ -956,12 +995,21 @@ suspending: true;
 false<br />
 <br />
 <b>Description:</b><em><br />
-adds React Suspense to the MorphScroll component for async rendering.</em><br />
+wraps every cell in a React <code>Suspense</code> boundary, so a child that suspends — a <code>lazy()</code> component, a data fetch — shows <code>fallback</code> instead of taking the whole tree down with it.<br />
 <br />
+✦ Not to be confused with <code>render</code>:
+
+<ul>
+  <li><code>render</code> decides <b>whether a child is mounted at all</b>, based on whether it is in view. That is MorphScroll's own decision.</li><br />
+  <li><code>suspending</code> decides <b>what happens while a mounted child is not ready</b>. That is React's decision, and MorphScroll only provides the boundary.</li>
+</ul>
+
+They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, which both use as the placeholder.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} suspending>
+<MorphScroll {...props} suspending fallback={<Skeleton />}>
   {children}
 </MorphScroll>
 ```
@@ -979,7 +1027,7 @@ It will be used when:
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
-  <li><code>emptyElements.mode</code> is set to <b>"fallback"</b>.</li> 
+  <li><code>emptyObjects.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
 </ul>
 </em><br />
 <b>Example:</b>
@@ -994,31 +1042,101 @@ It will be used when:
 
 <h2></h2>
 
-###### **— ADDITIONAL —**
+###### **— EVENTS —**
 
-<details><summary><b><code>dragScroll</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-dragScroll: true;
-```
-
+<details><summary><b><code>onScrollPosition</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-enables automatic scrolling when dragging elements near the edges of the container.<br />
-Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
+accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
 <br />
-✦ Note:<br />
-while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
-</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} dragScroll>
+<MorphScroll {...props}
+  onScrollPosition={
+    (left, top) => console.log("Scroll position:", left, top),
+  }
+>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-dragScroll.png)
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>onScrollingChange</code></b></summary><br /><ul><div>
+<b>Description:</b><em><br />
+accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  onScrollingChange={(motion) => {
+    console.log(motion ? "Scrolling..." : "Scroll stopped.");
+  }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>onNavigate</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+onNavigate: ({ reason, axis, from, to }) => {};
+```
+
+<b>Description:</b><em><br />
+the discrete half of scrolling: fires once when the scroll comes to rest on a page it was not on before. <code>onScrollPosition</code> reports continuous movement; this one reports the landing, so it is the place to hang a sound, a haptic or an analytics event.<br />
+<br />
+<code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a bar drag), or <b>"scroll"</b> when the content simply arrived by wheel, drag or inertia.<br />
+<br />
+✦ Note:<br />
+<ul>
+  <li>one gesture, one event: a dot click that flies past three pages on its way to the fourth reports the fourth, not all four.</li>
+  <li>in <code>mode="scroll"</code> there are no pages to land on, so only the arrows report.</li>
+</ul>
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  onNavigate={({ reason, from, to }) => {
+    if (reason !== "scroll") playClick();
+    console.log(`${from} -> ${to}`);
+  }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
+<b>Description:</b><em><br />
+accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  onRenderedKeysChange={(keys) => {
+    console.log("Rendered keys:", keys);
+  }}
+>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
   
@@ -1215,7 +1333,7 @@ If provided, it must be an ancestor of the observed element.<br />
 <b>Usage:</b><br />
 
 ```tsx
-rootMargin: 10; // or [v, h] | [t, r, b, l]
+rootMargin: 10; // or [x, y] | [t, r, b, l]
 ```
 
 <b>Description:</b><em><br />
@@ -1255,30 +1373,6 @@ specifies at what percentage of the observed element’s visibility the callback
 
 ```tsx
 <IntersectionTracker threshold={0.5}>{children}</IntersectionTracker>
-```
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>visibleContent</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-visibleContent: true;
-```
-
-<b>Default:</b><br />
-false<br />
-<br />
-<b>Description:</b><em><br />
-if set to <b>true</b>, the tracked elements will always be visible, regardless of their actual intersection status.<br />
-This is useful for testing purposes or when using the <code>onIntersection</code> callback, ensuring that it reliably triggers whenever the element enters the viewport, even if all elements are already visible.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<IntersectionTracker visibleContent>{children}</IntersectionTracker>
 ```
 
 </div></ul></details>

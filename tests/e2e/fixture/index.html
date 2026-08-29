@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MorphScroll e2e fixture</title>
+    <style>
+      body { margin: 0; padding: 40px; font-family: sans-serif; }
+      .box { background: #4444aa; color: #fff; box-sizing: border-box;
+             border: 1px solid #222; display: flex; align-items: center;
+             justify-content: center; }
+      .thumb { width: 8px; background: #e0a; border-radius: 4px; }
+      .arrow { width: 100%; height: 100%; background: #0a0; }
+      .dot { width: 12px; height: 12px; margin: 3px; background: #08a;
+             border-radius: 50%; }
+      .ms-slider-item.ms-active .dot { background: #e0a; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>

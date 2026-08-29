@@ -6,12 +6,19 @@ import commonjs from "@rollup/plugin-commonjs";
 
 const external = (id) => /^react/.test(id) || id === "keytask-core";
 const isDevBuild = process.env.MORPHING_SCROLL_BUILD === "development";
+/*
+ * ES5 стоил примерно десятую часть бандла: даунлевелинг классов, спреда и
+ * циклов тянет за собой вспомогательные функции в каждый модуль. ES2020 —
+ * это Chrome 80, Safari 14, Firefox 74 и Edge 80, плюс нативные `?.` и `??`
+ * вместо лесенок из тернарников. Приложение, которое целится ниже, опустит
+ * и нас: свой таргет сборщики применяют ко всему бандлу — кроме тех, что
+ * исключают node_modules из транспиляции.
+ */
 const bundleCompilerOptions = {
-  target: "ES5",
-  downlevelIteration: true,
+  target: "ES2020",
 };
 const outputOptions = {
-  generatedCode: "es5",
+  generatedCode: "es2015",
 };
 
 const plugins = [
@@ -24,21 +31,22 @@ const plugins = [
     ? []
     : [
         terser({
-          ecma: 5,
+          ecma: 2020,
           compress: {
-            ecma: 5,
+            ecma: 2020,
             passes: 2,
             unsafe: true,
             unsafe_comps: true,
             unsafe_math: true,
-            drop_console: true,
-            pure_funcs: ["console.log"],
+            // console.error несёт диагностику, которую видит потребитель
+            // библиотеки, — её оставляем; глушим только отладочный вывод
+            pure_funcs: ["console.log", "console.debug", "console.info"],
           },
           mangle: {
             toplevel: true,
           },
           format: {
-            ecma: 5,
+            ecma: 2020,
             comments: false,
           },
         }),

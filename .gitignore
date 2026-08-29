@@ -2,3 +2,15 @@ node_modules/
 dist
 publish
 .DS_Store
+
+# tests
+coverage
+playwright-report
+test-results
+.playwright
+
+# local tooling
+.claude
+
+# рабочие скрипты миграции проектов — не часть библиотеки
+migration/

@@ -1,24 +1,52 @@
 import React from "react";
 
-import { MorphScroll, Vec2 } from "../types/types";
+import { MorphScroll, Vec2, WrapperConfig } from "../types/types";
 import clampValue from "./clampValue";
-import { setLockTask } from "./keytaskStore";
+import CONST from "../constants";
+import type { Tasks } from "./createTasks";
 
 function objectsPerSize(availableSize: number, objectSize: number): number {
-  if (availableSize <= objectSize) return 1;
+  /*
+   * Пока размер окна не измерен, он ноль — а делить на ноль значит получить
+   * бесконечность и попытаться отрисовать бесконечный список точек слайдера.
+   * До первого измерения страница ровно одна.
+   */
+  if (!(objectSize > 0) || availableSize <= objectSize) return 1;
+
   const objects = Math.floor(availableSize / objectSize);
 
-  return objects;
+  return Number.isFinite(objects) ? objects : 1;
 }
 
+/*
+ * Ждём, пока контент станет прокручиваемым, что бы стартовая позиция не
+ * применилась в пустоту. Ожидание обязательно ограничено: maxScrollSize
+ * считается по пропсам, а прокручиваемость — по DOM, и они могут разойтись
+ * (CSS ужал контент, размеры заданы неверно). Без предела это был вечный rAF.
+ */
 async function checkScrollReady(el: Element) {
-  while (
-    el.scrollHeight <= el.clientHeight &&
-    el.scrollWidth <= el.clientWidth
-  ) {
+  for (let frame = 0; frame < CONST.SCROLL_READY_MAX_FRAMES; frame++) {
+    if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)
+      return;
+
     await new Promise((r) => requestAnimationFrame(r));
   }
 }
+
+/*
+ * Куда едет анимация каждой оси — по элементу, а значит по инстансу. Нужно,
+ * что бы отличить повторный запрос той же цели от новой, а `alive` гасит
+ * кадры прошлой анимации: снятая задача их уже не остановит.
+ */
+type Aim = { target: number; alive: boolean };
+const aimedAt = new WeakMap<Element, { x: Aim | null; y: Aim | null }>();
+
+const aimsOf = (el: Element) => {
+  let aims = aimedAt.get(el);
+  if (!aims) aimedAt.set(el, (aims = { x: null, y: null }));
+
+  return aims;
+};
 
 async function smoothScroll(
   direction: "x" | "y",
@@ -27,6 +55,7 @@ async function smoothScroll(
   targetScroll: number,
   rafScrollAnim: (kay: string, fn: () => void) => void,
   maxScrollSize: Vec2,
+  tasks: Tasks,
 ) {
   const isY = direction === "y";
 
@@ -46,11 +75,57 @@ async function smoothScroll(
     return;
   }
 
-  setLockTask(
+  const lockKey = `smoothScrollBlock${direction}`;
+
+  /*
+   * Очередь кадров держит по одной работе на ключ, а ключ был общим на обе
+   * оси: при `hybrid` анимация одной оси затирала другую — из двух запросов
+   * доезжал только последний.
+   */
+  const rafKey = `smoothScroll${direction}`;
+
+  const aims = aimsOf(scrollEl);
+
+  const drop = () => {
+    if (aims[direction]) aims[direction]!.alive = false;
+    aims[direction] = null;
+    tasks.cancelTask(lockKey);
+  };
+
+  /*
+   * Ноль — это не анимация в ноль секунд, а «поставь сюда сейчас». Стик
+   * геймпада шлёт такой сдвиг каждый кадр, и лишний кадр задержки на каждом
+   * из них превращал движение в дёрганье на месте.
+   */
+  if (duration <= 0) {
+    drop();
+    scrollEl[topOrLeft] = clampedTargetScroll;
+
+    return;
+  }
+
+  /*
+   * Замок бережёт анимацию от рестарта на каждом кадре, но цель умеет уезжать
+   * из-под неё: в чате дорастал контент, пока мы ехали к прежнему концу, и
+   * запрос нового конца просто терялся — прокрутка замирала на старом.
+   * Та же цель по-прежнему игнорируется, новая — перенацеливает.
+   */
+  if (tasks.hasTask(lockKey)) {
+    if (aims[direction]?.target === clampedTargetScroll) return;
+
+    drop();
+  }
+
+  const aim: Aim = { target: clampedTargetScroll, alive: true };
+  aims[direction] = aim;
+
+  tasks.setLockTask(
     () => {
       const startTime = performance.now();
 
       const animate = () => {
+        if (!aim.alive) return; // цель сменилась — этот кадр уже не наш
+
         const currentTime = performance.now();
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
@@ -64,13 +139,13 @@ async function smoothScroll(
         scrollEl[topOrLeft] = nextScroll;
 
         if (progress < 1 && nextScroll !== clampedTargetScroll)
-          rafScrollAnim("smoothScroll", animate);
+          rafScrollAnim(rafKey, animate);
       };
 
-      rafScrollAnim("smoothScroll", animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
+      rafScrollAnim(rafKey, animate); // запускаем и обязательно в rafScrollAnim иначе timeElapsed будет 0
     },
     duration,
-    `smoothScrollBlock${direction}`,
+    lockKey,
   );
 }
 
@@ -93,7 +168,7 @@ const sliderCheck = (
     // Обновляем кэш только если изменилось количество элементов
     if (!cache || cache.elements.length !== objLengthPerSize[axisIndex]) {
       const elements = Array.from(
-        msSlider.querySelectorAll(".ms-slider-element"),
+        msSlider.querySelectorAll(".ms-slider-item"),
       );
 
       cache = { elements, lastIndex: -1 };
@@ -114,15 +189,15 @@ const sliderCheck = (
     if (activeIndex === cache.lastIndex) return;
 
     if (cache.lastIndex !== -1)
-      cache.elements[cache.lastIndex]?.classList.remove("active");
-    cache.elements[activeIndex]?.classList.add("active");
+      cache.elements[cache.lastIndex]?.classList.remove("ms-active");
+    cache.elements[activeIndex]?.classList.add("ms-active");
 
     cache.lastIndex = activeIndex;
   });
 };
 
 function getWrapperMinSizeStyle(
-  wrapperMinSize: number | "full" | (number | "full")[],
+  wrapperMinSize: NonNullable<WrapperConfig["minSize"]>,
   direction: Exclude<MorphScroll["direction"], undefined>,
   sizeLocal: number[],
   mLocalX: number,
@@ -164,23 +239,24 @@ const getStyleAlign = (algin: "start" | "center" | "end" | undefined) =>
     : undefined;
 
 function getWrapperAlignStyle(
-  wrapperAlign: Exclude<MorphScroll["wrapperAlign"], undefined>,
+  wrapperAlign: NonNullable<WrapperConfig["align"]>,
   sizeLocal: number[],
   objectsWrapperWidthFull: number,
   objectsWrapperHeightFull: number,
 ): React.CSSProperties {
-  const [verticalAlign, horizontalAlign = "start"] =
+  const [alignX, alignY = "start"] =
     typeof wrapperAlign === "string"
       ? [wrapperAlign, wrapperAlign]
       : wrapperAlign;
 
   const alignStyles: React.CSSProperties = { display: "flex" };
 
+  // ряд по умолчанию: главная ось — горизонталь, поперечная — вертикаль
   if (sizeLocal[0] > objectsWrapperWidthFull)
-    alignStyles.justifyContent = getStyleAlign(verticalAlign);
+    alignStyles.justifyContent = getStyleAlign(alignX);
 
   if (sizeLocal[1] > objectsWrapperHeightFull) {
-    alignStyles.alignItems = getStyleAlign(horizontalAlign);
+    alignStyles.alignItems = getStyleAlign(alignY);
   }
 
   return alignStyles;
@@ -193,22 +269,25 @@ function createResizeHandler(
   offsetY = 0,
 ) {
   return (rect: Partial<DOMRectReadOnly>) => {
-    let firstZero = false;
-
     const newSize = {
       width: (rect.width ?? 0) - offsetX,
       height: (rect.height ?? 0) - offsetY,
     };
 
-    const zero = newSize.width === 0 && newSize.height === 0;
-    if (zero && !firstZero) {
-      firstZero = true;
-    }
+    /*
+     * 0×0 приходит, когда элемент скрыт (display: none) — размер не потерян,
+     * его просто сейчас не измерить. Держим последний известный: иначе всё
+     * дерево пересчитается по нулям и моргнёт при возврате.
+     *
+     * Раньше тут был флаг firstZero, объявленный внутри самого обработчика,
+     * то есть сбрасывавшийся на каждый вызов. Имя обещало «пропустить только
+     * первый ноль», код всегда пропускал любой.
+     */
+    if (newSize.width === 0 && newSize.height === 0) return;
 
     if (
-      (dataRef.current?.width === newSize.width &&
-        dataRef.current?.height === newSize.height) ||
-      (zero && firstZero)
+      dataRef.current?.width === newSize.width &&
+      dataRef.current?.height === newSize.height
     )
       return;
 

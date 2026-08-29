@@ -3,35 +3,15 @@ import CONST from "../constants";
 const areKeysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((key, index) => key === b[index]);
 
-// убираем лишние символы добавленные react
-const formatRenderedKey = (key: string) => {
-  const explicitKeyStart = key.lastIndexOf(":$");
-
-  // вложенный React path: ".0:$Key"
-  if (explicitKeyStart !== -1) {
-    return key
-      .slice(explicitKeyStart + 2)
-      .replace(/=0/g, "=")
-      .replace(/=2/g, ":");
-  }
-
-  // корневой React path: ".$Key"
-  if (key.startsWith(".$")) {
-    return key.slice(2).replace(/=0/g, "=").replace(/=2/g, ":");
-  }
-
-  // React-generated key: ".0"
-  return key;
-};
-
 const getRenderedKeysFromWrapper = (wrapper: HTMLDivElement | null) => {
   if (!wrapper) return [];
 
   return Array.from(wrapper.children).flatMap((child) => {
     if (!(child instanceof HTMLElement)) return [];
 
+    // атрибут уже несёт пользовательский ключ, см. helpers/childKey
     const key = child.getAttribute(CONST.WRAP_ATR);
-    return key ? [formatRenderedKey(key)] : [];
+    return key ? [key] : [];
   });
 };
 
