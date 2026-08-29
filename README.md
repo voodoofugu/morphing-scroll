@@ -262,7 +262,7 @@ moves focus to the neighbouring object and brings it into view — the same move
 any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
 </em>
 
-<b>Recipe — a gamepad:</b>
+<details><summary><b>Recipe — a gamepad</b></summary><br /><ul><div>
 
 <em>The Gamepad API has no events, only a snapshot you read per frame, so driving a scroll with one is a loop plus two rules: the stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
 
@@ -328,7 +328,11 @@ function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
 
 <em>Swap <code>step</code> for <code>moveFocus</code> in the d-pad branch and the same loop walks the objects instead of turning pages — a highlight moving card to card, which is what a controller usually wants.</em>
 
-<b>The stick, moving through objects instead of panning:</b>
+</div></ul></details>
+
+<br />
+
+<details><summary><b>Recipe — the stick, moving through objects instead of panning</b></summary><br /><ul><div>
 
 <em>A stick is a position, not an event, so the discrete move belongs to the crossing: it fires when the stick leaves the centre, and coming back re-arms it. Everything else is the same loop.</em>
 
@@ -366,6 +370,10 @@ for (const axis of ["x", "y"] as const) {
 Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
 <br />
 Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is the reason polling stays out here: a game already has an input layer and a frame loop, and a loop inside the scroll would have to guess which of several scrolls on the page the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect exactly the same way; only the reason changes.</em>
+
+</div></ul></details>
+
+<br />
 
 </div></ul></details>
 
@@ -671,8 +679,11 @@ this is one of the most important properties, allowing you to define how users i
 <br />
 A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br />
 <br />
-<code><b>wheel</b></code>:<br />
-determines whether the progress bar responds to mouse wheel scrolling<br />
+</em>
+<br />
+
+<details><summary><code><b>wheel</b></code></summary><br /><ul><div>
+<em>determines whether the progress bar responds to mouse wheel scrolling<br />
 If you use <code>direction="hybrid"</code>, you can use:<br />
 
 <ul>
@@ -681,9 +692,13 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
   To disable this behavior, pass an empty string.<br />
   <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
 </ul>
+<br /></em>
+</div></ul></details>
+
 <br />
-<code><b>keys</b></code>:<br />
-the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+
+<details><summary><code><b>keys</b></code></summary><br /><ul><div>
+<em>the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
 <br />
 <ul>
   <li><code>mode</code>: <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along; <b>"focus"</b> walks the objects. Defaults to <b>"step"</b> in the slider modes and <b>"pan"</b> in <code>mode="scroll"</code>.</li><br />
@@ -700,9 +715,13 @@ Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so 
   <li>inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll does not touch them.</li>
   <li>with <code>render="virtual"</code>, tabbing only reaches what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
 </ul>
+<br /></em>
+</div></ul></details>
+
 <br />
-<code><b>content</b></code>:<br />
-enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+
+<details><summary><code><b>content</b></code></summary><br /><ul><div>
+<em>enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 A press turns into a scroll only after 2px of movement, so a menu of buttons or links still takes clicks: below that it stays a click, above it the wrapper drops <code>pointer-events</code> and the click never lands. While the gesture runs, the native drag of links and images is suppressed.<br />
 The drag does not start at all in these cases:<br />
 
@@ -710,9 +729,13 @@ The drag does not start at all in these cases:<br />
   <li><b>text fields</b>: <code>input</code>, <code>textarea</code>, <code>select</code></li><br />
   <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
 </ul>
+<br /></em>
+</div></ul></details>
+
 <br />
-<code><b>bar</b></code>:<br />
-determines how the scroll progress is managed<br />
+
+<details><summary><code><b>bar</b></code></summary><br /><ul><div>
+<em>determines how the scroll progress is managed<br />
 <br />
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
@@ -780,9 +803,13 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
 ```
 
 <br />
+<br /></em>
+</div></ul></details>
+
 <br />
-<code><b>arrows</b></code>:<br />
-allows you to add custom arrows to the progress bar<br />
+
+<details><summary><code><b>arrows</b></code></summary><br /><ul><div>
+<em>allows you to add custom arrows to the progress bar<br />
 <br />
 <ul>
   <li><code>element</code>: the custom arrow element.</li><br />
@@ -795,8 +822,11 @@ The component root is positioned, so each arrow sits against it instead of resol
 An arrow with nowhere to go is not given <code>cursor: pointer</code>, so it does not advertise a click that does nothing.<br />
 <br />
 An arrow that has nowhere left to scroll gets the <code>ms-disabled</code> class, the same way <b>.ms-edge</b> does. With <code>loop</code> there are no dead ends, so the class is never set.<br />
-While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br />
-</em><br />
+While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br /></em>
+</div></ul></details>
+
+<br />
+
 <b>Example:</b>
 
 ```tsx
