@@ -296,9 +296,36 @@ moves focus to the neighbouring object and brings it into view — the same move
 any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
 </em>
 
-<details><summary><b>Recipe — a gamepad</b></summary><br /><ul><div>
+<em>A keyboard needs none of this — <code>progressTrigger={{ keys: true }}</code> and the arrow keys work. A gamepad has no events at all, only a snapshot you read per frame, so it needs a loop of your own. The whole of it is fifteen lines:</em>
 
-<em>The Gamepad API has no events, only a snapshot you read per frame, so driving a scroll with one is a loop plus two rules: the stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
+```tsx
+const scroll = React.useRef<MorphScrollHandle>(null);
+
+React.useEffect(() => {
+  let frame = 0;
+
+  const tick = () => {
+    frame = requestAnimationFrame(tick);
+
+    const pad = navigator.getGamepads().find(Boolean);
+    const y = pad?.axes[3] ?? 0;
+    if (Math.abs(y) < 0.15) return; // the stick is never quite at rest
+
+    scroll.current?.pan({ y: y * 15 }, { duration: 0, reason: "gamepad" });
+  };
+
+  frame = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(frame);
+}, []);
+```
+
+<em>Poll, read the stick, call <code>pan</code>. Everything in the recipe below is what makes it feel right rather than work at all: distance measured in time so a slow frame travels as far, a step per press instead of per frame, and the d-pad repeating while it is held.</em>
+
+<br />
+
+<details><summary><b>Recipe — a gamepad, in full</b></summary><br /><ul><div>
+
+<em>The stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
 
 ```tsx
 const DEAD_ZONE = 0.15; // what the stick reports while it rests
