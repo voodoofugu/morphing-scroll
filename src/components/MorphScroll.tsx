@@ -82,6 +82,46 @@ const isTextEntry = (target: EventTarget | null) => {
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***MorphScroll***:
  * the main component of the library, responsible for displaying your data.
+ * ### Props:
+ * ##### — GENERAL —
+ * - `className`
+ * - `children`
+ *
+ * ##### — SCROLL —
+ * - `mode`
+ * - `direction`
+ * - `initialPosition`
+ * - `stickToEnd`
+ * - `duration`
+ * - `ref`
+ * - `autoScrollOnDrag`
+ *
+ * ##### — SIZE —
+ * - `size` - ***REQUIRED***
+ * - `objectsSize`
+ * - `crossCount`
+ * - `gap`
+ * - `wrapper`
+ *
+ * ##### — LAYOUT —
+ * - `objectsAlign`
+ * - `objectsDirection`
+ *
+ * ##### — PROGRESS —
+ * - `progressTrigger`
+ * - `edge`
+ *
+ * ##### — OPTIMIZATION —
+ * - `render`
+ * - `emptyObjects`
+ * - `suspending`
+ * - `fallback`
+ *
+ * ##### — EVENTS —
+ * - `onScrollPosition`
+ * - `onScrollingChange`
+ * - `onNavigate`
+ * - `onRenderedKeysChange`
  * ### Links:
  * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */

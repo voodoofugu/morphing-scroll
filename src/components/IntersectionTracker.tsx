@@ -12,6 +12,15 @@ import numOrArrFormat from "../helpers/argsFormatter";
  * it does it better — it counts positions instead of putting an observer on
  * every element.
  *
+ * ### Props:
+ * - `className`
+ * - `children`
+ * - `style`
+ * - `root`
+ * - `rootMargin`
+ * - `threshold`
+ * - `onIntersection`
+ *
  * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  * ### Links:
  * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll)

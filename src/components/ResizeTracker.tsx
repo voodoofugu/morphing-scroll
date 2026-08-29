@@ -5,6 +5,12 @@ import type { ResizeTracker as ResizeTrackerProps } from "../types/types";
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***ResizeTracker***:
  * component that monitors changes to an element's size.
+ * ### Props:
+ * - `className`
+ * - `children`
+ * - `style`
+ * - `measure`
+ * - `onResize`
  *
  * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  * ### Links:
