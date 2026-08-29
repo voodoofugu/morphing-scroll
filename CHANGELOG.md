@@ -321,10 +321,11 @@ themselves are no longer transformed and can be positioned from CSS.
   It stays a click below 2px of movement, and the native drag of links and
   images is suppressed while the gesture runs. Text fields and anything
   carrying its own drag are still left alone.
-- The bundle is compiled to ES2018 instead of ES5 — Chrome 63, Safari 12,
-  Edge 79 and up, which covers everything the React peer range can run on.
-  Downlevelling cost about a tenth of the bundle in helper functions:
-  16.3 kB gzipped now against 18.2 kB.
+- The bundle is compiled to ES2020 instead of ES5 — Chrome 80, Safari 14,
+  Firefox 74, Edge 80 and up. Downlevelling cost an eighth of the bundle in
+  helper functions: 15.8 kB gzipped now against 18.2 kB. An app that targets
+  older browsers still gets them: bundlers apply their own target to the
+  whole bundle.
 - The published types are generated from source, so they cannot drift from
   the implementation.
 - `children` is optional on all three components.

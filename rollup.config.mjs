@@ -8,12 +8,14 @@ const external = (id) => /^react/.test(id) || id === "keytask-core";
 const isDevBuild = process.env.MORPHING_SCROLL_BUILD === "development";
 /*
  * ES5 стоил примерно десятую часть бандла: даунлевелинг классов, спреда и
- * циклов тянет за собой вспомогательные функции в каждый модуль. ES2018 —
- * это Chrome 63, Safari 12, Edge 79, и он покрывает всё, где вообще может
- * работать React из peerDependencies.
+ * циклов тянет за собой вспомогательные функции в каждый модуль. ES2020 —
+ * это Chrome 80, Safari 14, Firefox 74 и Edge 80, плюс нативные `?.` и `??`
+ * вместо лесенок из тернарников. Приложение, которое целится ниже, опустит
+ * и нас: свой таргет сборщики применяют ко всему бандлу — кроме тех, что
+ * исключают node_modules из транспиляции.
  */
 const bundleCompilerOptions = {
-  target: "ES2018",
+  target: "ES2020",
 };
 const outputOptions = {
   generatedCode: "es2015",
@@ -29,9 +31,9 @@ const plugins = [
     ? []
     : [
         terser({
-          ecma: 2018,
+          ecma: 2020,
           compress: {
-            ecma: 2018,
+            ecma: 2020,
             passes: 2,
             unsafe: true,
             unsafe_comps: true,
@@ -44,7 +46,7 @@ const plugins = [
             toplevel: true,
           },
           format: {
-            ecma: 2018,
+            ecma: 2020,
             comments: false,
           },
         }),
