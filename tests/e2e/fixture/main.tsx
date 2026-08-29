@@ -28,6 +28,8 @@ const thumb = <div className="thumb" />;
 // Expose the latest scroll offsets for assertions.
 const onScrollPosition = (left: number, top: number) => {
   (window as any).__scroll = { left, top };
+  // весь путь, а не только его конец: по нему видно, ехали мы или перескочили
+  ((window as any).__trail ??= []).push(top);
 };
 
 // Every page change, in order, so the reason can be asserted.

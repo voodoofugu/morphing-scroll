@@ -28,6 +28,8 @@ type PointerRuntime = CursorHolder & {
   checkMove: { x: number; y: number };
   /** накопленный сдвиг для шага слайдера */
   checkSliderThumbSize: { x: number; y: number };
+  /** пункт бара, в который целится текущий жест — по одному на ось */
+  sliderAim: { x: number | null; y: number | null };
   velocity: Velocity;
   prevCoords: { x: PrevCoord; y: PrevCoord } | null;
   /** слушатели текущего жеста */
@@ -53,6 +55,7 @@ function createPointerRuntime(): PointerRuntime {
   const runtime: PointerRuntime = {
     checkMove: { x: 0, y: 0 },
     checkSliderThumbSize: { x: 0, y: 0 },
+    sliderAim: { x: null, y: null },
     velocity: emptyVelocity(),
     prevCoords: null,
     controller: undefined,
@@ -64,6 +67,7 @@ function createPointerRuntime(): PointerRuntime {
       runtime.velocity = emptyVelocity();
       runtime.checkMove = { x: 0, y: 0 };
       runtime.checkSliderThumbSize = { x: 0, y: 0 };
+      runtime.sliderAim = { x: null, y: null };
     },
 
     destroy() {

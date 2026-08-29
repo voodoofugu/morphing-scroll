@@ -334,10 +334,29 @@ const motionHandler = (
   );
 
   const step = el[isX ? "clientWidth" : "clientHeight"] + args.gap[wh];
-  if (aimed === Math.round(el[topOrLeft] / step)) return; // уже на ней
+  if (!(step > 0)) return;
 
-  // быстрое движение для слайдера по thumb длящееся 10мс
-  args.smoothScroll(aimed * step, axis, 10);
+  /*
+   * Где жест уже был, помнит он сам. По текущей позиции судить нельзя: во
+   * время перелёта она лежит между пунктами, и прицел в тот, откуда мы как раз
+   * уезжаем, читался бы как «мы там и стоим» — перелёт не отменялся.
+   */
+  const seen = rt.sliderAim[axis];
+  const current = seen ?? Math.round(el[topOrLeft] / step);
+  rt.sliderAim[axis] = aimed;
+  if (aimed === current) return;
+
+  /*
+   * Перелёт короткий, но настоящий. Десять миллисекунд — меньше кадра: попадёт
+   * ли в них хоть один промежуточный кадр, решает случай, и одно и то же
+   * движение выглядело то прокруткой, то подменой позиции. Ноль остаётся
+   * нулём: выключенная анимация выключена и здесь.
+   */
+  args.smoothScroll(
+    aimed * step,
+    axis,
+    Math.min(args.duration, CONST.SLIDER_AIM_DURATION),
+  );
 };
 
 function handleMouseOrTouch(args: HandleMouseT) {

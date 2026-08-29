@@ -113,6 +113,38 @@ test.describe("MorphScroll slider bar drag (real browser)", () => {
     await expect.poll(async () => (await offsets(page)).top).toBe(4 * 300);
   });
 
+  /*
+   * Перелёт должен читаться как движение, а не как подмена позиции: раньше он
+   * длился меньше кадра, и промежуточные кадры выпадали через раз.
+   */
+  test("flies to the aimed element instead of jumping there", async ({
+    page,
+  }) => {
+    await open(page, "sliderThumbDrag");
+    const bar = page.locator(".ms-slider");
+    await expect(bar).toBeVisible();
+    const box = (await bar.boundingBox())!;
+    const cx = box.x + box.width / 2;
+    const item = box.height / 20;
+
+    await page.mouse.move(cx, box.y + item / 2);
+    await page.mouse.down();
+    await page.mouse.move(cx, box.y + item / 2 + 1); // первое движение только берёт отсчёт
+    await page.evaluate(() => ((window as any).__trail = []));
+    // дальше одним движением, что бы весь путь был одним перелётом
+    await page.mouse.move(cx, box.y + item * 4.5);
+    await page.mouse.up();
+
+    await expect.poll(async () => (await offsets(page)).top).toBe(4 * 300);
+
+    const trail: number[] = await page.evaluate(
+      () => (window as any).__trail ?? [],
+    );
+    // кадры между страницами — их не бывает, когда позицию просто подставляют
+    const between = trail.filter((top) => top % 300 !== 0);
+    expect(between.length).toBeGreaterThanOrEqual(3);
+  });
+
   test("waits for the right element when the pointer comes back from outside", async ({
     page,
   }) => {
