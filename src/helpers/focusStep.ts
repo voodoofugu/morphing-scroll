@@ -143,7 +143,13 @@ const intoViewDelta = (view: DOMRect, box: DOMRect, pads: Pads) => {
     const lead = boxStart - viewStart - pad.start;
 
     if (boxStart < viewStart) return lead;
-    if (boxEnd > viewEnd) return Math.min(boxEnd - viewEnd + pad.end, lead);
+    /*
+     * `lead` держит крупный объект: он встаёт началом к краю, а не концом.
+     * Но отступ больше самого расстояния делает его отрицательным, и шаг
+     * вперёд уехал бы назад — до нуля и не дальше.
+     */
+    if (boxEnd > viewEnd)
+      return Math.max(0, Math.min(boxEnd - viewEnd + pad.end, lead));
 
     return 0;
   };

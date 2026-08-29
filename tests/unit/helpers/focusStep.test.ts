@@ -227,6 +227,23 @@ describe("focusStep", () => {
       expect(moved?.delta.x).toBe(60);
     });
 
+    it("never sends a step forward backwards", () => {
+      // отступ шире, чем расстояние до края: тянуть назад из-за него нельзя
+      const { wrapper, scrollEl } = build([
+        { left: 0, top: 0, width: 100, height: 80 },
+        { left: 0, top: 210, width: 100, height: 80 },
+      ]);
+      focusStep(wrapper, scrollEl, "bottom", SPACING); // объект 0
+
+      const moved = focusStep(wrapper, scrollEl, "bottom", {
+        gap: [20, 400],
+        margin: [400, 0, 400, 0],
+      });
+
+      expect(focusedIndex()).toBe("1");
+      expect(moved?.delta.y).toBe(0);
+    });
+
     it("asks for nothing when the object is already in view", () => {
       const { wrapper, scrollEl } = build(SPACED);
 
