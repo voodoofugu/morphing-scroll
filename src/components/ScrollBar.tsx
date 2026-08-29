@@ -17,7 +17,7 @@ type OnCustomScrollFn = (
 ) => void;
 
 type ModifiedProps = Pick<MorphScroll, "mode"> & {
-  /** уже разобранная конфигурация бегунка, по одной оси */
+  /** the bar configuration, already parsed, for one axis */
   element: React.ReactNode | React.ReactNode[];
   reverse: boolean;
   edgeGap: number;
@@ -28,7 +28,7 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
   thumbSpace: number;
   objLengthPerSize: number;
   sliderCheckLocal: () => void;
-  /** пометить, что следующий переход начал бар, а не сам контент */
+  /** mark that the next move was started by the bar, not by the content */
   markNavigate: (reason: NavigateReason) => void;
   duration: number;
   isTouched: boolean;

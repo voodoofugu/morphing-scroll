@@ -62,7 +62,7 @@ import {
 
 import CONST from "../constants";
 
-/** сторона, в которую смотрит клавиша — та же, что у кнопок-стрелок */
+/** the side a key points at — the same one the arrow buttons use */
 const ARROW_KEYS: Record<string, handleArrowT["arrowType"] | undefined> = {
   ArrowUp: "top",
   ArrowDown: "bottom",
@@ -70,7 +70,7 @@ const ARROW_KEYS: Record<string, handleArrowT["arrowType"] | undefined> = {
   ArrowRight: "right",
 };
 
-/** в поле ввода стрелки двигают курсор, и отбирать их нельзя */
+/** inside a text field the arrows move the caret, and must not be taken */
 const isTextEntry = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
   if (target.isContentEditable) return true;
@@ -342,9 +342,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       return {
         element,
-        /** есть ли вообще что показывать */
+        /** whether there is anything to show at all */
         present: !!bar,
-        /** `true` — отдаём работу нативному скроллбару браузера */
+        /** `true` — the browser's own scrollbar does the work */
         native: bar === true,
         edgeGap: pair(config.edgeGap, 0),
         // трек укорачивается с обоих концов, отсюда удвоение
@@ -1190,7 +1190,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [pageNow],
     );
 
-    /** скролл встал — сверяем страницу с той, с которой уехали */
+    /** the scroll has stopped — compare the page with the one it left */
     const reportNavigate = React.useCallback(() => {
       const tagged = pending.current;
       pending.current = null;

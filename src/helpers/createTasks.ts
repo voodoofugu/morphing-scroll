@@ -2,13 +2,13 @@ import { createTaskManager } from "keytask-core";
 import type { TaskManager } from "keytask-core";
 
 /**
- * Менеджер отложенных задач — на каждый инстанс MorphScroll, а не на модуль.
+ * The deferred-task manager — one per MorphScroll instance, not one per module.
  *
- * Ключи задач ("isScrolling", "removeHover", "smoothScrollBlockY") одинаковы
- * у всех скроллов, а keytask по контракту заменяет задачу с тем же ключом.
- * В общем менеджере это значило, что второй скролл на странице стирал
- * scroll-end первого: `isScrolling` навсегда залипал в `true`, ключи
- * загруженных элементов переставали обновляться, а thumb не прятался.
+ * Task keys ("isScrolling", "removeHover", "smoothScrollBlockY") are the same
+ * in every scroll, and keytask replaces a task carrying the same key by
+ * contract. In a shared manager that meant the second scroll on the page wiped
+ * the first one's scroll-end: `isScrolling` stuck on `true` forever, the keys
+ * of loaded elements stopped updating, and the thumb never hid.
  */
 type Tasks = TaskManager;
 

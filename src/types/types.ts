@@ -1,4 +1,4 @@
-/** пара «по осям»: первым всегда x, вторым y */
+/** a pair by axis: x always first, y second */
 export type Pair<T> = [x: T, y: T];
 export type Vec2 = Pair<number>;
 
@@ -8,7 +8,7 @@ type Align = "start" | "center" | "end";
 type MinSize = number | "full";
 type ObjectSize = number | "full" | "firstChild" | "none";
 
-/** короткая форма для `progressTrigger` */
+/** the short form of `progressTrigger` */
 export type ProgressTriggerName =
   | "wheel"
   | "content"
@@ -16,7 +16,7 @@ export type ProgressTriggerName =
   | "bar"
   | "keys";
 
-/** объектная форма `progressTrigger.bar` */
+/** the object form of `progressTrigger.bar` */
 export type BarConfig = {
   /** what the bar is made of; an array feeds one node per slider element */
   element?: React.ReactNode | React.ReactNode[];
@@ -39,7 +39,7 @@ export type BarConfig = {
   thumbMinSize?: number;
 };
 
-/** объектная форма `progressTrigger.wheel` */
+/** the object form of `progressTrigger.wheel` */
 export type WheelConfig = {
   /** let the wheel switch the axis it scrolls */
   changeDirection?: boolean;
@@ -51,7 +51,7 @@ export type WheelConfig = {
   changeDirectionBtn?: string;
 };
 
-/** объектная форма `progressTrigger.keys` */
+/** the object form of `progressTrigger.keys` */
 export type KeysConfig = {
   /**
    * what an arrow key does:
@@ -65,7 +65,7 @@ export type KeysConfig = {
   step?: number;
 };
 
-/** объектная форма `progressTrigger.arrows` */
+/** the object form of `progressTrigger.arrows` */
 export type ArrowsConfig = {
   /** the icon; author it pointing right, the library turns it for the rest */
   element?: React.ReactNode;
@@ -77,7 +77,7 @@ export type ArrowsConfig = {
   loop?: boolean;
 };
 
-/** объектная форма `progressTrigger` */
+/** the object form of `progressTrigger` */
 export type ProgressTriggerConfig = {
   wheel?: boolean | WheelConfig;
   content?: boolean;
@@ -86,10 +86,11 @@ export type ProgressTriggerConfig = {
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
-/** что привело скролл на новую страницу */
+/** what brought the scroll to a new page */
 /**
- * Что привело скролл на новую страницу. Свои имена тоже подходят: команда с
- * `ref` принимает любую строку, и она приезжает в `onNavigate` как есть.
+ * What brought the scroll to a new page. Names of your own fit here too: a
+ * command through the `ref` takes any string, and it reaches `onNavigate`
+ * untouched.
  */
 export type NavigateReason =
   | "arrows"
@@ -99,16 +100,16 @@ export type NavigateReason =
   // `& {}` не даёт литералам выше раствориться в `string` и потерять подсказки
   | (string & {});
 
-/** аргумент `onNavigate` */
+/** the argument of `onNavigate` */
 export type NavigateEvent = {
-  /** `"scroll"` — контент доехал сам: перетаскиванием, колесом, инерцией */
+  /** `"scroll"` — the content got there on its own: a drag, the wheel, inertia */
   reason: NavigateReason;
   axis: "x" | "y";
   from: number;
   to: number;
 };
 
-/** объектная форма `wrapper` */
+/** the object form of `wrapper` */
 export type WrapperConfig = {
   /** space around `.ms-objects-wrapper`; 1, 2 or 4 numbers */
   margin?: SpacingValue;
@@ -118,7 +119,7 @@ export type WrapperConfig = {
   align?: Align | Pair<Align>;
 };
 
-/** объектная форма `emptyObjects` */
+/** the object form of `emptyObjects` */
 export type EmptyObjectsConfig = {
   mode: "clear" | "fallback";
   /** what stands in for an empty object; the `fallback` prop when omitted */
@@ -127,7 +128,7 @@ export type EmptyObjectsConfig = {
   clickTrigger?: string | { selector: string; delay?: number };
 };
 
-/** значение, которое понимает и `scrollPosition`, и `scrollTo` */
+/** a value understood by both `scrollPosition` and `scrollTo` */
 export type ScrollTarget =
   | null
   | number
@@ -158,7 +159,7 @@ export type ScrollTarget =
  * ```
  * @example
  * ```tsx
- * // геймпад: опрос — ваш, действие — библиотеки
+ * // the gamepad: the polling is yours, the move is the library's
  * const pad = navigator.getGamepads()[0];
  *
  * if (pad?.buttons[13].pressed)

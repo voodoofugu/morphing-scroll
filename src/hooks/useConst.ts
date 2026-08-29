@@ -1,11 +1,12 @@
 import { useRef } from "react";
 
 /**
- * Значение, создаваемое один раз на инстанс компонента.
+ * A value built once per component instance.
  *
- * `useMemo` для этого не годится: React вправе выбросить его кеш и пересоздать
- * значение. Здесь же речь о рантайме скролла — планировщиках rAF, менеджере
- * задач, состоянии жеста, — который обязан пережить любой ре-рендер.
+ * `useMemo` will not do: React is free to drop its cache and build the value
+ * again. What lives here is the scroll's runtime — the rAF schedulers, the
+ * task manager, the state of a gesture — and it has to survive every
+ * re-render.
  */
 function useConst<T>(factory: () => T): T {
   const ref = useRef<T | null>(null);

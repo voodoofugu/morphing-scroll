@@ -47,11 +47,11 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
-  /** указатель, начавший жест — остальные игнорируем */
+  /** the pointer that started the gesture — the rest are ignored */
   pointerId: number;
-  /** состояние указателя этого инстанса */
+  /** the pointer state of this instance */
   runtime: PointerRuntime;
-  /** менеджер задач этого инстанса */
+  /** the task manager of this instance */
   tasks: Tasks;
 };
 
@@ -64,7 +64,7 @@ type HandleMoveT = Omit<
   visualDiff: number[];
   thumbRatio: number;
   maxScrollSize: Vec2;
-  /** прямоугольник самого бара — по нему считается, в какой пункт целятся */
+  /** the bar's own rectangle — the element being aimed at is read from it */
   sliderRect?: DOMRect;
 };
 

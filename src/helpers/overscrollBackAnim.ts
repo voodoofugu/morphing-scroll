@@ -5,9 +5,9 @@ import CONST from "../constants";
 type RafLoop = ReturnType<typeof createRafLoop>;
 
 /**
- * Петля живёт в рантайме инстанса, а не в модуле: общий `rafLoop` означал,
- * что возврат из растяжения в одном скролле гасил такую же анимацию во всех
- * остальных.
+ * The loop lives in the instance runtime rather than in the module: a shared
+ * `rafLoop` meant that a return from the rubber band in one scroll killed the
+ * same animation in all the others.
  */
 const overscrollBackAnim = (
   loop: RafLoop,

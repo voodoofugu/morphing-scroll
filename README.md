@@ -53,7 +53,6 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
 > - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressTrigger={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
 > - Due to frequent DOM updates for customization, performance may decrease when DevTools are open, as the browser needs extra resources to track changes.
-> - ! This library is currently under development. APIs and behavior may change in future releases.
 
 <h2></h2>
 
@@ -268,29 +267,29 @@ any string, handed back untouched by <code>onNavigate</code>. This is how an inp
 <em>The Gamepad API has no events, only a snapshot you read per frame, so driving a scroll with one is a loop plus two rules: the stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
 
 ```tsx
-const DEAD_ZONE = 0.15; // сколько стик отдаёт, лёжа в покое
-const PAN_PER_SECOND = 900; // px при полностью отклонённом стике
-const REPEAT = { first: 400, next: 120 }; // автоповтор удержанной кнопки, ms
+const DEAD_ZONE = 0.15; // what the stick reports while it rests
+const PAN_PER_SECOND = 900; // px with the stick pushed all the way
+const REPEAT = { first: 400, next: 120 }; // auto-repeat of a held button, ms
 
 function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
   React.useEffect(() => {
     let frame = 0;
     let last = performance.now();
-    const held = new Map<number, number>(); // кнопка -> когда сработает снова
+    const held = new Map<number, number>(); // button -> when it fires again
 
     const DPAD = { 12: "top", 13: "bottom", 14: "left", 15: "right" } as const;
 
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick);
 
-      // кадр мог быть длинным: считаем от времени, а не от количества кадров
+      // a frame can be a long one: count by time, not by number of frames
       const delta = Math.min(now - last, 100) / 1000;
       last = now;
 
       const pad = navigator.getGamepads().find(Boolean);
       if (!pad) return held.clear();
 
-      // — правый стик: непрерывное движение —
+      // — the right stick: continuous movement —
       const [x, y] = [pad.axes[2] ?? 0, pad.axes[3] ?? 0].map((value) =>
         Math.abs(value) < DEAD_ZONE ? 0 : value,
       );
@@ -301,7 +300,7 @@ function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
           { duration: 0, reason: "gamepad" },
         );
 
-      // — крестовина: шаг на нажатие, а не на кадр —
+      // — the d-pad: a step per press, not per frame —
       for (const [index, side] of Object.entries(DPAD)) {
         const button = Number(index);
 
@@ -335,19 +334,19 @@ function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
 
 ```tsx
 const THRESHOLD = 0.5;
-const aimed = { x: 0, y: 0 }; // куда стик отклонён сейчас: -1, 0 или 1
+const aimed = { x: 0, y: 0 }; // where the stick leans right now: -1, 0 or 1
 
 const tilt = (value: number) =>
   value > THRESHOLD ? 1 : value < -THRESHOLD ? -1 : 0;
 
-// внутри tick, вместо ветки со стиком
+// inside tick, in place of the stick branch
 const next = { x: tilt(pad.axes[2] ?? 0), y: tilt(pad.axes[3] ?? 0) };
 
 for (const axis of ["x", "y"] as const) {
-  if (next[axis] === aimed[axis]) continue; // отклонение то же — шаг уже был
+  if (next[axis] === aimed[axis]) continue; // same lean — the step already fired
 
   aimed[axis] = next[axis];
-  if (!next[axis]) continue; // вернулся в центр — просто взводим обратно
+  if (!next[axis]) continue; // back at the centre — this only re-arms it
 
   const side =
     axis === "x"
@@ -742,17 +741,21 @@ bar: {
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
 <br />
+
   <li><code>reverse</code>: put the bar on the opposite side.</li>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
 <br />
+
   <li><code>showOnHover</code>: report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</li>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
 <br />
+
   <li><code>thumbMinSize</code>: the thumb never shrinks below this.</li>
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-thumbMinSize.png)
+
 </ul>
 
 <br />
@@ -775,6 +778,7 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
   transition: transform 0.2s ease-in-out;
 }
 ```
+
 <br />
 <br />
 <code><b>arrows</b></code>:<br />
@@ -1098,6 +1102,7 @@ the discrete half of scrolling: fires once when the scroll comes to rest on a pa
 <code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a bar drag), or <b>"scroll"</b> when the content simply arrived by wheel, drag or inertia.<br />
 <br />
 ✦ Note:<br />
+
 <ul>
   <li>one gesture, one event: a dot click that flies past three pages on its way to the fourth reports the fourth, not all four.</li>
   <li>in <code>mode="scroll"</code> there are no pages to land on, so only the arrows report.</li>

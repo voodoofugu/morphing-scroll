@@ -1,9 +1,9 @@
 /**
- * Страница, на которой стоит позиция по одной оси.
+ * The page a position stands on, along one axis.
  *
- * Одна формула на всех: по ней стрелка считает, куда листнуть, и по ней же
- * `onNavigate` решает, сменилась ли страница. Раньше это было бы двумя
- * похожими, но чуть разными вычислениями.
+ * One formula for everyone: an arrow decides where to turn by it, and
+ * `onNavigate` decides whether the page changed by it. It would otherwise be
+ * two similar, slightly different calculations.
  */
 const pageAt = (position: number, viewport: number, gap: number) => {
   const step = viewport + gap;

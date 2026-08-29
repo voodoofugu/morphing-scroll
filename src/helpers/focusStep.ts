@@ -1,6 +1,6 @@
 type Side = "top" | "right" | "bottom" | "left";
 
-/** сколько свободного места есть вокруг объектов — в осях x/y и по краям */
+/** how much free space there is around the objects — by axis, and at the edges */
 type Spacing = {
   gap: [x: number, y: number];
   margin: [top: number, right: number, bottom: number, left: number];
@@ -37,14 +37,14 @@ const firstInView = (boxes: HTMLElement[], view: DOMRect) =>
   null;
 
 /**
- * Сосед в заданную сторону — по геометрии, а не по индексу: сетка, разные
- * размеры объектов и обе оси считаются одинаково, и порядок в DOM ни на что
- * не влияет.
+ * The neighbour on a given side — picked by geometry rather than by index, so
+ * a grid, objects of different sizes and both axes are all counted the same
+ * way, and the order in the DOM does not matter.
  *
- * Сначала ищем в своём ряду — те, кто перекрывается по поперечной оси; там
- * ближайший и есть ответ. Если ряд кончился, берём лучший по сумме "далеко
- * вперёд + вбок", что бы шаг вниз из конца ряда попадал в начало следующего,
- * а не улетал по диагонали.
+ * The row comes first: among the objects overlapping across the other axis,
+ * the nearest one is the answer. Once the row runs out, the best score of
+ * "far ahead plus far aside" wins, so a step down from the end of a row lands
+ * at the start of the next one instead of flying off diagonally.
  */
 const pickNeighbour = (
   boxes: HTMLElement[],
@@ -89,7 +89,7 @@ const pickNeighbour = (
   return inRow?.box ?? anywhere?.box ?? null;
 };
 
-/** есть ли за объектом другие объекты по этой оси */
+/** whether any object lies beyond this one along the axis */
 const boxBeyond = (
   boxes: HTMLElement[],
   box: DOMRect,
@@ -105,9 +105,10 @@ const boxBeyond = (
   });
 
 /**
- * Отступ, с которым объект встаёт у края окна. Берём его из того, что в этом
- * месте на самом деле есть: между объектами это зазор, а за крайним из них
- * зазора уже нет — там поле обёртки.
+ * The space an object keeps between itself and the edge of the view. It comes
+ * from whatever is actually in that place: between objects it is the gap, and
+ * past the outermost one there is no gap left — there it is the wrapper's
+ * margin.
  */
 const padsAround = (
   boxes: HTMLElement[],
@@ -126,7 +127,7 @@ const padsAround = (
 
 type Pads = ReturnType<typeof padsAround>;
 
-/** насколько подвинуть прокрутку, что бы объект оказался в окне целиком */
+/** how far to move the scroll for the object to fit in the view whole */
 const intoViewDelta = (view: DOMRect, box: DOMRect, pads: Pads) => {
   const along = (
     boxStart: number,
@@ -161,9 +162,9 @@ const intoViewDelta = (view: DOMRect, box: DOMRect, pads: Pads) => {
 };
 
 /**
- * Переносит фокус на соседний объект и говорит, насколько за ним подвинуть
- * прокрутку. Саму прокрутку ведёт компонент — своей анимацией, поэтому
- * браузеру она тут запрещена.
+ * Moves focus to the neighbouring object and says how far the scroll should
+ * follow it. The scrolling itself belongs to the component and its own
+ * animation, which is why the browser is not allowed to do it here.
  */
 function focusStep(
   wrapper: HTMLElement | null,

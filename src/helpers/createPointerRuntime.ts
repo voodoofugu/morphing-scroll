@@ -17,29 +17,30 @@ type Velocity = {
 };
 
 /**
- * Всё состояние указателя одного инстанса MorphScroll.
+ * Everything one MorphScroll instance knows about its pointer.
  *
- * Раньше эти поля лежали в модуле, то есть были общими на все скроллы
- * страницы: `controller` одного жеста снимал слушатели другого, а `prevCoords`
- * первого скролла доставались второму — второй уезжал не на ту дистанцию.
+ * These fields used to live in the module, which made them shared by every
+ * scroll on the page: the `controller` of one gesture removed the listeners of
+ * another, and the `prevCoords` of the first scroll reached the second — which
+ * then travelled the wrong distance.
  */
 type PointerRuntime = CursorHolder & {
-  /** накопленный сдвиг — отличает тап от прокрутки */
+  /** travel so far — what tells a tap from a scroll */
   checkMove: { x: number; y: number };
-  /** накопленный сдвиг для шага слайдера */
+  /** travel so far, for a slider step */
   checkSliderThumbSize: { x: number; y: number };
-  /** пункт бара, в который целится текущий жест — по одному на ось */
+  /** the bar element the current gesture aims at — one per axis */
   sliderAim: { x: number | null; y: number | null };
   velocity: Velocity;
   prevCoords: { x: PrevCoord; y: PrevCoord } | null;
-  /** слушатели текущего жеста */
+  /** the listeners of the current gesture */
   controller: AbortController | undefined;
-  /** петля возврата после растяжения у края */
+  /** the loop that returns from a stretch at the edge */
   overscrollLoop: ReturnType<typeof createRafLoop>;
   cursorLocked: boolean;
-  /** сброс между жестами */
+  /** the reset between gestures */
   resetGesture: () => void;
-  /** полная остановка при размонтировании */
+  /** the full stop on unmount */
   destroy: () => void;
 };
 

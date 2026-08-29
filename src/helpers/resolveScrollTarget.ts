@@ -1,10 +1,10 @@
 import type { Pair, ScrollTarget } from "../types/types";
 
 /**
- * Приводит любую форму цели прокрутки к паре [x, y].
+ * Brings any shape of a scroll target down to a pair of [x, y].
  *
- * Одна и та же запись понимается и в декларативном `scrollPosition`, и в
- * команде `scrollTo`, поэтому разбор общий.
+ * The same notation is understood by the declarative `scrollPosition` and by
+ * the `scrollTo` command, so they read it through one place.
  */
 const resolveScrollTarget = (
   target: ScrollTarget,

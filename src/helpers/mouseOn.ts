@@ -2,11 +2,11 @@ import type { Tasks } from "./createTasks";
 import CONST from "../constants";
 
 /**
- * Курсорный «замок» — один тег стиля на документ, поэтому счётчик здесь
- * действительно общий. Считаем захваты: пока хотя бы один скролл тащит
- * контент, стиль обязан жить. Раньше первый отпустивший инстанс снимал
- * стиль у всех остальных, а размонтирование посреди драга оставляло
- * `cursor: grabbing !important` на странице навсегда.
+ * The cursor lock — one style tag per document, which is why the counter here
+ * really is a shared one. It counts holders: while at least one scroll is
+ * dragging its content, the style has to stay. The first instance to let go
+ * used to strip the style from all the others, and unmounting mid-drag left
+ * `cursor: grabbing !important` on the page forever.
  */
 const CURSOR_LOCK_ID = "ms-cursor-lock";
 let cursorLocks = 0;

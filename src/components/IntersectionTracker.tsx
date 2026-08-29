@@ -7,9 +7,10 @@ import numOrArrFormat from "../helpers/argsFormatter";
  * ### ***IntersectionTracker***:
  * component for tracking the intersection of an element with the viewport.
  *
- * Наблюдатель, и только: детей он всегда рисует и никогда не прячет.
- * Прятать по видимости умеет `MorphScroll` через `render`, и умеет лучше —
- * он считает позиции, а не заводит наблюдатель на каждый элемент.
+ * A watcher, and nothing else: it always renders its children and never hides
+ * them. Hiding by visibility is what `MorphScroll` does through `render`, and
+ * it does it better — it counts positions instead of putting an observer on
+ * every element.
  *
  * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  * ### Links:

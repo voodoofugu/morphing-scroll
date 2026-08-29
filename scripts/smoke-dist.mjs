@@ -6,6 +6,7 @@
  * терсер, интероп с React. Ломается это молча и только у пользователя,
  * поэтому проверяем отдельно и на обеих сборках.
  */
+import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { createRequire } from "node:module";
@@ -37,6 +38,35 @@ const check = (name, mod) => {
 
   return html.length;
 };
+
+/*
+ * Комментарии внутри кода могут быть на русском, но JSDoc уезжает в `.d.ts` и
+ * попадает в подсказки редактора у пользователя — там только английский.
+ * Проверяем весь пакет: это дешевле, чем помнить о правиле.
+ */
+const cyrillic = /[\u0400-\u04FF]/;
+
+const foreignText = (dir) =>
+  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return foreignText(full);
+
+    return fs
+      .readFileSync(full, "utf8")
+      .split("\n")
+      .map((line, i) => [line, i + 1])
+      .filter(([line]) => cyrillic.test(line))
+      .map(([line, i]) => `${path.relative(PKG, full)}:${i}: ${line.trim()}`);
+  });
+
+const foreign = foreignText(PKG);
+
+if (foreign.length)
+  throw new Error(
+    `в пакет уехал русский текст — публикуется только английский:\n${foreign.join("\n")}`,
+  );
+
+console.log(`smoke: ${PKG} без кириллицы`);
 
 const esm = await import(
   url.pathToFileURL(path.join(PKG, "dist/esm/index.js")).href
