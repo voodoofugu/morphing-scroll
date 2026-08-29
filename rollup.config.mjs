@@ -6,12 +6,17 @@ import commonjs from "@rollup/plugin-commonjs";
 
 const external = (id) => /^react/.test(id) || id === "keytask-core";
 const isDevBuild = process.env.MORPHING_SCROLL_BUILD === "development";
+/*
+ * ES5 стоил примерно десятую часть бандла: даунлевелинг классов, спреда и
+ * циклов тянет за собой вспомогательные функции в каждый модуль. ES2018 —
+ * это Chrome 63, Safari 12, Edge 79, и он покрывает всё, где вообще может
+ * работать React из peerDependencies.
+ */
 const bundleCompilerOptions = {
-  target: "ES5",
-  downlevelIteration: true,
+  target: "ES2018",
 };
 const outputOptions = {
-  generatedCode: "es5",
+  generatedCode: "es2015",
 };
 
 const plugins = [
@@ -24,9 +29,9 @@ const plugins = [
     ? []
     : [
         terser({
-          ecma: 5,
+          ecma: 2018,
           compress: {
-            ecma: 5,
+            ecma: 2018,
             passes: 2,
             unsafe: true,
             unsafe_comps: true,
@@ -39,7 +44,7 @@ const plugins = [
             toplevel: true,
           },
           format: {
-            ecma: 5,
+            ecma: 2018,
             comments: false,
           },
         }),
