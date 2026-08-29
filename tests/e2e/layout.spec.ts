@@ -93,6 +93,46 @@ test.describe("MorphScroll slider bar drag (real browser)", () => {
     await expect.poll(async () => (await offsets(page)).top).toBeGreaterThan(0);
   });
 
+  /*
+   * Страницу выбирает то, где указатель, а не сколько он проехал: жест по
+   * бару — это прицеливание в пункт, как перетаскивание бегунка.
+   */
+  test("lands on the element the pointer is over", async ({ page }) => {
+    await open(page, "sliderThumbDrag");
+    const bar = page.locator(".ms-slider");
+    await expect(bar).toBeVisible();
+    const box = (await bar.boundingBox())!;
+    const cx = box.x + box.width / 2;
+    const item = box.height / 20; // 20 объектов — 20 пунктов
+
+    await page.mouse.move(cx, box.y + item / 2);
+    await page.mouse.down();
+    await page.mouse.move(cx, box.y + item * 4.5, { steps: 10 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await offsets(page)).top).toBe(4 * 300);
+  });
+
+  test("waits for the right element when the pointer comes back from outside", async ({
+    page,
+  }) => {
+    await open(page, "sliderThumbDrag");
+    const bar = page.locator(".ms-slider");
+    const box = (await bar.boundingBox())!;
+    const cx = box.x + box.width / 2;
+    const item = box.height / 20;
+
+    await page.mouse.move(cx, box.y + item / 2);
+    await page.mouse.down();
+    // уводим далеко за бар — там прицел упирается в последний пункт
+    await page.mouse.move(cx, box.y + box.height + 400, { steps: 10 });
+    // и возвращаемся ко второму: он и должен быть ответом
+    await page.mouse.move(cx, box.y + item * 2.5, { steps: 10 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await offsets(page)).top).toBe(2 * 300);
+  });
+
   test("leaves the scroll alone for a nudge shorter than one element", async ({
     page,
   }) => {

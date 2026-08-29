@@ -143,7 +143,7 @@ like <code>slider</code>, but the <code>bar</code> is a menu, and you can provid
 <b>Usage:</b><br />
 
 ```tsx
-size: "x"; // or "y" | "hybrid"
+direction: "x"; // or "y" | "hybrid"
 ```
 
 <b>Default:</b><br />
@@ -756,10 +756,11 @@ bar: {
 
 <br />
 ✦ Note:<br />
-with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) on <b>.ms-bar</b> and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. The bar stays visible until you use the variable:<br />
+with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
 
 ```css
-.ms-bar {
+.ms-bar,
+.ms-slider {
   opacity: var(--ms-bar-visibility, 1);
   transition: opacity 0.2s ease-in-out;
 }

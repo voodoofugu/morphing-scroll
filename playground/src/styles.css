@@ -464,11 +464,21 @@ input[type="color"] {
 
 /*
  * Край гаснет, когда обрезать нечего. Библиотека говорит это дважды: классом
- * `ms-disabled` на слоте и переменной — переменная удобнее, она плавная.
+ * `ms-disabled` на слоте и переменной. Переменная ведёт плавность, класс
+ * добивает до нуля — если переменную переопределят, край всё равно уйдёт.
  */
 .playground-scroll .playground-edge {
   opacity: var(--ms-edge-visibility, 1);
   transition: opacity 180ms ease;
+}
+
+.playground-scroll .ms-edge.ms-disabled .playground-edge {
+  opacity: 0;
+}
+
+/* стрелка в конце пути — тем же способом, классом */
+.playground-scroll .ms-arrow-box.ms-disabled .arrow-mark {
+  opacity: 0.25;
 }
 
 .playground-scroll .ms-viewport {
@@ -639,6 +649,11 @@ input[type="color"] {
   border-radius: 999px;
   padding: 6px;
   background: rgba(26, 35, 33, 0.11);
+  /* showOnHover сообщает состояние переменной и слайдеру тоже */
+  opacity: var(--ms-bar-visibility, 1);
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease;
 }
 
 .playground-scroll .ms-slider-item {
@@ -692,6 +707,7 @@ input[type="color"] {
 
 .arrow-mark {
   display: grid;
+  transition: opacity 180ms ease;
   place-items: center;
   width: 100%;
   height: 100%;

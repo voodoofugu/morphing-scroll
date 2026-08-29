@@ -97,7 +97,7 @@ type Settings = {
 };
 
 type ScrollCommand = {
-  value: null | number | "end" | (null | number | "end")[];
+  value: null | number | "end" | [null | number | "end", null | number | "end"];
   duration: number;
 };
 

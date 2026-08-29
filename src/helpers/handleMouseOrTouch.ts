@@ -64,7 +64,8 @@ type HandleMoveT = Omit<
   visualDiff: number[];
   thumbRatio: number;
   maxScrollSize: Vec2;
-  sliderElSize?: number[];
+  /** прямоугольник самого бара — по нему считается, в какой пункт целятся */
+  sliderRect?: DOMRect;
 };
 
 type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
@@ -309,38 +310,34 @@ const motionHandler = (
     return;
   }
 
-  //  --- логика для slider ---
-  const scroll = el[topOrLeft];
+  /*
+   * --- логика для slider ---
+   *
+   * Страницу выбирает то, куда указатель показывает, а не сколько он проехал.
+   * Накопленный сдвиг не знает, где жест начинался: шаг случался не на
+   * границе пункта, а через пункт от места, где счётчик сбросился, — и
+   * возвращение из-за края бара двигало слайдер сразу, вместо того что бы
+   * дождаться нужного пункта.
+   */
+  const bar = args.sliderRect;
+  const pages = args.objLengthPerSize[wh];
+  if (!bar || pages < 1) return;
 
-  // проверка если checkSliderThumbSize меньше размера элемента thumb слайдера
-  if (
-    args.sliderElSize &&
-    Math.abs(rt.checkSliderThumbSize[axis]) < args.sliderElSize[isX ? 0 : 1]
-  )
-    return;
+  const barStart = isX ? bar.left : bar.top;
+  const barSize = isX ? bar.width : bar.height;
+  if (barSize <= 0) return;
 
-  // правильное обновление перемещения
-  const getNewPosition = (delta: 1 | -1) => {
-    const clientSize = el[isX ? "clientWidth" : "clientHeight"];
-    const step = clientSize + args.gap[wh];
+  const aimed = clampValue(
+    Math.floor(((point[axis] - barStart) / barSize) * pages),
+    0,
+    pages - 1,
+  );
 
-    const page = Math.floor(Math.max(0, scroll) / step);
-    const nextPage = page + delta;
-
-    return step * nextPage;
-  };
-
-  const nextScroll =
-    move > 0 && scroll + args.sizeLocal[wh] < args.wrapElWH[wh]
-      ? getNewPosition(1)
-      : move < 0 && scroll > 0
-        ? getNewPosition(-1)
-        : null;
-
-  rt.checkSliderThumbSize[axis] = 0; // обязательно сбрасываем
+  const step = el[isX ? "clientWidth" : "clientHeight"] + args.gap[wh];
+  if (aimed === Math.round(el[topOrLeft] / step)) return; // уже на ней
 
   // быстрое движение для слайдера по thumb длящееся 10мс
-  args.smoothScroll(nextScroll, axis, 10);
+  args.smoothScroll(aimed * step, axis, 10);
 };
 
 function handleMouseOrTouch(args: HandleMouseT) {
@@ -395,20 +392,13 @@ function handleMouseOrTouch(args: HandleMouseT) {
   const { signal } = controller;
 
   const onMoveLocal = (e: PointerEvent) => {
-    // вычисления заранее размер для slider элемента thumb
-    let sliderElSize: number[] | undefined;
+    // бар мог переехать за время жеста — читаем его положение на каждом шаге
+    let sliderRect: DOMRect | undefined;
     if (args.clickedObject.current === "thumb" && args.mode === "slider") {
       const bar = args.target?.closest(".ms-slider") as HTMLElement | null;
       if (!bar) return;
 
-      const getRectSize = (axis: "x" | "y"): number => {
-        const rect = bar.getBoundingClientRect();
-        return Math.round(
-          (axis === "x" ? rect.width : rect.height) /
-            args.objLengthPerSize[axis === "x" ? 0 : 1],
-        );
-      };
-      sliderElSize = [getRectSize("x"), getRectSize("y")];
+      sliderRect = bar.getBoundingClientRect();
     }
 
     handleMove({
@@ -417,7 +407,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
       wrapElWH,
       visualDiff,
       thumbRatio,
-      sliderElSize,
+      sliderRect,
     });
   };
 
