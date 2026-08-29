@@ -102,6 +102,8 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 
 ###### **— SCROLL —**
 
+<em>Where the scroll opens is <code>initialPosition</code>, what it follows is <code>stickToEnd</code>, how long its moves take is <code>duration</code> — and every move made on demand is a method on the <code>ref</code>. Props say where the scroll is, methods do something now.</em>
+
 <details><summary><b><code>mode</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 

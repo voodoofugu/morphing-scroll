@@ -121,7 +121,7 @@ Four names pointed away from what they do:
 - `isScrolling` was a callback wearing a predicate's name, sitting beside
   `onScrollValue` and `onRenderedKeysChange`. It is `onScrollingChange`,
   and `onScrollValue` — which reports a position, not a "value" — is
-  `onScrollPosition`, the pair to the `scrollPosition` prop.
+  `onScrollPosition`.
 - `arrows.contentReduce` did not say what shrinks or why. The arrows take a
   strip away from the content, so it is `arrows.reserveSpace`.
 
