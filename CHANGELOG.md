@@ -309,6 +309,11 @@ themselves are no longer transformed and can be positioned from CSS.
 - `pan` with `duration: 0` moves in the same frame. It travelled through the
   animation lock and arrived a frame late, so a gamepad stick — which sends
   one every frame — jerked in place instead of moving.
+- A numeric `scrollPosition` applied only when its value changed, as
+  documented — it used to re-apply whenever the content was measured again,
+  which pulled the scroll back to that position and undid whatever had
+  happened since: a wheel, an arrow, a command through the `ref`. `"end"` is
+  the one standing rule and still follows growing content.
 - A `gap` given as a pair reached the axes swapped everywhere outside the
   layout itself: a page step along x took the vertical gap and a step along
   y the horizontal one, so the arrows, the keys, a drag along the slider and

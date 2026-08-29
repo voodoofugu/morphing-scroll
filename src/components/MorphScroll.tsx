@@ -1768,15 +1768,38 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [direction, endObjectsWrapper.w, endObjectsWrapper.h, smoothScrollLocal],
     );
 
-    // эффекты прокрутки
+    /*
+     * Число — цель разовая: проп говорит «встань сюда», и переприменять его на
+     * каждое переизмерение контента нельзя. Раньше он приезжал в зависимости
+     * эффекта целиком, вместе со своей ссылкой, и та менялась от роста списка —
+     * прокрутка возвращалась на заданное место сама, отменяя всё, что человек
+     * успел сделать после: колесо, стрелку, команду через `ref`.
+     *
+     * "end" — единственное стоячее правило: контент дорос, и мы едем за ним.
+     * От ушедшего читать вверх его бережёт `respectUserScroll`.
+     */
+    const applyScrollPositionRef = React.useRef(applyScrollPosition);
+    applyScrollPositionRef.current = applyScrollPosition;
+
     React.useEffect(() => {
-      applyScrollPosition(
+      applyScrollPositionRef.current(
+        scrollPositionLocal.value,
+        scrollPositionLocal.duration,
+        true,
+      );
+    }, [scrollPositionLocal.value.join(), scrollPositionLocal.duration]);
+
+    React.useEffect(() => {
+      if (!scrollPositionLocal.value.includes("end")) return;
+
+      applyScrollPositionRef.current(
         scrollPositionLocal.value,
         scrollPositionLocal.duration,
         true,
       );
     }, [
-      applyScrollPosition,
+      endObjectsWrapper.w,
+      endObjectsWrapper.h,
       scrollPositionLocal.value.join(),
       scrollPositionLocal.duration,
     ]);

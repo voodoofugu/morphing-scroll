@@ -80,6 +80,57 @@ describe("MorphScroll — scrollPosition (declarative)", () => {
     expect(el.scrollTop).toBe(900);
   });
 
+  /*
+   * Проп говорит «встань сюда» один раз. Переприменять его на каждое
+   * переизмерение контента нельзя: он отменяет всё, что случилось после —
+   * и колесо, и стрелку, и команду через `ref`.
+   */
+  const growing = (count: number, props: Record<string, unknown> = {}) => (
+    <MorphScroll size={[100, VIEW]} objectsSize={OBJ} scrollPosition={100} {...props}>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={`item-${i}`}>item {i}</div>
+      ))}
+    </MorphScroll>
+  );
+
+  const mountGrowing = (props: Record<string, unknown> = {}) => {
+    const utils = render(growing(COUNT, props));
+    const el = utils.container.querySelector<HTMLElement>(".ms-viewport")!;
+    stubLayout(el, {
+      clientWidth: 100,
+      clientHeight: VIEW,
+      scrollWidth: 100,
+      scrollHeight: COUNT * OBJ,
+    });
+    return { ...utils, el };
+  };
+
+  it("does not pull the scroll back when the list grows", () => {
+    const { el, rerender } = mountGrowing();
+    settle();
+
+    el.scrollTop = 900; // человек уехал сам
+    act(() => rerender(growing(COUNT + 8)));
+    settle();
+
+    expect(el.scrollTop).toBe(900);
+  });
+
+  it("does not undo a command when the list grows", () => {
+    const ref = React.createRef<MorphScrollHandle>();
+    const { el, rerender } = mountGrowing({ ref });
+    settle();
+
+    act(() => ref.current!.scrollTo(500));
+    settle();
+    expect(el.scrollTop).toBe(500);
+
+    act(() => rerender(growing(COUNT + 8, { ref })));
+    settle();
+
+    expect(el.scrollTop).toBe(500);
+  });
+
   it("accepts the object form without an updater flag", () => {
     const { el, rerender } = mount({ scrollPosition: { value: 0 } });
     settle();
