@@ -1,6 +1,7 @@
 {
   "name": "morphing-scroll",
   "version": "3.0.0",
+  "private": true,
   "description": "React library for custom object scrolling and scrollbar styling",
   "author": "Georg Schilin",
   "license": "MIT",
@@ -27,8 +28,10 @@
     "build:types": "tsc -p tsconfig.types.json",
     "build": "npm run typecheck && rollup -c rollup.config.mjs && npm run build:types && node scripts/prepare-dist.mjs",
     "build:dev": "npm run typecheck && MORPHING_SCROLL_BUILD=development rollup -c rollup.config.mjs && npm run build:types && node scripts/prepare-dist.mjs",
-    "package-prepare": "npm run build && node scripts/prepare-publish.mjs",
-    "publish": "cd publish && npm publish",
+    "package-prepare": "npm run build && node scripts/prepare-publish.mjs && node scripts/smoke-dist.mjs",
+    "release:check": "npm run lint && npm run playground:check && npm run test:all && npm run package-prepare && cd publish && npm pack --dry-run",
+    "release:publish": "npm run package-prepare && cd publish && npm publish",
+    "prepublishOnly": "node scripts/block-root-publish.mjs",
     "lint": "eslint src"
   },
   "keywords": [
@@ -40,7 +43,7 @@
     "@playwright/test": "^1.61.1",
     "@rollup/plugin-commonjs": "^28.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^11.1.6",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -75,5 +78,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/voodoofugu/morphing-scroll.git"
-  }
+  },
+  "sideEffects": false
 }
