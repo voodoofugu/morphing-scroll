@@ -20,7 +20,8 @@ export const everyProp = (
     className="custom"
     mode="sliderMenu"
     direction="hybrid"
-    scrollPosition={{ value: "end", duration: 300 }}
+    stickToEnd
+    duration={300}
     onScrollPosition={(left, top) => void (left + top)}
     onScrollingChange={(motion) => void motion}
     onRenderedKeysChange={(keys) => void keys.length}
@@ -172,11 +173,11 @@ export const imperative = () => {
   );
 };
 
-export const noUpdater = (
+export const noPositionObject = (
   <MorphScroll
     size={100}
-    // @ts-expect-error scrollPosition lost its updater flag in v3
-    scrollPosition={{ value: 10, updater: true }}
+    // @ts-expect-error the opening position is a value, not a settings object
+    initialPosition={{ value: 10, sticky: true }}
   />
 );
 

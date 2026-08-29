@@ -13,6 +13,9 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `render={{ type: "virtual" }}` | `render={{ mode: "virtual" }}` |
 | `progressTrigger={{ wheel: { changeDirectionKey: "KeyX" } }}` | `changeDirectionBtn: "KeyX"` |
 | `scrollPosition={{ value, updater }}` | `ref.current.scrollTo(value)` — see below |
+| `scrollPosition={10}` | `initialPosition={10}`, or `scrollTo(10)` for a later move |
+| `scrollPosition="end"` | `stickToEnd` |
+| `scrollPosition={{ duration }}` | `duration` |
 | `edgeGradient="#fff"` | `edge` + your CSS |
 | `edgeGradient={{ color, size }}` | `edge` + your CSS, or `edge={<Node />}` |
 | `progressTrigger={{ progressElement: X }}` | `progressTrigger={{ bar: X }}` |
@@ -139,11 +142,14 @@ already used — and `element` is left to mean only the node you pass:
 `objectsSize` used `"size"` for "same as the `size` prop" while
 `wrapperMinSize` spelled the same idea `"full"`. Both say `"full"` now.
 
-#### Repeating the same scroll
+#### Moving the scroll
 
-`scrollPosition` describes where the scroll is and applies when its value
-changes, so it cannot express "go there again". That is what `updater` was
-patching. It is now a command on the component `ref`:
+There are two kinds of thing here, and they used to share one prop. A scroll
+has exactly one standing rule — follow the end — and everything else is a
+move. So the rule is a prop of its own, `stickToEnd`, the opening position is
+`initialPosition` and says in its name that it applies once, the animation
+length is `duration` because it was never about a position, and every move is
+a command on the `ref`:
 
 ```tsx
 const scroll = useRef<MorphScrollHandle>(null);
@@ -154,8 +160,13 @@ scroll.current?.scrollTo(0);
 scroll.current?.scrollTo("end", { duration: 0 });
 ```
 
-Unlike the declarative `"end"`, which backs off when the user has scrolled
-away from the bottom, `scrollTo("end")` always runs.
+Nothing can pull the scroll back any more: a prop that applies once cannot
+argue with a command, and `stickToEnd` steps aside as soon as the reader
+leaves the end. Unlike it, `scrollTo("end")` always runs.
+
+`scrollPosition={10}` becomes `initialPosition={10}` when it was the opening
+position, and a `scrollTo(10)` in an effect when it was driven by state — the
+dependency array then says out loud what the prop used to do silently.
 
 #### Classes and attributes
 
@@ -229,7 +240,7 @@ themselves are no longer transformed and can be positioned from CSS.
   Defaults to `"step"` in the slider modes and `"pan"` in `mode="scroll"`,
   takes only the keys of the scrolling axis in those two, and leaves the
   arrows alone inside a text field.
-- `scrollPosition: "end"` sticks to the bottom by position instead of by the
+- `stickToEnd` sticks to the bottom by position instead of by the
   direction of the last movement. It followed new content only while a
   reading of "the user was going down" survived, and that reading is wiped
   `SCROLL_END_DELAY` after movement stops — so a slow drag upward, which is
@@ -311,15 +322,9 @@ themselves are no longer transformed and can be positioned from CSS.
   one every frame — jerked in place instead of moving.
 - A position asked for before the content was measured lands. With
   `size="auto"` or `objectsSize="firstChild"` the scrollable range is zero for
-  the first few frames, so the target was clipped to zero: `scrollPosition`
-  only arrived because it was re-applied on every re-measure — the very thing
-  that pulled the scroll back later — and a `scrollTo` from a mount effect did
-  nothing at all. Both now wait for a range that can hold them, once.
-- A numeric `scrollPosition` applied only when its value changed, as
-  documented — it used to re-apply whenever the content was measured again,
-  which pulled the scroll back to that position and undid whatever had
-  happened since: a wheel, an arrow, a command through the `ref`. `"end"` is
-  the one standing rule and still follows growing content.
+  the first few frames, so the target was clipped to zero and both
+  `initialPosition` and a `scrollTo` from a mount effect did nothing. They now
+  wait for a range that can hold them.
 - A `gap` given as a pair reached the axes swapped everywhere outside the
   layout itself: a page step along x took the vertical gap and a step along
   y the horizontal one, so the arrows, the keys, a drag along the slider and

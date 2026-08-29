@@ -166,60 +166,90 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <h2></h2>
 
-<details><summary><b><code>scrollPosition</code></b></summary><br /><ul><div>
+<details><summary><b><code>initialPosition</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
-<ul>
-  <li><b>Simple</b>:<br />
-  
 ```tsx
-scrollPosition: 10 // or "end" | null | array if direction="hybrid"
+initialPosition: 10; // or "end" | [x, y] for direction="hybrid"
 ```
 
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-scrollPosition: {
-  value: 10; // or "end" | null | array if direction="hybrid"
-  duration: 400;
-}
-```
-
-  </li>
-</ul>
-
-<b>Default:</b><br />
-{ duration: 200 }<br />
-<br />
 <b>Description:</b><em><br />
-allows you to set custom scroll values.<br />
+where the scroll opens.<br />
 <br />
-<code><b>value</b></code>:<br />
-
-<ul>
-  <li><b>number</b> - Sets position to a specific value.</li>
-  <li><b>"end"</b> - Sets position to the end of the list.</li>
-</ul>
-You can also provide an array of two values to specific positions ( e.g., [ x, y ] axes ) for hybrid directions.</code><br />
-<br />
-<code><b>duration</b></code>:<br />
-property determines the animation speed for scrolling in <b>ms</b>.<br />
+Applied once, without animation, as soon as the content can hold it — a layout that has to be measured is waited for. That is the whole of it: changing the value later does nothing, so the opening position can never take the scroll back from the person using it.<br />
 <br />
 ✦ Note:<br />
-<code>scrollPosition</code> describes <b>where the scroll is</b>, so it only reacts when the value changes. To run the same scroll again — back to the top twice, for instance — call <code>scrollTo</code> on the component <code>ref</code>, see below.<br />
-<br />
-A position asked for before anything has been measured still lands: the first one waits for a scrollable range that can hold it. After that the value is left alone, so a wheel, an arrow or a command is never pulled back by it.</em><br />
+every later move is a command on the component <code>ref</code> — <code>scrollTo</code>, <code>step</code>, <code>pan</code>, <code>moveFocus</code>, see below. To follow content as it grows, see <code>stickToEnd</code>.</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} scrollPosition={100}>
+<MorphScroll {...props} initialPosition={100}>
   {children}
 </MorphScroll>
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollPosition.png)
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>stickToEnd</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+stickToEnd: true;
+```
+
+<b>Default:</b><br />
+false<br />
+<br />
+<b>Description:</b><em><br />
+keeps the scroll at the end of its content.<br />
+<br />
+This is a standing rule rather than a move: every time the content grows the scroll follows it, and it opens at the end too. It steps aside the moment the reader scrolls away from the end and picks up again when they come back — a chat that does not fight the person reading its history.<br />
+<br />
+✦ Note:<br />
+<ul>
+  <li>in <code>direction="hybrid"</code> each axis follows its own end.</li>
+  <li>an explicit <code>scrollTo("end")</code> is the other thing: it always runs, whether or not the reader is at the bottom.</li>
+</ul>
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} stickToEnd>
+  {messages}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>duration</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+duration: 400;
+```
+
+<b>Default:</b><br />
+200<br />
+<br />
+<b>Description:</b><em><br />
+how long a move takes, in <b>ms</b>.<br />
+<br />
+The animation length of every move the scroll makes on its own: an arrow, a key, a focus step, a slider settling after a drag. Commands on the <code>ref</code> take it as their default and can override it per call. <b>0</b> jumps without animating.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} duration={400}>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
 
@@ -240,16 +270,16 @@ scroll.current?.scrollTo("end", { duration: 0 });
 ```
 
 <b>Description:</b><em><br />
-props describe state, methods do something now. <code>scrollPosition</code> is the first kind: it applies when its value changes. <code>scrollTo</code> is the second: it runs every time it is called, so asking for a position that is already set works.<br />
+props describe state, methods do something now. <code>initialPosition</code> and <code>stickToEnd</code> are the first kind: where the scroll opens, and what it follows. Everything else is a method — it runs every time it is called, so asking for a position that is already set works.<br />
 <br />
 <code><b>scrollTo(target, options?)</b></code>:<br />
 
 <ul>
-  <li><code>target</code>: same shape as <code>scrollPosition.value</code> — a <b>number</b>, <b>"end"</b>, <b>null</b>, or an array of two for <code>direction="hybrid"</code>.</li><br />
-  <li><code>options.duration</code>: animation length in <b>ms</b>; <b>0</b> jumps without animating. Defaults to the <code>scrollPosition</code> duration.</li>
+  <li><code>target</code>: the same shape <code>initialPosition</code> takes — a <b>number</b>, <b>"end"</b>, <b>null</b>, or an array of two for <code>direction="hybrid"</code>.</li><br />
+  <li><code>options.duration</code>: animation length in <b>ms</b>; <b>0</b> jumps without animating. Defaults to the <code>duration</code> prop.</li>
 </ul>
 
-Unlike the declarative <b>"end"</b>, which keeps following new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
+Unlike <code>stickToEnd</code>, which follows new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
 <br />
 <code><b>step(side, options?)</b></code>:<br />
 turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run unless <code>arrows.loop</code> is on.<br />

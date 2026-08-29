@@ -3,15 +3,15 @@ import { test, expect, Page } from "@playwright/test";
 const scrollTopOf = (page: Page) =>
   page.locator(".ms-viewport").evaluate((el) => (el as HTMLElement).scrollTop);
 
-test.describe("MorphScroll scrollPosition (real browser)", () => {
-  test("number: scrolls to the given offset on mount", async ({ page }) => {
-    await page.goto("/?scenario=scrollPosNumber");
+test.describe("MorphScroll initialPosition and stickToEnd (real browser)", () => {
+  test("a number opens the scroll at that offset", async ({ page }) => {
+    await page.goto("/?scenario=initialPosNumber");
     await expect(page.locator(".ms-viewport")).toBeVisible();
     await expect.poll(() => scrollTopOf(page)).toBe(200);
   });
 
-  test("end: scrolls to the bottom on mount", async ({ page }) => {
-    await page.goto("/?scenario=scrollPosEnd");
+  test("stickToEnd opens at the bottom", async ({ page }) => {
+    await page.goto("/?scenario=stickToEnd");
     await expect(page.locator(".ms-viewport")).toBeVisible();
     // wrapper 700 - viewport 300 => max scroll 400
     await expect.poll(() => scrollTopOf(page)).toBe(400);

@@ -94,6 +94,7 @@ type Settings = {
   suspending: boolean;
   fallbackText: string;
   autoScrollOnDrag: boolean;
+  stickToEnd: boolean;
 };
 
 type ScrollCommand = {
@@ -178,6 +179,7 @@ const defaultSettings: Settings = {
   suspending: false,
   fallbackText: "loading",
   autoScrollOnDrag: false,
+  stickToEnd: false,
 };
 
 const presets: Record<string, Partial<Settings>> = {
@@ -725,7 +727,8 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       "value",
     ],
     ["autoScrollOnDrag", settings.autoScrollOnDrag || undefined, "boolean"],
-    ["scrollPosition", scrollCommand, "value"],
+    ["stickToEnd", settings.stickToEnd || undefined, "boolean"],
+    ["duration", scrollCommand.duration === 200 ? undefined : scrollCommand.duration, "value"],
     [
       "onScrollPosition",
       settings.enableOnScrollValue
@@ -1080,7 +1083,8 @@ function App() {
           : false,
       },
       render,
-      scrollPosition: scrollCommand,
+      stickToEnd: settings.stickToEnd,
+      duration: scrollCommand.duration,
       size,
       suspending: settings.suspending,
       mode: settings.mode,
@@ -1146,9 +1150,8 @@ function App() {
       });
 
       /*
-       * `scrollPosition` описывает позицию и реагирует на изменение значения,
-       * поэтому повторное нажатие той же кнопки им не поймать. Команда — это
-       * ref: она выполняется всегда.
+       * Единственный способ съездить куда-то по кнопке — команда: она
+       * выполняется всегда, в том числе на то же самое значение.
        */
       scrollRef.current?.scrollTo(nextValue, { duration: scrollDuration });
     },
@@ -1223,7 +1226,7 @@ function App() {
 
         <ControlGroup
           defaultOpen
-          hint="mode · direction · scrollPosition · autoScrollOnDrag"
+          hint="mode · direction · stickToEnd · scrollTo"
           title="scroll"
         >
           <SelectField
@@ -1239,12 +1242,17 @@ function App() {
             value={settings.direction}
           />
           <ToggleField
+            label="stickToEnd"
+            onChange={(value) => update("stickToEnd", value)}
+            value={settings.stickToEnd}
+          />
+          <ToggleField
             label="autoScrollOnDrag"
             onChange={(value) => update("autoScrollOnDrag", value)}
             value={settings.autoScrollOnDrag}
           />
 
-          <SubGroup label="scrollPosition">
+          <SubGroup label="scrollTo (ref)">
             <div className="two-col">
               {settings.direction !== "y" && (
                 <NumberField
@@ -1862,7 +1870,7 @@ function App() {
             </p>
           </div>
           <code className="prop-pill">
-            scrollPosition: {JSON.stringify(scrollCommand.value)}
+            scrollTo: {JSON.stringify(scrollCommand.value)}
           </code>
         </header>
 

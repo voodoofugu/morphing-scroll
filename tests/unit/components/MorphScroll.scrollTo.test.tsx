@@ -37,56 +37,41 @@ const settle = (ms = 600) =>
     vi.advanceTimersByTime(ms);
   });
 
-describe("MorphScroll — scrollPosition (declarative)", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
+/*
+ * `initialPosition` — позиция открытия и ничего больше: применяется один раз и
+ * никогда не возвращается. Отсюда и весь смысл разделения — проп не может
+ * отменить ни движение человека, ни команду.
+ */
+describe("MorphScroll — initialPosition", () => {
+  it("opens where it was asked to", async () => {
+    const { el } = mount({ initialPosition: 400 });
 
-  it("applies a new value when it changes", () => {
-    const { el, rerender } = mount({ scrollPosition: 0 });
-    settle();
+    await vi.waitFor(() => expect(el.scrollTop).toBe(400));
+  });
+
+  it("is never applied a second time", async () => {
+    const { el, rerender } = mount({ initialPosition: 400 });
+    await vi.waitFor(() => expect(el.scrollTop).toBe(400));
+
+    el.scrollTop = 900; // человек уехал сам
 
     rerender(
-      <MorphScroll size={[100, VIEW]} objectsSize={OBJ} scrollPosition={400}>
+      <MorphScroll size={[100, VIEW]} objectsSize={OBJ} initialPosition={100}>
         {items()}
       </MorphScroll>,
     );
-    settle();
-
-    expect(el.scrollTop).toBe(400);
-  });
-
-  it("leaves the user alone when the same value is re-rendered", () => {
-    const scroll = (
-      <MorphScroll size={[100, VIEW]} objectsSize={OBJ} scrollPosition={400}>
-        {items()}
-      </MorphScroll>
-    );
-    const { container, rerender } = render(scroll);
-    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
-    stubLayout(el, {
-      clientWidth: 100,
-      clientHeight: VIEW,
-      scrollWidth: 100,
-      scrollHeight: COUNT * OBJ,
-    });
-    settle();
-
-    // the user scrolls somewhere else
-    el.scrollTop = 900;
-
-    rerender(scroll);
-    settle();
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(el.scrollTop).toBe(900);
   });
+});
 
-  /*
-   * Проп говорит «встань сюда» один раз. Переприменять его на каждое
-   * переизмерение контента нельзя: он отменяет всё, что случилось после —
-   * и колесо, и стрелку, и команду через `ref`.
-   */
+describe("MorphScroll — initialPosition against everything else", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
   const growing = (count: number, props: Record<string, unknown> = {}) => (
-    <MorphScroll size={[100, VIEW]} objectsSize={OBJ} scrollPosition={100} {...props}>
+    <MorphScroll size={[100, VIEW]} objectsSize={OBJ} initialPosition={100} {...props}>
       {Array.from({ length: count }, (_, i) => (
         <div key={`item-${i}`}>item {i}</div>
       ))}
@@ -129,24 +114,6 @@ describe("MorphScroll — scrollPosition (declarative)", () => {
     settle();
 
     expect(el.scrollTop).toBe(500);
-  });
-
-  it("accepts the object form without an updater flag", () => {
-    const { el, rerender } = mount({ scrollPosition: { value: 0 } });
-    settle();
-
-    rerender(
-      <MorphScroll
-        size={[100, VIEW]}
-        objectsSize={OBJ}
-        scrollPosition={{ value: 600, duration: 100 }}
-      >
-        {items()}
-      </MorphScroll>,
-    );
-    settle();
-
-    expect(el.scrollTop).toBe(600);
   });
 });
 

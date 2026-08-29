@@ -150,6 +150,30 @@ describe("MorphScroll — pan as a stick sends it", () => {
     }
   };
 
+  /*
+   * `duration` — скорость всех движений скролла, а не только команд: раньше
+   * она пряталась внутри позиции, где её никто не искал. Ноль значит «сейчас»:
+   * шаг обязан встать в том же кадре, а не ехать двести миллисекунд.
+   */
+  it("takes its animation length from the duration prop", () => {
+    const instant = mount({ duration: 0 });
+    act(() => vi.advanceTimersToNextFrame()); // кадр после монтирования
+
+    act(() => instant.ref.current!.step("bottom"));
+    act(() => vi.advanceTimersToNextFrame());
+
+    expect(instant.el.scrollTop).toBe(300);
+
+    const slow = mount({ duration: 400 });
+    act(() => vi.advanceTimersToNextFrame());
+
+    act(() => slow.ref.current!.step("bottom"));
+    act(() => vi.advanceTimersToNextFrame());
+
+    expect(slow.el.scrollTop).toBeGreaterThan(0);
+    expect(slow.el.scrollTop).toBeLessThan(60); // кадр из четырёхсот миллисекунд
+  });
+
   it("adds up frame after frame", () => {
     const { el, ref } = mount();
 

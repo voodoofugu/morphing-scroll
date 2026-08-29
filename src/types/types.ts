@@ -128,7 +128,7 @@ export type EmptyObjectsConfig = {
   clickTrigger?: string | { selector: string; delay?: number };
 };
 
-/** a value understood by both `scrollPosition` and `scrollTo` */
+/** a value understood by both `initialPosition` and `scrollTo` */
 export type ScrollTarget =
   | null
   | number
@@ -140,9 +140,9 @@ export type ScrollTarget =
  * ### ***MorphScrollHandle***:
  * imperative commands, reachable through a `ref`.
  * @description
- * `scrollPosition` describes *where the scroll is* and only reacts when that
- * value changes. These *do something now*, so they work even when the target
- * is the same as last time — scrolling back to the top twice, for example.
+ * `initialPosition` says where the scroll opens and is never applied again.
+ * These *do something now*, so they work even when the target is the same as
+ * last time — scrolling back to the top twice, for example.
  *
  * They are also the way to drive the scroll from an input the library knows
  * nothing about. A gamepad, a remote, a MIDI pedal: your code decides what a
@@ -451,27 +451,62 @@ export type MorphScroll = {
   direction?: "x" | "y" | "hybrid";
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***scrollPosition***:
-   * where the scroll should sit.
-   * @default { duration: 200 }
+   * ### ***initialPosition***:
+   * where the scroll opens.
    * @description
-   * - `value`: *scroll position value*
-   * - `duration`: *duration of the scroll animation*
-   * @note `value` property can be an array of two values for hybrid directions
+   * Applied once, without animation, as soon as the content can hold it — a
+   * measured layout is waited for. It is the opening position and nothing
+   * else: changing it later does nothing, so it can never take the scroll back
+   * from the person using it.
+   * @note a pair of values sets both axes in `direction="hybrid"`
    * @note
-   * this is a description, not a command: it applies when the value changes.
-   * To run the same scroll again — back to the top twice, for instance — use
-   * the `scrollTo` method on the component `ref`.
+   * every later move is a command on the component `ref` — `scrollTo`, `step`,
+   * `pan`, `moveFocus`. To follow growing content, see `stickToEnd`.
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   scrollPosition={100}
+   *   initialPosition={100}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  scrollPosition?: ScrollTarget | { value: ScrollTarget; duration?: number };
+  initialPosition?: ScrollTarget;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***stickToEnd***:
+   * keeps the scroll at the end of its content.
+   * @description
+   * A standing rule rather than a move: every time the content grows the
+   * scroll follows it, and it opens at the end too. It steps aside as soon as
+   * the reader scrolls away from the end, and picks up again when they come
+   * back — a chat that does not fight the person reading its history.
+   * @note in `direction="hybrid"` both axes follow their own end
+   * @example
+   * ```tsx
+   * <MorphScroll {...props} stickToEnd>
+   *   {messages}
+   * </MorphScroll>
+   * ```
+   */
+  stickToEnd?: boolean;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***duration***:
+   * how long a move takes, in ms.
+   * @default 200
+   * @description
+   * The animation length of every move the scroll makes on its own: an arrow,
+   * a key, a focus step, a slider settling after a drag. Commands on the `ref`
+   * take it as their default and can override it per call. `0` jumps.
+   * @example
+   * ```tsx
+   * <MorphScroll {...props} duration={400}>
+   *   {children}
+   * </MorphScroll>
+   * ```
+   */
+  duration?: number;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***autoScrollOnDrag***:

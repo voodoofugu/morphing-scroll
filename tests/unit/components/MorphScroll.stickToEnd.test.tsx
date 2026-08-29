@@ -5,7 +5,7 @@ import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
 import { stubLayout } from "../../helpers/dom";
 
 /*
- * `scrollPosition: "end"` — это «держись низа», и держаться он должен, пока
+ * `stickToEnd` — это «держись низа», и держаться он должен, пока
  * пользователь внизу. Раньше библиотека решала это по направлению последнего
  * движения, а направление стирается через SCROLL_END_DELAY после остановки:
  * при медленной прокрутке вверх пауза успевала стереть его раньше, чем
@@ -24,7 +24,8 @@ const Chat = ({ count, duration = 0 }: { count: number; duration?: number }) => 
     size={[200, VIEW]}
     objectsSize={OBJ}
     crossCount={1}
-    scrollPosition={{ value: "end", duration }}
+    stickToEnd
+    duration={duration}
   >
     {items(count)}
   </MorphScroll>
@@ -56,7 +57,7 @@ const grow = (
     stubLayout(el, { clientHeight: VIEW, scrollHeight: count * OBJ });
   });
 
-describe("MorphScroll — scrollPosition end", () => {
+describe("MorphScroll — stickToEnd", () => {
   it("follows new content while the user is at the bottom", async () => {
     const { el, rerender } = mount(10);
 

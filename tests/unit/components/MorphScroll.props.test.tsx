@@ -131,10 +131,10 @@ describe("MorphScroll — props with no visible markup", () => {
     expect(getContainers().size).toBe(before);
   });
 
-  it("scrollPosition reaches the scroll element", async () => {
+  it("initialPosition reaches the scroll element", async () => {
     vi.useFakeTimers();
     const { container } = render(
-      <MorphScroll {...BASE} crossCount={1} scrollPosition={200} />,
+      <MorphScroll {...BASE} crossCount={1} initialPosition={200} />,
     );
     const el = container.querySelector<HTMLElement>(".ms-viewport")!;
     Object.defineProperty(el, "clientHeight", { value: 300, configurable: true });

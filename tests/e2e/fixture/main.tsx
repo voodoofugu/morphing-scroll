@@ -146,11 +146,11 @@ const scenarios: Record<string, React.ReactElement> = {
     </MorphScroll>
   ),
 
-  scrollPosNumber: (
+  initialPosNumber: (
     <MorphScroll
       size={300}
       objectsSize={OBJ}
-      scrollPosition={200}
+      initialPosition={200}
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -158,11 +158,11 @@ const scenarios: Record<string, React.ReactElement> = {
     </MorphScroll>
   ),
 
-  scrollPosEnd: (
+  stickToEnd: (
     <MorphScroll
       size={300}
       objectsSize={OBJ}
-      scrollPosition="end"
+      stickToEnd
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -407,7 +407,7 @@ scenarios.positionOnMountMeasured = (
       size="auto"
       objectsSize="firstChild"
       crossCount={1}
-      scrollPosition={600}
+      initialPosition={600}
       onScrollPosition={onScrollPosition}
     >
       {tallItems()}

@@ -95,7 +95,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // Scroll Settings
       mode = "scroll",
       direction = "y",
-      scrollPosition,
+      initialPosition,
+      stickToEnd = false,
+      duration = 200,
+
       onScrollPosition,
       onScrollingChange,
       onNavigate,
@@ -224,7 +227,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // ♦ stabilize
     const [
-      scrollPositionST,
+      initialPositionST,
       renderST,
       sizeST,
       objectsSizeST,
@@ -235,7 +238,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsKeysEmptyST,
       edgeST,
     ] = stabilize(
-      scrollPosition,
+      initialPosition,
       render,
       size,
       objectsSize,
@@ -265,24 +268,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       console.error(errorText("progressTrigger"));
 
     // ♦ default
-    const scrollPositionLocal = React.useMemo(() => {
-      let value: (number | "end" | null)[] = [null];
-      let duration = 200;
-
-      if (scrollPosition != null) {
-        if (
-          typeof scrollPosition === "object" &&
-          !Array.isArray(scrollPosition)
-        ) {
-          value = resolveScrollTarget(scrollPosition.value);
-          duration = scrollPosition.duration ?? 200;
-        } else {
-          value = resolveScrollTarget(scrollPosition);
-        }
-      }
-
-      return { value, duration };
-    }, [scrollPositionST]);
+    const initialTarget = React.useMemo(
+      () => (initialPosition == null ? null : resolveScrollTarget(initialPosition)),
+      [initialPositionST],
+    );
 
     /*
      * Заглушку раньше можно было задать тремя способами — голым узлом,
@@ -780,7 +769,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const updateAtEnd = (allow: (dir: "x" | "y") => boolean = () => true) => {
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl || !scrollPositionLocal.value.includes("end")) return;
+      if (!scrollEl || !stickToEnd) return;
 
       const near = (pos: number, end: number) =>
         pos >= end - CONST.END_STICK_THRESHOLD;
@@ -1108,7 +1097,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           sizeLocal: [sizeLocal[0], sizeLocal[1]],
           thumbSize: axisFromAtr === "x" ? thumbSizeMemo.x : thumbSizeMemo.y,
           axisFromAtr,
-          duration: scrollPositionLocal.duration,
+          duration: duration,
           scrollBarEdge: barLocal.trackGap,
           rafScrollAnim,
           isTouched: isTouchedRef.current,
@@ -1127,7 +1116,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         direction,
         mode,
         sizeLocal.join(),
-        scrollPositionLocal.duration,
+        duration,
         smoothScrollLocal,
         barLocal.trackGap.join(),
         thumbSizeMemo.x,
@@ -1230,7 +1219,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           wrapSize: [objectsWrapperWidthFull, objectsWrapperHeightFull],
           scrollSize: sizeLocal,
           smoothScroll: smoothScrollLocal,
-          duration: scrollPositionLocal.duration,
+          duration: duration,
           loop: arrowsLocal.loop,
           gap: gapXY,
         });
@@ -1243,7 +1232,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         sizeLocal.join(),
         objectsWrapperWidthFull,
         objectsWrapperHeightFull,
-        scrollPositionLocal.duration,
+        duration,
         smoothScrollLocal,
         arrowsLocal.loop,
         gapLocal[0],
@@ -1418,7 +1407,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         updateLoadedElementsKeysLocal,
         barLocal.showOnHover,
         renderLocal.mode,
-        scrollPositionLocal.value.join(), // читается внутри для трекера "end"
+        stickToEnd, // читается внутри для трекера конца
       ],
     );
 
@@ -1513,7 +1502,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         e.stopPropagation();
 
         if (keysLocal.mode === "focus") {
-          moveFocusLocal(side, "keys", scrollPositionLocal.duration);
+          moveFocusLocal(side, "keys", duration);
           return;
         }
 
@@ -1535,7 +1524,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * колесо или перетаскивание. Если оно доедет до новой страницы
          * слайдера, это и есть "scroll".
          */
-        smoothScrollLocal(from + delta, axis, scrollPositionLocal.duration);
+        smoothScrollLocal(from + delta, axis, duration);
       },
 
       [
@@ -1545,7 +1534,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         handleArrowLocal,
         moveFocusLocal,
         smoothScrollLocal,
-        scrollPositionLocal.duration,
+        duration,
       ],
     );
     const onKeyUp = React.useCallback((e: KeyboardEvent) => {
@@ -1794,9 +1783,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Теперь повтор ограничен доставкой: ждём, пока диапазон вместит цель или
      * перестанет расти, ставим — и больше проп сам по себе не вмешивается.
      */
-    const deliveredRef = React.useRef(false);
-    const lastRangeRef = React.useRef(-1);
-
     /*
      * «Первый рендер» — это не первый кадр, а всё время, пока прокручивать
      * ещё нечего: до этого момента любая позиция ставится сразу, без анимации,
@@ -1811,52 +1797,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return () => cancelAnimationFrame(id);
     }, [maxScrollSize.join()]);
 
+    /*
+     * Позиция открытия — один раз за жизнь скролла, без анимации и без
+     * повторов: `initialPosition` говорит, откуда начать, и ничего больше.
+     * Дожидаться измерения не нужно, этим занят сам первый рендер.
+     */
     React.useEffect(() => {
-      deliveredRef.current = false;
-      lastRangeRef.current = -1;
+      if (!initialTarget) return;
 
-      applyScrollPositionRef.current(
-        scrollPositionLocal.value,
-        scrollPositionLocal.duration,
-        true,
-      );
-    }, [scrollPositionLocal.value.join(), scrollPositionLocal.duration]);
+      applyScrollPositionRef.current(initialTarget, 0, false);
+    }, []); // именно на монтирование: значение позже не читается
 
+    /*
+     * А это правило, а не движение: контент дорос — едем за ним. От ушедшего
+     * читать историю его бережёт `respectUserScroll`.
+     */
     React.useEffect(() => {
-      if (deliveredRef.current) return;
+      if (!stickToEnd) return;
 
-      const wanted = Math.max(
-        ...scrollPositionLocal.value.map((v) => (typeof v === "number" ? v : 0)),
-      );
-      const range = Math.max(maxScrollSize[0], maxScrollSize[1]);
-      if (range <= 0) return; // мерить ещё нечего
-
-      const stopped = range === lastRangeRef.current;
-      lastRangeRef.current = range;
-      if (range < wanted && !stopped) return; // диапазон ещё растёт
-
-      deliveredRef.current = true;
-      applyScrollPositionRef.current(scrollPositionLocal.value, 0, true);
-    }, [
-      maxScrollSize.join(),
-      scrollPositionLocal.value.join(),
-      scrollPositionLocal.duration,
-    ]);
-
-    React.useEffect(() => {
-      if (!scrollPositionLocal.value.includes("end")) return;
-
-      applyScrollPositionRef.current(
-        scrollPositionLocal.value,
-        scrollPositionLocal.duration,
-        true,
-      );
-    }, [
-      endObjectsWrapper.w,
-      endObjectsWrapper.h,
-      scrollPositionLocal.value.join(),
-      scrollPositionLocal.duration,
-    ]);
+      applyScrollPositionRef.current(["end", "end"], duration, true);
+    }, [stickToEnd, endObjectsWrapper.w, endObjectsWrapper.h, duration]);
 
     React.useImperativeHandle(
       ref,
@@ -1864,7 +1824,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         scrollTo: (target, options) =>
           applyScrollPosition(
             resolveScrollTarget(target),
-            options?.duration ?? scrollPositionLocal.duration,
+            options?.duration ?? duration,
             false,
           ),
 
@@ -1883,24 +1843,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
           if (options?.reason) markNavigate(options.reason);
 
-          const duration = options?.duration ?? scrollPositionLocal.duration;
+          const moveDuration = options?.duration ?? duration;
 
           if (delta.x)
-            smoothScrollLocal(scrollEl.scrollLeft + delta.x, "x", duration);
+            smoothScrollLocal(scrollEl.scrollLeft + delta.x, "x", moveDuration);
           if (delta.y)
-            smoothScrollLocal(scrollEl.scrollTop + delta.y, "y", duration);
+            smoothScrollLocal(scrollEl.scrollTop + delta.y, "y", moveDuration);
         },
 
         moveFocus: (side, options) =>
           moveFocusLocal(
             side,
             options?.reason ?? "keys",
-            options?.duration ?? scrollPositionLocal.duration,
+            options?.duration ?? duration,
           ),
       }),
       [
         applyScrollPosition,
-        scrollPositionLocal.duration,
+        duration,
         handleArrowLocal,
         moveFocusLocal,
         smoothScrollLocal,
@@ -2416,7 +2376,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             objLengthPerSize={args.objLengthPerSize}
             sliderCheckLocal={sliderCheckLocal}
             markNavigate={markNavigate}
-            duration={scrollPositionLocal.duration}
+            duration={duration}
             isTouched={isTouchedRef.current}
             scrollStateRef={scrollStateRef}
             scrollEl={scrollElementRef}
