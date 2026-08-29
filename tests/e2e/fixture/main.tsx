@@ -342,6 +342,24 @@ scenarios.keysFocus = (
   </MorphScroll>
 );
 
+/*
+ * Столбец с зазором и полями обёртки: объект, доехавший до края окна, должен
+ * встать с отступом, а последний — открыть поле целиком.
+ */
+scenarios.keysFocusSpaced = (
+  <MorphScroll
+    size={300}
+    objectsSize={OBJ}
+    crossCount={1}
+    gap={[0, 20]}
+    wrapper={{ margin: 40 }}
+    progressTrigger={{ keys: { mode: "focus" } }}
+    onScrollPosition={onScrollPosition}
+  >
+    {makeItems()}
+  </MorphScroll>
+);
+
 /** тот же список, но управляемый снаружи — как это делал бы геймпад */
 function FocusRig() {
   const ref = React.useRef<MorphScrollHandle>(null);

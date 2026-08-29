@@ -224,6 +224,8 @@ themselves are no longer transformed and can be positioned from CSS.
   focus to the neighbouring object and the scroll follows it, picking the
   neighbour by geometry so a grid walks its row and drops to the next one
   and focus landing on the `.ms-object-box` itself, to style as one card.
+  The object stops a `gap` short of the edge rather than against it, and
+  where the objects run out it is `wrapper.margin` that opens instead.
   Defaults to `"step"` in the slider modes and `"pan"` in `mode="scroll"`,
   takes only the keys of the scrolling axis in those two, and leaves the
   arrows alone inside a text field.
@@ -307,6 +309,11 @@ themselves are no longer transformed and can be positioned from CSS.
 - `pan` with `duration: 0` moves in the same frame. It travelled through the
   animation lock and arrived a frame late, so a gamepad stick — which sends
   one every frame — jerked in place instead of moving.
+- A `gap` given as a pair reached the axes swapped everywhere outside the
+  layout itself: a page step along x took the vertical gap and a step along
+  y the horizontal one, so the arrows, the keys, a drag along the slider and
+  the page numbers in `onNavigate` all counted a step of the wrong length.
+  A single number was never affected.
 - A slider counted its pages against a viewport of zero before it was
   measured, so `size="auto"` asked for an endless list of dots and threw.
 - A drag along the slider bar aims at the element under the pointer instead

@@ -211,6 +211,32 @@ test.describe("MorphScroll keys: focus (real browser)", () => {
     await expect.poll(() => scrollTopOf(page)).toBeLessThan(400);
   });
 
+  /*
+   * Окно 300, объекты по 100, зазор 20, поля обёртки 40: третий объект лежит
+   * на 280..380, и что бы он поместился, хватило бы 80 — но тогда он встанет
+   * вплотную к краю, хотя за ним есть зазор.
+   */
+  test("stops a gap short of the edge, not against it", async ({ page }) => {
+    await page.goto("/?scenario=keysFocusSpaced");
+    await page.locator(".ms-viewport").click({ position: { x: 250, y: 20 } });
+
+    for (let i = 0; i < 3; i++) await page.keyboard.press("ArrowDown");
+
+    expect(await focused(page)).toBe("item 2");
+    await expect.poll(() => scrollTopOf(page)).toBe(100);
+  });
+
+  test("opens the whole margin at the end of the run", async ({ page }) => {
+    await page.goto("/?scenario=keysFocusSpaced");
+    await page.locator(".ms-viewport").click({ position: { x: 250, y: 20 } });
+
+    for (let i = 0; i < 20; i++) await page.keyboard.press("ArrowDown");
+
+    expect(await focused(page)).toBe("item 19");
+    // 40 + 20*100 + 19*20 + 40 - 300: за последним объектом уже не зазор, а поле
+    await expect.poll(() => scrollTopOf(page)).toBe(2160);
+  });
+
   test("moveFocus does the same for a device the library never heard of", async ({
     page,
   }) => {

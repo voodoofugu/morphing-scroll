@@ -423,6 +423,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return [0, 0];
     }, [gap]);
 
+    /*
+     * `gapLocal` лежит в порядке CSS: сначала между рядами, потом между
+     * колонками. Помощники же считают по осям — первым x, вторым y. Пока
+     * зазор один на обе стороны, разница не видна; заданный парой, он уезжал
+     * не на ту ось: шаг страницы по x брал вертикальный зазор.
+     */
+    const gapXY = React.useMemo<Vec2>(
+      () => [gapLocal[1], gapLocal[0]],
+      [gapLocal[0], gapLocal[1]],
+    );
+
     const renderLocal = React.useMemo(() => {
       const base = {
         mode: undefined as "lazy" | "virtual" | undefined,
@@ -1101,7 +1112,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           scrollBarEdge: barLocal.trackGap,
           rafScrollAnim,
           isTouched: isTouchedRef.current,
-          gap: gapLocal,
+          gap: gapXY,
           overscrollRef,
           objLengthPerSize,
           isDraggingRef,
@@ -1157,8 +1168,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (!el) return null;
 
         return axis === "x"
-          ? pageAt(el.scrollLeft, el.clientWidth, gapLocal[0])
-          : pageAt(el.scrollTop, el.clientHeight, gapLocal[1]);
+          ? pageAt(el.scrollLeft, el.clientWidth, gapXY[0])
+          : pageAt(el.scrollTop, el.clientHeight, gapXY[1]);
       },
       [gapLocal[0], gapLocal[1]],
     );
@@ -1221,7 +1232,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           smoothScroll: smoothScrollLocal,
           duration: scrollPositionLocal.duration,
           loop: arrowsLocal.loop,
-          gap: gapLocal,
+          gap: gapXY,
         });
 
         // упёрлись в край без loop — никуда не поехали, и метку ставить не за что
@@ -1422,7 +1433,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         duration: number,
       ) => {
         const scrollEl = scrollElementRef.current;
-        const moved = focusStep(objectsWrapperRef.current, scrollEl, side);
+        const moved = focusStep(objectsWrapperRef.current, scrollEl, side, {
+          gap: gapXY,
+          margin: [mT, mR, mB, mL],
+        });
         if (!moved || !scrollEl) return;
 
         const axes: ("x" | "y")[] =
@@ -1442,7 +1456,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ),
         );
       },
-      [direction, markNavigate, smoothScrollLocal],
+      [
+        direction,
+        markNavigate,
+        smoothScrollLocal,
+        gapXY[0],
+        gapXY[1],
+        mT,
+        mR,
+        mB,
+        mL,
+      ],
     );
 
     const onKeyDown = React.useCallback(

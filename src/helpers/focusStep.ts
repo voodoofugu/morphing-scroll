@@ -1,5 +1,13 @@
 type Side = "top" | "right" | "bottom" | "left";
 
+/** сколько свободного места есть вокруг объектов — в осях x/y и по краям */
+type Spacing = {
+  gap: [x: number, y: number];
+  margin: [top: number, right: number, bottom: number, left: number];
+};
+
+const NO_SPACING: Spacing = { gap: [0, 0], margin: [0, 0, 0, 0] };
+
 const boxesOf = (wrapper: HTMLElement) =>
   Array.from(wrapper.children).filter(
     (el): el is HTMLElement =>
@@ -81,23 +89,68 @@ const pickNeighbour = (
   return inRow?.box ?? anywhere?.box ?? null;
 };
 
+/** есть ли за объектом другие объекты по этой оси */
+const boxBeyond = (
+  boxes: HTMLElement[],
+  box: DOMRect,
+  axis: "x" | "y",
+  forward: boolean,
+) =>
+  boxes.some((other) => {
+    const o = other.getBoundingClientRect();
+
+    if (axis === "x") return forward ? o.left >= box.right : o.right <= box.left;
+
+    return forward ? o.top >= box.bottom : o.bottom <= box.top;
+  });
+
+/**
+ * Отступ, с которым объект встаёт у края окна. Берём его из того, что в этом
+ * месте на самом деле есть: между объектами это зазор, а за крайним из них
+ * зазора уже нет — там поле обёртки.
+ */
+const padsAround = (
+  boxes: HTMLElement[],
+  box: DOMRect,
+  { gap: [gapX, gapY], margin: [mT, mR, mB, mL] }: Spacing,
+) => ({
+  x: {
+    start: boxBeyond(boxes, box, "x", false) ? gapX : mL,
+    end: boxBeyond(boxes, box, "x", true) ? gapX : mR,
+  },
+  y: {
+    start: boxBeyond(boxes, box, "y", false) ? gapY : mT,
+    end: boxBeyond(boxes, box, "y", true) ? gapY : mB,
+  },
+});
+
+type Pads = ReturnType<typeof padsAround>;
+
 /** насколько подвинуть прокрутку, что бы объект оказался в окне целиком */
-const intoViewDelta = (view: DOMRect, box: DOMRect) => {
+const intoViewDelta = (view: DOMRect, box: DOMRect, pads: Pads) => {
   const along = (
     boxStart: number,
     boxEnd: number,
     viewStart: number,
     viewEnd: number,
+    pad: Pads["x"],
   ) => {
-    if (boxStart < viewStart) return boxStart - viewStart;
-    if (boxEnd > viewEnd) return Math.min(boxEnd - viewEnd, boxStart - viewStart);
+    /*
+     * Доехать «ровно до края» мало: объект встаёт вплотную к нему, хотя место
+     * рядом есть. Тянемся на отступ дальше — прокрутка всё равно упрётся в
+     * свой конец, если его там не хватает.
+     */
+    const lead = boxStart - viewStart - pad.start;
+
+    if (boxStart < viewStart) return lead;
+    if (boxEnd > viewEnd) return Math.min(boxEnd - viewEnd + pad.end, lead);
 
     return 0;
   };
 
   return {
-    x: along(box.left, box.right, view.left, view.right),
-    y: along(box.top, box.bottom, view.top, view.bottom),
+    x: along(box.left, box.right, view.left, view.right, pads.x),
+    y: along(box.top, box.bottom, view.top, view.bottom, pads.y),
   };
 };
 
@@ -110,6 +163,7 @@ function focusStep(
   wrapper: HTMLElement | null,
   scrollEl: HTMLElement | null,
   side: Side,
+  spacing: Spacing = NO_SPACING,
 ) {
   if (!wrapper || !scrollEl) return null;
 
@@ -132,11 +186,13 @@ function focusStep(
 
   next.focus({ preventScroll: true });
 
+  const rect = next.getBoundingClientRect();
+
   return {
     box: next,
-    delta: intoViewDelta(view, next.getBoundingClientRect()),
+    delta: intoViewDelta(view, rect, padsAround(boxes, rect, spacing)),
   };
 }
 
 export default focusStep;
-export type { Side };
+export type { Side, Spacing };

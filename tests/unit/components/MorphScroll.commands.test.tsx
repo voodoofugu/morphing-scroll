@@ -44,6 +44,30 @@ describe("MorphScroll — step and pan", () => {
     await landsOn(el, 300);
   });
 
+  /*
+   * Зазор задаётся парой по осям, а внутри лежит в порядке CSS — сначала
+   * между рядами. Шаг страницы читал его как есть и брал по x вертикальный
+   * зазор, по y — горизонтальный: с одинаковым зазором незаметно, с разным
+   * страница проматывалась не туда.
+   */
+  it("a page step counts the gap of its own axis", async () => {
+    const across = mount({ direction: "x", gap: [40, 0] });
+    stubLayout(across.el, {
+      clientWidth: 300,
+      clientHeight: 300,
+      scrollWidth: 300 * 12,
+      scrollHeight: 300,
+    });
+
+    act(() => across.ref.current!.step("right"));
+    await vi.waitFor(() => expect(across.el.scrollLeft).toBe(340));
+
+    const down = mount({ gap: [0, 40] });
+
+    act(() => down.ref.current!.step("bottom"));
+    await vi.waitFor(() => expect(down.el.scrollTop).toBe(340));
+  });
+
   it("step does nothing at the end of the run", async () => {
     const { el, ref } = mount();
 
