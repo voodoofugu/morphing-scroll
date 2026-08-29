@@ -19,16 +19,32 @@ function objectsPerSize(availableSize: number, objectSize: number): number {
 }
 
 /*
- * Ждём, пока контент станет прокручиваемым, что бы стартовая позиция не
- * применилась в пустоту. Ожидание обязательно ограничено: maxScrollSize
- * считается по пропсам, а прокручиваемость — по DOM, и они могут разойтись
- * (CSS ужал контент, размеры заданы неверно). Без предела это был вечный rAF.
+ * Ждём, пока контент сможет удержать запрошенную позицию, что бы стартовая
+ * цель не применилась в пустоту.
+ *
+ * Измеряемые размеры приезжают ступенями — сначала объект, потом обёртка, — и
+ * диапазон прокрутки растёт несколько кадров. Цель 600 при доступных пока 100
+ * встанет на 100 и там и останется. Ждём до того, как цель поместится; ровный
+ * диапазон на нескольких кадрах подряд значит, что расти он перестал и ждать
+ * больше нечего. Предел кадров обязателен: `maxScrollSize` считается по
+ * пропсам, а прокручиваемость — по DOM, и они могут разойтись (CSS ужал
+ * контент, размеры заданы неверно). Без предела это был бы вечный rAF.
  */
-async function checkScrollReady(el: Element) {
-  for (let frame = 0; frame < CONST.SCROLL_READY_MAX_FRAMES; frame++) {
-    if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)
-      return;
+async function checkScrollReady(el: Element, isY: boolean, target: number) {
+  let previous = -1;
+  let still = 0;
 
+  for (let frame = 0; frame < CONST.SCROLL_READY_MAX_FRAMES; frame++) {
+    const max = isY
+      ? el.scrollHeight - el.clientHeight
+      : el.scrollWidth - el.clientWidth;
+
+    if (max > 0 && max >= target) return;
+
+    still = max === previous ? still + 1 : 0;
+    if (max > 0 && still >= CONST.SCROLL_READY_STILL_FRAMES) return;
+
+    previous = max;
     await new Promise((r) => requestAnimationFrame(r));
   }
 }
@@ -62,18 +78,25 @@ async function smoothScroll(
   const topOrLeft = isY ? "scrollTop" : "scrollLeft";
   const maxScroll = isY ? maxScrollSize[1] : maxScrollSize[0];
 
-  const clampedTargetScroll = clampValue(targetScroll, 0, maxScroll);
-  const startScroll = clampValue(scrollEl[topOrLeft], 0, maxScroll);
-
-  if (startScroll === clampedTargetScroll) return;
-
-  // первый рендер duration 0 для мгновенного запуска
+  /*
+   * Первый рендер ставит позицию сразу, без анимации: ехать ещё неоткуда.
+   *
+   * Проверка «мы уже на месте» стоять выше не может — пока размеры не
+   * измерены, `maxScrollSize` равен нулю, любая цель обрезается в ноль, и
+   * выходит, что двигаться некуда. Обрезать тут и незачем: лишнее уберёт сам
+   * браузер, по настоящему диапазону, а не по посчитанному заранее.
+   */
   if (duration === null) {
-    await checkScrollReady(scrollEl);
+    await checkScrollReady(scrollEl, isY, targetScroll);
     scrollEl[topOrLeft] = targetScroll;
 
     return;
   }
+
+  const clampedTargetScroll = clampValue(targetScroll, 0, maxScroll);
+  const startScroll = clampValue(scrollEl[topOrLeft], 0, maxScroll);
+
+  if (startScroll === clampedTargetScroll) return;
 
   const lockKey = `smoothScrollBlock${direction}`;
 

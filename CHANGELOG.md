@@ -309,6 +309,12 @@ themselves are no longer transformed and can be positioned from CSS.
 - `pan` with `duration: 0` moves in the same frame. It travelled through the
   animation lock and arrived a frame late, so a gamepad stick — which sends
   one every frame — jerked in place instead of moving.
+- A position asked for before the content was measured lands. With
+  `size="auto"` or `objectsSize="firstChild"` the scrollable range is zero for
+  the first few frames, so the target was clipped to zero: `scrollPosition`
+  only arrived because it was re-applied on every re-measure — the very thing
+  that pulled the scroll back later — and a `scrollTo` from a mount effect did
+  nothing at all. Both now wait for a range that can hold them, once.
 - A numeric `scrollPosition` applied only when its value changed, as
   documented — it used to re-apply whenever the content was measured again,
   which pulled the scroll back to that position and undid whatever had

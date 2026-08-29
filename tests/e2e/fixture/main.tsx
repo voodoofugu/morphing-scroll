@@ -360,6 +360,61 @@ scenarios.keysFocusSpaced = (
   </MorphScroll>
 );
 
+/*
+ * Позиция, выставленная командой из эффекта на монтировании: в этот момент
+ * контент ещё не измерен, и вопрос ровно в том, дождётся ли команда.
+ */
+const tallItems = () =>
+  Array.from({ length: COUNT }, (_, i) => (
+    <div key={`item-${i}`} className="box" style={{ height: OBJ }}>
+      item {i}
+    </div>
+  ));
+
+function CommandOnMount({ measured }: { measured?: boolean }) {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  React.useEffect(() => {
+    ref.current?.scrollTo(600);
+  }, []);
+
+  const scroll = (
+    <MorphScroll
+      ref={ref}
+      size={measured ? "auto" : 300}
+      objectsSize={measured ? "firstChild" : OBJ}
+      crossCount={1}
+      onScrollPosition={onScrollPosition}
+    >
+      {measured ? tallItems() : makeItems()}
+    </MorphScroll>
+  );
+
+  return measured ? (
+    <div style={{ width: 280, height: 300 }}>{scroll}</div>
+  ) : (
+    scroll
+  );
+}
+
+scenarios.commandOnMount = <CommandOnMount />;
+scenarios.commandOnMountMeasured = <CommandOnMount measured />;
+
+/** то же самое, но декларативно — для сравнения */
+scenarios.positionOnMountMeasured = (
+  <div style={{ width: 280, height: 300 }}>
+    <MorphScroll
+      size="auto"
+      objectsSize="firstChild"
+      crossCount={1}
+      scrollPosition={600}
+      onScrollPosition={onScrollPosition}
+    >
+      {tallItems()}
+    </MorphScroll>
+  </div>
+);
+
 /** тот же список, но управляемый снаружи — как это делал бы геймпад */
 function FocusRig() {
   const ref = React.useRef<MorphScrollHandle>(null);

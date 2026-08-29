@@ -1781,13 +1781,67 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const applyScrollPositionRef = React.useRef(applyScrollPosition);
     applyScrollPositionRef.current = applyScrollPosition;
 
+    /*
+     * Доставка задержана ровно до того момента, когда цель становится
+     * достижимой. Измеряемые размеры приезжают не сразу — при `size="auto"`
+     * или `objectsSize="firstChild"` диапазон прокрутки несколько кадров равен
+     * нулю, и цель обрезается в ноль. Раньше это лечилось само собой: ссылка
+     * применяющей функции менялась от каждого переизмерения и тянула за собой
+     * эффект. Но тот же механизм возвращал прокрутку на заданное место и
+     * позже, отменяя всё, что человек успел сделать, — колесо, стрелку,
+     * команду через `ref`.
+     *
+     * Теперь повтор ограничен доставкой: ждём, пока диапазон вместит цель или
+     * перестанет расти, ставим — и больше проп сам по себе не вмешивается.
+     */
+    const deliveredRef = React.useRef(false);
+    const lastRangeRef = React.useRef(-1);
+
+    /*
+     * «Первый рендер» — это не первый кадр, а всё время, пока прокручивать
+     * ещё нечего: до этого момента любая позиция ставится сразу, без анимации,
+     * потому что ехать неоткуда. Кадр отсрочки нужен от двойного вызова в
+     * StrictMode.
+     */
     React.useEffect(() => {
+      if (!firstRender.current) return;
+      if (maxScrollSize[0] <= 0 && maxScrollSize[1] <= 0) return;
+
+      const id = requestAnimationFrame(() => (firstRender.current = false));
+      return () => cancelAnimationFrame(id);
+    }, [maxScrollSize.join()]);
+
+    React.useEffect(() => {
+      deliveredRef.current = false;
+      lastRangeRef.current = -1;
+
       applyScrollPositionRef.current(
         scrollPositionLocal.value,
         scrollPositionLocal.duration,
         true,
       );
     }, [scrollPositionLocal.value.join(), scrollPositionLocal.duration]);
+
+    React.useEffect(() => {
+      if (deliveredRef.current) return;
+
+      const wanted = Math.max(
+        ...scrollPositionLocal.value.map((v) => (typeof v === "number" ? v : 0)),
+      );
+      const range = Math.max(maxScrollSize[0], maxScrollSize[1]);
+      if (range <= 0) return; // мерить ещё нечего
+
+      const stopped = range === lastRangeRef.current;
+      lastRangeRef.current = range;
+      if (range < wanted && !stopped) return; // диапазон ещё растёт
+
+      deliveredRef.current = true;
+      applyScrollPositionRef.current(scrollPositionLocal.value, 0, true);
+    }, [
+      maxScrollSize.join(),
+      scrollPositionLocal.value.join(),
+      scrollPositionLocal.duration,
+    ]);
 
     React.useEffect(() => {
       if (!scrollPositionLocal.value.includes("end")) return;
@@ -1860,8 +1914,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       onScrollingChange?.(false); // стартовое состояние
 
-      // первый рендер
-      requestAnimationFrame(() => (firstRender.current = false)); // RAF спасает от двойного вызова smoothScroll в StrictMode
 
       return () => {
         if (animationFrameId) cancelAnimationFrame(animationFrameId);

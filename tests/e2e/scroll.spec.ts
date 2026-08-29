@@ -170,6 +170,28 @@ test.describe("MorphScroll keys (real browser)", () => {
   });
 });
 
+test.describe("MorphScroll: a command on mount (real browser)", () => {
+  test("lands when the sizes come from the props", async ({ page }) => {
+    await page.goto("/?scenario=commandOnMount");
+
+    await expect.poll(() => scrollTopOf(page)).toBe(600);
+  });
+
+  test("lands when the sizes have to be measured first", async ({ page }) => {
+    await page.goto("/?scenario=commandOnMountMeasured");
+
+    await expect.poll(() => scrollTopOf(page)).toBe(600);
+  });
+
+  test("the declarative position lands on measured sizes too", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=positionOnMountMeasured");
+
+    await expect.poll(() => scrollTopOf(page)).toBe(600);
+  });
+});
+
 test.describe("MorphScroll keys: focus (real browser)", () => {
   const focused = (page: Page) =>
     page.evaluate(() => document.activeElement?.textContent ?? "");

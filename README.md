@@ -207,7 +207,9 @@ You can also provide an array of two values to specific positions ( e.g., [ x, y
 property determines the animation speed for scrolling in <b>ms</b>.<br />
 <br />
 ✦ Note:<br />
-<code>scrollPosition</code> describes <b>where the scroll is</b>, so it only reacts when the value changes. To run the same scroll again — back to the top twice, for instance — call <code>scrollTo</code> on the component <code>ref</code>, see below.</em><br />
+<code>scrollPosition</code> describes <b>where the scroll is</b>, so it only reacts when the value changes. To run the same scroll again — back to the top twice, for instance — call <code>scrollTo</code> on the component <code>ref</code>, see below.<br />
+<br />
+A position asked for before anything has been measured still lands: the first one waits for a scrollable range that can hold it. After that the value is left alone, so a wheel, an arrow or a command is never pulled back by it.</em><br />
 <br />
 <b>Example:</b>
 
