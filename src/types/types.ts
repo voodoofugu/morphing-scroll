@@ -128,7 +128,11 @@ export type EmptyObjectsConfig = {
 };
 
 /** значение, которое понимает и `scrollPosition`, и `scrollTo` */
-export type ScrollTarget = null | number | "end" | (null | number | "end")[];
+export type ScrollTarget =
+  | null
+  | number
+  | "end"
+  | Pair<null | number | "end">;
 
 /**---
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)

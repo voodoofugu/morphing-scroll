@@ -161,6 +161,8 @@ export const imperative = () => {
   scroll.current?.scrollTo(0);
   scroll.current?.scrollTo("end");
   scroll.current?.scrollTo([0, "end"], { duration: 0 });
+  // @ts-expect-error a hybrid target takes exactly two axis values
+  scroll.current?.scrollTo([0, 100, "end"]);
   scroll.current?.scrollTo(null);
 
   return (

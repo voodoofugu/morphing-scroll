@@ -1,4 +1,4 @@
-import type { ScrollTarget } from "../types/types";
+import type { Pair, ScrollTarget } from "../types/types";
 
 /**
  * Приводит любую форму цели прокрутки к паре [x, y].
@@ -8,9 +8,9 @@ import type { ScrollTarget } from "../types/types";
  */
 const resolveScrollTarget = (
   target: ScrollTarget,
-): (number | "end" | null)[] => {
+): Pair<number | "end" | null> => {
   if (typeof target === "number" || target === "end") return [target, target];
-  if (Array.isArray(target)) return target;
+  if (Array.isArray(target)) return [target[0] ?? null, target[1] ?? null];
 
   return [null, null];
 };
