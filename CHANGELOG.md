@@ -307,6 +307,13 @@ themselves are no longer transformed and can be positioned from CSS.
 - `pan` with `duration: 0` moves in the same frame. It travelled through the
   animation lock and arrived a frame late, so a gamepad stick — which sends
   one every frame — jerked in place instead of moving.
+- A slider counted its pages against a viewport of zero before it was
+  measured, so `size="auto"` asked for an endless list of dots and threw.
+- A drag along the slider bar aims at the element under the pointer instead
+  of counting how far the pointer travelled. Steps used to land away from
+  the element boundaries, a pointer coming back from outside the bar moved
+  the scroll straight away, and the flight itself was shorter than a frame —
+  so the same drag looked like a scroll one time and a jump the next.
 
 ### Changed
 
