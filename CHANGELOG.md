@@ -236,7 +236,9 @@ themselves are no longer transformed and can be positioned from CSS.
   neighbour by geometry so a grid walks its row and drops to the next one
   and focus landing on the `.ms-object-box` itself, to style as one card.
   The object stops a `gap` short of the edge rather than against it, and
-  where the objects run out it is `wrapper.margin` that opens instead.
+  where the objects run out it is `wrapper.margin` that opens instead — out
+  of the room the object leaves in the window, so one the size of the window
+  lands exactly on the edge.
   Defaults to `"step"` in the slider modes and `"pan"` in `mode="scroll"`,
   takes only the keys of the scrolling axis in those two, and leaves the
   arrows alone inside a text field.

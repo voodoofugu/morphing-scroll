@@ -415,6 +415,25 @@ scenarios.positionOnMountMeasured = (
   </div>
 );
 
+/*
+ * Слайдер из объектов во весь размер окна и с зазором — как галерея картинок.
+ * Места вокруг объекта нет, значит и отступа при переходе быть не должно:
+ * страница обязана встать ровно по краю.
+ */
+scenarios.keysFocusFull = (
+  <MorphScroll
+    size={300}
+    objectsSize="full"
+    direction="x"
+    mode="slider"
+    gap={20}
+    progressTrigger={{ keys: { mode: "focus" }, bar: <div className="dot" /> }}
+    onScrollPosition={onScrollPosition}
+  >
+    {makeItems()}
+  </MorphScroll>
+);
+
 /** тот же список, но управляемый снаружи — как это делал бы геймпад */
 function FocusRig() {
   const ref = React.useRef<MorphScrollHandle>(null);

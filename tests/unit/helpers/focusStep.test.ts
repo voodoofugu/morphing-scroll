@@ -227,8 +227,11 @@ describe("focusStep", () => {
       expect(moved?.delta.x).toBe(60);
     });
 
-    it("never sends a step forward backwards", () => {
-      // отступ шире, чем расстояние до края: тянуть назад из-за него нельзя
+    it("gives only the room the object leaves", () => {
+      /*
+       * Отступ шире, чем место вокруг объекта: взять его целиком нельзя — он
+       * вытолкнул бы объект обратно за край. Берётся, сколько есть.
+       */
       const { wrapper, scrollEl } = build([
         { left: 0, top: 0, width: 100, height: 80 },
         { left: 0, top: 210, width: 100, height: 80 },
@@ -241,7 +244,41 @@ describe("focusStep", () => {
       });
 
       expect(focusedIndex()).toBe("1");
-      expect(moved?.delta.y).toBe(0);
+      // окно 200, объект 80: свободных 120, дальше объект встаёт началом к краю
+      expect(moved?.delta.y).toBe(210);
+    });
+
+    /*
+     * Объект во весь размер окна места вокруг себя не оставляет, значит и
+     * отступа быть не может: страница обязана встать ровно по краю, а не мимо
+     * него на ширину зазора.
+     */
+    it("puts an object the size of the window exactly on the edge", () => {
+      const { wrapper, scrollEl } = build([
+        { left: 0, top: 0, width: 100, height: 200 },
+        { left: 0, top: 220, width: 100, height: 200 },
+        { left: 0, top: 440, width: 100, height: 200 },
+      ]);
+      focusStep(wrapper, scrollEl, "bottom", SPACING); // объект 0
+
+      const moved = focusStep(wrapper, scrollEl, "bottom", SPACING);
+
+      expect(focusedIndex()).toBe("1");
+      expect(moved?.delta.y).toBe(220); // ровно шаг страницы: 200 объект + 20 зазор
+    });
+
+    // назад — то же самое: границу держит уже другой край объекта
+    it("puts a window-sized object on the edge going back as well", () => {
+      const { wrapper, scrollEl } = build([
+        { left: 0, top: -220, width: 100, height: 200 }, // выше окна
+        { left: 0, top: 0, width: 100, height: 200 }, // в окне
+      ]);
+      focusStep(wrapper, scrollEl, "bottom", SPACING); // встаём на видимый
+
+      const moved = focusStep(wrapper, scrollEl, "top", SPACING);
+
+      expect(focusedIndex()).toBe("0");
+      expect(moved?.delta.y).toBe(-220);
     });
 
     it("asks for nothing when the object is already in view", () => {

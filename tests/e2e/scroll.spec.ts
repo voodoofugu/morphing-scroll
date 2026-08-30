@@ -259,6 +259,21 @@ test.describe("MorphScroll keys: focus (real browser)", () => {
     await expect.poll(() => scrollTopOf(page)).toBe(2160);
   });
 
+  test("lands a window-sized object on the edge, gap and all", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=keysFocusFull");
+    await page.locator(".ms-viewport").click({ position: { x: 150, y: 20 } });
+
+    await page.keyboard.press("ArrowRight"); // берёт то, что на экране
+    await page.keyboard.press("ArrowRight"); // и переходит на следующий
+
+    // окно 300 плюс зазор 20 — ровно шаг страницы, без довеска
+    await expect
+      .poll(() => page.evaluate(() => (window as any).__scroll?.left ?? 0))
+      .toBe(320);
+  });
+
   test("moveFocus does the same for a device the library never heard of", async ({
     page,
   }) => {
