@@ -109,6 +109,16 @@ export type NavigateEvent = {
   to: number;
 };
 
+/** the object form of `objects` */
+export type ObjectsConfig = {
+  size?: ObjectSize | Pair<ObjectSize>;
+  gap?: number | Vec2;
+  crossCount?: number;
+  align?: Align;
+  direction?: "row" | "column";
+  empty?: "clear" | "fallback" | EmptyObjectsConfig;
+};
+
 /** the object form of `wrapper` */
 export type WrapperConfig = {
   /** space around `.ms-objects-wrapper`; 1, 2 or 4 numbers */
@@ -551,55 +561,48 @@ export type MorphScroll = {
   size: number | "auto" | Vec2;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***objectsSize***:
-   * width and height dimension of cells for each object.
-   * @default size prop value
+   * ### ***objects***:
+   * everything about the objects themselves: how big they are, how they sit
+   * next to each other, and what to do with the empty ones.
+   * @default { direction: "row" }
    * @description
-   * - `number` *sets the width and height, can be an array of 2 numbers*
-   * - `"full"` *all objects will take the dimensions from the `size` prop*
-   * - `"firstChild"` *all objects will have the same size as the first child*
-   * - `"none"` *objects will be created without defined size*
-   *
+   * - `size`: *the size of one object — a number, a pair for both axes,
+   *   `"full"` for the size of the scroll, `"firstChild"` to measure the first
+   *   one, or `"none"` to leave it to your own CSS*
+   * - `gap`: *space between the objects, one number or `[x, y]`*
+   * - `crossCount`: *how many of them fit across the scrolling axis*
+   * - `align`: *where a short last line sits*
+   * - `direction`: *whether the objects run in rows or in columns*
+   * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
+   *   replaces them with a placeholder; the object form adds `fallback` and
+   *   `clickTrigger`*
+   * @note the sizes are what the virtual and lazy rendering count with, so
+   * `render` needs a `size` it can rely on
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   objectsSize={80}
+   *   objects={{ size: 100, gap: 10 }}
+   * >
+   *   {children}
+   * </MorphScroll>
+   * ```
+   * @example
+   * ```tsx
+   * <MorphScroll {...props}
+   *   objects={{
+   *     size: [150, 112],
+   *     gap: [10, 20],
+   *     crossCount: 3,
+   *     align: "center",
+   *     direction: "column",
+   *     empty: "clear",
+   *   }}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  objectsSize?: ObjectSize | Pair<ObjectSize>;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***crossCount***:
-   * number of cells in each direction.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   crossCount={3}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  crossCount?: number;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***gap***:
-   * space between cells.
-   * @note
-   * *It can be a number or an array of 2 numbers*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   gap={10}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  gap?: number | Vec2;
+  objects?: ObjectsConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***wrapper***:
@@ -621,35 +624,6 @@ export type MorphScroll = {
   wrapper?: WrapperConfig;
 
   // — LAYOUT —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***objectsAlign***:
-   * aligns the objects inside `MorphScroll`.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   objectsAlign="center"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  objectsAlign?: Align;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***objectsDirection***:
-   * direction of the provided elements.
-   * @default "row"
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   objectsDirection="column"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   */
-  objectsDirection?: "row" | "column";
 
   // — PROGRESS —
   /**---
@@ -743,30 +717,6 @@ export type MorphScroll = {
         stopLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***emptyObjects***:
-   * what to do with objects that render nothing.
-   * @description
-   * - `"clear"`: *removes the empty objects from the DOM*
-   * - `"fallback"`: *puts a placeholder in their place*
-   * - `fallback`: *the placeholder to use; defaults to the `fallback` prop*
-   * - `clickTrigger`: *also start clearing when the selector is clicked*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   emptyObjects="clear"
-   * >
-   *   {children}
-   * </MorphScroll>
-   *  ```
-   * @example
-   * ```tsx
-   * // with settings
-   * emptyObjects={{ mode: "fallback", fallback: <Empty />, clickTrigger: ".btn" }}
-   * ```
-   */
-  emptyObjects?: "clear" | "fallback" | EmptyObjectsConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***suspending***:

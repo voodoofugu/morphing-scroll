@@ -36,7 +36,7 @@ const setTouchDevice = (coarse: boolean) =>
 
 const mount = (props: Record<string, unknown>, children = plain()) => {
   const utils = render(
-    <MorphScroll size={[100, VIEW]} objectsSize={OBJ} {...props}>
+    <MorphScroll objects={{ size: OBJ }} size={[100, VIEW]} {...props}>
       {children}
     </MorphScroll>,
   );

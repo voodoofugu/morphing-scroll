@@ -40,9 +40,8 @@ const onNavigate = (event: unknown) => {
 
 const scenarios: Record<string, React.ReactElement> = {
   wheel: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -51,9 +50,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   arrows: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       progressTrigger={{
         arrows: { element: <div className="arrow" />, size: 40 },
       }}
@@ -64,9 +62,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   thumb: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -75,9 +72,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   contentDrag: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       progressTrigger={{ content: true }}
       onScrollPosition={onScrollPosition}
     >
@@ -86,9 +82,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   virtual: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       render="virtual"
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
@@ -98,9 +93,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   lazy: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       render="lazy"
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
@@ -110,9 +104,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   keys: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       progressTrigger={{ keys: { mode: "pan", step: 60 }, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -121,9 +114,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   keysStep: (
-    <MorphScroll
+    <MorphScroll objects={{ size: 300 }}
       size={300}
-      objectsSize={300}
       mode="slider"
       progressTrigger={{ keys: true, bar: <div className="dot" /> }}
       onScrollPosition={onScrollPosition}
@@ -134,9 +126,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   sliderMenu: (
-    <MorphScroll
+    <MorphScroll objects={{ size: 300 }}
       size={300}
-      objectsSize={300}
       mode="sliderMenu"
       progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
       onScrollPosition={onScrollPosition}
@@ -147,9 +138,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   initialPosNumber: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       initialPosition={200}
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
@@ -159,9 +149,8 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   stickToEnd: (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       stickToEnd
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
@@ -180,10 +169,8 @@ const hybridItems = () =>
   ));
 
 scenarios.hybridWheel = (
-  <MorphScroll
+  <MorphScroll objects={{ size: OBJ, crossCount: 4 }}
     size={300}
-    objectsSize={OBJ}
-    crossCount={4}
     direction="hybrid"
     progressTrigger={{ wheel: true, bar: thumb }}
     onScrollPosition={onScrollPosition}
@@ -193,10 +180,8 @@ scenarios.hybridWheel = (
 );
 
 scenarios.hybridChangeDir = (
-  <MorphScroll
+  <MorphScroll objects={{ size: OBJ, crossCount: 4 }}
     size={300}
-    objectsSize={OBJ}
-    crossCount={4}
     direction="hybrid"
     progressTrigger={{
       wheel: { changeDirection: true },
@@ -211,7 +196,7 @@ scenarios.hybridChangeDir = (
 // autoScrollOnDrag: items are draggable handles ([ms-custom-drag]) that trigger the
 // auto-scroll registry when dragged toward a container edge.
 scenarios.autoScrollOnDrag = (
-  <MorphScroll size={300} objectsSize={OBJ} autoScrollOnDrag>
+  <MorphScroll objects={{ size: OBJ }} size={300} autoScrollOnDrag>
     {Array.from({ length: 20 }, (_, i) => (
       <div key={`item-${i}`} className="box" data-testid={`item-${i}`} ms-custom-drag="">
         item {i}
@@ -223,9 +208,8 @@ scenarios.autoScrollOnDrag = (
 // type: "slider" with a draggable bar — dragging along it steps pages once the
 // travel passes the size of one slider element.
 scenarios.sliderThumbDrag = (
-  <MorphScroll
+  <MorphScroll objects={{ size: 300 }}
     size={300}
-    objectsSize={300}
     mode="slider"
     progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
     onScrollPosition={onScrollPosition}
@@ -237,7 +221,7 @@ scenarios.sliderThumbDrag = (
 // autoScrollOnDrag on the horizontal axis, and two containers side by side so a
 // drag can travel from one into the other.
 scenarios.autoScrollOnDragX = (
-  <MorphScroll size={300} objectsSize={OBJ} direction="x" autoScrollOnDrag>
+  <MorphScroll objects={{ size: OBJ }} size={300} direction="x" autoScrollOnDrag>
     {Array.from({ length: 20 }, (_, i) => (
       <div
         key={`item-${i}`}
@@ -254,7 +238,7 @@ scenarios.autoScrollOnDragX = (
 scenarios.autoScrollOnDragPair = (
   <div style={{ display: "flex", gap: 40 }}>
     <div data-testid="left-host">
-      <MorphScroll size={300} objectsSize={OBJ} autoScrollOnDrag>
+      <MorphScroll objects={{ size: OBJ }} size={300} autoScrollOnDrag>
         {Array.from({ length: 20 }, (_, i) => (
           <div
             key={`item-${i}`}
@@ -268,7 +252,7 @@ scenarios.autoScrollOnDragPair = (
       </MorphScroll>
     </div>
     <div data-testid="right-host">
-      <MorphScroll size={300} objectsSize={OBJ} autoScrollOnDrag>
+      <MorphScroll objects={{ size: OBJ }} size={300} autoScrollOnDrag>
         {Array.from({ length: 20 }, (_, i) => (
           <div key={`item-${i}`} className="box" data-testid={`right-${i}`}>
             right {i}
@@ -283,9 +267,8 @@ scenarios.autoScrollOnDragPair = (
 // so the host box decides them rather than a numeric prop.
 scenarios.sizeAuto = (
   <div style={{ width: 280, height: 240 }} data-testid="auto-host">
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size="auto"
-      objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -297,9 +280,8 @@ scenarios.sizeAuto = (
 // type: "slider" driven by a content drag — releasing past the threshold
 // snaps to the next page instead of stopping wherever the finger let go.
 scenarios.sliderDrag = (
-  <MorphScroll
+  <MorphScroll objects={{ size: 300 }}
     size={300}
-    objectsSize={300}
     mode="slider"
     progressTrigger={{ content: true, bar: <div className="dot" /> }}
     onScrollPosition={onScrollPosition}
@@ -314,9 +296,8 @@ scenarios.sliderDrag = (
  */
 scenarios.barWheel = (
   <>
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={300}
-      objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
     >
@@ -331,10 +312,8 @@ scenarios.barWheel = (
  * два столбца: шаг вбок должен работать и в вертикальном списке.
  */
 scenarios.keysFocus = (
-  <MorphScroll
+  <MorphScroll objects={{ size: 100, crossCount: 2 }}
     size={300}
-    objectsSize={100}
-    crossCount={2}
     progressTrigger={{ keys: { mode: "focus" } }}
     onScrollPosition={onScrollPosition}
   >
@@ -347,11 +326,8 @@ scenarios.keysFocus = (
  * встать с отступом, а последний — открыть поле целиком.
  */
 scenarios.keysFocusSpaced = (
-  <MorphScroll
+  <MorphScroll objects={{ size: OBJ, gap: [0, 20], crossCount: 1 }}
     size={300}
-    objectsSize={OBJ}
-    crossCount={1}
-    gap={[0, 20]}
     wrapper={{ margin: 40 }}
     progressTrigger={{ keys: { mode: "focus" } }}
     onScrollPosition={onScrollPosition}
@@ -379,11 +355,9 @@ function CommandOnMount({ measured }: { measured?: boolean }) {
   }, []);
 
   const scroll = (
-    <MorphScroll
+    <MorphScroll objects={{ size: measured ? "firstChild" : OBJ, crossCount: 1 }}
       ref={ref}
       size={measured ? "auto" : 300}
-      objectsSize={measured ? "firstChild" : OBJ}
-      crossCount={1}
       onScrollPosition={onScrollPosition}
     >
       {measured ? tallItems() : makeItems()}
@@ -403,10 +377,8 @@ scenarios.commandOnMountMeasured = <CommandOnMount measured />;
 /** то же самое, но декларативно — для сравнения */
 scenarios.positionOnMountMeasured = (
   <div style={{ width: 280, height: 300 }}>
-    <MorphScroll
+    <MorphScroll objects={{ size: "firstChild", crossCount: 1 }}
       size="auto"
-      objectsSize="firstChild"
-      crossCount={1}
       initialPosition={600}
       onScrollPosition={onScrollPosition}
     >
@@ -421,12 +393,10 @@ scenarios.positionOnMountMeasured = (
  * страница обязана встать ровно по краю.
  */
 scenarios.keysFocusFull = (
-  <MorphScroll
+  <MorphScroll objects={{ size: "full", gap: 20 }}
     size={300}
-    objectsSize="full"
     direction="x"
     mode="slider"
-    gap={20}
     progressTrigger={{ keys: { mode: "focus" }, bar: <div className="dot" /> }}
     onScrollPosition={onScrollPosition}
   >
@@ -443,11 +413,9 @@ function FocusRig() {
   }, []);
 
   return (
-    <MorphScroll
+    <MorphScroll objects={{ size: 100, crossCount: 2 }}
       ref={ref}
       size={300}
-      objectsSize={100}
-      crossCount={2}
       onScrollPosition={onScrollPosition}
       onNavigate={onNavigate}
     >

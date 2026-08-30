@@ -10,9 +10,8 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const arrows = (extra: Record<string, unknown> = {}) => (
-  <MorphScroll
+  <MorphScroll objects={{ size: OBJ }}
     size={SIZE}
-    objectsSize={OBJ}
     progressTrigger={{ arrows: { element: <i />, size: 40, ...extra } }}
   >
     {items(20)}
@@ -48,9 +47,8 @@ describe("Arrow — disabled state", () => {
 describe("slider elements", () => {
   it("never uses the unprefixed active class", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 300 }}
         size={SIZE}
-        objectsSize={300}
         mode="sliderMenu"
         progressTrigger={{ wheel: true, bar: <span /> }}
       >
@@ -64,9 +62,8 @@ describe("slider elements", () => {
 
 describe("arrow and edge layout", () => {
   const hybrid = (
-    <MorphScroll
+    <MorphScroll objects={{ size: 100 }}
       size={[300, 300]}
-      objectsSize={100}
       direction="hybrid"
       edge={<i className="fade" />}
       progressTrigger={{ arrows: { element: <b className="tip" />, size: 40 } }}
@@ -139,9 +136,8 @@ describe("arrow and edge layout", () => {
 
 describe("Arrow — sizing and cursor", () => {
   const withArrows = (extra: Record<string, unknown> = {}) => (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={SIZE}
-      objectsSize={OBJ}
       progressTrigger={{ arrows: { element: <i />, size: 40, ...extra } }}
     >
       {items(20)}
@@ -210,9 +206,8 @@ describe("Arrow — cursor", () => {
 
 describe("a changed element reaches the DOM", () => {
   const withArrow = (label: string) => (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={SIZE}
-      objectsSize={OBJ}
       edge={<u>{label}</u>}
       progressTrigger={{ arrows: { element: <i>{label}</i>, size: 40 } }}
     >

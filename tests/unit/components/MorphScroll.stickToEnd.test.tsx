@@ -20,10 +20,8 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const Chat = ({ count, duration = 0 }: { count: number; duration?: number }) => (
-  <MorphScroll
+  <MorphScroll objects={{ size: OBJ, crossCount: 1 }}
     size={[200, VIEW]}
-    objectsSize={OBJ}
-    crossCount={1}
     stickToEnd
     duration={duration}
   >

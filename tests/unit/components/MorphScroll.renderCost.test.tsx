@@ -21,9 +21,8 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <Child key={`item-${i}`} i={i} />);
 
 const tree = (
-  <MorphScroll
+  <MorphScroll objects={{ size: 100 }}
     size={[100, 300]}
-    objectsSize={100}
     render="virtual"
     progressTrigger={{ wheel: true, bar: <div /> }}
   >

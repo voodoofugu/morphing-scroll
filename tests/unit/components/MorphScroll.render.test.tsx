@@ -41,7 +41,7 @@ describe("MorphScroll — mounting & children", () => {
 
   it("renders every child when virtualization is off", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE}>
         {items(10)}
       </MorphScroll>,
     );
@@ -50,7 +50,7 @@ describe("MorphScroll — mounting & children", () => {
 
   it("wraps children in .ms-object-box and exposes the root attributes", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} className="custom">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} className="custom">
         {items(2)}
       </MorphScroll>,
     );
@@ -62,7 +62,7 @@ describe("MorphScroll — mounting & children", () => {
 
   it("ignores null/undefined children", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE}>
         {null}
         <div key="a">a</div>
         {undefined}
@@ -77,7 +77,7 @@ describe("MorphScroll — mounting & children", () => {
 describe("MorphScroll — render: virtual / lazy", () => {
   it("virtual renders only the items visible in the viewport", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="virtual">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} render="virtual">
         {items(10)}
       </MorphScroll>,
     );
@@ -87,7 +87,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
 
   it("virtual tags rendered boxes with the wrap-id attribute", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="virtual">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} render="virtual">
         {items(10)}
       </MorphScroll>,
     );
@@ -99,7 +99,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
 
   it("lazy paints the visible items on the very first render", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="lazy">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} render="lazy">
         {items(10)}
       </MorphScroll>,
     );
@@ -108,7 +108,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
 
   it("lazy keeps an item mounted after it scrolls out of view", async () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="lazy">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} render="lazy">
         {items(10)}
       </MorphScroll>,
     );
@@ -129,7 +129,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
   it("logs an error when render is combined with objectsSize='none'", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
-      <MorphScroll size={SIZE} objectsSize="none" render="virtual">
+      <MorphScroll objects={{ size: "none" }} size={SIZE} render="virtual">
         {items(3)}
       </MorphScroll>,
     );
@@ -143,7 +143,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
 describe("MorphScroll — direction & crossCount", () => {
   it("virtualizes along the x axis for direction='x'", () => {
     const { container } = render(
-      <MorphScroll size={[300, 100]} objectsSize={OBJ} direction="x" render="virtual">
+      <MorphScroll objects={{ size: OBJ }} size={[300, 100]} direction="x" render="virtual">
         {items(10)}
       </MorphScroll>,
     );
@@ -155,7 +155,7 @@ describe("MorphScroll — direction & crossCount", () => {
     // width 300 fits 3 columns; crossCount=2 forces a 2-wide grid, so the
     // 300px-tall viewport shows 3 rows * 2 = 6 items instead of 8.
     const { container } = render(
-      <MorphScroll size={300} objectsSize={OBJ} crossCount={2} render="virtual">
+      <MorphScroll objects={{ size: OBJ, crossCount: 2 }} size={300} render="virtual">
         {items(8)}
       </MorphScroll>,
     );
@@ -166,7 +166,7 @@ describe("MorphScroll — direction & crossCount", () => {
 describe("MorphScroll — edge", () => {
   it("renders no edges by default", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE}>
         {items(10)}
       </MorphScroll>,
     );
@@ -175,7 +175,7 @@ describe("MorphScroll — edge", () => {
 
   it("renders two edges for a single-axis direction", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} edge>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} edge>
         {items(10)}
       </MorphScroll>,
     );
@@ -184,9 +184,8 @@ describe("MorphScroll — edge", () => {
 
   it("renders four edges in hybrid direction", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={300}
-        objectsSize={OBJ}
         direction="hybrid"
         edge
       >
@@ -198,7 +197,7 @@ describe("MorphScroll — edge", () => {
 
   it("reports each edge's state, and styles nothing itself", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} edge>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} edge>
         {items(10)}
       </MorphScroll>,
     );
@@ -218,9 +217,8 @@ describe("MorphScroll — edge", () => {
 
   it("renders a custom node inside every edge", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         edge={<span className="fade" />}
       >
         {items(10)}
@@ -233,9 +231,8 @@ describe("MorphScroll — edge", () => {
 describe("MorphScroll — arrows", () => {
   it("renders arrow boxes when progressTrigger.arrows is set", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={{ arrows: true }}
       >
         {items(10)}
@@ -246,9 +243,8 @@ describe("MorphScroll — arrows", () => {
 
   it("renders a custom arrow element", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={{ arrows: <span className="my-arrow">→</span> }}
       >
         {items(10)}
@@ -261,9 +257,8 @@ describe("MorphScroll — arrows", () => {
 describe("MorphScroll — scrollbar (progressElement)", () => {
   it("renders a scroll bar + thumb when content overflows", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={{
           wheel: true,
           bar: <div className="my-thumb" />,
@@ -279,9 +274,8 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
 
   it("does not render a scroll bar when content fits the viewport", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={{
           wheel: true,
           bar: <div className="my-thumb" />,
@@ -295,9 +289,8 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
 
   it("renders no scroll bar when progressElement is true (native bar)", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={{ wheel: true, bar: true }}
       >
         {items(10)}
@@ -311,9 +304,8 @@ describe("MorphScroll — onRenderedKeysChange", () => {
   it("reports the visible keys under virtualization", async () => {
     const onRenderedKeysChange = vi.fn();
     render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         render="virtual"
         onRenderedKeysChange={onRenderedKeysChange}
       >
@@ -336,7 +328,7 @@ describe("MorphScroll — progressTrigger shorthand", () => {
 
   it("accepts a single trigger name", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger="arrows">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger="arrows">
         {boxes3()}
       </MorphScroll>,
     );
@@ -345,9 +337,8 @@ describe("MorphScroll — progressTrigger shorthand", () => {
 
   it("accepts an array of trigger names", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={["content", "arrows"]}
       >
         {boxes3()}
@@ -362,14 +353,13 @@ describe("MorphScroll — progressTrigger shorthand", () => {
 
   it("means the same as the object form", () => {
     const short = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger="content">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger="content">
         {boxes3()}
       </MorphScroll>,
     );
     const long = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         progressTrigger={{ content: true }}
       >
         {boxes3()}
@@ -384,7 +374,7 @@ describe("MorphScroll — progressTrigger shorthand", () => {
   it("warns when the config is empty", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger={[]}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger={[]}>
         {boxes3()}
       </MorphScroll>,
     );
@@ -403,7 +393,7 @@ describe("MorphScroll — objectsSize: firstChild with render", () => {
     // chicken and egg: the size comes from the first child, but with
     // virtualization the first child was only rendered once a size was known
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize="firstChild" render="virtual">
+      <MorphScroll objects={{ size: "firstChild" }} size={SIZE} render="virtual">
         {items(10)}
       </MorphScroll>,
     );
@@ -413,7 +403,7 @@ describe("MorphScroll — objectsSize: firstChild with render", () => {
 
   it("fills in the rest once the first child has been measured", async () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize="firstChild" render="virtual">
+      <MorphScroll objects={{ size: "firstChild" }} size={SIZE} render="virtual">
         {items(10)}
       </MorphScroll>,
     );
@@ -427,7 +417,7 @@ describe("MorphScroll — objectsSize: firstChild with render", () => {
 
   it("works the same for lazy", () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize="firstChild" render="lazy">
+      <MorphScroll objects={{ size: "firstChild" }} size={SIZE} render="lazy">
         {items(10)}
       </MorphScroll>,
     );

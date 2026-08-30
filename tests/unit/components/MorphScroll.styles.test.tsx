@@ -16,7 +16,7 @@ const firstBox = (c: HTMLElement) =>
 describe("MorphScroll — layout styles on the objects wrapper", () => {
   it("applies gap between objects", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} gap={15}>
+      <MorphScroll objects={{ size: 50, gap: 15 }} size={[100, 300]}>
         {items(6)}
       </MorphScroll>,
     );
@@ -25,7 +25,7 @@ describe("MorphScroll — layout styles on the objects wrapper", () => {
 
   it("applies wrapper.margin", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} wrapper={{ margin: 10 }}>
+      <MorphScroll objects={{ size: 50 }} size={[100, 300]} wrapper={{ margin: 10 }}>
         {items(3)}
       </MorphScroll>,
     );
@@ -34,7 +34,7 @@ describe("MorphScroll — layout styles on the objects wrapper", () => {
 
   it("applies wrapper.minSize as minHeight for direction y", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} wrapper={{ minSize: 250 }}>
+      <MorphScroll objects={{ size: 50 }} size={[100, 300]} wrapper={{ minSize: 250 }}>
         {items(2)}
       </MorphScroll>,
     );
@@ -43,7 +43,7 @@ describe("MorphScroll — layout styles on the objects wrapper", () => {
 
   it("maps objectsAlign to justifyContent (flex layout)", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={50} objectsAlign="center">
+      <MorphScroll objects={{ size: 50, align: "center" }} size={[100, 300]}>
         {items(2)}
       </MorphScroll>,
     );
@@ -54,7 +54,7 @@ describe("MorphScroll — layout styles on the objects wrapper", () => {
 describe("MorphScroll — objectsSize modes", () => {
   it("number: sets a fixed box width/height", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize={80}>
+      <MorphScroll objects={{ size: 80 }} size={[100, 300]}>
         {items(2)}
       </MorphScroll>,
     );
@@ -65,7 +65,7 @@ describe("MorphScroll — objectsSize modes", () => {
 
   it("pair [w, h]: sets distinct box width and height", () => {
     const { container } = render(
-      <MorphScroll size={[200, 300]} objectsSize={[80, 120]}>
+      <MorphScroll objects={{ size: [80, 120] }} size={[200, 300]}>
         {items(2)}
       </MorphScroll>,
     );
@@ -76,7 +76,7 @@ describe("MorphScroll — objectsSize modes", () => {
 
   it("none: leaves box dimensions unset", () => {
     const { container } = render(
-      <MorphScroll size={[100, 300]} objectsSize="none">
+      <MorphScroll objects={{ size: "none" }} size={[100, 300]}>
         {items(2)}
       </MorphScroll>,
     );
@@ -89,7 +89,7 @@ describe("MorphScroll — objectsSize modes", () => {
 describe("MorphScroll — wrapper.align", () => {
   it("centers content smaller than the viewport", () => {
     const { container } = render(
-      <MorphScroll size={300} objectsSize={100} wrapper={{ align: "center" }}>
+      <MorphScroll objects={{ size: 100 }} size={300} wrapper={{ align: "center" }}>
         {items(1)}
       </MorphScroll>,
     );
@@ -103,9 +103,8 @@ describe("MorphScroll — wrapper.align", () => {
 describe("MorphScroll — bar.reverse", () => {
   const renderBar = (reverse: boolean) =>
     render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100 }}
         size={[100, 300]}
-        objectsSize={100}
         progressTrigger={{ wheel: true, bar: { element: <div />, reverse } }}
       >
         {items(10)}

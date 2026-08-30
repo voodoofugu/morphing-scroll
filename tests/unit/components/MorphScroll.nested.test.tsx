@@ -10,9 +10,9 @@ const items = (n: number, prefix: string) =>
 
 /** an outer scroll whose content holds a second, smaller one */
 const nested = (
-  <MorphScroll size={[200, 400]} objectsSize={200}>
+  <MorphScroll objects={{ size: 200 }} size={[200, 400]}>
     <div key="head">head</div>
-    <MorphScroll key="inner" size={[200, 200]} objectsSize={100}>
+    <MorphScroll objects={{ size: 100 }} key="inner" size={[200, 200]}>
       {items(20, "inner")}
     </MorphScroll>
     {items(10, "outer")}

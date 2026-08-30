@@ -24,11 +24,9 @@ const wheel = (el: HTMLElement, deltaY: number) => {
 
 const mount = (crossCount: number) => {
   const utils = render(
-    <MorphScroll
+    <MorphScroll objects={{ size: 100, crossCount: crossCount }}
       size={[300, 300]}
-      objectsSize={100}
       direction="hybrid"
-      crossCount={crossCount}
       progressTrigger={{ wheel: { changeDirection: true } }}
     >
       {items(12)}

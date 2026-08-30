@@ -59,7 +59,7 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const scroll = (height: number) => (
-  <MorphScroll size={[100, height]} objectsSize={100}>
+  <MorphScroll objects={{ size: 100 }} size={[100, height]}>
     {items(20)}
   </MorphScroll>
 );

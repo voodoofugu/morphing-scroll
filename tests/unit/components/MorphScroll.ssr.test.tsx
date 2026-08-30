@@ -9,7 +9,7 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const Tree = () => (
-  <MorphScroll size={[100, 300]} objectsSize={100}>
+  <MorphScroll objects={{ size: 100 }} size={[100, 300]}>
     {items(5)}
   </MorphScroll>
 );

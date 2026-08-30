@@ -684,20 +684,25 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
               clickTrigger: { selector: ".item-action", delay: 220 },
             };
 
+  const objectsGroup: Record<string, CodeValue | undefined> = {
+    size: objectsSize,
+    gap:
+      settings.gapX === settings.gapY
+        ? settings.gapX
+        : [settings.gapX, settings.gapY],
+    crossCount: numberOrUndefined(settings.crossCount),
+    align: settings.objectsAlign,
+    direction: settings.objectsDirection,
+    empty: emptyObjects,
+  };
+
   const props: Array<[string, CodeValue | undefined, "boolean" | "value"]> = [
     ["className", settings.className || undefined, "value"],
     ["mode", settings.mode, "value"],
     ["direction", settings.direction, "value"],
     ["size", size, "value"],
-    ["objectsSize", objectsSize, "value"],
-    ["crossCount", numberOrUndefined(settings.crossCount), "value"],
-    [
-      "gap",
-      settings.gapX === settings.gapY
-        ? settings.gapX
-        : [settings.gapX, settings.gapY],
-      "value",
-    ],
+
+    ["objects", objectsGroup, "value"],
     [
       "wrapper",
       {
@@ -707,8 +712,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       },
       "value",
     ],
-    ["objectsAlign", settings.objectsAlign, "value"],
-    ["objectsDirection", settings.objectsDirection, "value"],
+
     [
       // цвет и размер края теперь дело CSS, в проп уходит узел
       "edge",
@@ -717,7 +721,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ],
     ["progressTrigger", progressTrigger, "value"],
     ["render", render, "value"],
-    ["emptyObjects", emptyObjects, "value"],
+
     ["suspending", settings.suspending || undefined, "boolean"],
     [
       "fallback",
@@ -930,7 +934,7 @@ function App() {
     return [settings.width, settings.height];
   }, [settings.height, settings.sizeMode, settings.squareSize, settings.width]);
 
-  const objectsSize = React.useMemo<MorphScrollProps["objectsSize"]>(() => {
+  const objectsSize = React.useMemo<NonNullable<MorphScrollProps["objects"]>["size"]>(() => {
     if (settings.objectsSizeMode === "default") return undefined;
     if (settings.objectsSizeMode === "number") return settings.objectWidth;
     if (settings.objectsSizeMode === "pair")
@@ -1007,7 +1011,7 @@ function App() {
     settings.trackVisibility,
   ]);
 
-  const emptyObjects = React.useMemo<MorphScrollProps["emptyObjects"]>(() => {
+  const emptyObjects = React.useMemo<NonNullable<MorphScrollProps["objects"]>["empty"]>(() => {
     if (settings.emptyMode === "off") return undefined;
     if (settings.emptyMode === "clear") return "clear";
     if (settings.emptyMode === "fallback")
@@ -1027,20 +1031,25 @@ function App() {
       className: ["playground-scroll", settings.className]
         .filter(Boolean)
         .join(" "),
-      crossCount: numberOrUndefined(settings.crossCount),
+
       direction: settings.direction,
       autoScrollOnDrag: settings.autoScrollOnDrag,
       edge,
-      objectsAlign: settings.objectsAlign,
-      objectsDirection: settings.objectsDirection,
-      emptyObjects,
+
       fallback: <div className="cell-fallback">{settings.fallbackText}</div>,
-      gap:
-        settings.gapX === settings.gapY
-          ? settings.gapX
-          : [settings.gapX, settings.gapY],
+
       onScrollingChange: settings.enableIsScrolling ? setIsScrolling : undefined,
-      objectsSize,
+      objects: {
+        size: objectsSize,
+        gap:
+          settings.gapX === settings.gapY
+            ? settings.gapX
+            : [settings.gapX, settings.gapY],
+        crossCount: numberOrUndefined(settings.crossCount),
+        align: settings.objectsAlign,
+        direction: settings.objectsDirection,
+        empty: emptyObjects,
+      },
       onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
       onRenderedKeysChange: settings.enableOnRenderedKeysChange
         ? setRenderedKeys
@@ -1375,7 +1384,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="size · objectsSize · crossCount · gap · wrapper"
+          hint="size · objects · wrapper"
           title="size"
         >
           <SelectField

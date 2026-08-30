@@ -15,7 +15,7 @@ const items = (n: number) =>
 
 const mount = (props: Record<string, unknown>, count = 12) => {
   const utils = render(
-    <MorphScroll size={[300, 300]} objectsSize={300} crossCount={1} {...props}>
+    <MorphScroll objects={{ size: 300, crossCount: 1 }} size={[300, 300]} {...props}>
       {items(count)}
     </MorphScroll>,
   );
@@ -96,10 +96,8 @@ describe("MorphScroll — progressTrigger.keys", () => {
 
   it("leaves the arrows to a text field inside the scroll", async () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 300, crossCount: 1 }}
         size={[300, 300]}
-        objectsSize={300}
-        crossCount={1}
         progressTrigger={{ keys: { mode: "pan" } }}
       >
         <input key="field" defaultValue="text" />

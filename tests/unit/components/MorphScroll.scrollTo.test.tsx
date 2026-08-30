@@ -17,7 +17,7 @@ const items = () =>
 const mount = (props: Record<string, unknown> = {}) => {
   const ref = React.createRef<MorphScrollHandle>();
   const utils = render(
-    <MorphScroll ref={ref} size={[100, VIEW]} objectsSize={OBJ} {...props}>
+    <MorphScroll objects={{ size: OBJ }} ref={ref} size={[100, VIEW]} {...props}>
       {items()}
     </MorphScroll>,
   );
@@ -56,7 +56,7 @@ describe("MorphScroll — initialPosition", () => {
     el.scrollTop = 900; // человек уехал сам
 
     rerender(
-      <MorphScroll size={[100, VIEW]} objectsSize={OBJ} initialPosition={100}>
+      <MorphScroll objects={{ size: OBJ }} size={[100, VIEW]} initialPosition={100}>
         {items()}
       </MorphScroll>,
     );
@@ -71,7 +71,7 @@ describe("MorphScroll — initialPosition against everything else", () => {
   afterEach(() => vi.useRealTimers());
 
   const growing = (count: number, props: Record<string, unknown> = {}) => (
-    <MorphScroll size={[100, VIEW]} objectsSize={OBJ} initialPosition={100} {...props}>
+    <MorphScroll objects={{ size: OBJ }} size={[100, VIEW]} initialPosition={100} {...props}>
       {Array.from({ length: count }, (_, i) => (
         <div key={`item-${i}`}>item {i}</div>
       ))}
@@ -207,11 +207,9 @@ describe("MorphScroll — scrollTo on both axes at once", () => {
   it("animates x and y together", () => {
     const ref = React.createRef<MorphScrollHandle>();
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, crossCount: 12 }}
         ref={ref}
         size={[300, 300]}
-        objectsSize={100}
-        crossCount={12}
         direction="hybrid"
       >
         {Array.from({ length: 144 }, (_, i) => (

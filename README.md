@@ -43,7 +43,7 @@ If you prefer, you can also import the entire library as a single object using t
 import Morph from "morphing-scroll";
 ```
 
-Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objectsSize` and `progressTrigger` props, which are explained below.
+Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objects` and `progressTrigger` props, which are explained below.
 
 > **✦ Note:**
 >
@@ -503,11 +503,38 @@ adds the <code>ResizeTracker</code> component to measure the width and height of
 
 <h2></h2>
 
-<details><summary><b><code>objectsSize</code></b></summary><br /><ul><div>
+<details><summary><b><code>objects</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-objectsSize: 100; // or [100, 70] | "full" | "firstChild" | "none"
+objects: { size: 100, gap: 10 }
+```
+
+```tsx
+objects: {
+  size: [150, 112],
+  gap: [10, 20],
+  crossCount: 3,
+  align: "center",
+  direction: "column",
+  empty: "clear",
+}
+```
+
+<b>Default:</b><br />
+{ direction: "row" }<br />
+<br />
+<b>Description:</b><em><br />
+everything about the objects themselves: how big they are, how they sit next to each other, and what to do with the ones that render nothing.<br />
+<br />
+Each object is wrapped in an <code>.ms-object-box</code> of its own — this is what decides the size of that box and how the boxes are arranged.<br />
+</em><br />
+
+<details><summary><code><b>size</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+size: 100; // or [100, 70] | "full" | "firstChild" | "none"
 ```
 
 <b>Description:</b><em><br />
@@ -532,25 +559,24 @@ cells will still be created, but <code>MorphScroll</code> will not calculate the
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} objectsSize={[70, 100]}>
+<MorphScroll {...props} objects={{ size: [70, 100] }}>
   {children}
 </MorphScroll>
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsSize.png)
-
 </div></ul></details>
 
-<h2></h2>
+<br />
 
-<details><summary><b><code>crossCount</code></b></summary><br /><ul><div>
+<details><summary><code><b>crossCount</b></code></summary><br /><ul><div>
 <b>Description:</b><em><br />
 defines the number of <b>columns</b> or <b>rows</b>.<br />
 <br />
 ✦ Note:<br />
 <ul>
   <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
-  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of the <code>objectsDirection</code>, but not exceeding the total number of passed elements.</li>
+  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
 </ul></em><br />
 <br />
 <b>Example:</b>
@@ -562,12 +588,11 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-crossCount.png)
-
 </div></ul></details>
 
-<h2></h2>
+<br />
 
-<details><summary><b><code>gap</code></b></summary><br /><ul><div>
+<details><summary><code><b>gap</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
@@ -586,10 +611,129 @@ allows you to set spacing in pixels between list items for rows and columns.<br 
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-gap.png)
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>align</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+align: "center"; // or "start" | "end"
+```
+
+<b>Default:</b><br />
+"start"<br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} objects={{ align: "center" }}>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsAlign.png)
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>direction</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+direction: "row"; // or "column"
+```
+
+<b>Default:</b><br />
+"row"<br />
+<br />
+<b>Description:</b><em><br />
+changes the order of the provided elements based on the provided value.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} objects={{ direction: "column" }}>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsDirection.png)
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>empty</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+<ul>
+  <li><b>Simple</b>:<br />
+  
+```tsx
+empty: "clear" // or "fallback"
+```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+  
+```tsx
+empty: {
+  mode: "clear", // or "fallback" (required)
+  fallback: <YourEmptyPlaceholder />, // optional, wins over the fallback prop
+  clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
+}
+```
+
+  </li>
+</ul>
+
+<b>Description:</b><em><br />
+this option allows you to remove or replace empty list items during the initial render, or trigger this process via a click action<br />
+<br />
+<code><b>mode</b></code>:<br />
+
+<ul>
+  <li><b>"clear"</b> – automatically removes empty objects.</li>
+  <li><b>"fallback"</b> – replaces empty objects with a placeholder.</li>
+</ul>
+<br />
+<code><b>fallback</b></code>:<br />
+the placeholder for this scroll. Without it the <code>fallback</code> prop is used, so you only need this when one scroll should show something different from the rest.<br />
+<br />
+<code><b>clickTrigger</b></code>:<br />
+use this option if removal should be triggered by a click action.<br />
+<ul>
+  <li><b>"selector"</b> – CSS selector that triggers the removal.</li>
+  <li><b>"delay"</b> – delay before removal ( in <b>ms</b> ).</li>
+</ul>
+<br />
+✦ Note:<br />
+<ul>
+  <li>The cleanup runs on the initial render, when the number of elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
+  <li>If you use <code>clickTrigger</code>:<br />
+  - consider increasing <code>delay</code>, since the cleanup may run before removal.<br />
+  - the wrapper <code>.ms-object-box</code> also gets the <code>ms-remove</code> class, which you can use e.g. for fade-out animations.</li>
+</ul>
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} objects={{ empty: "clear" }}>
+  {children}
+</MorphScroll>
+```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyObjects.png)
+</div></ul></details>
+
+<br />
 
 </div></ul></details>
 
 <h2></h2>
+
+
+
 
 <details><summary><b><code>wrapper</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -635,58 +779,7 @@ where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b
 
 <h2></h2>
 
-###### **— LAYOUT —**
 
-<details><summary><b><code>objectsAlign</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-objectsAlign: "center"; // or "start" | "end"
-```
-
-<b>Default:</b><br />
-"start"<br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} objectsAlign="center">
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsAlign.png)
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b><code>objectsDirection</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-objectsDirection: "row"; // or "column"
-```
-
-<b>Default:</b><br />
-"row"<br />
-<br />
-<b>Description:</b><em><br />
-changes the order of the provided elements based on the provided value.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} objectsDirection="column">
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsDirection.png)
-
-</div></ul></details>
-
-<h2></h2>
 
 ###### **— PROGRESS —**
 
@@ -770,7 +863,7 @@ If you use <code>direction="hybrid"</code>, you can use:<br />
 </ul>
 <br />
 <b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
-The object stops a <code>gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place. That space comes out of the room the object leaves in the window, so an object as large as the window gets none of it and lands exactly on the edge: a gallery of full-size images steps page by page, with nothing sticking out.<br />
+The object stops an <code>objects.gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place. That space comes out of the room the object leaves in the window, so an object as large as the window gets none of it and lands exactly on the edge: a gallery of full-size images steps page by page, with nothing sticking out.<br />
 Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. The box is made focusable at that moment — give it a <code>tabIndex</code> of your own and the library leaves it alone. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
 <br />
 ✦ Note:<br />
@@ -1001,7 +1094,7 @@ controls whether to stop loading content when scrolling.<br />
 sets the <code>--ms-content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--ms-content-visibility);</code>.<br />
 <br />
 ✦ Note:<br />
-<code>render</code> is not compatible with <code>objectsSize: "none"</code>.<br />
+<code>render</code> is not compatible with <code>objects.size: "none"</code>.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1017,70 +1110,6 @@ sets the <code>--ms-content-visibility</code> variable for list item wrapper sty
 
 <h2></h2>
 
-<details><summary><b><code>emptyObjects</code></b></summary><br /><ul><div>
-<b>Usage:</b><br />
-<ul>
-  <li><b>Simple</b>:<br />
-  
-```tsx
-emptyObjects: "clear" // or "fallback"
-```
-
-  </li>
-  <li><b>Advanced</b>:<br />
-  
-```tsx
-emptyObjects: {
-  mode: "clear", // or "fallback" (required)
-  fallback: <YourEmptyPlaceholder />, // optional, wins over the fallback prop
-  clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
-}
-```
-
-  </li>
-</ul>
-
-<b>Description:</b><em><br />
-this option allows you to remove or replace empty list items during the initial render, or trigger this process via a click action<br />
-<br />
-<code><b>mode</b></code>:<br />
-
-<ul>
-  <li><b>"clear"</b> – automatically removes empty objects.</li>
-  <li><b>"fallback"</b> – replaces empty objects with a placeholder.</li>
-</ul>
-<br />
-<code><b>fallback</b></code>:<br />
-the placeholder for this scroll. Without it the <code>fallback</code> prop is used, so you only need this when one scroll should show something different from the rest.<br />
-<br />
-<code><b>clickTrigger</b></code>:<br />
-use this option if removal should be triggered by a click action.<br />
-<ul>
-  <li><b>"selector"</b> – CSS selector that triggers the removal.</li>
-  <li><b>"delay"</b> – delay before removal ( in <b>ms</b> ).</li>
-</ul>
-<br />
-✦ Note:<br />
-<ul>
-  <li>The cleanup runs on the initial render, when the number of elements changes, on scroll, and on click if you use <code>clickTrigger</code>.</li>
-  <li>If you use <code>clickTrigger</code>:<br />
-  - consider increasing <code>delay</code>, since the cleanup may run before removal.<br />
-  - the wrapper <code>.ms-object-box</code> also gets the <code>ms-remove</code> class, which you can use e.g. for fade-out animations.</li>
-</ul>
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} emptyObjects="clear">
-  {children}
-</MorphScroll>
-```
-
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyObjects.png)
-
-</div></ul></details>
-
-<h2></h2>
 
 <details><summary><b><code>suspending</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1125,7 +1154,7 @@ It will be used when:
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
   <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
-  <li><code>emptyObjects.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
+  <li><code>objects.empty.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
 </ul>
 </em><br />
 <b>Example:</b>

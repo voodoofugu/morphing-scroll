@@ -21,9 +21,8 @@ const items = () =>
  */
 const mount = (realScrollWidth: number) => {
   const utils = render(
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={[VIEW, 100]}
-      objectsSize={OBJ}
       direction="x"
       progressTrigger={{ content: true }}
     >

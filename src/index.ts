@@ -30,6 +30,7 @@ export type {
   KeysConfig,
   WheelConfig,
   EmptyObjectsConfig,
+  ObjectsConfig,
   NavigateEvent,
   NavigateReason,
   WrapperConfig,

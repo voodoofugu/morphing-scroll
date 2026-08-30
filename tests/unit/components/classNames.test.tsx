@@ -61,9 +61,8 @@ const customPropsIn = (root: HTMLElement) => {
 describe("class names", () => {
   it("namespaces everything MorphScroll renders", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, empty: "fallback" }}
         size={[300, 300]}
-        objectsSize={100}
         direction="hybrid"
         mode="sliderMenu"
         edge
@@ -74,7 +73,6 @@ describe("class names", () => {
           arrows: { element: <span />, size: 40 },
         }}
         render="virtual"
-        emptyObjects="fallback"
       >
         {items(10)}
       </MorphScroll>,
@@ -87,9 +85,8 @@ describe("class names", () => {
 
   it("namespaces the edges and arrows on every side", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100 }}
         size={[300, 300]}
-        objectsSize={100}
         direction="hybrid"
         edge
         progressTrigger={{ arrows: { element: <span />, size: 40 } }}
@@ -119,7 +116,7 @@ describe("class names", () => {
 
   it("keeps the consumer's own className untouched", () => {
     const { container } = render(
-      <MorphScroll size={300} objectsSize={100} className="my-scroll">
+      <MorphScroll objects={{ size: 100 }} size={300} className="my-scroll">
         {items(3)}
       </MorphScroll>,
     );

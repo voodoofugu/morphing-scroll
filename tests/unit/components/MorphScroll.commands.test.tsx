@@ -18,11 +18,9 @@ const items = (n: number) =>
 const mount = (props: Record<string, unknown> = {}, count = 12) => {
   const ref = React.createRef<MorphScrollHandle>();
   const utils = render(
-    <MorphScroll
+    <MorphScroll objects={{ size: 300, crossCount: 1 }}
       ref={ref}
       size={[300, 300]}
-      objectsSize={300}
-      crossCount={1}
       {...props}
     >
       {items(count)}
@@ -51,7 +49,10 @@ describe("MorphScroll — step and pan", () => {
    * страница проматывалась не туда.
    */
   it("a page step counts the gap of its own axis", async () => {
-    const across = mount({ direction: "x", gap: [40, 0] });
+    const across = mount({
+      direction: "x",
+      objects: { size: 300, gap: [40, 0] },
+    });
     stubLayout(across.el, {
       clientWidth: 300,
       clientHeight: 300,
@@ -62,7 +63,7 @@ describe("MorphScroll — step and pan", () => {
     act(() => across.ref.current!.step("right"));
     await vi.waitFor(() => expect(across.el.scrollLeft).toBe(340));
 
-    const down = mount({ gap: [0, 40] });
+    const down = mount({ objects: { size: 300, gap: [0, 40] } });
 
     act(() => down.ref.current!.step("bottom"));
     await vi.waitFor(() => expect(down.el.scrollTop).toBe(340));

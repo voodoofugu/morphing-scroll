@@ -53,7 +53,7 @@ const reacts = (
 ) => {
   it(name, async () => {
     const view = (props: Props) => (
-      <MorphScroll size={[300, 300]} objectsSize={100} {...props}>
+      <MorphScroll objects={{ size: 100 }} size={[300, 300]} {...props}>
         {children}
       </MorphScroll>
     );
@@ -80,10 +80,10 @@ describe("MorphScroll — пропсы применяются сразу", () =>
   reacts("mode", { progressTrigger: { bar: <i /> } }, { mode: "slider", progressTrigger: { bar: <i /> } });
   reacts("direction", {}, { direction: "x" });
   reacts("size", { size: [300, 300] }, { size: [300, 500] });
-  reacts("objectsSize", {}, { objectsSize: 40 });
-  reacts("crossCount", { crossCount: 1 }, { crossCount: 3 });
-  reacts("gap числом", { gap: 10 }, { gap: 80 });
-  reacts("gap парой", { gap: [10, 20] }, { gap: [10, 60] });
+  reacts("objects.size", {}, { objects: { size: 40 } });
+  reacts("objects.crossCount", { objects: { size: 100, crossCount: 1 } }, { objects: { size: 100, crossCount: 3 } });
+  reacts("objects.gap числом", { objects: { size: 100, gap: 10 } }, { objects: { size: 100, gap: 80 } });
+  reacts("objects.gap парой", { objects: { size: 100, gap: [10, 20] } }, { objects: { size: 100, gap: [10, 60] } });
   reacts("wrapper.margin", { wrapper: { margin: 10 } }, { wrapper: { margin: 50 } });
   // выравнивание видно только когда контент меньше окна
   reacts(
@@ -93,8 +93,8 @@ describe("MorphScroll — пропсы применяются сразу", () =>
     items(2),
   );
   reacts("wrapper.minSize", {}, { wrapper: { minSize: "full" } });
-  reacts("objectsAlign", { crossCount: 3 }, { crossCount: 3, objectsAlign: "center" });
-  reacts("objectsDirection", { crossCount: 3 }, { crossCount: 3, objectsDirection: "column" });
+  reacts("objects.align", { objects: { size: 100, crossCount: 3 } }, { objects: { size: 100, crossCount: 3, align: "center" } });
+  reacts("objects.direction", { objects: { size: 100, crossCount: 3 } }, { objects: { size: 100, crossCount: 3, direction: "column" } });
   reacts("progressTrigger.bar", {}, { progressTrigger: { bar: <i className="thumb" /> } });
   reacts(
     "progressTrigger.arrows",
@@ -105,9 +105,9 @@ describe("MorphScroll — пропсы применяются сразу", () =>
   reacts("render", {}, { render: "lazy" });
   // «пустым» считается объект, у которого в разметке ничего нет
   reacts(
-    "emptyObjects",
+    "objects.empty",
     { render: "virtual" },
-    { render: "virtual", emptyObjects: "clear" },
+    { render: "virtual", objects: { size: 100, empty: "clear" } },
     [<div key="item-0">item</div>, <Empty key="item-1" />, <div key="item-2">item</div>],
   );
 });
@@ -125,10 +125,8 @@ describe("MorphScroll — свежий объект с тем же содерж�
     const spy = vi.spyOn(HTMLElement.prototype, "addEventListener");
 
     const view = () => (
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, gap: [10, 20] }}
         size={[300, 300]}
-        objectsSize={100}
-        gap={[10, 20]}
         wrapper={{ margin: 8 }}
         progressTrigger={{ wheel: true, bar: <i /> }}
       >
@@ -147,10 +145,8 @@ describe("MorphScroll — свежий объект с тем же содерж�
 
     // а вот изменившееся содержимое подписку пересобрать обязано
     rerender(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, gap: [10, 20] }}
         size={[300, 300]}
-        objectsSize={100}
-        gap={[10, 20]}
         wrapper={{ margin: 8 }}
         progressTrigger={{
           wheel: { changeDirectionBtn: "KeyZ" },

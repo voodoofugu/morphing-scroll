@@ -20,7 +20,7 @@ const boxes = (c: HTMLElement) => c.querySelectorAll(".ms-object-box");
 describe("MorphScroll — emptyObjects", () => {
   it("fallback: replaces an empty box with the empty-element placeholder", async () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="virtual" emptyObjects="fallback">
+      <MorphScroll objects={{ size: OBJ, empty: "fallback" }} size={SIZE} render="virtual">
         {mixed()}
       </MorphScroll>,
     );
@@ -34,12 +34,10 @@ describe("MorphScroll — emptyObjects", () => {
 
   it("takes its own fallback over the shared one", async () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ, empty: { mode: "fallback", fallback: <b className="mine" /> } }}
         size={SIZE}
-        objectsSize={OBJ}
         render="virtual"
         fallback={<i className="shared" />}
-        emptyObjects={{ mode: "fallback", fallback: <b className="mine" /> }}
       >
         {mixed()}
       </MorphScroll>,
@@ -53,12 +51,10 @@ describe("MorphScroll — emptyObjects", () => {
 
   it("falls back to the shared fallback when it has none of its own", async () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ, empty: { mode: "fallback" } }}
         size={SIZE}
-        objectsSize={OBJ}
         render="virtual"
         fallback={<i className="shared" />}
-        emptyObjects={{ mode: "fallback" }}
       >
         {mixed()}
       </MorphScroll>,
@@ -71,7 +67,7 @@ describe("MorphScroll — emptyObjects", () => {
 
   it("clear: drops the empty box from the tree", async () => {
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} render="virtual" emptyObjects="clear">
+      <MorphScroll objects={{ size: OBJ, empty: "clear" }} size={SIZE} render="virtual">
         {mixed()}
       </MorphScroll>,
     );
@@ -93,9 +89,8 @@ describe("MorphScroll — suspending", () => {
     };
 
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        objectsSize={OBJ}
         suspending
         fallback={<div className="susp-fallback">loading…</div>}
       >
@@ -123,9 +118,8 @@ describe("MorphScroll — render.rootMargin", () => {
     direction: "x" | "y",
     rootMargin: [number, number, number, number],
   ) => (
-    <MorphScroll
+    <MorphScroll objects={{ size: 100 }}
       size={direction === "x" ? [300, 100] : [100, 300]}
-      objectsSize={100}
       direction={direction}
       render={{ mode: "virtual", rootMargin }}
     >

@@ -98,14 +98,8 @@ const isTextEntry = (target: EventTarget | null) => {
  *
  * ##### — SIZE —
  * - `size` - ***REQUIRED***
- * - `objectsSize`
- * - `crossCount`
- * - `gap`
+ * - `objects`
  * - `wrapper`
- *
- * ##### — LAYOUT —
- * - `objectsAlign`
- * - `objectsDirection`
  *
  * ##### — PROGRESS —
  * - `progressTrigger`
@@ -113,7 +107,6 @@ const isTextEntry = (target: EventTarget | null) => {
  *
  * ##### — OPTIMIZATION —
  * - `render`
- * - `emptyObjects`
  * - `suspending`
  * - `fallback`
  *
@@ -146,12 +139,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // Visual Settings
       size,
-      objectsSize,
-      crossCount,
-      gap,
+      objects,
       wrapper,
-      objectsAlign,
-      objectsDirection = "row",
       edge,
 
       // Progress Bar
@@ -159,7 +148,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // Optimization
       render,
-      emptyObjects,
       suspending = false,
       fallback,
 
@@ -170,6 +158,20 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
   ) {
     // ♦ hooks
     const triggerUpdate = useUpdate();
+    /*
+     * Всё про сами объекты живёт в одной группе — размер, зазор, сколько их в
+     * ряду, выравнивание, направление и что делать с пустыми. Внутри компонента
+     * это по-прежнему отдельные значения.
+     */
+    const {
+      size: objectsSize,
+      gap,
+      crossCount,
+      align: objectsAlign,
+      direction: objectsDirection = "row",
+      empty: emptyObjects,
+    } = objects ?? {};
+
     // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
     const id = useIdent();
 

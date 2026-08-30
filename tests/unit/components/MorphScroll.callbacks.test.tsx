@@ -20,7 +20,7 @@ describe("MorphScroll — onScrollingChange", () => {
   it("reports the start and the end of a scroll burst exactly once", () => {
     const onScrollingChange = vi.fn();
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={onScrollingChange}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} onScrollingChange={onScrollingChange}>
         {items(20)}
       </MorphScroll>,
     );
@@ -45,7 +45,7 @@ describe("MorphScroll — onScrollingChange", () => {
   it("reports a fresh start after the previous burst ended", () => {
     const onScrollingChange = vi.fn();
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={onScrollingChange}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} onScrollingChange={onScrollingChange}>
         {items(20)}
       </MorphScroll>,
     );
@@ -78,7 +78,7 @@ describe("MorphScroll — onScrollPosition", () => {
   it("reports the current offsets on every scroll event", () => {
     const onScrollPosition = vi.fn();
     const { container } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} onScrollPosition={onScrollPosition}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} onScrollPosition={onScrollPosition}>
         {items(20)}
       </MorphScroll>,
     );

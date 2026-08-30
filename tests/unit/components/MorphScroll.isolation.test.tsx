@@ -33,10 +33,10 @@ const visibility = (bars: HTMLElement[]) =>
 const renderPair = (props: Record<string, unknown> = {}) => {
   const utils = render(
     <>
-      <MorphScroll size={SIZE} objectsSize={OBJ} {...props}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} {...props}>
         {items(20, "a")}
       </MorphScroll>
-      <MorphScroll size={SIZE} objectsSize={OBJ} {...props}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} {...props}>
         {items(20, "b")}
       </MorphScroll>
     </>,
@@ -64,10 +64,10 @@ describe("MorphScroll isolation — scheduled tasks", () => {
 
     const { container } = render(
       <>
-        <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={aScrolling}>
+        <MorphScroll objects={{ size: OBJ }} size={SIZE} onScrollingChange={aScrolling}>
           {items(20, "a")}
         </MorphScroll>
-        <MorphScroll size={SIZE} objectsSize={OBJ} onScrollingChange={bScrolling}>
+        <MorphScroll objects={{ size: OBJ }} size={SIZE} onScrollingChange={bScrolling}>
           {items(20, "b")}
         </MorphScroll>
       </>,
@@ -102,16 +102,14 @@ describe("MorphScroll isolation — scheduled tasks", () => {
     // second scroll used to leave the first bar visible forever.
     const { container } = render(
       <>
-        <MorphScroll
+        <MorphScroll objects={{ size: OBJ }}
           size={SIZE}
-          objectsSize={OBJ}
           progressTrigger={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
         >
           {items(20, "a")}
         </MorphScroll>
-        <MorphScroll
+        <MorphScroll objects={{ size: OBJ }}
           size={SIZE}
-          objectsSize={OBJ}
           progressTrigger={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
         >
           {items(20, "b")}
@@ -245,7 +243,7 @@ describe("MorphScroll isolation — document cursor lock", () => {
 
   it("releases the cursor lock when the scroll unmounts mid-drag", () => {
     const { container, unmount } = render(
-      <MorphScroll size={SIZE} objectsSize={OBJ} progressTrigger={{ content: true }}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger={{ content: true }}>
         {items(20, "a")}
       </MorphScroll>,
     );
@@ -281,17 +279,15 @@ describe("MorphScroll isolation — document cursor lock", () => {
   it("does not release another instance's cursor lock when an idle one unmounts", () => {
     const Idle = ({ show }: { show: boolean }) => (
       <>
-        <MorphScroll
+        <MorphScroll objects={{ size: OBJ }}
           size={SIZE}
-          objectsSize={OBJ}
           progressTrigger={{ content: true }}
         >
           {items(20, "a")}
         </MorphScroll>
         {show ? (
-          <MorphScroll
+          <MorphScroll objects={{ size: OBJ }}
             size={SIZE}
-            objectsSize={OBJ}
             progressTrigger={{ content: true }}
           >
             {items(20, "b")}

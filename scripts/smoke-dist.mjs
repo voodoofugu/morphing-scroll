@@ -28,7 +28,7 @@ const check = (name, mod) => {
   const html = renderToString(
     React.createElement(
       mod.MorphScroll,
-      { size: 300, objectsSize: 100 },
+      { size: 300, objects: { size: 100 } },
       React.createElement("div", { key: "a" }, "item"),
     ),
   );

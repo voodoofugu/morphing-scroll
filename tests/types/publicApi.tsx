@@ -26,12 +26,15 @@ export const everyProp = (
     onScrollingChange={(motion) => void motion}
     onRenderedKeysChange={(keys) => void keys.length}
     size={[300, 200]}
-    objectsSize={[100, "full"]}
-    crossCount={3}
-    gap={[10, 20]}
+    objects={{
+      size: [100, "full"],
+      gap: [10, 20],
+      crossCount: 3,
+      align: "center",
+      direction: "column",
+      empty: { mode: "clear", clickTrigger: { selector: ".x", delay: 100 } },
+    }}
     wrapper={{ margin: [5, 5], minSize: "full", align: ["center", "end"] }}
-    objectsAlign="center"
-    objectsDirection="column"
     edge={<span className="fade" />}
     progressTrigger={{
       wheel: { changeDirection: true },
@@ -47,7 +50,6 @@ export const everyProp = (
       arrows: { element: <b />, size: 40, loop: true },
     }}
     render={{ mode: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
-    emptyObjects={{ mode: "clear", clickTrigger: { selector: ".x", delay: 100 } }}
     suspending
     fallback={<span />}
     autoScrollOnDrag
@@ -71,8 +73,13 @@ export const badTrigger = <MorphScroll size={100} progressTrigger="thumb" />;
  * литералы, а «пара» была массивом любой длины — опечатка и лишний элемент
  * проходили молча.
  */
-// @ts-expect-error a typo in a mode used to be swallowed by ReactNode
-export const badEmptyMode = <MorphScroll size={100} emptyObjects="clearr" />;
+export const badEmptyMode = (
+  <MorphScroll
+    size={100}
+    // @ts-expect-error a typo in a mode used to be swallowed by ReactNode
+    objects={{ empty: "clearr" }}
+  />
+);
 export const badMinSize = (
   <MorphScroll
     size={100}
@@ -80,8 +87,13 @@ export const badMinSize = (
     wrapper={{ minSize: [1, 2, 3, 4] }}
   />
 );
-// @ts-expect-error an axis pair takes exactly two values
-export const badObjectsSize = <MorphScroll size={100} objectsSize={[1, 2, 3]} />;
+export const badObjectsSize = (
+  <MorphScroll
+    size={100}
+    // @ts-expect-error an axis pair takes exactly two values
+    objects={{ size: [1, 2, 3] }}
+  />
+);
 export const badReverse = (
   <MorphScroll
     size={100}
@@ -118,12 +130,18 @@ export const keysModeIsClosed = (
 export const emptyObjectsConfig = (
   <MorphScroll
     size={100}
-    emptyObjects={{ mode: "fallback", fallback: <b />, clickTrigger: ".btn" }}
+    objects={{
+      empty: { mode: "fallback", fallback: <b />, clickTrigger: ".btn" },
+    }}
   />
 );
 
 export const shorthands = (
-  <MorphScroll size="auto" objectsSize="firstChild" render="lazy" emptyObjects="fallback">
+  <MorphScroll
+    size="auto"
+    objects={{ size: "firstChild", empty: "fallback" }}
+    render="lazy"
+  >
     <div key="a" />
   </MorphScroll>
 );
@@ -194,4 +212,4 @@ export const missingSize = <MorphScroll />;
 export const badDirection = <MorphScroll size={100} direction="diagonal" />;
 
 // @ts-expect-error a 2-tuple spacing value is numbers, not strings
-export const badGap = <MorphScroll size={100} gap={["10", "20"]} />;
+export const badGap = <MorphScroll objects={{ gap: ["10", "20"] }} size={100} />;

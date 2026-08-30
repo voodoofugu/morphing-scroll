@@ -23,10 +23,13 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `scrollBarOnHover` | `progressTrigger={{ bar: { showOnHover: true } }}` |
 | `scrollBarEdge={10}` | `progressTrigger={{ bar: { trackGap: 10 } }}` |
 | `thumbMinSize={24}` | `progressTrigger={{ bar: { thumbMinSize: 24 } }}` |
-| `elementsAlign` | `objectsAlign` |
-| `elementsDirection` | `objectsDirection` |
-| `emptyElements` | `emptyObjects` |
-| `objectsSize="size"` | `objectsSize="full"` |
+| `elementsAlign` | `objects={{ align }}` |
+| `elementsDirection` | `objects={{ direction }}` |
+| `emptyElements` | `objects={{ empty }}` |
+| `objectsSize={100}` | `objects={{ size: 100 }}` |
+| `gap={10}` | `objects={{ gap: 10 }}` |
+| `crossCount={2}` | `objects={{ crossCount: 2 }}` |
+| `objectsSize="size"` | `objects={{ size: "full" }}` |
 | `dragScroll` | `autoScrollOnDrag` |
 | `wrapperMargin={10}` | `wrapper={{ margin: 10 }}` |
 | `wrapperMinSize="full"` | `wrapper={{ minSize: "full" }}` |
@@ -100,10 +103,10 @@ swallowed the string literals: `emptyObjects="clearr"` compiled, with no
 completion for `"clear"` anywhere. One shape now:
 
 ```tsx
-emptyObjects="clear"
-emptyObjects="fallback"                                   // uses the fallback prop
-emptyObjects={{ mode: "fallback", fallback: <Empty /> }}   // its own placeholder
-emptyObjects={{ mode: "clear", clickTrigger: ".btn" }}
+objects={{ empty: "clear" }}
+objects={{ empty: "fallback" }}                                  // uses the fallback prop
+objects={{ empty: { mode: "fallback", fallback: <Empty /> } }}   // its own placeholder
+objects={{ empty: { mode: "clear", clickTrigger: ".btn" } }}
 ```
 
 `emptyObjects={<Empty />}` and `mode: { fallback: <Empty /> }` are gone;
@@ -130,8 +133,8 @@ Four names pointed away from what they do:
 `element` used to mean four different things at once: the scrolling viewport
 (`.ms-element`), a child (`elementsAlign`, `emptyElements`), a slider dot
 (`.ms-slider-element`) and the node you hand in (`bar.element`). A child is
-an **object** everywhere now — the word `objectsSize` and `.ms-object-box`
-already used — and `element` is left to mean only the node you pass:
+an **object** everywhere now — the word `.ms-object-box` already used — and
+`element` is left to mean only the node you pass:
 
 | 2.x | 3.0 |
 | --- | --- |
@@ -141,6 +144,32 @@ already used — and `element` is left to mean only the node you pass:
 
 `objectsSize` used `"size"` for "same as the `size` prop" while
 `wrapperMinSize` spelled the same idea `"full"`. Both say `"full"` now.
+
+#### Everything about the objects in one place
+
+Six props described the same thing from different sides, all wearing the
+prefix that said so. They are one group now, the way `wrapper` and
+`progressTrigger` already were:
+
+```tsx
+objects={{ size: 100, gap: 10 }}
+
+objects={{
+  size: [150, 112],
+  gap: [10, 20],
+  crossCount: 3,
+  align: "center",
+  direction: "column",
+  empty: "clear",
+}}
+```
+
+Two of them are written in almost every scroll — `size` and `gap` — so the
+group is rarely a single key, and `gap` at the top level never said between
+what: `edgeGap` and `trackGap` live under `bar`. A grouped prop replaces
+rather than merges, so a spread that carries `objects` needs
+`objects={{ ...base.objects, crossCount: 2 }}` where two separate props used
+to just sit next to each other.
 
 #### Moving the scroll
 
@@ -294,7 +323,7 @@ themselves are no longer transformed and can be positioned from CSS.
   longer leaves `cursor: grabbing` on the page forever.
 - `progressTrigger={{ content: true, progressElement: true }}` drags the
   content again; only the native scrollbar itself is excluded.
-- `objectsSize="firstChild"` with `render` renders at all.
+- `objects.size="firstChild"` with `render` renders at all.
 - A scroll inside a scroll no longer moves both at once.
 - The rubber band engages at the far edge when the DOM stops short of the
   computed maximum.
@@ -323,7 +352,7 @@ themselves are no longer transformed and can be positioned from CSS.
   animation lock and arrived a frame late, so a gamepad stick — which sends
   one every frame — jerked in place instead of moving.
 - A position asked for before the content was measured lands. With
-  `size="auto"` or `objectsSize="firstChild"` the scrollable range is zero for
+  `size="auto"` or `objects.size="firstChild"` the scrollable range is zero for
   the first few frames, so the target was clipped to zero and both
   `initialPosition` and a `scrollTo` from a mount effect did nothing. They now
   wait for a range that can hold them.

@@ -11,9 +11,8 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const withBar = (count: number) => (
-  <MorphScroll
+  <MorphScroll objects={{ size: OBJ }}
     size={[100, VIEW]}
-    objectsSize={OBJ}
     progressTrigger={{ wheel: true, bar: <div className="knob" /> }}
   >
     {items(count)}
@@ -78,9 +77,8 @@ describe("ScrollBar — showOnHover", () => {
   afterEach(() => vi.useRealTimers());
 
   const onHover = (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={[100, VIEW]}
-      objectsSize={OBJ}
       progressTrigger={{
         wheel: true,
         bar: { element: <div className="knob" />, showOnHover: true },
@@ -152,9 +150,8 @@ describe("ScrollBar — showOnHover", () => {
 
 describe("ScrollBar — a changed progressElement", () => {
   const withThumb = (label: string) => (
-    <MorphScroll
+    <MorphScroll objects={{ size: OBJ }}
       size={[100, VIEW]}
-      objectsSize={OBJ}
       progressTrigger={{ wheel: true, bar: <b>{label}</b> }}
     >
       {items(20)}
@@ -162,9 +159,8 @@ describe("ScrollBar — a changed progressElement", () => {
   );
 
   const withDots = (label: string) => (
-    <MorphScroll
+    <MorphScroll objects={{ size: VIEW }}
       size={[100, VIEW]}
-      objectsSize={VIEW}
       mode="sliderMenu"
       progressTrigger={{ wheel: true, bar: <b>{label}</b> }}
     >
@@ -202,9 +198,8 @@ describe("ScrollBar — a changed progressElement", () => {
 describe("ScrollBar — edgeGap", () => {
   const bar = (config: unknown) =>
     render(
-      <MorphScroll
+      <MorphScroll objects={{ size: OBJ }}
         size={[100, VIEW]}
-        objectsSize={OBJ}
         progressTrigger={{ wheel: true, bar: config as never }}
       >
         {items(20)}
@@ -236,11 +231,9 @@ describe("ScrollBar — edgeGap", () => {
 
   it("takes the axis pair for a hybrid scroll", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, crossCount: 4 }}
         size={[300, 300]}
-        objectsSize={100}
         direction="hybrid"
-        crossCount={4}
         progressTrigger={{
           wheel: true,
           bar: { element: <i />, edgeGap: [4, 16] },
@@ -266,9 +259,8 @@ describe("ScrollBar — edgeGap", () => {
 
   it("gives a single horizontal scroll the x half of the pair", () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100 }}
         size={[300, 300]}
-        objectsSize={100}
         direction="x"
         progressTrigger={{
           wheel: true,

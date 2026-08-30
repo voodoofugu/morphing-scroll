@@ -28,7 +28,7 @@ const Suspends = (): React.ReactElement => {
 
 const BASE: MorphScrollProps = {
   size: [300, 300],
-  objectsSize: 100,
+  objects: { size: 100 },
   children: items(12),
 };
 
@@ -45,19 +45,19 @@ const markup = (props: Partial<MorphScrollProps>) => {
 const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>]> = [
   ["className", {}, { className: "mine" }],
   ["children", {}, { children: items(3) }],
-  ["mode", { progressTrigger: { bar: <i /> } }, { mode: "slider", objectsSize: 300, progressTrigger: { bar: <i /> } }],
+  ["mode", { progressTrigger: { bar: <i /> } }, { mode: "slider", objects: { size: 300 }, progressTrigger: { bar: <i /> } }],
   ["direction", {}, { direction: "x" }],
   ["size", {}, { size: [200, 150] }],
-  ["objectsSize", {}, { objectsSize: 60 }],
-  ["objectsSize: full", {}, { objectsSize: "full" }],
-  ["crossCount", {}, { crossCount: 2 }],
-  ["gap", {}, { gap: 20 }],
-  ["gap pair", { gap: 20 }, { gap: [20, 5] }],
+  ["objects.size", {}, { objects: { size: 60 } }],
+  ["objects.size: full", {}, { objects: { size: "full" } }],
+  ["objects.crossCount", {}, { objects: { size: 100, crossCount: 2 } }],
+  ["objects.gap", {}, { objects: { size: 100, gap: 20 } }],
+  ["objects.gap pair", { objects: { size: 100, gap: 20 } }, { objects: { size: 100, gap: [20, 5] } }],
   ["wrapper.margin", {}, { wrapper: { margin: 15 } }],
   ["wrapper.minSize", {}, { wrapper: { minSize: 900 } }],
   ["wrapper.align", { size: [900, 900] }, { size: [900, 900], wrapper: { align: "center" } }],
-  ["objectsAlign", {}, { objectsAlign: "center" }],
-  ["objectsDirection", { crossCount: 2 }, { crossCount: 2, objectsDirection: "column" }],
+  ["objects.align", {}, { objects: { size: 100, align: "center" } }],
+  ["objects.direction", { objects: { size: 100, crossCount: 2 } }, { objects: { size: 100, crossCount: 2, direction: "column" } }],
   ["edge", {}, { edge: true }],
   ["edge node", { edge: true }, { edge: <u /> }],
   ["render", {}, { render: "virtual" }],
@@ -102,7 +102,7 @@ describe("MorphScroll — the x-axis bar settings need an x-axis bar", () => {
   const hybrid = (bar: Record<string, unknown>) =>
     markup({
       direction: "hybrid",
-      crossCount: 4,
+      objects: { size: 100, crossCount: 4 },
       progressTrigger: { bar: { element: <i />, ...bar } as never },
     });
 
@@ -134,7 +134,11 @@ describe("MorphScroll — props with no visible markup", () => {
   it("initialPosition reaches the scroll element", async () => {
     vi.useFakeTimers();
     const { container } = render(
-      <MorphScroll {...BASE} crossCount={1} initialPosition={200} />,
+      <MorphScroll
+        {...BASE}
+        objects={{ ...BASE.objects, crossCount: 1 }}
+        initialPosition={200}
+      />,
     );
     const el = container.querySelector<HTMLElement>(".ms-viewport")!;
     Object.defineProperty(el, "clientHeight", { value: 300, configurable: true });
@@ -179,11 +183,9 @@ describe("MorphScroll — props with no visible markup", () => {
   it("emptyObjects removes an empty cell", async () => {
     const Empty = () => null;
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, empty: "clear" }}
         size={[300, 300]}
-        objectsSize={100}
         render="virtual"
-        emptyObjects="clear"
       >
         <div key="a">a</div>
         <Empty key="b" />
@@ -198,14 +200,12 @@ describe("MorphScroll — props with no visible markup", () => {
   it("emptyObjects.clickTrigger marks the object it was clicked in", () => {
     vi.useFakeTimers();
     const { container } = render(
-      <MorphScroll
-        size={[300, 300]}
-        objectsSize={100}
-        render="virtual"
-        emptyObjects={{
+      <MorphScroll objects={{ size: 100, empty: {
           mode: "clear",
           clickTrigger: { selector: ".kill", delay: 50 },
-        }}
+        } }}
+        size={[300, 300]}
+        render="virtual"
       >
         <div key="a">
           <button className="kill">x</button>
@@ -229,10 +229,8 @@ describe("MorphScroll — props with no visible markup", () => {
 
   it("render.stopLoadOnScroll holds the content back while scrolling", async () => {
     const { container } = render(
-      <MorphScroll
+      <MorphScroll objects={{ size: 100, crossCount: 1 }}
         size={[300, 300]}
-        objectsSize={100}
-        crossCount={1}
         render={{ mode: "virtual", stopLoadOnScroll: true }}
         fallback={<b className="held" />}
       >
@@ -254,7 +252,7 @@ describe("MorphScroll — props with no visible markup", () => {
 
   it("suspending puts a boundary around the cells", () => {
     const { container } = render(
-      <MorphScroll size={[300, 300]} objectsSize={100} suspending fallback={<b className="sk" />}>
+      <MorphScroll objects={{ size: 100 }} size={[300, 300]} suspending fallback={<b className="sk" />}>
         <Suspends key="a" />
       </MorphScroll>,
     );
@@ -271,12 +269,10 @@ describe("MorphScroll — size auto before anything is measured", () => {
   it("renders a slider that does not know its viewport yet", () => {
     expect(() =>
       render(
-        <MorphScroll
+        <MorphScroll objects={{ size: [155, 112], crossCount: 3 }}
           size="auto"
           mode="slider"
           direction="hybrid"
-          objectsSize={[155, 112]}
-          crossCount={3}
           progressTrigger={{ wheel: true, bar: <i /> }}
         >
           {Array.from({ length: 12 }, (_, i) => (

@@ -27,7 +27,7 @@ const settled = async (container: HTMLElement) =>
 
 const mount = (props: Record<string, unknown>, count = 12) => {
   const utils = render(
-    <MorphScroll size={SIZE} objectsSize={300} crossCount={1} {...props}>
+    <MorphScroll objects={{ size: 300, crossCount: 1 }} size={SIZE} {...props}>
       {items(count)}
     </MorphScroll>,
   );
