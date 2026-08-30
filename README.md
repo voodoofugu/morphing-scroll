@@ -52,7 +52,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
 > - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressTrigger={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
-> - Due to frequent DOM updates for customization, performance may decrease when DevTools are open, as the browser needs extra resources to track changes.
+> - With DevTools open the scroll can feel slower: the customization keeps the DOM changing, and the browser spends extra work reporting every change to the panel. It is an artefact of being watched — with DevTools closed, which is how the page is actually used, none of that cost exists.
 
 <h2></h2>
 
@@ -213,6 +213,7 @@ keeps the scroll at the end of its content.<br />
 This is a standing rule rather than a move: every time the content grows the scroll follows it, and it opens at the end too. It steps aside the moment the reader scrolls away from the end and picks up again when they come back — a chat that does not fight the person reading its history.<br />
 <br />
 ✦ Note:<br />
+
 <ul>
   <li>in <code>direction="hybrid"</code> each axis follows its own end.</li>
   <li>an explicit <code>scrollTo("end")</code> is the other thing: it always runs, whether or not the reader is at the bottom.</li>
@@ -225,6 +226,8 @@ This is a standing rule rather than a move: every time the content grows the scr
   {messages}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-stickToEnd.png)
 
 </div></ul></details>
 
