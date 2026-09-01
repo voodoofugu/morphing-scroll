@@ -71,7 +71,6 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 allows you to add additional classes to the component.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -101,8 +100,6 @@ Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the sa
 <h2></h2>
 
 ###### **— SCROLL —**
-
-<em>Where the scroll opens is <code>initialPosition</code>, what it follows is <code>stickToEnd</code>, how long its moves take is <code>duration</code> — and every move made on demand is a method on the <code>ref</code>. Props say where the scroll is, methods do something now.</em>
 
 <details><summary><b><code>mode</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -153,7 +150,6 @@ direction: "x"; // or "y" | "hybrid"
 <b>Description:</b><em><br />
 changes the scroll or slider direction based on the provided value.<br />
 You can set the value to horizontal, vertical or hybrid positions to customize the component according to your needs.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -182,7 +178,6 @@ Applied once, without animation, as soon as the content can hold it — a layout
 <br />
 ✦ Note:<br />
 every later move is a command on the component <code>ref</code> — <code>scrollTo</code>, <code>step</code>, <code>pan</code>, <code>moveFocus</code>, see below. To follow content as it grows, see <code>stickToEnd</code>.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -191,7 +186,7 @@ every later move is a command on the component <code>ref</code> — <code>scroll
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollPosition.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-initialPosition.png)
 
 </div></ul></details>
 
@@ -247,7 +242,6 @@ duration: 400;
 how long a move takes, in <b>ms</b>.<br />
 <br />
 The animation length of every move the scroll makes on its own: an arrow, a key, a focus step, a slider settling after a drag. Commands on the <code>ref</code> take it as their default and can override it per call. <b>0</b> jumps without animating.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -283,7 +277,7 @@ props describe state, methods do something now. <code>initialPosition</code> and
   <li><code>target</code>: the same shape <code>initialPosition</code> takes — a <b>number</b>, <b>"end"</b>, <b>null</b>, or an array of two for <code>direction="hybrid"</code>.</li><br />
   <li><code>options.duration</code>: animation length in <b>ms</b>; <b>0</b> jumps without animating. Defaults to the <code>duration</code> prop.</li>
 </ul>
-
+<br />
 Unlike <code>stickToEnd</code>, which follows new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
 <br />
 <code><b>step(side, options?)</b></code>:<br />
@@ -471,7 +465,7 @@ while auto-scrolling is active, the container receives the <code>ms-under-drag</
 
 <h2></h2>
 
-###### **— SIZE —**
+###### **— LAYOUT —**
 
 <details><summary><b><code>size</code></b> REQUIRED</summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -488,7 +482,6 @@ sets a fixed size in pixels. It can be 1 number if you want to set the same widt
 <br />
 <code><b>"auto"</b></code>:<br />
 adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -506,9 +499,15 @@ adds the <code>ResizeTracker</code> component to measure the width and height of
 <details><summary><b><code>objects</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
+<ul>
+  <li><b>Simple</b>:<br />
+
 ```tsx
 objects: { size: 100, gap: 10 }
 ```
+
+  </li>
+  <li><b>Advanced</b>:<br />
 
 ```tsx
 objects: {
@@ -520,6 +519,9 @@ objects: {
   empty: "clear",
 }
 ```
+
+  </li>
+</ul>
 
 <b>Default:</b><br />
 { direction: "row" }<br />
@@ -564,12 +566,19 @@ cells will still be created, but <code>MorphScroll</code> will not calculate the
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsSize.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_size.png)
+
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>crossCount</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+crossCount: 2;
+```
+
 <b>Description:</b><em><br />
 defines the number of <b>columns</b> or <b>rows</b>.<br />
 <br />
@@ -577,17 +586,18 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
 <ul>
   <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
   <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
-</ul></em><br />
-<br />
+</ul>
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} crossCount={2}>
+<MorphScroll {...props} objects={{ crossCount: 2 }}>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-crossCount.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_crossCount.png)
+
 </div></ul></details>
 
 <br />
@@ -605,12 +615,13 @@ allows you to set spacing in pixels between list items for rows and columns.<br 
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} gap={10}>
+<MorphScroll {...props} objects={{ gap: 10 }}>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-gap.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_gap.png)
+
 </div></ul></details>
 
 <br />
@@ -625,6 +636,9 @@ align: "center"; // or "start" | "end"
 <b>Default:</b><br />
 "start"<br />
 <br />
+<b>Description:</b><em><br />
+where a line that did not fill up sits — the last row of a grid, or the only row of a short list.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -633,7 +647,8 @@ align: "center"; // or "start" | "end"
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsAlign.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_align.png)
+
 </div></ul></details>
 
 <br />
@@ -650,7 +665,6 @@ direction: "row"; // or "column"
 <br />
 <b>Description:</b><em><br />
 changes the order of the provided elements based on the provided value.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -659,7 +673,8 @@ changes the order of the provided elements based on the provided value.</em><br 
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objectsDirection.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_direction.png)
+
 </div></ul></details>
 
 <br />
@@ -723,7 +738,8 @@ use this option if removal should be triggered by a click action.<br />
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-emptyObjects.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_empty.png)
+
 </div></ul></details>
 
 <br />
@@ -731,9 +747,6 @@ use this option if removal should be triggered by a click action.<br />
 </div></ul></details>
 
 <h2></h2>
-
-
-
 
 <details><summary><b><code>wrapper</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -748,25 +761,34 @@ wrapper: {
 
 <b>Description:</b><em><br />
 everything about <b>.ms-objects-wrapper</b>, the box that holds your objects, in one place.<br />
+</em><br />
+
+<details><summary><code><b>margin</b></code></summary><br /><ul><div>
+<em>spacing between the objects and their wrapper, which grows the scrollable area by the same amount.</em><br />
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapper_margin.png)
+
+</div></ul></details>
+
 <br />
-<code><b>margin</b></code>:<br />
-spacing between the objects and their wrapper, which grows the scrollable area by the same amount.<br />
-</em>
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMargin.png)
+<details><summary><code><b>minSize</b></code></summary><br /><ul><div>
+<em>the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.</em><br />
 
-<em><code><b>minSize</b></code>:<br />
-the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.<br />
-</em>
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapper_minSize.png)
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperMinSize.png)
+</div></ul></details>
 
-<em><code><b>align</b></code>:<br />
-where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b>"start"</b>. One value aligns both axes, a pair aligns them separately.<br />
-</em>
+<br />
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapperAlign.png)
+<details><summary><code><b>align</b></code></summary><br /><ul><div>
+<em>where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b>"start"</b>. One value aligns both axes, a pair aligns them separately.</em><br />
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapper_align.png)
+
+</div></ul></details>
+
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -778,8 +800,6 @@ where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b
 </div></ul></details>
 
 <h2></h2>
-
-
 
 ###### **— PROGRESS —**
 
@@ -880,6 +900,7 @@ Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so 
 <details><summary><code><b>content</b></code></summary><br /><ul><div>
 <em>enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 A press turns into a scroll only after 2px of movement, so a menu of buttons or links still takes clicks: below that it stays a click, above it the wrapper drops <code>pointer-events</code> and the click never lands. While the gesture runs, the native drag of links and images is suppressed.<br />
+<br />
 The drag does not start at all in these cases:<br />
 
 <ul>
@@ -959,8 +980,8 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
 }
 ```
 
-<br />
 <br /></em>
+
 </div></ul></details>
 
 <br />
@@ -983,7 +1004,6 @@ While the content, a thumb or a slider is being dragged, the element under the p
 </div></ul></details>
 
 <br />
-
 <b>Example:</b>
 
 ```tsx
@@ -1051,16 +1071,17 @@ an edge has no size and no colour of its own, so nothing shows until you give it
 
 <details><summary><b><code>render</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
+
 <ul>
   <li><b>Simple</b>:<br />
-  
+
 ```tsx
 render: "lazy" // or "virtual"
 ```
 
   </li>
   <li><b>Advanced</b>:<br />
-  
+
 ```tsx
 render: {
   mode: "lazy", // or "virtual" (required)
@@ -1076,26 +1097,39 @@ render: {
 <b>Description:</b><em><br />
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
-<br />
-<code><b>mode</b></code>:
+</em><br />
 
+<details><summary><code><b>mode</b></code></summary><br /><ul><div>
+<em>
 <ul>
   <li><b>"lazy"</b> - render once when visible.</li>
   <li><b>"virtual"</b> - render only when visible.</li>
 </ul>
+</em>
+</div></ul></details>
+
 <br />
-<code><b>rootMargin</b></code>:<br />
-controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-viewport</b>) in px.<br />
+
+<details><summary><code><b>rootMargin</b></code></summary><br /><ul><div>
+<em>controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-viewport</b>) in px.</em>
+</div></ul></details>
+
 <br />
-<code><b>stopLoadOnScroll</b></code>:<br />
-controls whether to stop loading content when scrolling.<br />
+
+<details><summary><code><b>stopLoadOnScroll</b></code></summary><br /><ul><div>
+<em>controls whether to stop loading content when scrolling.</em>
+</div></ul></details>
+
 <br />
-<code><b>trackVisibility</b></code>:<br />
-sets the <code>--ms-content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--ms-content-visibility);</code>.<br />
+
+<details><summary><code><b>trackVisibility</b></code></summary><br /><ul><div>
+<em>sets the <code>--ms-content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--ms-content-visibility);</code>.</em>
+</div></ul></details>
+
 <br />
-✦ Note:<br />
-<code>render</code> is not compatible with <code>objects.size: "none"</code>.<br />
-</em><br />
+
+<em>✦ Note:<br />
+<code>render</code> is not compatible with <code>objects.size: "none"</code>.</em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1109,7 +1143,6 @@ sets the <code>--ms-content-visibility</code> variable for list item wrapper sty
 </div></ul></details>
 
 <h2></h2>
-
 
 <details><summary><b><code>suspending</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1174,7 +1207,6 @@ It will be used when:
 <details><summary><b><code>onScrollPosition</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -1194,7 +1226,6 @@ accepts a callback function that is triggered on every scroll event. The callbac
 <details><summary><b><code>onScrollingChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -1252,7 +1283,6 @@ the discrete half of scrolling: fires once when the scroll comes to rest on a pa
 <details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -1345,7 +1375,6 @@ value combines the styles of both <code>"inner"</code> and <code>"outer"</code>,
 <br />
 ✦ Note: <br />
 Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -1495,8 +1524,7 @@ specifies at what percentage of the observed element’s visibility the callback
 <ul>
   <li>A value of <code>0</code> means the callback fires when any part of the element appears, while <code>1</code> means the element must be fully visible.</li>
   <li>An array (e.g., <code>[0, 0.5, 1]</code>) triggers the callback multiple times at different visibility levels.</li>
-</ul></em>
-<br />
+</ul></em><br />
 <b>Example:</b>
 
 ```tsx
@@ -1520,8 +1548,7 @@ callback function that is called when the observed element enters or leaves the 
   <li><code>rootBounds</code>: bounding rectangle of the root element relative to the viewport.</li>
   <li><code>target</code>: observed element.</li>
   <li><code>time</code>: timestamp when the intersection state changed.</li>
-</ul></em>
-<br />
+</ul></em><br />
 <b>Example:</b>
 
 ```tsx

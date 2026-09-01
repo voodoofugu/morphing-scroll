@@ -96,7 +96,7 @@ const isTextEntry = (target: EventTarget | null) => {
  * - `ref`
  * - `autoScrollOnDrag`
  *
- * ##### — SIZE —
+ * ##### — LAYOUT —
  * - `size` - ***REQUIRED***
  * - `objects`
  * - `wrapper`
