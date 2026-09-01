@@ -900,9 +900,10 @@ Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so 
 
 <details><summary><code><b>content</b></code></summary><br /><ul><div>
 <em>enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
-A press turns into a scroll only after 2px of movement, so a menu of buttons or links still takes clicks: below that it stays a click, above it the wrapper drops <code>pointer-events</code> and the click never lands. While the gesture runs, the native drag of links and images is suppressed.<br />
 <br />
-The drag does not start at all in these cases:<br />
+Anything can be dragged from — a menu of buttons, a row of links, a card with a picture in it — because what tells a tap from a scroll is the distance, not what happens to be under the pointer: below 2px it stays a click and the click lands, above it the wrapper drops <code>pointer-events</code> and it does not. The native drag of links and images is suppressed for as long as the gesture runs, so the browser cannot carry one away mid-scroll.<br />
+<br />
+The drag does not start only where the element has a drag or a caret of its own:<br />
 
 <ul>
   <li><b>text fields</b>: <code>input</code>, <code>textarea</code>, <code>select</code></li><br />
