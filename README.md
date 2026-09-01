@@ -583,6 +583,7 @@ crossCount: 2;
 defines the number of <b>columns</b> or <b>rows</b>.<br />
 <br />
 ✦ Note:<br />
+
 <ul>
   <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
   <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
@@ -935,29 +936,55 @@ bar: {
 }
 ```
 
-<ul>
-  <li><code>element</code>: what the bar is made of. An array feeds one node per slider element.</li><br />
-  <li><code>edgeGap</code>: distance between the bar and the side it sits on. A negative value pushes it past that edge — the usual reason to reach for CSS here. It follows <code>reverse</code>, so the gap is always measured from whichever side the bar actually ended up on.</li><br />
-  <li><code>trackGap</code>: shortens the track by this much at each of its two ends. Not to be confused with <code>edgeGap</code>: this one runs along the track, that one across it.</li>
+<details><summary><code><b>element</b></code></summary><br /><ul><div>
+<em>what the bar is made of. An array feeds one node per slider element.</em><br />
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarEdge.png)
+</div></ul></details>
+
 <br />
 
-  <li><code>reverse</code>: put the bar on the opposite side.</li>
+<details><summary><code><b>edgeGap</b></code></summary><br /><ul><div>
+<em>distance between the bar and the side it sits on. A negative value pushes it past that edge — the usual reason to reach for CSS here. It follows <code>reverse</code>, so the gap is always measured from whichever side the bar actually ended up on.</em><br />
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressReverse.png)
+</div></ul></details>
+
 <br />
 
-  <li><code>showOnHover</code>: report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</li>
+<details><summary><code><b>trackGap</b></code></summary><br /><ul><div>
+<em>shortens the track by this much at each of its two ends. Not to be confused with <code>edgeGap</code>: this one runs along the track, that one across it.</em><br />
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-scrollBarOnHover.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_trackGap.png)
+
+</div></ul></details>
+
 <br />
 
-  <li><code>thumbMinSize</code>: the thumb never shrinks below this.</li>
+<details><summary><code><b>reverse</b></code></summary><br /><ul><div>
+<em>put the bar on the opposite side.</em><br />
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-thumbMinSize.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_reverse.png)
 
-</ul>
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>showOnHover</b></code></summary><br /><ul><div>
+<em>report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</em><br />
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_showOnHover.png)
+
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>thumbMinSize</b></code></summary><br /><ul><div>
+<em>the thumb never shrinks below this.</em><br />
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_thumbMinSize.png)
+
+</div></ul></details>
+
+<br />
 
 <br />
 ✦ Note:<br />
@@ -1076,7 +1103,7 @@ an edge has no size and no colour of its own, so nothing shows until you give it
   <li><b>Simple</b>:<br />
 
 ```tsx
-render: "lazy" // or "virtual"
+render: "lazy"; // or "virtual"
 ```
 
   </li>
