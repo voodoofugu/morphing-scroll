@@ -88,8 +88,7 @@ allows you to add additional classes to the component.</em><br />
 <b>Description:</b><em><br />
 allows to add custom content to the component.<br />
 Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will use the same keys as your list items, allowing it to render the correct cells for the current list.<br />
-Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the same way as <b>undefined</b>, rendering nothing in both cases.<br />
-</em><br />
+Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the same way as <b>undefined</b>, rendering nothing in both cases.</em><br />
 <br />
 <b>Example:</b>
 
@@ -123,8 +122,7 @@ the default value and represents a standard scrollbar.<br />
 displays distinct elements indicating the number of full scroll steps within the list.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
-</em><br />
+like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.</em><br />
 <br />
 <b>Example:</b>
 
@@ -456,8 +454,7 @@ enables automatic scrolling when dragging elements near the edges of the contain
 Scrolling is triggered for elements using the native <code>draggable="true"</code> attribute, or custom drag implementations marked with <code>ms-custom-drag</code>.<br />
 <br />
 ✦ Note:<br />
-while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
-</em><br />
+while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.</em><br />
 <br />
 <b>Example:</b>
 
@@ -624,8 +621,7 @@ gap: 10; // or [20, 10]
 ```
 
 <b>Description:</b><em><br />
-allows you to set spacing in pixels between list items for rows and columns.<br />
-</em><br />
+allows you to set spacing in pixels between list items for rows and columns.</em><br />
 <br />
 <b>Example:</b>
 
@@ -652,8 +648,7 @@ align: "center"; // or "start" | "end"
 "start"<br />
 <br />
 <b>Description:</b><em><br />
-where a line that did not fill up sits — the last row of a grid, or the only row of a short list.<br />
-</em><br />
+where a line that did not fill up sits — the last row of a grid, or the only row of a short list.</em><br />
 <br />
 <b>Example:</b>
 
@@ -927,6 +922,9 @@ wheel: true;
 the wheel over the content moves the scroll.<br />
 <br />
 Both settings below are for <code>direction="hybrid"</code>, where one wheel has to serve two axes.<br />
+<br />
+✦ Note:<br />
+the wheel takes focus for the keys to work on, but never from a field being typed in — over an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> it scrolls and leaves the caret where it is.<br />
 </em><br />
 
 <details><summary><code><b>changeDirection</b></code></summary><br /><ul><div>
@@ -991,6 +989,9 @@ keys: true;
 
 <b>Description:</b><em><br />
 the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+<br />
+✦ Note:<br />
+inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll leaves them alone.<br />
 </em><br />
 
 <details><summary><code><b>mode</b></code></summary><br /><ul><div>
@@ -1004,7 +1005,17 @@ mode: "focus"; // or "step" | "pan"
 <b>"step"</b> in the slider modes, <b>"pan"</b> in <code>mode="scroll"</code><br />
 <br />
 <b>Description:</b><em><br />
-<b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along; <b>"focus"</b> walks the objects.<br />
+<b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along by <code>step</code> pixels; <b>"focus"</b> walks the objects.<br />
+<br />
+<b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
+The object stops an <code>objects.gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place. That space comes out of the room the object leaves in the window, so an object as large as the window gets none of it and lands exactly on the edge: a gallery of full-size images steps page by page, with nothing sticking out.<br />
+Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. The box is made focusable at that moment — give it a <code>tabIndex</code> of your own and the library leaves it alone. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
+<br />
+✦ Note:<br />
+<ul>
+  <li>in <b>"pan"</b> and <b>"step"</b> only the keys of the scrolling axis are taken; the other two are left alone. <b>"focus"</b> takes all four — a vertical list can still be a grid.</li>
+  <li>with <code>render="virtual"</code> the arrows only reach what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
+</ul>
 </em><br />
 <b>Example:</b>
 
@@ -1034,28 +1045,13 @@ how far one press nudges in <b>"pan"</b>.<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  progressTrigger={{ keys: { mode: "pan", step: 80 } }}
->
+<MorphScroll {...props} progressTrigger={{ keys: { mode: "pan", step: 80 } }}>
   {children}
 </MorphScroll>
 ```
 
 </div></ul></details>
 
-<br />
-<em><b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
-The object stops an <code>objects.gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place. That space comes out of the room the object leaves in the window, so an object as large as the window gets none of it and lands exactly on the edge: a gallery of full-size images steps page by page, with nothing sticking out.<br />
-Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. The box is made focusable at that moment — give it a <code>tabIndex</code> of your own and the library leaves it alone. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
-<br />
-✦ Note:<br />
-<ul>
-  <li>in <b>"pan"</b> and <b>"step"</b> only the keys of the scrolling axis are taken; the other two are left alone. <b>"focus"</b> takes all four — a vertical list can still be a grid.</li>
-  <li>inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll does not touch them.</li>
-  <li>with <code>render="virtual"</code>, tabbing only reaches what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
-</ul>
-<br /></em>
 </div></ul></details>
 
 <br />
@@ -1101,6 +1097,7 @@ bar: <ScrollThumbComponent />; // or true | an array | an object
 <b>Description:</b><em><br />
 determines how the scroll progress is managed<br />
 <br />
+
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
   <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-item</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
@@ -1134,10 +1131,7 @@ what the bar is made of. An array feeds one node per slider element.<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  progressTrigger={{ bar: <ScrollThumbComponent /> }}
->
+<MorphScroll {...props} progressTrigger={{ bar: <ScrollThumbComponent /> }}>
   {children}
 </MorphScroll>
 ```
@@ -1277,7 +1271,6 @@ the thumb never shrinks below this.<br />
 
 </div></ul></details>
 
-<br />
 <br />
 ✦ Note:<br />
 with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
@@ -1624,8 +1617,7 @@ wraps every cell in a React <code>Suspense</code> boundary, so a child that susp
   <li><code>suspending</code> decides <b>what happens while a mounted child is not ready</b>. That is React's decision, and MorphScroll only provides the boundary.</li>
 </ul>
 
-They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, which both use as the placeholder.<br />
-</em><br />
+They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, which both use as the placeholder.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1777,8 +1769,7 @@ accepts a callback function that receives the keys of all currently rendered ele
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows to add additional classes to the component.<br />
-</em><br />
+allows to add additional classes to the component.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1792,8 +1783,7 @@ allows to add additional classes to the component.<br />
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows to add custom content to the component.<br />
-</em><br />
+allows to add custom content to the component.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1807,8 +1797,7 @@ allows to add custom content to the component.<br />
 
 <details><summary><b><code>style</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows to add custom inline styles.<br />
-</em><br />
+allows to add custom inline styles.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1858,8 +1847,7 @@ Be cautious when overriding styles via the <code>style</code> prop, as it may in
 <details><summary><b><code>onResize</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 callback function that is triggered whenever the observed element's dimensions change.<br />
-The function receives an object of type <b>Partial<DOMRectReadOnly></b> that containing updated size properties.<br />
-</em><br />
+The function receives an object of type <b>Partial<DOMRectReadOnly></b> that containing updated size properties.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1895,8 +1883,7 @@ The function receives an object of type <b>Partial<DOMRectReadOnly></b> that con
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows to add additional classes to the component.<br />
-</em><br />
+allows to add additional classes to the component.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1910,8 +1897,7 @@ allows to add additional classes to the component.<br />
 
 <details><summary><b><code>children</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows to add custom content to the component.<br />
-</em><br />
+allows to add custom content to the component.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1925,8 +1911,7 @@ allows to add custom content to the component.<br />
 
 <details><summary><b><code>style</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows to add custom inline styles.<br />
-</em><br />
+allows to add custom inline styles.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1946,8 +1931,7 @@ null (browser window)<br />
 <br />
 <b>Description:</b><em><br />
 specifies the element that serves as the bounding box for the intersection observation. 
-If provided, it must be an ancestor of the observed element.<br />
-</em><br />
+If provided, it must be an ancestor of the observed element.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1969,8 +1953,7 @@ rootMargin: 10; // or [x, y] | [t, r, b, l]
 ```
 
 <b>Description:</b><em><br />
-defines an offset around the root element, expanding or shrinking the observed area.<br />
-</em><br />
+defines an offset around the root element, expanding or shrinking the observed area.</em><br />
 <br />
 <b>Example:</b>
 

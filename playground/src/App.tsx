@@ -732,7 +732,11 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ],
     ["autoScrollOnDrag", settings.autoScrollOnDrag || undefined, "boolean"],
     ["stickToEnd", settings.stickToEnd || undefined, "boolean"],
-    ["duration", scrollCommand.duration === 200 ? undefined : scrollCommand.duration, "value"],
+    [
+      "duration",
+      scrollCommand.duration === 200 ? undefined : scrollCommand.duration,
+      "value",
+    ],
     [
       "onScrollPosition",
       settings.enableOnScrollValue
@@ -898,8 +902,9 @@ function App() {
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const [scrollTop, setScrollTop] = React.useState(0);
   const [isScrolling, setIsScrolling] = React.useState(false);
-  const [lastNavigate, setLastNavigate] =
-    React.useState<NavigateEvent | null>(null);
+  const [lastNavigate, setLastNavigate] = React.useState<NavigateEvent | null>(
+    null,
+  );
   const [renderedKeys, setRenderedKeys] = React.useState<string[]>([]);
   const [resizeRect, setResizeRect] = React.useState({ width: 0, height: 0 });
   const [isProbeVisible, setIsProbeVisible] = React.useState(false);
@@ -934,7 +939,9 @@ function App() {
     return [settings.width, settings.height];
   }, [settings.height, settings.sizeMode, settings.squareSize, settings.width]);
 
-  const objectsSize = React.useMemo<NonNullable<MorphScrollProps["objects"]>["size"]>(() => {
+  const objectsSize = React.useMemo<
+    NonNullable<MorphScrollProps["objects"]>["size"]
+  >(() => {
     if (settings.objectsSizeMode === "default") return undefined;
     if (settings.objectsSizeMode === "number") return settings.objectWidth;
     if (settings.objectsSizeMode === "pair")
@@ -1011,7 +1018,9 @@ function App() {
     settings.trackVisibility,
   ]);
 
-  const emptyObjects = React.useMemo<NonNullable<MorphScrollProps["objects"]>["empty"]>(() => {
+  const emptyObjects = React.useMemo<
+    NonNullable<MorphScrollProps["objects"]>["empty"]
+  >(() => {
     if (settings.emptyMode === "off") return undefined;
     if (settings.emptyMode === "clear") return "clear";
     if (settings.emptyMode === "fallback")
@@ -1038,7 +1047,9 @@ function App() {
 
       fallback: <div className="cell-fallback">{settings.fallbackText}</div>,
 
-      onScrollingChange: settings.enableIsScrolling ? setIsScrolling : undefined,
+      onScrollingChange: settings.enableIsScrolling
+        ? setIsScrolling
+        : undefined,
       objects: {
         size: objectsSize,
         gap:
@@ -1200,11 +1211,7 @@ function App() {
           ))}
         </div>
 
-        <ControlGroup
-          defaultOpen
-          hint="className · children"
-          title="general"
-        >
+        <ControlGroup defaultOpen hint="className · children" title="general">
           <Field label="className">
             <input
               onChange={(event) => update("className", event.target.value)}
@@ -1356,7 +1363,6 @@ function App() {
               device connects; the reason reaches <code>onNavigate</code> as
               given
             </p>
-
           </SubGroup>
 
           <SubGroup
@@ -1377,16 +1383,13 @@ function App() {
             </p>
             <p className="sub-note">
               browsers hide a pad until it sends something: press any button
-              once. What it sends — every axis by index, and the buttons held
-              — shows in the <code>gamepad</code> meter under the surface.
+              once. What it sends — every axis by index, and the buttons held —
+              shows in the <code>gamepad</code> meter under the surface.
             </p>
           </SubGroup>
         </ControlGroup>
 
-        <ControlGroup
-          hint="size · objects · wrapper"
-          title="size"
-        >
+        <ControlGroup hint="size · objects · wrapper" title="layout">
           <SelectField
             label="size"
             onChange={(value) => update("sizeMode", value)}
@@ -1637,8 +1640,8 @@ function App() {
             <p className="sub-note">
               the arrows work while the scroll has focus — click it, or Tab to
               it. <code>pan</code> and <code>step</code> take only the keys of
-              the scrolling axis; <code>focus</code> walks the objects and
-              takes all four
+              the scrolling axis; <code>focus</code> walks the objects and takes
+              all four
             </p>
           </SubGroup>
 
@@ -1861,9 +1864,7 @@ function App() {
           />
           <ToggleField
             label="onRenderedKeysChange"
-            onChange={(value) =>
-              update("enableOnRenderedKeysChange", value)
-            }
+            onChange={(value) => update("enableOnRenderedKeysChange", value)}
             value={settings.enableOnRenderedKeysChange}
           />
         </ControlGroup>
@@ -1951,9 +1952,7 @@ function App() {
           </div>
           <div className="keys-meter">
             <span>gamepad</span>
-            <b>
-              {!settings.gamepad ? "off" : !pad ? "waiting" : "connected"}
-            </b>
+            <b>{!settings.gamepad ? "off" : !pad ? "waiting" : "connected"}</b>
             {pad && (
               <code>
                 {[
