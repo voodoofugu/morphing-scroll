@@ -1,4 +1,4 @@
-## [3.0.0] - 2026-09-01
+## [3.0.0] - 2026-09-02
 
 A major pass over the whole library: instance isolation, a batch of fixes,
 and an API cleanup. Everything breaking is listed below with what to change.

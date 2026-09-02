@@ -58,6 +58,31 @@ test.describe("MorphScroll physics (real browser)", () => {
     await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(50);
   });
 
+  test("the arrow steps by the window the arrows left behind", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=arrowsReserved");
+    const view = page.locator(".ms-viewport");
+    // стрелки забрали по 40 с каждой стороны: окно 40, а не 120
+    expect(await view.evaluate((el) => el.clientWidth)).toBe(40);
+
+    await page.locator(".ms-arrow-box.ms-right").click();
+
+    await expect.poll(() => scrollLeftOf(page)).toBe(40);
+  });
+
+  test("a command lands when only the layout knows the height", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=commandOnNone");
+    const view = page.locator(".ms-viewport");
+    await expect(view).toBeVisible();
+
+    await page.getByTestId("go-end").click();
+
+    await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(50);
+  });
+
   test("dragging the thumb scrolls the content", async ({ page }) => {
     await page.goto("/?scenario=thumb");
     const thumb = page.locator(".ms-thumb");

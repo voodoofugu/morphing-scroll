@@ -61,6 +61,30 @@ const scenarios: Record<string, React.ReactElement> = {
     </MorphScroll>
   ),
 
+  /*
+   * Стрелки забрали место под себя, и содержимое ровно во внешний размер:
+   * листать есть куда — окно уже, — но только если считать по окну.
+   */
+  arrowsReserved: (
+    <MorphScroll
+      objects={{ size: [40, 60] }}
+      size={[120, 60]}
+      direction="x"
+      mode="slider"
+      render="virtual"
+      progressTrigger={{
+        arrows: {
+          element: <div className="arrow" />,
+          reserveSpace: true,
+          loop: true,
+        },
+      }}
+      onScrollPosition={onScrollPosition}
+    >
+      {makeItems().slice(0, 3)}
+    </MorphScroll>
+  ),
+
   thumb: (
     <MorphScroll objects={{ size: OBJ }}
       size={300}
@@ -373,6 +397,43 @@ function CommandOnMount({ measured }: { measured?: boolean }) {
 
 scenarios.commandOnMount = <CommandOnMount />;
 scenarios.commandOnMountMeasured = <CommandOnMount measured />;
+
+/*
+ * Размер объектов не задан: высоту знает только вёрстка. Команда всё равно
+ * должна доехать — библиотека меряет обёртку сама.
+ */
+function CommandOnNone() {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  return (
+    <div style={{ width: 220, height: 80 }}>
+      <MorphScroll
+        objects={{ size: [178, "none"] }}
+        ref={ref}
+        size={[198, 68]}
+        wrapper={{ margin: [10, 0] }}
+        progressTrigger={{ bar: thumb }}
+        onScrollPosition={onScrollPosition}
+      >
+        <div data-testid="none-text" style={{ width: 178 }}>
+          {Array.from({ length: 40 }, (_, i) => (
+            <p key={`p-${i}`} style={{ margin: 0, lineHeight: "18px" }}>
+              line {i}
+            </p>
+          ))}
+        </div>
+      </MorphScroll>
+      <button
+        data-testid="go-end"
+        onClick={() => ref.current?.scrollTo("end", { duration: 0 })}
+      >
+        end
+      </button>
+    </div>
+  );
+}
+
+scenarios.commandOnNone = <CommandOnNone />;
 
 /** то же самое, но декларативно — для сравнения */
 scenarios.positionOnMountMeasured = (
