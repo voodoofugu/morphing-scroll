@@ -597,7 +597,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
   <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
 </ul>
 </em><br />
-<br />
+
 <b>Example:</b>
 
 ```tsx
@@ -754,8 +754,6 @@ use this option if removal should be triggered by a click action.<br />
 
 </div></ul></details>
 
-<br />
-
 </div></ul></details>
 
 <h2></h2>
@@ -905,9 +903,8 @@ progressTrigger: {
 <b>Description:</b><em><br />
 this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
 <br />
-A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br />
-<br />
-</em>
+A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br /></em>
+
 <br />
 
 <details><summary><code><b>wheel</b></code></summary><br /><ul><div>
@@ -1107,8 +1104,8 @@ determines how the scroll progress is managed<br />
   <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>bar</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
-
-For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:
+For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:<br />
+</em><br />
 
 ```tsx
 bar: {
@@ -1232,8 +1229,7 @@ showOnHover: true;
 ```
 
 <b>Description:</b><em><br />
-report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.<br />
-</em><br />
+report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</em><br />
 
 ✦ Note:<br />
 with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
@@ -1254,8 +1250,6 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
   transition: transform 0.2s ease-in-out;
 }
 ```
-
-<br />
 
 <b>Example:</b>
 
@@ -1299,7 +1293,7 @@ the thumb never shrinks below this.<br />
 
 </div></ul></details>
 
-<br /></em>
+<br />
 
 </div></ul></details>
 
