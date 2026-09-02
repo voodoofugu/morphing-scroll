@@ -1,4 +1,4 @@
-## [3.0.0] - 2026-08-27
+## [3.0.0] - 2026-09-01
 
 A major pass over the whole library: instance isolation, a batch of fixes,
 and an API cleanup. Everything breaking is listed below with what to change.
@@ -7,37 +7,37 @@ and an API cleanup. Everything breaking is listed below with what to change.
 
 #### Props
 
-| 2.x | 3.0 |
-| --- | --- |
-| `type="slider"` | `mode="slider"` |
-| `render={{ type: "virtual" }}` | `render={{ mode: "virtual" }}` |
-| `progressTrigger={{ wheel: { changeDirectionKey: "KeyX" } }}` | `changeDirectionBtn: "KeyX"` |
-| `scrollPosition={{ value, updater }}` | `ref.current.scrollTo(value)` — see below |
-| `scrollPosition={10}` | `initialPosition={10}`, or `scrollTo(10)` for a later move |
-| `scrollPosition="end"` | `stickToEnd` |
-| `scrollPosition={{ duration }}` | `duration` |
-| `edgeGradient="#fff"` | `edge` + your CSS |
-| `edgeGradient={{ color, size }}` | `edge` + your CSS, or `edge={<Node />}` |
-| `progressTrigger={{ progressElement: X }}` | `progressTrigger={{ bar: X }}` |
-| `progressReverse={true}` | `progressTrigger={{ bar: { reverse: true } }}` |
-| `scrollBarOnHover` | `progressTrigger={{ bar: { showOnHover: true } }}` |
-| `scrollBarEdge={10}` | `progressTrigger={{ bar: { trackGap: 10 } }}` |
-| `thumbMinSize={24}` | `progressTrigger={{ bar: { thumbMinSize: 24 } }}` |
-| `elementsAlign` | `objects={{ align }}` |
-| `elementsDirection` | `objects={{ direction }}` |
-| `emptyElements` | `objects={{ empty }}` |
-| `objectsSize={100}` | `objects={{ size: 100 }}` |
-| `gap={10}` | `objects={{ gap: 10 }}` |
-| `crossCount={2}` | `objects={{ crossCount: 2 }}` |
-| `objectsSize="size"` | `objects={{ size: "full" }}` |
-| `dragScroll` | `autoScrollOnDrag` |
-| `wrapperMargin={10}` | `wrapper={{ margin: 10 }}` |
-| `wrapperMinSize="full"` | `wrapper={{ minSize: "full" }}` |
-| `wrapperAlign="center"` | `wrapper={{ align: "center" }}` |
-| `onScrollValue` | `onScrollPosition` |
-| `isScrolling` | `onScrollingChange` |
-| `progressTrigger={{ arrows: { contentReduce } }}` | `arrows: { reserveSpace }` |
-| `<IntersectionTracker visibleContent>` | `<IntersectionTracker>` — оно теперь всегда так |
+| 2.x                                                           | 3.0                                                        |
+| ------------------------------------------------------------- | ---------------------------------------------------------- |
+| `type="slider"`                                               | `mode="slider"`                                            |
+| `render={{ type: "virtual" }}`                                | `render={{ mode: "virtual" }}`                             |
+| `wheel: { changeDirectionKey: "KeyX" }`                       | `wheel: { changeDirectionBtn: "KeyX" }`                     |
+| `scrollPosition={{ value, updater }}`                         | `ref.current.scrollTo(value)` — see below                  |
+| `scrollPosition={10}`                                         | `initialPosition={10}`, or `scrollTo(10)` for a later move |
+| `scrollPosition="end"`                                        | `stickToEnd`                                               |
+| `scrollPosition={{ duration: 400 }}`                          | `duration={400}`                                           |
+| `edgeGradient="#fff"`                                         | `edge` + your CSS                                          |
+| `edgeGradient={{ color, size }}`                              | `edge` + your CSS, or `edge={<Node />}`                    |
+| `progressTrigger={{ progressElement: X }}`                    | `progressTrigger={{ bar: X }}`                             |
+| `progressReverse={true}`                                      | `progressTrigger={{ bar: { reverse: true } }}`             |
+| `scrollBarOnHover={true}`                                     | `progressTrigger={{ bar: { showOnHover: true } }}`         |
+| `scrollBarEdge={10}`                                          | `progressTrigger={{ bar: { trackGap: 10 } }}`              |
+| `thumbMinSize={24}`                                           | `progressTrigger={{ bar: { thumbMinSize: 24 } }}`          |
+| `elementsAlign="center"`                                      | `objects={{ align: "center" }}`                             |
+| `elementsDirection="column"`                                  | `objects={{ direction: "column" }}`                         |
+| `emptyElements="clear"`                                       | `objects={{ empty: "clear" }}`                              |
+| `objectsSize={100}`                                           | `objects={{ size: 100 }}`                                  |
+| `gap={10}`                                                    | `objects={{ gap: 10 }}`                                    |
+| `crossCount={2}`                                              | `objects={{ crossCount: 2 }}`                              |
+| `objectsSize="size"`                                          | `objects={{ size: "full" }}`                               |
+| `dragScroll`                                                  | `autoScrollOnDrag`                                         |
+| `wrapperMargin={10}`                                          | `wrapper={{ margin: 10 }}`                                 |
+| `wrapperMinSize="full"`                                       | `wrapper={{ minSize: "full" }}`                            |
+| `wrapperAlign="center"`                                       | `wrapper={{ align: "center" }}`                            |
+| `onScrollValue`                                               | `onScrollPosition`                                         |
+| `isScrolling`                                                 | `onScrollingChange`                                        |
+| `arrows: { contentReduce: true }`                             | `arrows: { reserveSpace: true }`                           |
+| `<IntersectionTracker visibleContent>`                        | `<IntersectionTracker>` — that is the only behaviour now   |
 
 Everything about the scrollbar now lives inside `progressTrigger.bar`, the
 same way everything about the arrows already lived inside
@@ -90,9 +90,9 @@ described the scrollbar:
 wrapper={{ margin: 10, minSize: "full", align: "center" }}
 ```
 
-That is 24 top-level props down to 22. `objectsSize`, `crossCount` and
-`gap` stay where they are: they are the most-typed props in the library,
-and burying them one level down costs more than the symmetry is worth.
+Between this, the bar and the objects, the top level goes from 28 props to
+20 — and nothing was lost on the way: every one of them is still there, in
+the group it was always about.
 
 #### One way to fill an empty object
 
@@ -136,11 +136,11 @@ Four names pointed away from what they do:
 an **object** everywhere now — the word `.ms-object-box` already used — and
 `element` is left to mean only the node you pass:
 
-| 2.x | 3.0 |
-| --- | --- |
-| `.ms-element` | `.ms-viewport` |
-| `.ms-empty-element` | `.ms-empty-object` |
-| `.ms-slider-element` | `.ms-slider-item` |
+| 2.x                  | 3.0                |
+| -------------------- | ------------------ |
+| `.ms-element`        | `.ms-viewport`     |
+| `.ms-empty-element`  | `.ms-empty-object` |
+| `.ms-slider-element` | `.ms-slider-item`  |
 
 `objectsSize` used `"size"` for "same as the `size` prop" while
 `wrapperMinSize` spelled the same idea `"full"`. Both say `"full"` now.
@@ -183,7 +183,9 @@ a command on the `ref`:
 ```tsx
 const scroll = useRef<MorphScrollHandle>(null);
 
-<MorphScroll ref={scroll} size={300}>{children}</MorphScroll>;
+<MorphScroll ref={scroll} size={300}>
+  {children}
+</MorphScroll>;
 
 scroll.current?.scrollTo(0);
 scroll.current?.scrollTo("end", { duration: 0 });
@@ -199,18 +201,18 @@ dependency array then says out loud what the prop used to do silently.
 
 #### Classes and attributes
 
-| 2.x | 3.0 |
-| --- | --- |
-| `.ms-arrow-box.active` | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and is never set with `loop` |
-| `.ms-slider-element.active` | `.ms-slider-item.ms-active` |
-| `.active` while dragging | `.ms-grabbing` |
-| `.hover` / `.leave` / `.remove` | `.ms-hover` / `.ms-leave` / `.ms-remove` |
-| `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom` |
-| arrows wrapped in `.ms-arrows` | arrows are direct children of the root again |
-| `[wrap-id=".$profile"]` | `[ms-wrap-id="profile"]` — the attribute carries your key, not React's path |
-| `[data-direction]` on a bar | `[ms-direction]` |
-| `--edge-visibility` | `--ms-edge-visibility` |
-| `--content-visibility` | `--ms-content-visibility` |
+| 2.x                                     | 3.0                                                                                                                     |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `.ms-arrow-box.active`                  | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and is never set with `loop` |
+| `.ms-slider-element.active`             | `.ms-slider-item.ms-active`                                                                                             |
+| `.active` while dragging                | `.ms-grabbing`                                                                                                          |
+| `.hover` / `.leave` / `.remove`         | `.ms-hover` / `.ms-leave` / `.ms-remove`                                                                                |
+| `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom`                                                                           |
+| arrows wrapped in `.ms-arrows`          | arrows are direct children of the root again                                                                            |
+| `[wrap-id=".$profile"]`                 | `[ms-wrap-id="profile"]` — the attribute carries your key, not React's path                                             |
+| `[data-direction]` on a bar             | `[ms-direction]`                                                                                                        |
+| `--edge-visibility`                     | `--ms-edge-visibility`                                                                                                  |
+| `--content-visibility`                  | `--ms-content-visibility`                                                                                               |
 
 New: a scroll that is running marks its root with `ms-scrolling`, and a
 scrollbar under `bar.showOnHover` carries `--ms-bar-visibility`.
@@ -264,7 +266,7 @@ themselves are no longer transformed and can be positioned from CSS.
   focus to the neighbouring object and the scroll follows it, picking the
   neighbour by geometry so a grid walks its row and drops to the next one
   and focus landing on the `.ms-object-box` itself, to style as one card.
-  The object stops a `gap` short of the edge rather than against it, and
+  The object stops an `objects.gap` short of the edge rather than against it, and
   where the objects run out it is `wrapper.margin` that opens instead — out
   of the room the object leaves in the window, so one the size of the window
   lands exactly on the edge.
@@ -298,7 +300,8 @@ themselves are no longer transformed and can be positioned from CSS.
 - Public types: `MorphScrollProps`, `ResizeTrackerProps`,
   `IntersectionTrackerProps`, `MorphScrollHandle`, `ScrollTarget`,
   `ProgressTriggerName`, `ProgressTriggerConfig`, `WheelConfig`,
-  `BarConfig`, `ArrowsConfig`, `WrapperConfig`, `EmptyObjectsConfig`,
+  `KeysConfig`, `BarConfig`, `ArrowsConfig`, `ObjectsConfig`,
+  `WrapperConfig`, `EmptyObjectsConfig`, `NavigateEvent`, `NavigateReason`,
   `Pair`.
 - `Pair<T>` is the one way an axis pair is written. `Vec2` is
   `Pair<number>`, and the loose `boolean[]` / `(number | "full")[]` forms
@@ -321,15 +324,15 @@ themselves are no longer transformed and can be positioned from CSS.
   a stray pointer no longer scrolls a list nobody is touching.
 - The document cursor lock is reference counted, so unmounting mid-drag no
   longer leaves `cursor: grabbing` on the page forever.
-- `progressTrigger={{ content: true, progressElement: true }}` drags the
-  content again; only the native scrollbar itself is excluded.
+- `progressTrigger={{ content: true, bar: true }}` drags the content again;
+  only the native scrollbar itself is excluded.
 - `objects.size="firstChild"` with `render` renders at all.
 - A scroll inside a scroll no longer moves both at once.
 - The rubber band engages at the far edge when the DOM stops short of the
   computed maximum.
 - `render.rootMargin` sides are correct on the horizontal axis.
 - The wheel no longer takes focus away from an input.
-- `isScrolling` fires once per scroll, not once per scroll event.
+- `onScrollingChange` fires once per scroll, not once per scroll event.
 - The wheel over a custom scrollbar follows the current scroll range.
 - `render="lazy"` paints the visible items on the first render.
 - Server rendering hydrates without an attribute mismatch.
@@ -363,6 +366,10 @@ themselves are no longer transformed and can be positioned from CSS.
   A single number was never affected.
 - A slider counted its pages against a viewport of zero before it was
   measured, so `size="auto"` asked for an endless list of dots and threw.
+- An axis left empty in a size pair means what `"none"` means. A computed
+  `objects.size={[width, tall ? 100 : undefined]}` fell through the check
+  that looks for the word, took the general path and lost the axis that was
+  given: `[100, undefined]` came out three hundred wide.
 - A drag along the slider bar aims at the element under the pointer instead
   of counting how far the pointer travelled. Steps used to land away from
   the element boundaries, a pointer coming back from outside the bar moved
@@ -377,7 +384,7 @@ themselves are no longer transformed and can be positioned from CSS.
   carrying its own drag are still left alone.
 - The bundle is compiled to ES2020 instead of ES5 — Chrome 80, Safari 14,
   Firefox 74, Edge 80 and up. Downlevelling cost an eighth of the bundle in
-  helper functions: 15.8 kB gzipped now against 18.2 kB. An app that targets
+  helper functions: 16.0 kB gzipped now against 18.2 kB. An app that targets
   older browsers still gets them: bundlers apply their own target to the
   whole bundle.
 - The published types are generated from source, so they cannot drift from
@@ -387,17 +394,3 @@ themselves are no longer transformed and can be positioned from CSS.
   was.
 
 <h2></h2>
-
-## [2.10.6]
-
-### Added
-
--
-
-### Changed
-
-- Fix scrollPosition
-
-### Fixed
-
--
