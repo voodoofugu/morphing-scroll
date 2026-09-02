@@ -1234,6 +1234,29 @@ showOnHover: true;
 <b>Description:</b><em><br />
 report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.<br />
 </em><br />
+
+✦ Note:<br />
+with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
+
+```css
+.ms-bar,
+.ms-slider {
+  opacity: var(--ms-bar-visibility, 1);
+  transition: opacity 0.2s ease-in-out;
+}
+```
+
+<em>which also means you are not limited to <code>opacity</code>:</em>
+
+```css
+.ms-bar {
+  transform: scaleX(var(--ms-bar-visibility, 1));
+  transition: transform 0.2s ease-in-out;
+}
+```
+
+<br />
+
 <b>Example:</b>
 
 ```tsx
@@ -1275,27 +1298,6 @@ the thumb never shrinks below this.<br />
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_thumbMinSize.png)
 
 </div></ul></details>
-
-<br />
-✦ Note:<br />
-with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
-
-```css
-.ms-bar,
-.ms-slider {
-  opacity: var(--ms-bar-visibility, 1);
-  transition: opacity 0.2s ease-in-out;
-}
-```
-
-<em>which also means you are not limited to <code>opacity</code>:</em>
-
-```css
-.ms-bar {
-  transform: scaleX(var(--ms-bar-visibility, 1));
-  transition: transform 0.2s ease-in-out;
-}
-```
 
 <br /></em>
 
@@ -1423,10 +1425,8 @@ the last step wraps around to the other end, so the arrows never run out.<br />
 
 </div></ul></details>
 
-<br />
 </div></ul></details>
 
-<br />
 </div></ul></details>
 
 <h2></h2>
@@ -1505,11 +1505,11 @@ render: {
 
 <b>Description:</b><em><br />
 this parameter adds a gradual rendering of the content as it enters the viewport.<br />
-When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
-</em><br />
+When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.</em><br />
 
 <em>✦ Note:<br />
 <code>render</code> places objects by counting, so it needs a size it can count with: <code>objects.size: "none"</code> — and leaving the size out, which means the same thing — give it nothing to place.</em><br />
+<br />
 
 <details><summary><code><b>mode</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1726,7 +1726,7 @@ the discrete half of scrolling: fires once when the scroll comes to rest on a pa
   <li>in <code>mode="scroll"</code> there are no pages to land on, so only the arrows report.</li>
 </ul>
 </em><br />
-<br />
+
 <b>Example:</b>
 
 ```tsx
