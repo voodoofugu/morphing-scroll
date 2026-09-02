@@ -54,6 +54,7 @@ const setup = ({ duration = 200 } = {}) => {
     }) as DOMRect;
 
   const smoothScroll = vi.fn();
+  const emitNavigate = vi.fn();
   const runtime = createPointerRuntime();
 
   handleMouseOrTouch({
@@ -82,6 +83,7 @@ const setup = ({ duration = 200 } = {}) => {
     objLengthPerSize: [1, PAGES],
     isDraggingRef: { current: false },
     maxScrollSize: [0, PAGE * (PAGES - 1)],
+    emitNavigate,
     pointerId: 1,
     runtime,
     tasks: createTasks(),
@@ -93,7 +95,7 @@ const setup = ({ duration = 200 } = {}) => {
   const move = (y: number) => pointer("pointermove", 10, y, document);
   move(5);
 
-  return { scrollEl, smoothScroll, move };
+  return { scrollEl, smoothScroll, emitNavigate, move };
 };
 
 describe("slider bar drag", () => {
@@ -118,6 +120,24 @@ describe("slider bar drag", () => {
     expect(smoothScroll).toHaveBeenCalledWith(4 * PAGE, "y", 60);
   });
 
+  /*
+   * Один пронос по бару перелистывает несколько раз. Ждать конца жеста
+   * нельзя: конец у них общий, и все переходы, кроме последнего, пропали бы.
+   */
+  it("reports every element the pointer passes through", () => {
+    const { emitNavigate, move } = setup();
+
+    move(15); // второй пункт
+    move(25); // третий
+    move(45); // пятый
+
+    expect(emitNavigate.mock.calls).toEqual([
+      ["bar", "y", 0, 1],
+      ["bar", "y", 1, 2],
+      ["bar", "y", 2, 4],
+    ]);
+  });
+
   it("stays quiet while the pointer keeps naming the same element", () => {
     const { smoothScroll, move } = setup();
 
@@ -126,6 +146,16 @@ describe("slider bar drag", () => {
     move(49);
 
     expect(smoothScroll).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports nothing while the element stays the same", () => {
+    const { emitNavigate, move } = setup();
+
+    move(45);
+    move(46);
+    move(49);
+
+    expect(emitNavigate).toHaveBeenCalledTimes(1);
   });
 
   /*

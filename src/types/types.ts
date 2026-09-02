@@ -791,16 +791,21 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onNavigate***:
-   * callback for a finished move from one page to another.
-   * @param event which page the scroll left, which one it landed on, and what
+   * callback for a move from one page to another.
+   * @param event which page the scroll left, which one it goes to, and what
    * put it there.
    * @description
    * this is the discrete half of scrolling — an arrow press, a slider dot, a
    * drag that settled on the next page. Continuous movement is
-   * `onScrollPosition`; this one fires once per page, so it is the place to
-   * hang a sound, a haptic, or an analytics event.
+   * `onScrollPosition`; this one fires once per page turn, so it is the place
+   * to hang a sound, a haptic, or an analytics event.
    * @note
-   * *in `mode="scroll"` only the arrows page the content, so only they report*
+   * *a page turn asked for by a command — an arrow, a key, a gesture along the
+   * slider — reports the moment it is asked for, one event per press. Three
+   * quick presses share one ride and still report three times. A page reached
+   * without asking reports when the scroll settles, as `"scroll"`*
+   * @note
+   * *in `mode="scroll"` only commands page the content, so only they report*
    * @example
    * ```tsx
    * <MorphScroll {...props}

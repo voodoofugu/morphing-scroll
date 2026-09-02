@@ -1709,15 +1709,17 @@ onNavigate: ({ reason, axis, from, to }) => {};
 ```
 
 <b>Description:</b><em><br />
-the discrete half of scrolling: fires once when the scroll comes to rest on a page it was not on before. <code>onScrollPosition</code> reports continuous movement; this one reports the landing, so it is the place to hang a sound, a haptic or an analytics event.<br />
+the discrete half of scrolling: one event per page turn. <code>onScrollPosition</code> reports continuous movement; this one reports the turns, so it is the place to hang a sound, a haptic or an analytics event.<br />
 <br />
-<code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a bar drag), or <b>"scroll"</b> when the content simply arrived by wheel, drag or inertia.<br />
+<code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a drag along the bar), <b>"keys"</b>, your own string from a <code>ref</code> command, or <b>"scroll"</b> when the content simply arrived by wheel, drag or inertia.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
-  <li>one gesture, one event: a dot click that flies past three pages on its way to the fourth reports the fourth, not all four.</li>
-  <li>in <code>mode="scroll"</code> there are no pages to land on, so only the arrows report.</li>
+  <li>a turn that was asked for reports the moment it is asked for. Three quick presses of an arrow share one ride and still report three times — the count follows the presses, not the animation.</li>
+  <li>a turn nobody asked for reports when the scroll settles, as <b>"scroll"</b>.</li>
+  <li>one command, one event: a dot click that flies past three pages on its way to the fourth reports the fourth, not all four.</li>
+  <li>in <code>mode="scroll"</code> there are no pages to arrive at, so only commands report.</li>
 </ul>
 </em><br />
 

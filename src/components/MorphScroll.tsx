@@ -1115,6 +1115,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     ]);
 
     // ♦ events
+    /*
+     * Жест начинается раньше, чем объявлен отчёт о перелистывании, и живёт
+     * дольше одного рендера. Ссылка развязывает это: в неё кладут свежий
+     * `emitNavigate`, а жест читает её в момент, когда действительно нужен.
+     */
+    const emitNavigateRef = React.useRef<
+      (reason: NavigateReason, axis: "x" | "y", from: number, to: number) => void
+    >(() => {});
+
     const onMouseOrTouchDown = React.useCallback(
       (
         clicked: "thumb" | "slider" | "wrapp",
@@ -1180,6 +1189,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           objLengthPerSize,
           isDraggingRef,
           maxScrollSize,
+          emitNavigate: (reason, axis, from, to) =>
+            emitNavigateRef.current(reason, axis, from, to),
           pointerId: event.pointerId,
           runtime: pointerRuntime,
           tasks,
@@ -1216,10 +1227,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * клик по точке слайдера пролетает мимо трёх страниц по дороге к четвёртой,
      * и три лишних события — это три лишних звука.
      */
-    const pending = React.useRef<{
-      reason: NavigateReason;
-      from: { x: number | null; y: number | null };
-    } | null>(null);
+    const pending = React.useRef<NavigateReason | null>(null);
     const pageRef = React.useRef<{ x: number | null; y: number | null }>({
       x: null,
       y: null,
@@ -1238,44 +1246,59 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     );
 
     /*
-     * Страницу отправления запоминаем прямо здесь, в момент нажатия: это и
-     * есть то место, где пользователь ещё стоял. Полагаться на последнюю
-     * записанную страницу нельзя — если нажать сразу после монтирования,
-     * записать её ещё не успели, и первое же событие пропало бы.
+     * Причина жеста, у которого страница определится только в конце: бар
+     * нажали, а куда он приедет, решит снап после отпускания. Заодно
+     * записываем страницу отправления, если её ещё не успели записать —
+     * нажатие сразу после монтирования иначе потеряло бы первое событие.
      */
     const markNavigate = React.useCallback(
       (reason: NavigateReason) => {
-        pending.current = {
-          reason,
-          from: { x: pageNow("x"), y: pageNow("y") },
-        };
+        pending.current = reason;
+
+        if (pageRef.current.x === null) pageRef.current.x = pageNow("x");
+        if (pageRef.current.y === null) pageRef.current.y = pageNow("y");
       },
       [pageNow],
     );
 
+    /*
+     * Перелистнули по команде — про это известно всё и сразу: и откуда, и
+     * куда. Ждать конца прокрутки незачем, а главное — нельзя: три быстрых
+     * нажатия стрелки доезжают одним движением, и одно событие на всех
+     * потеряло бы два перелистывания. Отчитывается каждое.
+     */
+    const emitNavigate = React.useCallback(
+      (reason: NavigateReason, axis: "x" | "y", from: number, to: number) => {
+        if (from === to) return;
+
+        // страница записана вперёд: финал увидит её и не отчитается второй раз
+        pageRef.current[axis] = to;
+        pending.current = null;
+
+        onNavigate?.({ reason, axis, from, to });
+      },
+      [onNavigate],
+    );
+    emitNavigateRef.current = emitNavigate;
+
     /** the scroll has stopped — compare the page with the one it left */
     const reportNavigate = React.useCallback(() => {
-      const tagged = pending.current;
+      const reason = pending.current;
       pending.current = null;
 
       for (const axis of ["x", "y"] as const) {
         const now = pageNow(axis);
         if (now === null) continue;
 
-        const before = tagged ? tagged.from[axis] : pageRef.current[axis];
+        const before = pageRef.current[axis];
         pageRef.current[axis] = now;
 
         if (before === null || before === now) continue;
 
-        // в обычном скролле страниц нет — их листают только стрелки
-        if (mode === "scroll" && !tagged) continue;
+        // в обычном скролле страниц нет — их листают только команды
+        if (mode === "scroll") continue;
 
-        onNavigate?.({
-          reason: tagged ? tagged.reason : "scroll",
-          axis,
-          from: before,
-          to: now,
-        });
+        onNavigate?.({ reason: reason ?? "scroll", axis, from: before, to: now });
       }
     }, [mode, onNavigate, pageNow]);
 
@@ -1298,8 +1321,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           gap: gapXY,
         });
 
-        // упёрлись в край без loop — никуда не поехали, и метку ставить не за что
-        if (moved) markNavigate(reason);
+        // упёрлись в край без loop — никуда не поехали, и отчитываться не о чем
+        if (moved) emitNavigate(reason, moved.axis, moved.from, moved.to);
       },
 
       [
@@ -1311,7 +1334,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         arrowsLocal.loop,
         gapLocal[0],
         gapLocal[1],
-        markNavigate,
+        emitNavigate,
       ],
     );
 

@@ -47,6 +47,13 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
+  /** one page turn, reported the moment the gesture aims at a new one */
+  emitNavigate: (
+    reason: string,
+    axis: "x" | "y",
+    from: number,
+    to: number,
+  ) => void;
   /** the pointer that started the gesture — the rest are ignored */
   pointerId: number;
   /** the pointer state of this instance */
@@ -345,6 +352,13 @@ const motionHandler = (
   const current = seen ?? Math.round(el[topOrLeft] / step);
   rt.sliderAim[axis] = aimed;
   if (aimed === current) return;
+
+  /*
+   * Каждый пункт, через который проехал жест, — отдельное перелистывание.
+   * Ждать конца жеста нельзя: за один пронос по бару их случается несколько,
+   * а конец у них один на всех.
+   */
+  args.emitNavigate("bar", axis, current, aimed);
 
   /*
    * Перелёт короткий, но настоящий. Десять миллисекунд — меньше кадра: попадёт

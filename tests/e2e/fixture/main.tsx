@@ -62,6 +62,23 @@ const scenarios: Record<string, React.ReactElement> = {
   ),
 
   /*
+   * Одна колонка — чтобы страниц хватило на серию нажатий: в три ряда
+   * содержимое кончается на второй странице, и считать было бы нечего.
+   */
+  arrowsBurst: (
+    <MorphScroll objects={{ size: OBJ, crossCount: 1 }}
+      size={300}
+      progressTrigger={{
+        arrows: { element: <div className="arrow" />, size: 40 },
+      }}
+      onScrollPosition={onScrollPosition}
+      onNavigate={onNavigate}
+    >
+      {makeItems()}
+    </MorphScroll>
+  ),
+
+  /*
    * Стрелки забрали место под себя, и содержимое ровно во внешний размер:
    * листать есть куда — окно уже, — но только если считать по окну.
    */
@@ -237,6 +254,7 @@ scenarios.sliderThumbDrag = (
     mode="slider"
     progressTrigger={{ wheel: true, bar: <div className="dot" /> }}
     onScrollPosition={onScrollPosition}
+    onNavigate={onNavigate}
   >
     {makeItems()}
   </MorphScroll>

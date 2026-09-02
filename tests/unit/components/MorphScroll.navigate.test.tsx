@@ -37,7 +37,7 @@ const mount = (props: Record<string, unknown>, count = 12) => {
 };
 
 describe("MorphScroll — onNavigate", () => {
-  it("reports the page an arrow moved to, once it lands", async () => {
+  it("reports the page an arrow moved to, at the click", async () => {
     const onNavigate = vi.fn();
     const { container, el } = mount({
       onNavigate,
@@ -48,25 +48,53 @@ describe("MorphScroll — onNavigate", () => {
     act(() => {
       fireEvent.click(down);
     });
-    // отчёт идёт по остановке, а не по нажатию
-    expect(onNavigate).not.toHaveBeenCalled();
+
+    // о нажатии известно всё сразу — ждать конца полёта незачем
+    expect(onNavigate).toHaveBeenCalledWith({
+      reason: "arrows",
+      axis: "y",
+      from: 0,
+      to: 1,
+    });
 
     // jsdom не шлёт scroll на программную прокрутку — доводим сами
     act(() => {
       fireEvent.scroll(el, { target: { scrollTop: 300 } });
     });
 
-    await vi.waitFor(
-      () =>
-        expect(onNavigate).toHaveBeenCalledWith({
-          reason: "arrows",
-          axis: "y",
-          from: 0,
-          to: 1,
-        }),
-      { timeout: 2000 },
-    );
+    // и остановка не отчитывается вторым разом о том же переходе
+    await new Promise((r) => setTimeout(r, 400));
     expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  /*
+   * То, ради чего отчёт уехал в момент нажатия: три быстрых нажатия доезжают
+   * одним движением, и по остановке они были бы неотличимы от одного.
+   */
+  it("counts every click of a burst, not the ride they share", async () => {
+    const onNavigate = vi.fn();
+    const { container } = mount({
+      onNavigate,
+      progressTrigger: { arrows: { element: <b /> } },
+    });
+
+    // пока диапазон не измерен, позиция ставится сразу и лететь неоткуда
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+    });
+
+    const down = container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom")!;
+    act(() => {
+      fireEvent.click(down);
+      fireEvent.click(down);
+      fireEvent.click(down);
+    });
+
+    expect(onNavigate.mock.calls.map(([e]) => [e.from, e.to])).toEqual([
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ]);
   });
 
   it("stays quiet when the arrow has nowhere to go", () => {

@@ -285,11 +285,12 @@ themselves are no longer transformed and can be positioned from CSS.
 - `stickToEnd` also takes a pair. In `direction="hybrid"` the axes may want
   different things: `[true, false]` follows the right edge as the content
   grows and leaves the bottom where the reader left it.
-- `onNavigate` — fires once when the scroll settles on a page it was not on
-  before, with `reason` (`"arrows"` / `"bar"` / `"scroll"`), `axis`, `from`
-  and `to`. `onScrollPosition` reports continuous movement; this reports the
-  landing, so a sound or a haptic hangs off it without firing per frame — or
-  per page flown past on the way.
+- `onNavigate` — one event per page turn, with `reason` (`"arrows"` / `"bar"`
+  / `"keys"` / `"scroll"`, or your own from a `ref` command), `axis`, `from`
+  and `to`. A turn that was asked for reports at the asking, one event per
+  press; a page reached without asking reports on the settle.
+  `onScrollPosition` reports continuous movement, so a sound or a haptic hangs
+  off `onNavigate` without firing per frame — or per page flown past on the way.
 - `ref` with `scrollTo(target, { duration })`, plus `step(side, { reason })`,
   `pan({ x, y }, { reason })` and `moveFocus(side, { reason })` — the moves
   the library makes for its own triggers, named so anything else can make
@@ -385,6 +386,13 @@ themselves are no longer transformed and can be positioned from CSS.
   arrows lie over the content until you ask for the strip, so the setting
   turns something on instead of cancelling it. A 2.x scroll that relied on
   the old default needs `reserveSpace: true` to look the same.
+- `onNavigate` reports a page turn when it is asked for, not when the ride
+  ends. Three quick presses of an arrow share one ride and used to arrive as
+  one event; now they arrive as three, and a drag along the slider reports
+  every item it passes. A page reached without asking still reports on the
+  settle, as `"scroll"`. An arrow pressed again mid-flight now counts its step
+  from where the scroll is heading, so a burst of presses turns a page each
+  instead of standing still.
 - `progressTrigger.content` drags from buttons and links with a mouse too.
   It stays a click below 2px of movement, and the native drag of links and
   images is suppressed while the gesture runs. Text fields and anything

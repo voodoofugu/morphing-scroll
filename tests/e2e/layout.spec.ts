@@ -114,6 +114,41 @@ test.describe("MorphScroll slider bar drag (real browser)", () => {
   });
 
   /*
+   * Один пронос по бару перелистывает несколько раз, и звук или тактильный
+   * отклик вешают именно на них: отчёт по концу жеста услышал бы только
+   * последний пункт.
+   */
+  test("reports every element the drag passes through", async ({ page }) => {
+    await open(page, "sliderThumbDrag");
+    const bar = page.locator(".ms-slider");
+    await expect(bar).toBeVisible();
+    const box = (await bar.boundingBox())!;
+    const cx = box.x + box.width / 2;
+    const item = box.height / 20;
+
+    await page.evaluate(
+      () => ((window as unknown as { __navigate: unknown[] }).__navigate = []),
+    );
+
+    await page.mouse.move(cx, box.y + item / 2);
+    await page.mouse.down();
+    await page.mouse.move(cx, box.y + item * 3.5, { steps: 12 });
+    await page.mouse.up();
+
+    const log = await page.evaluate(
+      () =>
+        (window as unknown as { __navigate: { from: number; to: number }[] })
+          .__navigate,
+    );
+
+    expect(log.map((e) => [e.from, e.to])).toEqual([
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ]);
+  });
+
+  /*
    * Перелёт должен читаться как движение, а не как подмена позиции: раньше он
    * длился меньше кадра, и промежуточные кадры выпадали через раз.
    */

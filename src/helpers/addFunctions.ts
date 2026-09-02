@@ -64,6 +64,16 @@ const aimsOf = (el: Element) => {
   return aims;
 };
 
+/*
+ * Куда прокрутка едет прямо сейчас, или `null`, если никуда не едет.
+ *
+ * Нужна тому, кто считает следующий шаг: во время перелёта позиция лежит
+ * между страницами, и второе нажатие стрелки, посчитанное по ней, целилось бы
+ * туда же, куда первое — быстрая серия нажатий перелистывала бы одну страницу.
+ */
+const aimOf = (el: Element, direction: "x" | "y") =>
+  aimedAt.get(el)?.[direction]?.target ?? null;
+
 async function smoothScroll(
   direction: "x" | "y",
   scrollEl: Element,
@@ -328,6 +338,7 @@ const isTouchDevice = () => {
 export {
   objectsPerSize,
   smoothScroll,
+  aimOf,
   sliderCheck,
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,

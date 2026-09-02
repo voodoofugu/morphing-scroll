@@ -6,6 +6,14 @@ const scrollTopOf = (page: Page, selector = ".ms-viewport") =>
 const scrollLeftOf = (page: Page, selector = ".ms-viewport") =>
   page.locator(selector).evaluate((el) => (el as HTMLElement).scrollLeft);
 
+type NavigateLog = { reason: string; axis: string; from: number; to: number }[];
+const navigateLog = (page: Page) =>
+  page.evaluate(
+    () =>
+      ((window as unknown as { __navigate?: unknown[] }).__navigate ??
+        []) as NavigateLog,
+  );
+
 test.describe("MorphScroll physics (real browser)", () => {
   test("wheel scrolls the content vertically", async ({ page }) => {
     await page.goto("/?scenario=wheel");
@@ -56,6 +64,33 @@ test.describe("MorphScroll physics (real browser)", () => {
     await bottomArrow.click();
 
     await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(50);
+  });
+
+  /*
+   * Три нажатия подряд доезжают одним движением: второе и третье попадают в
+   * середину полёта первого. Считать шаг и отчитываться надо всё равно за
+   * каждое — иначе быстрый человек листает медленнее спокойного.
+   */
+  test("a burst of arrow clicks turns a page each", async ({ page }) => {
+    await page.goto("/?scenario=arrowsBurst");
+    const down = page.locator(".ms-arrow-box.ms-bottom");
+    await expect(down).toBeVisible();
+
+    await page.evaluate(
+      () => ((window as unknown as { __navigate: unknown[] }).__navigate = []),
+    );
+
+    await down.click();
+    await down.click();
+    await down.click();
+
+    await expect.poll(() => scrollTopOf(page)).toBe(900);
+
+    expect((await navigateLog(page)).map((e) => [e.from, e.to])).toEqual([
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ]);
   });
 
   test("the arrow steps by the window the arrows left behind", async ({

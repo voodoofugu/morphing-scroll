@@ -1,4 +1,5 @@
 import pageAt from "./pageAt";
+import { aimOf } from "./addFunctions";
 
 type handleArrowT = {
   arrowType: "left" | "right" | "top" | "bottom";
@@ -29,8 +30,14 @@ const handleArrow = ({
   const width = wrapSize[0];
   const height = wrapSize[1];
 
-  const top = scrollElement.scrollTop;
-  const left = scrollElement.scrollLeft;
+  /*
+   * Отсчёт ведём от того места, куда прокрутка уже едет. По текущей позиции
+   * судить нельзя: в середине перелёта она лежит между страницами, и второе
+   * нажатие подряд посчитало бы тот же шаг, что и первое — серия быстрых
+   * нажатий стояла бы на месте.
+   */
+  const top = aimOf(scrollElement, "y") ?? scrollElement.scrollTop;
+  const left = aimOf(scrollElement, "x") ?? scrollElement.scrollLeft;
 
   // - funcs -
   const getMaxValue = (dir: "x" | "y", delta: 1 | -1) => {
@@ -63,15 +70,27 @@ const handleArrow = ({
   };
 
   const scrollTo = (dir: "x" | "y", delta: 1 | -1, loop?: boolean) => {
+    const isX = dir === "x";
     const value = loop ? getMaxValue(dir, delta) : getNewPosition(dir, delta);
 
     smoothScroll(value, dir, duration);
 
+    /*
+     * Отчитываемся той страницей, на которой действительно встанем. Заворот
+     * назад целится за последний пункт — прокрутка обрежет цель по краю, а
+     * `onNavigate` иначе назвал бы страницу, которой нет.
+     */
+    const clientSize = scrollElement[isX ? "clientWidth" : "clientHeight"];
+    const landing = Math.max(
+      0,
+      Math.min(value, wrapSize[isX ? 0 : 1] - clientSize),
+    );
+
     // наружу отдаём сам переход — из него собирается onNavigate
     return {
       axis: dir,
-      from: pageOn(dir, dir === "x" ? left : top),
-      to: pageOn(dir, value),
+      from: pageOn(dir, isX ? left : top),
+      to: pageOn(dir, landing),
     };
   };
 
