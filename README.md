@@ -562,7 +562,7 @@ creates a <code>ResizeTracker</code> wrapper for the first child of your list. T
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
 <code><b>"none"</b></code>:<br />
-cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. Leaving <code>size</code> out does exactly this, so the word is worth writing for one axis of a pair: <code>[100, "none"]</code> is a fixed width with the height decided by the content.<br />
+cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. Leaving <code>size</code> out does exactly this, so the word earns its place in a pair, where there is no empty slot to leave: <code>[100, "none"]</code> is a fixed width with the height decided by the content. A computed <code>undefined</code> in that place means the same thing.<br />
 <br />
 ✦ Note:<br />
 <b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out.<br />

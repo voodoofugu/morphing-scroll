@@ -464,3 +464,38 @@ describe("MorphScroll — render без размера объекта", () => {
     expect(warnsFor({ size: [100, "none"] })).toBe(true);
   });
 });
+
+/*
+ * В паре нет пустого места: ось, которую не задали, приходится называть
+ * словом. Но вычисленное значение легко даёт `undefined` — и оно обязано
+ * значить то же самое, иначе теряется и заданная ось.
+ */
+describe("MorphScroll — пустая ось в паре размеров", () => {
+  const items = () =>
+    Array.from({ length: 9 }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
+
+  const wrapperStyle = (size: unknown) => {
+    const { container, unmount } = render(
+      <MorphScroll size={[300, 300]} objects={{ size: size as never }}>
+        {items()}
+      </MorphScroll>,
+    );
+    const style = container
+      .querySelector<HTMLElement>(".ms-objects-wrapper")!
+      .getAttribute("style");
+    unmount();
+    return style;
+  };
+
+  it("undefined на второй оси читается как none", () => {
+    expect(wrapperStyle([100, undefined])).toBe(wrapperStyle([100, "none"]));
+  });
+
+  it("и на первой", () => {
+    expect(wrapperStyle([undefined, 100])).toBe(wrapperStyle(["none", 100]));
+  });
+
+  it("заданная ось при этом не теряется", () => {
+    expect(wrapperStyle([100, undefined])).toContain("width: 100px");
+  });
+});

@@ -569,8 +569,9 @@ export type MorphScroll = {
    * - `size`: *the size of one object — a number, a pair for both axes,
    *   `"full"` for the size of the scroll, `"firstChild"` to measure the first
    *   one, or `"none"` to leave it to your own CSS. Leaving it out means
-   *   `"none"` on both axes, so the word earns its place in a pair:
-   *   `[100, "none"]`*
+   *   `"none"` on both axes, so the word earns its place in a pair, where
+   *   there is no empty slot to leave: `[100, "none"]` — and a computed
+   *   `undefined` there means the same*
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `crossCount`: *how many of them fit across the scrolling axis*
    * - `align`: *where a short last line sits*

@@ -550,12 +550,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return [x, y];
     }, [barLocal.trackGap.join(), sizeLocal[0], sizeLocal[1]]);
 
+    /*
+     * Пустая ось в паре — это `"none"`: размер этой стороны решает CSS.
+     * Написать её словом можно, а не написать нельзя — в паре нет пустого
+     * места, — так что `[100, undefined]` из вычисленного значения обязан
+     * значить то же, что `[100, "none"]`. Без этого он терял и заданную ось.
+     */
     const objectsSizing = React.useMemo(
       () =>
         objectsSize
           ? !Array.isArray(objectsSize)
             ? argsFormatter(objectsSize, true, 2)
-            : objectsSize
+            : objectsSize.map((axis) => axis ?? "none")
           : [null, null],
 
       [objectsSizeST],
