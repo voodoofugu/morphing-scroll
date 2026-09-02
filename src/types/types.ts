@@ -564,7 +564,7 @@ export type MorphScroll = {
    * ### ***objects***:
    * everything about the objects themselves: how big they are, how they sit
    * next to each other, and what to do with the empty ones.
-   * @default { direction: "row" }
+   * @default { size: "none", direction: "row" }
    * @description
    * - `size`: *the size of one object — a number, a pair for both axes,
    *   `"full"` for the size of the scroll, `"firstChild"` to measure the first

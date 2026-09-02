@@ -533,7 +533,7 @@ objects: {
 </ul>
 
 <b>Default:</b><br />
-{ direction: "row" }<br />
+{ size: "none", direction: "row" }<br />
 <br />
 <b>Description:</b><em><br />
 everything about the objects themselves: how big they are, how they sit next to each other, and what to do with the ones that render nothing.<br />
@@ -548,6 +548,9 @@ Each object is wrapped in an <code>.ms-object-box</code> of its own — this is 
 size: 100; // or [100, 70] | "full" | "firstChild" | "none"
 ```
 
+<b>Default:</b><br />
+"none"<br />
+<br />
 <b>Description:</b><em><br />
 defines the <b>[width, height]</b> of cells for each of your objects.<br />
 <br />
