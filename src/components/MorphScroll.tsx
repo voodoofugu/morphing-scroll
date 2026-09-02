@@ -196,14 +196,21 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       `prop "${propName}" is not provided${errorTextEnd}`;
 
     if (!size) throw new Error(errorText("size"));
-    if (
-      (objectsSize === "none" ||
-        (Array.isArray(objectsSize) &&
-          (objectsSize[0] === "none" || objectsSize[1] === "none"))) &&
-      render
-    )
+
+    /*
+     * Виртуальная и ленивая отрисовка расставляют объекты по счёту, а считать
+     * можно только известный размер. `"none"` говорит «размер решает CSS», а
+     * не переданный размер значит ровно то же самое — просто молча, и раньше
+     * предупреждение ловило только первый случай.
+     */
+    const sizeUnknown = (value: typeof objectsSize) =>
+      value == null ||
+      value === "none" ||
+      (Array.isArray(value) && (value[0] === "none" || value[1] === "none"));
+
+    if (render && sizeUnknown(objectsSize))
       console.error(
-        `"render" prop is incompatible with objectsSize="none"${errorTextEnd}`,
+        `"render" needs a known objects.size: "none" and no size at all leave nothing to place${errorTextEnd}`,
       );
 
     // ♦ refs

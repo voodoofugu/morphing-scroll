@@ -71,6 +71,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 allows you to add additional classes to the component.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -89,6 +90,7 @@ allows to add custom content to the component.<br />
 Make sure to provide unique keys for each list item, as per React's rules. The <code>MorphScroll</code> component ensures that the cells it generates will use the same keys as your list items, allowing it to render the correct cells for the current list.<br />
 Additionally, <code>MorphScroll</code> handles a passed <b>null</b> value the same way as <b>undefined</b>, rendering nothing in both cases.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -123,6 +125,7 @@ displays distinct elements indicating the number of full scroll steps within the
 <code><b>sliderMenu</b></code>:<br />
 like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -150,6 +153,7 @@ direction: "x"; // or "y" | "hybrid"
 <b>Description:</b><em><br />
 changes the scroll or slider direction based on the provided value.<br />
 You can set the value to horizontal, vertical or hybrid positions to customize the component according to your needs.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -178,6 +182,7 @@ Applied once, without animation, as soon as the content can hold it — a layout
 <br />
 ✦ Note:<br />
 every later move is a command on the component <code>ref</code> — <code>scrollTo</code>, <code>step</code>, <code>pan</code>, <code>moveFocus</code>, see below. To follow content as it grows, see <code>stickToEnd</code>.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -214,6 +219,7 @@ This is a standing rule rather than a move: every time the content grows the scr
   <li>an explicit <code>scrollTo("end")</code> is the other thing: it always runs, whether or not the reader is at the bottom.</li>
 </ul>
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -242,6 +248,7 @@ duration: 400;
 how long a move takes, in <b>ms</b>.<br />
 <br />
 The animation length of every move the scroll makes on its own: an arrow, a key, a focus step, a slider settling after a drag. Commands on the <code>ref</code> take it as their default and can override it per call. <b>0</b> jumps without animating.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -451,6 +458,7 @@ Scrolling is triggered for elements using the native <code>draggable="true"</cod
 ✦ Note:<br />
 while auto-scrolling is active, the container receives the <code>ms-under-drag</code> attribute with directional values (<code>left</code>, <code>top</code>, etc.) depending on the active edge. It can be used for styling.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -482,6 +490,7 @@ sets a fixed size in pixels. It can be 1 number if you want to set the same widt
 <br />
 <code><b>"auto"</b></code>:<br />
 adds the <code>ResizeTracker</code> component to measure the width and height of the area where <code>MorphScroll</code> is added. The dimensions will automatically adjust when the container changes.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -553,10 +562,10 @@ creates a <code>ResizeTracker</code> wrapper for the first child of your list. T
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
 <code><b>"none"</b></code>:<br />
-cells will still be created, but <code>MorphScroll</code> will not calculate their sizes-they will simply wrap your objects.<br />
+cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. Leaving <code>size</code> out does exactly this, so the word is worth writing for one axis of a pair: <code>[100, "none"]</code> is a fixed width with the height decided by the content.<br />
 <br />
 ✦ Note:<br />
-<b>"none"</b> is not compatible with <code>render</code>.<br />
+<b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out.<br />
 </em><br />
 <b>Example:</b>
 
@@ -589,6 +598,7 @@ defines the number of <b>columns</b> or <b>rows</b>.<br />
   <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
 </ul>
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -613,6 +623,7 @@ gap: 10; // or [20, 10]
 <b>Description:</b><em><br />
 allows you to set spacing in pixels between list items for rows and columns.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -640,6 +651,7 @@ align: "center"; // or "start" | "end"
 <b>Description:</b><em><br />
 where a line that did not fill up sits — the last row of a grid, or the only row of a short list.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -666,6 +678,7 @@ direction: "row"; // or "column"
 <br />
 <b>Description:</b><em><br />
 changes the order of the provided elements based on the provided value.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -731,6 +744,7 @@ use this option if removal should be triggered by a click action.<br />
   - the wrapper <code>.ms-object-box</code> also gets the <code>ms-remove</code> class, which you can use e.g. for fade-out animations.</li>
 </ul>
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -765,7 +779,22 @@ everything about <b>.ms-objects-wrapper</b>, the box that holds your objects, in
 </em><br />
 
 <details><summary><code><b>margin</b></code></summary><br /><ul><div>
-<em>spacing between the objects and their wrapper, which grows the scrollable area by the same amount.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+margin: 10; // or [x, y] | [t, r, b, l]
+```
+
+<b>Description:</b><em><br />
+spacing between the objects and their wrapper, which grows the scrollable area by the same amount.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} wrapper={{ margin: 10 }}>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapper_margin.png)
 
@@ -774,7 +803,22 @@ everything about <b>.ms-objects-wrapper</b>, the box that holds your objects, in
 <br />
 
 <details><summary><code><b>minSize</b></code></summary><br /><ul><div>
-<em>the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+minSize: "full"; // or a number | ["full", 10]
+```
+
+<b>Description:</b><em><br />
+the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} wrapper={{ minSize: "full" }}>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapper_minSize.png)
 
@@ -783,20 +827,29 @@ everything about <b>.ms-objects-wrapper</b>, the box that holds your objects, in
 <br />
 
 <details><summary><code><b>align</b></code></summary><br /><ul><div>
-<em>where the wrapper sits when it is smaller than <code>size</code>. Defaults to <b>"start"</b>. One value aligns both axes, a pair aligns them separately.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+align: "center"; // or "start" | "end" | ["center", "start"]
+```
+
+<b>Default:</b><br />
+"start"<br />
+<br />
+<b>Description:</b><em><br />
+where the wrapper sits when it is smaller than <code>size</code>. One value aligns both axes, a pair aligns them separately.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} wrapper={{ align: "center" }}>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-wrapper_align.png)
 
 </div></ul></details>
-
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} wrapper={{ margin: 10, align: "center" }}>
-  {children}
-</MorphScroll>
-```
 
 </div></ul></details>
 
@@ -861,29 +914,135 @@ A name, or an array of names, is shorthand for switching those triggers on: <cod
 <br />
 
 <details><summary><code><b>wheel</b></code></summary><br /><ul><div>
-<em>determines whether the progress bar responds to mouse wheel scrolling<br />
-If you use <code>direction="hybrid"</code>, you can use:<br />
+<b>Usage:</b><br />
 
-<ul>
-  <li><code>changeDirection</code>: allows switching the scroll direction with the mouse wheel.</li><br />
-  <li><code>changeDirectionBtn</code>: enables switching the scroll direction by pressing a specific key.<br />
-  To disable this behavior, pass an empty string.<br />
-  <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a></li>
-</ul>
-<br /></em>
+```tsx
+wheel: true;
+```
+
+<b>Description:</b><em><br />
+the wheel over the content moves the scroll.<br />
+<br />
+Both settings below are for <code>direction="hybrid"</code>, where one wheel has to serve two axes.<br />
+</em><br />
+
+<details><summary><code><b>changeDirection</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+changeDirection: true;
+```
+
+<b>Description:</b><em><br />
+the wheel switches the axis it scrolls instead of always taking the same one.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} progressTrigger={{ wheel: { changeDirection: true } }}>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>changeDirectionBtn</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+changeDirectionBtn: "KeyZ"; // "" turns it off
+```
+
+<b>Default:</b><br />
+"KeyX"<br />
+<br />
+<b>Description:</b><em><br />
+a held key switches the axis instead. Pass an empty string to disable it. <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a><br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ wheel: { changeDirectionBtn: "KeyZ" } }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>keys</b></code></summary><br /><ul><div>
-<em>the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+<b>Usage:</b><br />
+
+```tsx
+keys: true;
+```
+
+<b>Description:</b><em><br />
+the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+</em><br />
+
+<details><summary><code><b>mode</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+mode: "focus"; // or "step" | "pan"
+```
+
+<b>Default:</b><br />
+<b>"step"</b> in the slider modes, <b>"pan"</b> in <code>mode="scroll"</code><br />
 <br />
-<ul>
-  <li><code>mode</code>: <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along; <b>"focus"</b> walks the objects. Defaults to <b>"step"</b> in the slider modes and <b>"pan"</b> in <code>mode="scroll"</code>.</li><br />
-  <li><code>step</code>: how far one press nudges in <b>"pan"</b> ( default <b>40</b> ).</li>
-</ul>
+<b>Description:</b><em><br />
+<b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along; <b>"focus"</b> walks the objects.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} progressTrigger={{ keys: { mode: "focus" } }}>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
 <br />
-<b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
+
+<details><summary><code><b>step</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+step: 40;
+```
+
+<b>Default:</b><br />
+40<br />
+<br />
+<b>Description:</b><em><br />
+how far one press nudges in <b>"pan"</b>.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ keys: { mode: "pan", step: 80 } }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+<em><b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
 The object stops an <code>objects.gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place. That space comes out of the room the object leaves in the window, so an object as large as the window gets none of it and lands exactly on the edge: a gallery of full-size images steps page by page, with nothing sticking out.<br />
 Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. The box is made focusable at that moment — give it a <code>tabIndex</code> of your own and the library leaves it alone. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
 <br />
@@ -899,7 +1058,14 @@ Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so 
 <br />
 
 <details><summary><code><b>content</b></code></summary><br /><ul><div>
-<em>enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
+<b>Usage:</b><br />
+
+```tsx
+content: true;
+```
+
+<b>Description:</b><em><br />
+enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 <br />
 Anything can be dragged from — a menu of buttons, a row of links, a card with a picture in it — because what tells a tap from a scroll is the distance, not what happens to be under the pointer: below 2px it stays a click and the click lands, above it the wrapper drops <code>pointer-events</code> and it does not. The native drag of links and images is suppressed for as long as the gesture runs, so the browser cannot carry one away mid-scroll.<br />
 <br />
@@ -909,13 +1075,28 @@ The drag does not start only where the element has a drag or a caret of its own:
   <li><b>text fields</b>: <code>input</code>, <code>textarea</code>, <code>select</code></li><br />
   <li><b>elements with attribute</b>: <code>draggable="true"</code>, <code>contenteditable</code> and custom attribute - <code>ms-custom-drag</code></li>
 </ul>
-<br /></em>
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} progressTrigger={{ content: true }}>
+  {children}
+</MorphScroll>
+```
+
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>bar</b></code></summary><br /><ul><div>
-<em>determines how the scroll progress is managed<br />
+<b>Usage:</b><br />
+
+```tsx
+bar: <ScrollThumbComponent />; // or true | an array | an object
+```
+
+<b>Description:</b><em><br />
+determines how the scroll progress is managed<br />
 <br />
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
@@ -938,21 +1119,75 @@ bar: {
 ```
 
 <details><summary><code><b>element</b></code></summary><br /><ul><div>
-<em>what the bar is made of. An array feeds one node per slider element.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+element: <ScrollThumbComponent />;
+```
+
+<b>Description:</b><em><br />
+what the bar is made of. An array feeds one node per slider element.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ bar: <ScrollThumbComponent /> }}
+>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>edgeGap</b></code></summary><br /><ul><div>
-<em>distance between the bar and the side it sits on. A negative value pushes it past that edge — the usual reason to reach for CSS here. It follows <code>reverse</code>, so the gap is always measured from whichever side the bar actually ended up on.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+edgeGap: 8; // or [x, y] for direction="hybrid"
+```
+
+<b>Description:</b><em><br />
+distance between the bar and the side it sits on. A negative value pushes it past that edge — the usual reason to reach for CSS here. It follows <code>reverse</code>, so the gap is always measured from whichever side the bar actually ended up on.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ bar: { element: <Thumb />, edgeGap: 8 } }}
+>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>trackGap</b></code></summary><br /><ul><div>
-<em>shortens the track by this much at each of its two ends. Not to be confused with <code>edgeGap</code>: this one runs along the track, that one across it.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+trackGap: 10;
+```
+
+<b>Description:</b><em><br />
+shortens the track by this much at each of its two ends. Not to be confused with <code>edgeGap</code>: this one runs along the track, that one across it.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ bar: { element: <Thumb />, trackGap: 10 } }}
+>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_trackGap.png)
 
@@ -961,7 +1196,25 @@ bar: {
 <br />
 
 <details><summary><code><b>reverse</b></code></summary><br /><ul><div>
-<em>put the bar on the opposite side.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+reverse: true;
+```
+
+<b>Description:</b><em><br />
+put the bar on the opposite side.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ bar: { element: <Thumb />, reverse: true } }}
+>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_reverse.png)
 
@@ -970,7 +1223,25 @@ bar: {
 <br />
 
 <details><summary><code><b>showOnHover</b></code></summary><br /><ul><div>
-<em>report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+showOnHover: true;
+```
+
+<b>Description:</b><em><br />
+report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ bar: { element: <Thumb />, showOnHover: true } }}
+>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_showOnHover.png)
 
@@ -979,14 +1250,31 @@ bar: {
 <br />
 
 <details><summary><code><b>thumbMinSize</b></code></summary><br /><ul><div>
-<em>the thumb never shrinks below this.</em><br />
+<b>Usage:</b><br />
+
+```tsx
+thumbMinSize: 24;
+```
+
+<b>Description:</b><em><br />
+the thumb never shrinks below this.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ bar: { element: <Thumb />, thumbMinSize: 24 } }}
+>
+  {children}
+</MorphScroll>
+```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_thumbMinSize.png)
 
 </div></ul></details>
 
 <br />
-
 <br />
 ✦ Note:<br />
 with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
@@ -1015,15 +1303,119 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
 <br />
 
 <details><summary><code><b>arrows</b></code></summary><br /><ul><div>
-<em>allows you to add custom arrows to the progress bar<br />
+<b>Usage:</b><br />
+
+```tsx
+arrows: <ArrowComponent />; // or true | an object
+```
+
+<b>Description:</b><em><br />
+allows you to add custom arrows to the progress bar.<br />
+</em><br />
+
+<details><summary><code><b>element</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+element: <ArrowComponent />;
+```
+
+<b>Description:</b><em><br />
+the icon the arrows are made of. Author it pointing <b>right</b> — the library turns it for the other three.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ arrows: { element: <ArrowComponent /> } }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
 <br />
-<ul>
-  <li><code>element</code>: the custom arrow element.</li><br />
-  <li><code>size</code>: thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the element you pass.</li><br />
-  <li><code>reserveSpace</code>: this parameter reduces the size of the scroll content by the arrow size.</li><br />
-  <li><code>loop</code>: enables infinite scrolling.</li>
-</ul><br />
-The component root is positioned, so each arrow sits against it instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
+
+<details><summary><code><b>size</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+size: 60;
+```
+
+<b>Default:</b><br />
+40<br />
+<br />
+<b>Description:</b><em><br />
+thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the element you pass.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ arrows: { element: <Arrow />, size: 60 } }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>reserveSpace</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+reserveSpace: true;
+```
+
+<b>Description:</b><em><br />
+the strip takes its thickness out of the content instead of lying over it.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ arrows: { element: <Arrow />, reserveSpace: true } }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>loop</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+loop: true;
+```
+
+<b>Description:</b><em><br />
+the last step wraps around to the other end, so the arrows never run out.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  progressTrigger={{ arrows: { element: <Arrow />, loop: true } }}
+>
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+<em>The component root is positioned, so each arrow sits against it instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
 <br />
 An arrow with nowhere to go is not given <code>cursor: pointer</code>, so it does not advertise a click that does nothing.<br />
 <br />
@@ -1032,20 +1424,6 @@ While the content, a thumb or a slider is being dragged, the element under the p
 </div></ul></details>
 
 <br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  progressTrigger={{
-    wheel: true,
-    bar: <div className="your-scroll-thumb" />,
-  }}
->
-  {children}
-</MorphScroll>
-```
-
 </div></ul></details>
 
 <h2></h2>
@@ -1128,44 +1506,95 @@ When used, a container is created for each scrollable object, and its absolute p
 </em><br />
 
 <details><summary><code><b>mode</b></code></summary><br /><ul><div>
-<em>
-<ul>
-  <li><b>"lazy"</b> - render once when visible.</li>
-  <li><b>"virtual"</b> - render only when visible.</li>
-</ul>
-</em>
+<b>Usage:</b><br />
+
+```tsx
+mode: "lazy"; // or "virtual"
+```
+
+<b>Description:</b><em><br />
+<b>"lazy"</b> renders an object once it has been seen and keeps it; <b>"virtual"</b> keeps only what is in view and drops the rest.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} render={{ mode: "virtual" }}>
+  {children}
+</MorphScroll>
+```
+
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>rootMargin</b></code></summary><br /><ul><div>
-<em>controls the threshold for loading content. It is the distance for loading from the root element (<b>.ms-viewport</b>) in px.</em>
+<b>Usage:</b><br />
+
+```tsx
+rootMargin: 100; // or [x, y] | [t, r, b, l]
+```
+
+<b>Description:</b><em><br />
+how far beyond the viewport an object still counts as visible, in px. Widen it to prepare objects before they are reached.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} render={{ mode: "virtual", rootMargin: 100 }}>
+  {children}
+</MorphScroll>
+```
+
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>stopLoadOnScroll</b></code></summary><br /><ul><div>
-<em>controls whether to stop loading content when scrolling.</em>
+<b>Usage:</b><br />
+
+```tsx
+stopLoadOnScroll: true;
+```
+
+<b>Description:</b><em><br />
+holds new objects back while the scroll is moving and lets them in once it stops.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} render={{ mode: "lazy", stopLoadOnScroll: true }}>
+  {children}
+</MorphScroll>
+```
+
 </div></ul></details>
 
 <br />
 
 <details><summary><code><b>trackVisibility</b></code></summary><br /><ul><div>
-<em>sets the <code>--ms-content-visibility</code> variable for list item wrapper styles, which is very useful for styling such as <code>opacity: var(--ms-content-visibility);</code>.</em>
-</div></ul></details>
+<b>Usage:</b><br />
 
-<br />
+```tsx
+trackVisibility: true;
+```
 
-<em>✦ Note:<br />
-<code>render</code> is not compatible with <code>objects.size: "none"</code>.</em><br />
+<b>Description:</b><em><br />
+sets the <code>--ms-content-visibility</code> variable on each object box, which is what a fade-in is styled with: <code>opacity: var(--ms-content-visibility);</code>.<br />
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} render="virtual">
+<MorphScroll {...props} render={{ mode: "lazy", trackVisibility: true }}>
   {children}
 </MorphScroll>
 ```
 
+</div></ul></details>
+
+<br />
+<em>✦ Note:<br />
+<code>render</code> places objects by counting, so it needs a size it can count with: <code>objects.size: "none"</code> — and leaving the size out, which means the same thing — give it nothing to place.</em><br />
+<br />
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-render.png)
 
 </div></ul></details>
@@ -1194,6 +1623,7 @@ wraps every cell in a React <code>Suspense</code> boundary, so a child that susp
 
 They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, which both use as the placeholder.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1218,6 +1648,7 @@ It will be used when:
   <li><code>objects.empty.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
 </ul>
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1235,6 +1666,7 @@ It will be used when:
 <details><summary><b><code>onScrollPosition</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1254,6 +1686,7 @@ accepts a callback function that is triggered on every scroll event. The callbac
 <details><summary><b><code>onScrollingChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1290,6 +1723,7 @@ the discrete half of scrolling: fires once when the scroll comes to rest on a pa
   <li>in <code>mode="scroll"</code> there are no pages to land on, so only the arrows report.</li>
 </ul>
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1311,6 +1745,7 @@ the discrete half of scrolling: fires once when the scroll comes to rest on a pa
 <details><summary><b><code>onRenderedKeysChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
 accepts a callback function that receives the keys of all currently rendered elements. Use explicit React <code>key</code> values on children to receive meaningful names; otherwise React-generated keys are returned.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1341,6 +1776,7 @@ accepts a callback function that receives the keys of all currently rendered ele
 <b>Description:</b><em><br />
 allows to add additional classes to the component.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1355,6 +1791,7 @@ allows to add additional classes to the component.<br />
 <b>Description:</b><em><br />
 allows to add custom content to the component.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1369,6 +1806,7 @@ allows to add custom content to the component.<br />
 <b>Description:</b><em><br />
 allows to add custom inline styles.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1403,6 +1841,7 @@ value combines the styles of both <code>"inner"</code> and <code>"outer"</code>,
 <br />
 ✦ Note: <br />
 Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1418,6 +1857,7 @@ Be cautious when overriding styles via the <code>style</code> prop, as it may in
 callback function that is triggered whenever the observed element's dimensions change.<br />
 The function receives an object of type <b>Partial<DOMRectReadOnly></b> that containing updated size properties.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1454,6 +1894,7 @@ The function receives an object of type <b>Partial<DOMRectReadOnly></b> that con
 <b>Description:</b><em><br />
 allows to add additional classes to the component.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1468,6 +1909,7 @@ allows to add additional classes to the component.<br />
 <b>Description:</b><em><br />
 allows to add custom content to the component.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1482,6 +1924,7 @@ allows to add custom content to the component.<br />
 <b>Description:</b><em><br />
 allows to add custom inline styles.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1502,6 +1945,7 @@ null (browser window)<br />
 specifies the element that serves as the bounding box for the intersection observation. 
 If provided, it must be an ancestor of the observed element.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1524,6 +1968,7 @@ rootMargin: 10; // or [x, y] | [t, r, b, l]
 <b>Description:</b><em><br />
 defines an offset around the root element, expanding or shrinking the observed area.<br />
 </em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1553,6 +1998,7 @@ specifies at what percentage of the observed element’s visibility the callback
   <li>A value of <code>0</code> means the callback fires when any part of the element appears, while <code>1</code> means the element must be fully visible.</li>
   <li>An array (e.g., <code>[0, 0.5, 1]</code>) triggers the callback multiple times at different visibility levels.</li>
 </ul></em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
@@ -1577,6 +2023,7 @@ callback function that is called when the observed element enters or leaves the 
   <li><code>target</code>: observed element.</li>
   <li><code>time</code>: timestamp when the intersection state changed.</li>
 </ul></em><br />
+<br />
 <b>Example:</b>
 
 ```tsx

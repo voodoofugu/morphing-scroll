@@ -126,16 +126,14 @@ describe("MorphScroll — render: virtual / lazy", () => {
     expect(tagged).toContain("item-0");
   });
 
-  it("logs an error when render is combined with objectsSize='none'", () => {
+  it("logs an error when render is combined with objects.size='none'", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
       <MorphScroll objects={{ size: "none" }} size={SIZE} render="virtual">
         {items(3)}
       </MorphScroll>,
     );
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining("objectsSize"),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("objects.size"));
     spy.mockRestore();
   });
 });
@@ -423,5 +421,46 @@ describe("MorphScroll — objectsSize: firstChild with render", () => {
     );
 
     expect(boxes(container).length).toBeGreaterThan(0);
+  });
+});
+
+/*
+ * `render` расставляет объекты по счёту, а считать можно только известный
+ * размер. Незаданный размер значит ровно то же, что `"none"`, — и молчать об
+ * этом нельзя: разница только в том, что одно написано словом.
+ */
+describe("MorphScroll — render без размера объекта", () => {
+  const items = () =>
+    Array.from({ length: 6 }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
+
+  const warnsFor = (objects?: Record<string, unknown>) => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { unmount } = render(
+      <MorphScroll size={[300, 300]} objects={objects} render="virtual">
+        {items()}
+      </MorphScroll>,
+    );
+    const said = spy.mock.calls.some((call) => String(call[0]).includes("objects.size"));
+    unmount();
+    spy.mockRestore();
+    return said;
+  };
+
+  it('говорит про "none"', () => {
+    expect(warnsFor({ size: "none" })).toBe(true);
+  });
+
+  it("говорит и про размер, которого нет вовсе", () => {
+    expect(warnsFor(undefined)).toBe(true);
+    expect(warnsFor({ gap: 10 })).toBe(true);
+  });
+
+  it("молчит, когда размер задан", () => {
+    expect(warnsFor({ size: 100 })).toBe(false);
+    expect(warnsFor({ size: "firstChild" })).toBe(false);
+  });
+
+  it("ловит пару, где без размера одна ось", () => {
+    expect(warnsFor({ size: [100, "none"] })).toBe(true);
   });
 });
