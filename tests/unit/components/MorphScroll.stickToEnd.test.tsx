@@ -132,3 +132,78 @@ describe("MorphScroll — stickToEnd", () => {
     await vi.waitFor(() => expect(el.scrollTop).toBe(14 * OBJ - VIEW));
   });
 });
+
+/*
+ * При `hybrid` осей две, и держаться конца может понадобиться только по
+ * одной: лента, которая растёт вправо, но по вертикали остаётся там, где её
+ * оставили.
+ */
+describe("MorphScroll — stickToEnd парой", () => {
+  const Grid = ({ count, stick }: { count: number; stick: boolean | [boolean, boolean] }) => (
+    <MorphScroll
+      size={[VIEW, VIEW]}
+      objects={{ size: OBJ }}
+      direction="hybrid"
+      stickToEnd={stick}
+      duration={0}
+    >
+      {items(count)}
+    </MorphScroll>
+  );
+
+  const mountGrid = (count: number, stick: boolean | [boolean, boolean]) => {
+    const utils = render(<Grid count={count} stick={stick} />);
+    const el = utils.container.querySelector<HTMLElement>(".ms-viewport")!;
+    stubLayout(el, {
+      clientWidth: VIEW,
+      clientHeight: VIEW,
+      scrollWidth: count * OBJ,
+      scrollHeight: count * OBJ,
+    });
+    return { ...utils, el };
+  };
+
+  const grow = (
+    rerender: (ui: React.ReactElement) => void,
+    el: HTMLElement,
+    count: number,
+    stick: boolean | [boolean, boolean],
+  ) =>
+    act(() => {
+      rerender(<Grid count={count} stick={stick} />);
+      stubLayout(el, {
+        clientWidth: VIEW,
+        clientHeight: VIEW,
+        scrollWidth: count * OBJ,
+        scrollHeight: count * OBJ,
+      });
+    });
+
+  it("одним значением держит ту ось, которой есть куда ехать", async () => {
+    const { el, rerender } = mountGrid(6, true);
+    await settle();
+    grow(rerender, el, 12, true);
+    await settle();
+
+    expect(el.scrollLeft).toBe(900); // 12 объектов по 100 в окне 300
+  });
+
+  it("пара выключает ось, которую не просили", async () => {
+    const { el, rerender } = mountGrid(6, [false, true]);
+    await settle();
+    grow(rerender, el, 12, [false, true]);
+    await settle();
+
+    // та же раскладка, но горизонталь прилипать не просили
+    expect(el.scrollLeft).toBe(0);
+  });
+
+  it("и оставляет включённой ту, которую просили", async () => {
+    const { el, rerender } = mountGrid(6, [true, false]);
+    await settle();
+    grow(rerender, el, 12, [true, false]);
+    await settle();
+
+    expect(el.scrollLeft).toBe(900);
+  });
+});

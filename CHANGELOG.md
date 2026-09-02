@@ -282,6 +282,9 @@ themselves are no longer transformed and can be positioned from CSS.
   Now it asks whether the scroll was at the bottom when the content changed,
   which no pause can affect; the scroll's own animation frames no longer
   count as the user leaving.
+- `stickToEnd` also takes a pair. In `direction="hybrid"` the axes may want
+  different things: `[true, false]` follows the right edge as the content
+  grows and leaves the bottom where the reader left it.
 - `onNavigate` — fires once when the scroll settles on a page it was not on
   before, with `reason` (`"arrows"` / `"bar"` / `"scroll"`), `axis`, `from`
   and `to`. `onScrollPosition` reports continuous movement; this reports the
@@ -378,6 +381,10 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Changed
 
+- `arrows.reserveSpace` is off by default, where `contentReduce` was on. The
+  arrows lie over the content until you ask for the strip, so the setting
+  turns something on instead of cancelling it. A 2.x scroll that relied on
+  the old default needs `reserveSpace: true` to look the same.
 - `progressTrigger.content` drags from buttons and links with a mouse too.
   It stays a click below 2px of movement, and the native drag of links and
   images is suppressed while the gesture runs. Text fields and anything

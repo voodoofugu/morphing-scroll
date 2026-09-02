@@ -73,7 +73,8 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["progressTrigger.arrows", {}, { progressTrigger: { arrows: true } }],
   ["arrows.element", { progressTrigger: { arrows: true } }, { progressTrigger: { arrows: { element: <b /> } } }],
   ["arrows.size", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, size: 80 } } }],
-  ["arrows.reserveSpace", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, reserveSpace: false } } }],
+  // по умолчанию стрелки лежат поверх, место забирают по просьбе
+  ["arrows.reserveSpace", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, reserveSpace: true } } }],
   ["arrows.loop", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, loop: true } } }],
 
   // — progressTrigger.bar —

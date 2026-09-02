@@ -491,7 +491,8 @@ export type MorphScroll = {
    * scroll follows it, and it opens at the end too. It steps aside as soon as
    * the reader scrolls away from the end, and picks up again when they come
    * back — a chat that does not fight the person reading its history.
-   * @note in `direction="hybrid"` both axes follow their own end
+   * @note a pair sets the axes apart: `[true, false]` in `direction="hybrid"`
+   * follows the right edge and leaves the bottom alone
    * @example
    * ```tsx
    * <MorphScroll {...props} stickToEnd>
@@ -499,7 +500,7 @@ export type MorphScroll = {
    * </MorphScroll>
    * ```
    */
-  stickToEnd?: boolean;
+  stickToEnd?: boolean | Pair<boolean>;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***duration***:

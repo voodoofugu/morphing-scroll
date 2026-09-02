@@ -199,7 +199,7 @@ every later move is a command on the component <code>ref</code> — <code>scroll
 <b>Usage:</b><br />
 
 ```tsx
-stickToEnd: true;
+stickToEnd: true; // or [x, y] for direction="hybrid"
 ```
 
 <b>Default:</b><br />
@@ -213,11 +213,10 @@ This is a standing rule rather than a move: every time the content grows the scr
 ✦ Note:<br />
 
 <ul>
-  <li>in <code>direction="hybrid"</code> each axis follows its own end.</li>
+  <li>in <code>direction="hybrid"</code> both axes follow their own end, and a pair sets them apart: <code>[true, false]</code> follows the right edge and leaves the bottom where the reader left it.</li>
   <li>an explicit <code>scrollTo("end")</code> is the other thing: it always runs, whether or not the reader is at the bottom.</li>
 </ul>
 </em><br />
-<br />
 <b>Example:</b>
 
 ```tsx
@@ -1007,11 +1006,11 @@ mode: "focus"; // or "step" | "pan"
 <b>Description:</b><em><br />
 <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along by <code>step</code> pixels; <b>"focus"</b> walks the objects.<br />
 <br />
-<b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object and the scroll follows it, exactly far enough to bring it into view. The neighbour is picked by geometry, so a grid walks along its row and then drops to the next one, and the order in the DOM does not matter.<br />
-The object stops an <code>objects.gap</code> short of the edge rather than against it, and where the objects run out it is <code>wrapper.margin</code> that opens instead — the scroll leaves whatever space actually exists in that place. That space comes out of the room the object leaves in the window, so an object as large as the window gets none of it and lands exactly on the edge: a gallery of full-size images steps page by page, with nothing sticking out.<br />
-Focus lands on the <code>.ms-object-box</code> itself, not on what it holds, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. The box is made focusable at that moment — give it a <code>tabIndex</code> of your own and the library leaves it alone. Where the focus went is reported by the DOM, through the <code>focus</code> events of your own items; the same move from any other device is <code>ref.moveFocus()</code>.<br />
+<b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object — picked by geometry, so a grid walks its row and drops to the next one — and the scroll follows, far enough to bring it into view and no further, leaving the <code>objects.gap</code> or the <code>wrapper.margin</code> that is there.<br />
+Focus lands on the <code>.ms-object-box</code> itself, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. Give a box a <code>tabIndex</code> of your own and the library leaves it alone. The same move from any other device is <code>ref.moveFocus()</code>.<br />
 <br />
 ✦ Note:<br />
+
 <ul>
   <li>in <b>"pan"</b> and <b>"step"</b> only the keys of the scrolling axis are taken; the other two are left alone. <b>"focus"</b> takes all four — a vertical list can still be a grid.</li>
   <li>with <code>render="virtual"</code> the arrows only reach what is mounted — widen <code>render.rootMargin</code> to mount further ahead.</li>
@@ -1068,6 +1067,8 @@ enables interaction by clicking and dragging anywhere within the scrollable cont
 <br />
 Anything can be dragged from — a menu of buttons, a row of links, a card with a picture in it — because what tells a tap from a scroll is the distance, not what happens to be under the pointer: below 2px it stays a click and the click lands, above it the wrapper drops <code>pointer-events</code> and it does not. The native drag of links and images is suppressed for as long as the gesture runs, so the browser cannot carry one away mid-scroll.<br />
 <br />
+While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code> — that is the hook for a grabbing cursor.<br />
+<br />
 The drag does not start only where the element has a drag or a caret of its own:<br />
 
 <ul>
@@ -1082,6 +1083,8 @@ The drag does not start only where the element has a drag or a caret of its own:
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_content.png)
 
 </div></ul></details>
 
@@ -1126,7 +1129,7 @@ element: <ScrollThumbComponent />;
 ```
 
 <b>Description:</b><em><br />
-what the bar is made of. An array feeds one node per slider element.<br />
+the node the bar is built from. What it becomes depends on <code>mode</code>: in <b>"scroll"</b> it is the thumb that runs along the track, in <b>"slider"</b> it is one dot, repeated for every page, and in <b>"sliderMenu"</b> it is one button of the menu — there an array gives each page its own node, in order.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1161,6 +1164,8 @@ distance between the bar and the side it sits on. A negative value pushes it pas
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_edgeGap.png)
+
 </div></ul></details>
 
 <br />
@@ -1186,7 +1191,7 @@ shortens the track by this much at each of its two ends. Not to be confused with
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_trackGap.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_trackGap.png)
 
 </div></ul></details>
 
@@ -1213,7 +1218,7 @@ put the bar on the opposite side.<br />
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_reverse.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_reverse.png)
 
 </div></ul></details>
 
@@ -1240,7 +1245,7 @@ report the bar as idle unless it is hovered, touched or the content is moving. N
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_showOnHover.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_showOnHover.png)
 
 </div></ul></details>
 
@@ -1267,7 +1272,7 @@ the thumb never shrinks below this.<br />
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-bar_thumbMinSize.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_thumbMinSize.png)
 
 </div></ul></details>
 
@@ -1307,6 +1312,8 @@ arrows: <ArrowComponent />; // or true | an object
 
 <b>Description:</b><em><br />
 allows you to add custom arrows to the progress bar.<br />
+<br />
+Each arrow is a <b>.ms-arrow-box</b> strip along its own side of the scroll; the element you pass sits inside <b>.ms-arrow</b>, which only rotates it. An arrow with nowhere left to go gets the <code>ms-disabled</code> class and no <code>cursor: pointer</code>, so it does not advertise a click that does nothing — with <code>loop</code> there are no dead ends and the class never appears.<br />
 </em><br />
 
 <details><summary><code><b>element</b></code></summary><br /><ul><div>
@@ -1317,7 +1324,7 @@ element: <ArrowComponent />;
 ```
 
 <b>Description:</b><em><br />
-the icon the arrows are made of. Author it pointing <b>right</b> — the library turns it for the other three.<br />
+the icon the arrows are made of. Draw it pointing <b>right</b>: that is the one direction you provide, and the library rotates the same element for the other three.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1329,6 +1336,8 @@ the icon the arrows are made of. Author it pointing <b>right</b> — the library
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_arrows_element.png)
 
 </div></ul></details>
 
@@ -1358,6 +1367,8 @@ thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the el
 </MorphScroll>
 ```
 
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_arrows_size.png)
+
 </div></ul></details>
 
 <br />
@@ -1370,7 +1381,7 @@ reserveSpace: true;
 ```
 
 <b>Description:</b><em><br />
-the strip takes its thickness out of the content instead of lying over it.<br />
+the arrows take their strip out of the content instead of lying over it, so nothing gets covered. Without it they sit on top, which is the default.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1382,6 +1393,8 @@ the strip takes its thickness out of the content instead of lying over it.<br />
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_arrows_reserveSpace.png)
 
 </div></ul></details>
 
@@ -1411,12 +1424,6 @@ the last step wraps around to the other end, so the arrows never run out.<br />
 </div></ul></details>
 
 <br />
-<em>The component root is positioned, so each arrow sits against it instead of resolving against whatever is positioned further up the page. Each <b>.ms-arrow-box</b> is a strip along its side and carries no transform; the icon inside sits in <b>.ms-arrow</b>, which only turns it — no size is imposed there, the element you pass decides its own. Author the icon pointing <b>right</b> and the library rotates it for the other three.<br />
-<br />
-An arrow with nowhere to go is not given <code>cursor: pointer</code>, so it does not advertise a click that does nothing.<br />
-<br />
-An arrow that has nowhere left to scroll gets the <code>ms-disabled</code> class, the same way <b>.ms-edge</b> does. With <code>loop</code> there are no dead ends, so the class is never set.<br />
-While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code>.<br /></em>
 </div></ul></details>
 
 <br />
@@ -1501,6 +1508,9 @@ this parameter adds a gradual rendering of the content as it enters the viewport
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.<br />
 </em><br />
 
+<em>✦ Note:<br />
+<code>render</code> places objects by counting, so it needs a size it can count with: <code>objects.size: "none"</code> — and leaving the size out, which means the same thing — give it nothing to place.</em><br />
+
 <details><summary><code><b>mode</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
@@ -1518,6 +1528,8 @@ mode: "lazy"; // or "virtual"
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-render_mode.png)
 
 </div></ul></details>
 
@@ -1540,6 +1552,8 @@ how far beyond the viewport an object still counts as visible, in px. Widen it t
   {children}
 </MorphScroll>
 ```
+
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-render_rootMargin.png)
 
 </div></ul></details>
 
@@ -1586,12 +1600,6 @@ sets the <code>--ms-content-visibility</code> variable on each object box, which
 ```
 
 </div></ul></details>
-
-<br />
-<em>✦ Note:<br />
-<code>render</code> places objects by counting, so it needs a size it can count with: <code>objects.size: "none"</code> — and leaving the size out, which means the same thing — give it nothing to place.</em><br />
-<br />
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-render.png)
 
 </div></ul></details>
 

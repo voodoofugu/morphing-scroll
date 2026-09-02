@@ -7,6 +7,7 @@ import type {
   NavigateReason,
   ProgressTriggerConfig,
   Vec2,
+  Pair,
 } from "../types/types";
 import argsFormatter from "../helpers/argsFormatter";
 import resolveScrollTarget from "../helpers/resolveScrollTarget";
@@ -276,6 +277,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // ♦ stabilize
     const [
+      stickToEndST,
       initialPositionST,
       renderST,
       sizeST,
@@ -287,6 +289,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsKeysEmptyST,
       edgeST,
     ] = stabilize(
+      stickToEnd,
       initialPosition,
       render,
       size,
@@ -315,6 +318,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     if (Object.keys(progressTriggerLocal).length === 0)
       console.error(errorText("progressTrigger"));
+
+    /*
+     * Прилипание задаётся на обе оси разом или на каждую отдельно: при
+     * `hybrid` бывает нужно держаться низа, но не правого края.
+     */
+    const stickLocal = React.useMemo<Pair<boolean>>(
+      () =>
+        Array.isArray(stickToEnd)
+          ? [!!stickToEnd[0], !!stickToEnd[1]]
+          : [!!stickToEnd, !!stickToEnd],
+      [stickToEndST],
+    );
 
     // ♦ default
     const initialTarget = React.useMemo(
@@ -411,7 +426,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const arrowsLocal = React.useMemo(() => {
       const arrows = progressTriggerLocal.arrows;
-      const base = { size: defaultSize, reserveSpace: true, loop: false };
+      /*
+       * Стрелки лежат поверх содержимого, пока не попросили обратного: место
+       * под них забирается по просьбе, а не отменяется отказом.
+       */
+      const base = { size: defaultSize, reserveSpace: false, loop: false };
 
       if (React.isValidElement(arrows)) return { ...base, element: arrows };
 
@@ -824,7 +843,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const updateAtEnd = (allow: (dir: "x" | "y") => boolean = () => true) => {
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl || !stickToEnd) return;
+      if (!scrollEl || !(stickLocal[0] || stickLocal[1])) return;
 
       const near = (pos: number, end: number) =>
         pos >= end - CONST.END_STICK_THRESHOLD;
@@ -1462,7 +1481,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         updateLoadedElementsKeysLocal,
         barLocal.showOnHover,
         renderLocal.mode,
-        stickToEnd, // читается внутри для трекера конца
+        stickLocal.join(), // читается внутри для трекера конца
       ],
     );
 
@@ -1868,10 +1887,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * читать историю его бережёт `respectUserScroll`.
      */
     React.useEffect(() => {
-      if (!stickToEnd) return;
+      if (!stickLocal[0] && !stickLocal[1]) return;
 
-      applyScrollPositionRef.current(["end", "end"], duration, true);
-    }, [stickToEnd, endObjectsWrapper.w, endObjectsWrapper.h, duration]);
+      applyScrollPositionRef.current(
+        [stickLocal[0] ? "end" : null, stickLocal[1] ? "end" : null],
+        duration,
+        true,
+      );
+    }, [
+      stickLocal.join(),
+      endObjectsWrapper.w,
+      endObjectsWrapper.h,
+      duration,
+    ]);
 
     React.useImperativeHandle(
       ref,
