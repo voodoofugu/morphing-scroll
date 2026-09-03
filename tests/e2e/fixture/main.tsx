@@ -619,6 +619,28 @@ scenarios.fillAlign = (
   </MorphScroll>
 );
 
+/*
+ * Тот самый случай: A и B бок о бок оставляют справа заметное место, C ниже
+ * занял почти всю ширину сам. Сдвиг всего блока мерил бы по C и почти не
+ * трогал бы ряд A/B — каждый должен дотолкаться до края независимо.
+ */
+scenarios.fillAlignRows = (
+  <MorphScroll
+    objects={{ size: "each", gap: 10, align: "end" }}
+    size={[200, 300]}
+  >
+    {[
+      [80, 50],
+      [80, 50],
+      [190, 40],
+    ].map(([w, h], i) => (
+      <div key={`card-${i}`} className="box" style={{ width: w, height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* Поля обёртки: перенос должен считать место за их вычетом, а не всё окно */
 scenarios.flowMargin = (
   <MorphScroll

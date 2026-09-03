@@ -282,6 +282,77 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   };
 };
 
+const crossStart = (item: Placed, isX: boolean) => (isX ? item.top : item.left);
+const crossEnd = (item: Placed, isX: boolean) => (isX ? item.bottom : item.right);
+const mainStart = (item: Placed, isX: boolean) => (isX ? item.left : item.top);
+const mainEnd = (item: Placed, isX: boolean) => (isX ? item.right : item.bottom);
+
+const moveCross = (item: Placed, to: number, isX: boolean) => {
+  const width = crossEnd(item, isX) - crossStart(item, isX);
+
+  if (isX) {
+    item.top = to;
+    item.bottom = to + width;
+  } else {
+    item.left = to;
+    item.right = to + width;
+  }
+};
+
+/*
+ * Заполнение кладёт объект в первое место, куда он влезает, — это и есть
+ * выравнивание к ближнему краю по построению. Дальний край и середина не
+ * двигают блок целиком: строк тут нет, и общего остатка тоже — у каждого
+ * объекта своё свободное место справа от него, и толкать нужно каждый
+ * отдельно, а не всех на одно и то же расстояние.
+ *
+ * Толкаем от дальнего к ближнему: то, что толкаем сейчас, ещё не сдвинуто
+ * и не помешает тому, что уже растолкано. Обратный порядок дал бы объекту
+ * упереться в соседа, который потом сам отъедет и освободит место, — и это
+ * место осталось бы закрытым просто потому, что до него не пересчитали.
+ *
+ * "center" — середина между тем, где объект лежит сейчас (это и есть его
+ * положение при "start"), и тем, куда он дотолкался бы при "end". Толкаем
+ * оба раза одинаково, независимо от того, что применяем в итоге: иначе
+ * толкание с оглядкой на уже сдвинутых на середину соседей давало бы дырки
+ * между ними, которых при чистом "end" не было.
+ */
+const compactFill = (
+  items: Placed[],
+  isX: boolean,
+  gapCross: number,
+  crossLimit: number,
+  align: "center" | "end",
+) => {
+  const order = items
+    .filter((item) => item.measured)
+    .sort((a, b) => crossEnd(b, isX) - crossEnd(a, isX));
+
+  const pushedTo = new Map<Placed, number>();
+
+  for (const item of order) {
+    const width = crossEnd(item, isX) - crossStart(item, isX);
+    let bound = crossLimit;
+
+    for (const [other, otherStart] of pushedTo) {
+      if (mainEnd(item, isX) <= mainStart(other, isX)) continue;
+      if (mainEnd(other, isX) <= mainStart(item, isX)) continue;
+
+      bound = Math.min(bound, otherStart - gapCross);
+    }
+
+    const pushed = Math.max(crossStart(item, isX), bound - width);
+    pushedTo.set(item, pushed);
+
+    const at =
+      align === "end"
+        ? pushed
+        : Math.round((crossStart(item, isX) + pushed) / 2);
+
+    moveCross(item, at, isX);
+  }
+};
+
 /*
  * Заполнение: объект встаёт не следующим по очереди, а в самое высокое место,
  * куда влезает. Дырок под низкими соседями не остаётся — но и порядок теперь
@@ -412,24 +483,17 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
       );
   }
 
+  if (a.align !== "start" && ready)
+    compactFill(items, isX, gapCross, crossLimit, a.align);
+
   const alongSize = items.reduce(
     (max, i) => Math.max(max, isX ? i.right : i.bottom),
     0,
   );
-  const packedAcross = items.reduce(
+  const acrossSize = items.reduce(
     (max, i) => Math.max(max, isX ? i.bottom : i.right),
     0,
   );
-
-  /*
-   * Строк здесь нет — равнять не с чем, кроме самой области. Поэтому
-   * выравнивается весь уложенный блок: если объекты не заняли всю ширину,
-   * он целиком уходит к нужному краю.
-   */
-  const offset = offsetOf(a.align, crossLimit - packedAcross, ready);
-  shift(items, offset, isX);
-
-  const acrossSize = offset + packedAcross;
 
   return {
     items,
