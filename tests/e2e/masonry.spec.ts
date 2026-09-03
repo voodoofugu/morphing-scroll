@@ -235,6 +235,35 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Порядок объектов может менять и само приложение — перетаскиванием,
+   * сортировкой, чем угодно. Размер помнится по ключу, а ключ переезжает
+   * вместе с объектом, значит после перестановки каждый должен остаться
+   * своего размера.
+   */
+  test("после перестановки размеры едут за своими объектами", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=eachReorder");
+    await settled(page);
+
+    const sizeOf = async () =>
+      Object.fromEntries((await boxes(page)).map((b) => [b.i, b.h]));
+
+    const before = await sizeOf();
+    expect(before).toEqual({ 0: 40, 1: 120, 2: 60, 3: 90 });
+
+    await page.getByTestId("shuffle").click();
+    await settled(page);
+
+    expect(await sizeOf()).toEqual(before);
+
+    // и раскладка пересобралась под новый порядок
+    const all = await boxes(page);
+    const first = all.find((b) => b.i === 3)!;
+    expect([first.x, first.y]).toEqual([0, 0]);
+  });
+
+  /*
    * Объекты живут внутри полей обёртки, значит и переносить их надо по
    * месту за вычетом полей — иначе последний в строке уезжает за край.
    */
@@ -255,26 +284,21 @@ test.describe("objects.size: each (real browser)", () => {
     ]);
   });
 
-  /*
-   * Полные строки align не трогает: там не свободное место, а хвост, в
-   * который просто не влез ещё один объект.
-   */
-  test("align уводит к дальнему краю только последнюю строку", async ({
-    page,
-  }) => {
+  /* каждая строка закрывает свой остаток, а не только последняя */
+  test("align уводит к дальнему краю каждую строку", async ({ page }) => {
     await page.goto("/?scenario=flowAlign");
     await settled(page);
 
-    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
-    const lastY = Math.max(...all.map((b) => b.y));
+    const all = await boxes(page);
+    const lines = [...new Set(all.map((b) => b.y))].sort((a, b) => a - b);
+    expect(lines.length).toBeGreaterThan(1);
 
-    // первая строка осталась у ближнего края
-    expect(all.filter((b) => b.y !== lastY).map((b) => b.x)[0]).toBe(0);
+    for (const y of lines) {
+      const line = all.filter((b) => b.y === y).sort((a, b) => a.x - b.x);
+      const last = line[line.length - 1];
 
-    // последняя кончается ровно на дальнем
-    const tail = all.filter((b) => b.y === lastY);
-    const last = tail[tail.length - 1];
-    expect(last.x + last.w).toBe(200);
+      expect(last.x + last.w).toBe(200);
+    }
   });
 
   /*

@@ -133,6 +133,21 @@ input[type="color"] {
   padding: 5px 8px;
 }
 
+/* объект, который сейчас несут: приподнят и не мешает попасть по соседям */
+.demo-item.is-dragging {
+  z-index: 2;
+  opacity: 0.65;
+  box-shadow: 0 6px 18px rgba(20, 28, 27, 0.28);
+}
+
+.demo-item[ms-custom-drag] {
+  cursor: grab;
+}
+
+.demo-item[ms-custom-drag]:active {
+  cursor: grabbing;
+}
+
 /* строка-подсказка под переключателем: что за раскладка вышла */
 .hint-line {
   margin: -2px 0 2px;

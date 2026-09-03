@@ -544,6 +544,41 @@ scenarios.flowColumn = (
   </MorphScroll>
 );
 
+/*
+ * Перестановка объектов: ключи переезжают вместе с ними, значит и размеры
+ * должны переехать — иначе после переноса объект встанет по чужому.
+ */
+function Reordered() {
+  const [order, setOrder] = React.useState([0, 1, 2, 3]);
+  const heights = [40, 120, 60, 90];
+
+  return (
+    <div style={{ width: 220, height: 300 }}>
+      <MorphScroll objects={{ size: [90, "each"], gap: 10 }} size={[200, 300]}>
+        {order.map((id) => (
+          <div
+            key={`card-${id}`}
+            className="box"
+            data-testid={`card-${id}`}
+            style={{ height: heights[id] }}
+          >
+            {id}
+          </div>
+        ))}
+      </MorphScroll>
+      <button
+        data-testid="shuffle"
+        onClick={() => setOrder([3, 0, 2, 1])}
+        type="button"
+      >
+        shuffle
+      </button>
+    </div>
+  );
+}
+
+scenarios.eachReorder = <Reordered />;
+
 /* Заполнение: обе стороны за объектом, дырок под низкими быть не должно */
 scenarios.fillFree = (
   <MorphScroll objects={{ size: "each", gap: 10 }} size={[200, 300]}>

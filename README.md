@@ -572,7 +572,7 @@ every object gets the size it asks for, and the library measures it. Which side 
 
 <code>"each"</code> on its own says it about both sides at once — the same as <code>["each", "each"]</code>.<br />
 <br />
-<code>align</code> works as everywhere else: it moves the last line — the one that did not fill up — and the room it measures against is the scroll minus <code>wrapper.margin</code>. A full line has no free room, only a tail too short for one more object, so it stays where it is. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
+<code>align</code> moves every line by the room it left over: two small objects leave a wide gap on the far side, and closing it is exactly its job, while a line that filled the width stays where it is. The room it measures against is the scroll minus <code>wrapper.margin</code>. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
 
 <ul>
 </ul>

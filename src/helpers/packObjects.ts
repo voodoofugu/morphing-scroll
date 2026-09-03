@@ -179,14 +179,14 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   /*
    * Строку закрываем, когда она дособралась: раньше её длина неизвестна.
    *
-   * Выравниваем при этом только последнюю: у полных строк свободного места
-   * нет — там остался хвост, в который просто не влез ещё один объект, и
-   * двигать за него всю строку значит рвать ровный край на всех остальных.
+   * Двигает `align` каждую строку на её собственный остаток: два небольших
+   * объекта оставляют справа много места, и закрыть его — как раз его работа.
+   * Строка, занявшая всю ширину, не двигается: двигать нечего.
    */
-  const closeLine = (last = false) => {
+  const closeLine = () => {
     const used = cursor > 0 ? cursor - gapCross : 0;
 
-    if (last) shift(items, offsetOf(a.align, crossLimit - used), isX, lineFrom);
+    shift(items, offsetOf(a.align, crossLimit - used), isX, lineFrom);
     widest = Math.max(widest, used);
   };
 
@@ -241,7 +241,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     }
   }
 
-  closeLine(true);
+  closeLine();
   const alongSize = lineStart + lineThick;
 
   return {

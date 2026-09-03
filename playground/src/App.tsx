@@ -48,6 +48,7 @@ type Settings = {
   height: number;
   squareSize: number;
   objectsSizeMode: ObjectsSizeMode;
+  reorder: boolean;
   eachSide: EachSide;
   eachMin: number;
   eachMax: number;
@@ -140,6 +141,7 @@ const defaultSettings: Settings = {
   objectsSizeMode: "pair",
   objectWidth: 170,
   objectHeight: 118,
+  reorder: false,
   eachSide: "main",
   eachMin: 60,
   eachMax: 240,
@@ -219,7 +221,8 @@ const presets: Record<string, Partial<Settings>> = {
     width: 680,
     height: 430,
     objectsSizeMode: "each",
-    eachSide: "main",
+    reorder: false,
+  eachSide: "main",
     objectWidth: 170,
     eachMin: 60,
     eachMax: 240,
@@ -605,11 +608,22 @@ function sizeFor(index: number, settings: Settings) {
   return lo + Math.min(steps - 1, Math.floor(h * steps)) * step;
 }
 
-function buildItems(settings: Settings) {
+/*
+ * Перетаскивание объектов — жест приложения, не библиотеки. Объект помечен
+ * `ms-custom-drag`, чтобы прокрутка за него не бралась, а край подхватывает
+ * `autoScrollOnDrag` — это ровно то, ради чего он есть.
+ */
+function buildItems(
+  settings: Settings,
+  order: number[],
+  onGrab?: (id: number, event: React.PointerEvent) => void,
+  dragging?: number | null,
+) {
   const each = settings.objectsSizeMode === "each";
   const pair = eachPair(settings) as ["each" | number, "each" | number];
 
-  return Array.from({ length: settings.itemCount }, (_, index) => {
+  return order.map((id) => {
+    const index = id;
     const number = index + 1;
     const tone = index % 6;
     const isTall = settings.variableItems && index % 7 === 0;
@@ -628,9 +642,13 @@ function buildItems(settings: Settings) {
           `tone-${tone}`,
           isTall ? "is-tall" : "",
           isWide ? "is-wide" : "",
+          dragging === id ? "is-dragging" : "",
         ].join(" ")}
+        data-item={id}
         key={`item-${number}`}
+        onPointerDown={onGrab ? (event) => onGrab(id, event) : undefined}
         style={eachSize}
+        {...(onGrab ? { "ms-custom-drag": "" } : {})}
       >
         <header>
           <b>{number.toString().padStart(2, "0")}</b>
@@ -1058,7 +1076,77 @@ function App() {
   });
   const [copyState, setCopyState] = React.useState<"copied" | "idle">("idle");
 
-  const children = React.useMemo(() => buildItems(settings), [settings]);
+  /*
+   * Порядок живёт отдельно от настроек: его меняет перетаскивание, а не
+   * панель. Ключи у объектов свои и переезжают вместе с ними — на этом же
+   * проверяется, что измеренные размеры помнятся по ключу, а не по месту.
+   */
+  const [order, setOrder] = React.useState<number[]>(() =>
+    Array.from({ length: settings.itemCount }, (_, i) => i),
+  );
+  const [dragging, setDragging] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    setOrder(Array.from({ length: settings.itemCount }, (_, i) => i));
+  }, [settings.itemCount]);
+
+  const onGrab = React.useCallback((id: number, event: React.PointerEvent) => {
+    if (event.button !== 0) return;
+
+    const from = event.currentTarget as HTMLElement;
+    from.setPointerCapture(event.pointerId);
+    setDragging(id);
+
+    const move = (moveEvent: PointerEvent) => {
+      /*
+       * Куда встать, спрашиваем у того, кто под указателем: считать по
+       * координатам нельзя — при `"each"` объекты разного размера и сетки,
+       * по которой считать, просто нет.
+       */
+      from.style.pointerEvents = "none";
+      const under = document
+        .elementFromPoint(moveEvent.clientX, moveEvent.clientY)
+        ?.closest<HTMLElement>("[data-item]");
+      from.style.pointerEvents = "";
+
+      const over = under && Number(under.dataset.item);
+      if (over === undefined || over === null || Number.isNaN(over)) return;
+
+      setOrder((current) => {
+        const at = current.indexOf(id);
+        const to = current.indexOf(over);
+        if (at === -1 || to === -1 || at === to) return current;
+
+        const next = [...current];
+        next.splice(at, 1);
+        next.splice(to, 0, id);
+
+        return next;
+      });
+    };
+
+    const drop = () => {
+      setDragging(null);
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", drop);
+      document.removeEventListener("pointercancel", drop);
+    };
+
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", drop);
+    document.addEventListener("pointercancel", drop);
+  }, []);
+
+  const children = React.useMemo(
+    () =>
+      buildItems(
+        settings,
+        order,
+        settings.reorder ? onGrab : undefined,
+        dragging,
+      ),
+    [settings, order, onGrab, dragging],
+  );
   const progressMenu = React.useMemo(
     () => buildProgressMenu(settings.itemCount),
     [settings.itemCount],
@@ -1372,6 +1460,18 @@ function App() {
               value={settings.interactiveItems}
             />
           </div>
+          <ToggleField
+            label="drag to reorder"
+            onChange={(value) => update("reorder", value)}
+            value={settings.reorder}
+          />
+          {settings.reorder && (
+            <div className="hint-line">
+              objects carry <code>ms-custom-drag</code>, so the scroll leaves
+              the gesture alone — turn on <code>autoScrollOnDrag</code> to have
+              the edges follow
+            </div>
+          )}
         </ControlGroup>
 
         <ControlGroup
