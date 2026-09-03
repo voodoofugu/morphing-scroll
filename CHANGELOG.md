@@ -409,7 +409,9 @@ themselves are no longer transformed and can be positioned from CSS.
   `"each"` on its own is the short way of saying it about both sides. `align`
   lines the rows up against the widest one — that row is the width of the
   content and has nowhere to move, while the rest close the gap beside them;
-  the room a row has to fill is the scroll minus `wrapper.margin`; `direction` is
+  a fill has no rows, so there the whole block moves against the room. That
+  room is the scroll minus `wrapper.margin`, and nothing moves until every
+  object has been measured; `direction` is
   decided by `"each"` itself, so passing it says so instead of being
   ignored.
 

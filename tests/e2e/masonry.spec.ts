@@ -264,6 +264,22 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Без `crossCount` строк нет — есть заполнение, и равнять его можно только
+   * по самой области.
+   */
+  test("align в заполнении двигает блок к краю области", async ({ page }) => {
+    await page.goto("/?scenario=fillAlign");
+    await settled(page);
+
+    const all = await boxes(page);
+    const right = Math.max(...all.map((b) => b.x + b.w));
+
+    // три карточки по 80 с зазором 10 — блок 260 из 300, уезжает на 40
+    expect(right).toBe(300);
+    expect(Math.min(...all.map((b) => b.x))).toBe(40);
+  });
+
+  /*
    * Объекты живут внутри полей обёртки, значит и переносить их надо по
    * месту за вычетом полей — иначе последний в строке уезжает за край.
    */

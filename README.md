@@ -572,7 +572,7 @@ every object gets the size it asks for, and the library measures it. Which side 
 
 <code>"each"</code> on its own says it about both sides at once — the same as <code>["each", "each"]</code>.<br />
 <br />
-<code>align</code> lines the rows up against the widest one. That row is the width of the content and has nowhere to move; a row of two small objects leaves a gap beside it, and closing that gap is exactly what <code>align</code> is for. The room a row has to fill in the first place is the scroll minus <code>wrapper.margin</code>. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
+<code>align</code> lines the rows up against the widest one. That row is the width of the content and has nowhere to move; a row of two small objects leaves a gap beside it, and closing that gap is exactly what <code>align</code> is for. A fill has no rows at all, so there the whole packed block moves against the room instead — and that room, in both cases, is the scroll minus <code>wrapper.margin</code>. Nothing moves until every object has been measured, so the layout does not walk back as the sizes arrive. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
 
 <ul>
 </ul>

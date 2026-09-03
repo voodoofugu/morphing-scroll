@@ -602,7 +602,9 @@ export type MorphScroll = {
    * sides — the same as `["each", "each"]`*
    * @note *`align` lines the rows up against the widest one — that row is
    * the width of the content and has nowhere to move; the rest close the gap
-   * that separates them from it. `direction`
+   * that separates them from it. A fill has no rows, so there the whole
+   * packed block moves against the room instead. Nothing moves until every
+   * object has been measured. `direction`
    * is decided by `"each"` itself — the side you hand over is the side the
    * objects run along*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*

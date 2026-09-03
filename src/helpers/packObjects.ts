@@ -63,9 +63,13 @@ const sideOf = (
 /*
  * Свободное место поперёк делится по `align`. В минус не уходим: если объекты
  * шире отведённого, двигать их ещё дальше за край незачем.
+ *
+ * Пока измерены не все, не двигаем вовсе: у неизмеренных размера ещё нет,
+ * свободного места «остаётся» много, и содержимое уезжало бы к краю, чтобы
+ * пачку за пачкой ползти обратно.
  */
-const offsetOf = (align: PackArgs["align"], free: number) => {
-  if (free <= 0 || align === "start") return 0;
+const offsetOf = (align: PackArgs["align"], free: number, ready: boolean) => {
+  if (!ready || free <= 0 || align === "start") return 0;
 
   return align === "center" ? Math.round(free / 2) : free;
 };
@@ -100,6 +104,7 @@ const shift = (
  */
 const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
   const { keys, sizes, isX, fixed, gap, columns } = a;
+  const ready = measuredPrefix === keys.length;
   const main: 0 | 1 = isX ? 0 : 1;
   const cross: 0 | 1 = isX ? 1 : 0;
 
@@ -149,13 +154,17 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
   const alongSize = longest > 0 ? longest - gapMain : 0;
   const acrossSize = ends.length * cell + gapCross * (ends.length - 1);
 
-  // колонки не заняли всю ширину — двигаем весь их блок целиком
-  shift(items, offsetOf(a.align, a.crossLimit - acrossSize), isX);
+  /*
+   * Колонки не заняли всю ширину — двигаем весь их блок целиком. Размер
+   * обёртки при этом считаем после сдвига: иначе объекты уезжают за её край.
+   */
+  const offset = offsetOf(a.align, a.crossLimit - acrossSize, ready);
+  shift(items, offset, isX);
 
   return {
     items,
-    width: isX ? alongSize : acrossSize,
-    height: isX ? acrossSize : alongSize,
+    width: isX ? alongSize : offset + acrossSize,
+    height: isX ? offset + acrossSize : alongSize,
     measuredPrefix,
   };
 };
@@ -167,6 +176,7 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
  */
 const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   const { keys, sizes, isX, fixed, gap, crossLimit, columns } = a;
+  const ready = measuredPrefix === keys.length;
   const main: 0 | 1 = isX ? 0 : 1;
   const cross: 0 | 1 = isX ? 1 : 0;
 
@@ -254,7 +264,13 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
    * неё не хватило. Мерить от окна значило бы двигать и её тоже.
    */
   for (const line of lines)
-    shift(items, offsetOf(a.align, widest - line.used), isX, line.from, line.to);
+    shift(
+      items,
+      offsetOf(a.align, widest - line.used, ready),
+      isX,
+      line.from,
+      line.to,
+    );
 
   const alongSize = lineStart + lineThick;
 
@@ -277,6 +293,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
  */
 const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
   const { keys, sizes, isX, fixed, gap, crossLimit } = a;
+  const ready = measuredPrefix === keys.length;
   const main: 0 | 1 = isX ? 0 : 1;
   const cross: 0 | 1 = isX ? 1 : 0;
 
@@ -399,10 +416,20 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
     (max, i) => Math.max(max, isX ? i.right : i.bottom),
     0,
   );
-  const acrossSize = items.reduce(
+  const packedAcross = items.reduce(
     (max, i) => Math.max(max, isX ? i.bottom : i.right),
     0,
   );
+
+  /*
+   * Строк здесь нет — равнять не с чем, кроме самой области. Поэтому
+   * выравнивается весь уложенный блок: если объекты не заняли всю ширину,
+   * он целиком уходит к нужному краю.
+   */
+  const offset = offsetOf(a.align, crossLimit - packedAcross, ready);
+  shift(items, offset, isX);
+
+  const acrossSize = offset + packedAcross;
 
   return {
     items,

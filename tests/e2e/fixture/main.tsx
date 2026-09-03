@@ -601,6 +601,24 @@ scenarios.fillFree = (
   </MorphScroll>
 );
 
+/* Заполнение с выравниванием: блок целиком уходит к дальнему краю области */
+scenarios.fillAlign = (
+  <MorphScroll
+    objects={{ size: "each", gap: 10, align: "end" }}
+    size={[300, 300]}
+  >
+    {[
+      [80, 40],
+      [80, 60],
+      [80, 30],
+    ].map(([w, h], i) => (
+      <div key={`card-${i}`} className="box" style={{ width: w, height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* Поля обёртки: перенос должен считать место за их вычетом, а не всё окно */
 scenarios.flowMargin = (
   <MorphScroll
