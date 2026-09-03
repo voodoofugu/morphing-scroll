@@ -529,7 +529,7 @@ objects: {
 </ul>
 
 <b>Default:</b><br />
-{ size: "none", direction: "row" }<br />
+{ size: "none" }, with <code>direction</code> falling back to <code>"row"</code> where nothing else answers for it<br />
 <br />
 <b>Description:</b><em><br />
 everything about the objects themselves: how big they are, how they sit next to each other, and what to do with the ones that render nothing.<br />
@@ -712,10 +712,12 @@ direction: "row"; // or "column"
 ```
 
 <b>Default:</b><br />
-"row"<br />
+not set — <code>"row"</code> for a known size, and for <code>size: "each"</code> the side you hand over<br />
 <br />
 <b>Description:</b><em><br />
-changes the order of the provided elements based on the provided value.</em><br />
+changes the order of the provided elements based on the provided value.<br />
+<br />
+Leaving it out is its own answer, not a quiet <code>"row"</code>: with <code>size: "each"</code> the layout then follows the side you handed over, and naming the prop takes that decision away from the size. It is the only prop of the group where the two differ, so a config that spells every value out is asking for what it spells.</em><br />
 <br />
 <b>Example:</b>
 

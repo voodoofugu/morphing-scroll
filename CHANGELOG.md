@@ -428,7 +428,9 @@ themselves are no longer transformed and can be positioned from CSS.
   them while that side is the objects' own is the one reading that cannot be
   built, and the library says so. For `direction="hybrid"` it picks the axis
   itself: `"row"` has `crossCount` bound the width, `"column"` bounds the
-  height instead.
+  height instead. Leaving the prop out is its own answer rather than a quiet
+  `"row"` — with `"each"` the two differ, and it is the only prop of the
+  group where they do.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

@@ -655,13 +655,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       !isHybrid && wantedLine !== undefined && wantedLine !== alongScroll;
 
     /*
-     * Линии вдоль прокрутки — это колонки, а колонке нужна ширина. Когда и
-     * эта сторона отдана объектам, ширины нет и раскладывать их не по чему:
+     * Линии вдоль прокрутки — это колонки при вертикальной и строки при
+     * горизонтальной, и той и другой нужна толщина поперёк. Когда эта сторона
+     * тоже отдана объектам, толщины нет и раскладывать линии не по чему:
      * просьбу не выполняем и не молчим об этом.
      */
     if (isEach && wantsMasonry && eachOnCross)
       console.error(
-        `objects.direction: "${wantedLine}" runs the objects along the scroll, and lines along it are columns — objects.size hands the side across it over too, so there is no column width${errorTextEnd}`,
+        `objects.direction: "${wantedLine}" runs the objects along the scroll, and lines along it are ${
+          mainAxis === 0 ? "rows" : "columns"
+        } — objects.size hands their ${
+          mainAxis === 0 ? "height" : "width"
+        } over to the objects too, so there is none left to lay them out in${errorTextEnd}`,
       );
 
     /*

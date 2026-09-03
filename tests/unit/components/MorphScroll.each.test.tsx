@@ -136,7 +136,26 @@ describe('objects.size: "each"', () => {
       </MorphScroll>,
     );
 
-    expect(said("there is no column width")).toBe(true);
+    expect(said("lines along it are columns")).toBe(true);
+  });
+
+  /*
+   * При горизонтальной прокрутке линии вдоль неё — строки, и не хватает им
+   * высоты, а не ширины: то же правило, но названо своими словами.
+   */
+  it("ругается на строки при direction=x теми же словами, но про высоту", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        direction="x"
+        objects={{ size: "each", crossCount: 2, direction: "row" }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(said("lines along it are rows")).toBe(true);
+    expect(said("hands their height over")).toBe(true);
   });
 
   it("молчит на обычной кладке и не требует render", () => {

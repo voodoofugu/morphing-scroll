@@ -565,7 +565,8 @@ export type MorphScroll = {
    * ### ***objects***:
    * everything about the objects themselves: how big they are, how they sit
    * next to each other, and what to do with the empty ones.
-   * @default { size: "none", direction: "row" }
+   * @default { size: "none" } — `direction` falls back to `"row"` only where
+   * nothing else answers for it
    * @description
    * - `size`: *the size of one object — a number, a pair for both axes,
    *   `"full"` for the size of the scroll, `"firstChild"` to measure the first
@@ -576,7 +577,8 @@ export type MorphScroll = {
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `crossCount`: *how many of them fit across the scrolling axis*
    * - `align`: *where a short last line sits*
-   * - `direction`: *whether the objects run in rows or in columns*
+   * - `direction`: *whether the objects run in rows or in columns; leaving it
+   *   out is its own answer, and with `size: "each"` it differs from `"row"`*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
    *   replaces them with a placeholder; the object form adds `fallback` and
    *   `clickTrigger`*
