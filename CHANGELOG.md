@@ -422,12 +422,8 @@ themselves are no longer transformed and can be positioned from CSS.
   A line is as thick as the thickest object in it, and when that thickness is
   the objects' own too — both sides handed over, `crossCount` ending the line
   — the shorter ones no longer hang under it: each rises into the room above
-  it on its own, but never past the object before it. Without that limit a
-  narrow object slips under a low neighbour while the wide one before it is
-  still held by a tall one, and the screen reads as a hole where the next
-  object belongs plus that object floating above it. So top to bottom the
-  order of the list holds, which is the difference from a fill: it closes the
-  same gaps by giving the order up.
+  it on its own, while the order stays line by line. That is the difference
+  from a fill, which closes the same gaps by giving the order up.
 
   `objects.direction` works for `"each"` the same way it works for a known
   size: it chooses the order, not the layout, and the words mean what they say
