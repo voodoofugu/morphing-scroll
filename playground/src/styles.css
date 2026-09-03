@@ -133,6 +133,14 @@ input[type="color"] {
   padding: 5px 8px;
 }
 
+/* кнопка в ряд с числовым полем — та же высота, что у поля */
+.ghost-btn {
+  align-self: end;
+  min-height: 32px;
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
 .preset-row.compact {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 0;

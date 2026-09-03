@@ -23,6 +23,7 @@ type ObjectsSizeMode =
   | "pair"
   | "full"
   | "firstChild"
+  | "each"
   | "none";
 type ProgressElementMode = "custom" | "native" | "off";
 type RenderMode = "off" | "lazy" | "virtual";
@@ -46,6 +47,10 @@ type Settings = {
   height: number;
   squareSize: number;
   objectsSizeMode: ObjectsSizeMode;
+  eachMin: number;
+  eachMax: number;
+  eachStep: number;
+  eachSeed: number;
   objectWidth: number;
   objectHeight: number;
   crossCount: number;
@@ -133,6 +138,10 @@ const defaultSettings: Settings = {
   objectsSizeMode: "pair",
   objectWidth: 170,
   objectHeight: 118,
+  eachMin: 60,
+  eachMax: 240,
+  eachStep: 20,
+  eachSeed: 1,
   crossCount: 2,
   gapX: 12,
   gapY: 12,
@@ -197,6 +206,27 @@ const presets: Record<string, Partial<Settings>> = {
     renderMode: "off",
     progressElementMode: "custom",
     contentDrag: false,
+    autoScrollOnDrag: false,
+  },
+  masonry: {
+    itemCount: 120,
+    mode: "scroll",
+    direction: "y",
+    sizeMode: "fixed",
+    width: 680,
+    height: 430,
+    objectsSizeMode: "each",
+    objectWidth: 170,
+    eachMin: 60,
+    eachMax: 240,
+    eachStep: 20,
+    crossCount: 3,
+    gapX: 12,
+    gapY: 12,
+    renderMode: "virtual",
+    rootMargin: 200,
+    progressElementMode: "custom",
+    contentDrag: true,
     autoScrollOnDrag: false,
   },
   virtual: {
@@ -486,12 +516,37 @@ function SegmentedField<T extends string>({
   );
 }
 
+/*
+ * Случайный, но повторяемый: раскладку кладки надо смотреть глазами, а если
+ * размеры меняются на каждый рендер, смотреть не на что. Один и тот же seed
+ * даёт один и тот же список; кнопка рядом с полями его меняет.
+ */
+function sizeFor(index: number, settings: Settings) {
+  const { eachMin, eachMax, eachStep, eachSeed } = settings;
+
+  let h = Math.imul(index + 1, 2654435761) ^ Math.imul(eachSeed + 1, 40503);
+  h = (h ^ (h >>> 15)) >>> 0;
+
+  const step = Math.max(1, eachStep);
+  const lo = Math.min(eachMin, eachMax);
+  const hi = Math.max(eachMin, eachMax);
+  const steps = Math.max(1, Math.floor((hi - lo) / step) + 1);
+
+  return lo + (h % steps) * step;
+}
+
 function buildItems(settings: Settings) {
+  const each = settings.objectsSizeMode === "each";
+  const alongX = settings.direction === "x";
+
   return Array.from({ length: settings.itemCount }, (_, index) => {
     const number = index + 1;
     const tone = index % 6;
     const isTall = settings.variableItems && index % 7 === 0;
     const isWide = settings.variableItems && index % 11 === 0;
+    const eachSize = each
+      ? { [alongX ? "width" : "height"]: sizeFor(index, settings) }
+      : undefined;
 
     return (
       <article
@@ -502,6 +557,7 @@ function buildItems(settings: Settings) {
           isWide ? "is-wide" : "",
         ].join(" ")}
         key={`item-${number}`}
+        style={eachSize}
       >
         <header>
           <b>{number.toString().padStart(2, "0")}</b>
@@ -589,7 +645,11 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         ? settings.objectWidth
         : settings.objectsSizeMode === "pair"
           ? [settings.objectWidth, settings.objectHeight]
-          : settings.objectsSizeMode;
+          : settings.objectsSizeMode === "each"
+            ? settings.direction === "x"
+              ? ["each", settings.objectHeight]
+              : [settings.objectWidth, "each"]
+            : settings.objectsSizeMode;
 
   const wrapperMargin: CodeValue | undefined = [
     settings.wrapperMarginTop,
@@ -946,8 +1006,23 @@ function App() {
     if (settings.objectsSizeMode === "number") return settings.objectWidth;
     if (settings.objectsSizeMode === "pair")
       return [settings.objectWidth, settings.objectHeight];
+
+    /*
+     * `"each"` стоит на оси прокрутки, поперечная задаёт ширину колонки —
+     * иначе колонку не из чего сложить.
+     */
+    if (settings.objectsSizeMode === "each")
+      return settings.direction === "x"
+        ? ["each", settings.objectHeight]
+        : [settings.objectWidth, "each"];
+
     return settings.objectsSizeMode;
-  }, [settings.objectHeight, settings.objectWidth, settings.objectsSizeMode]);
+  }, [
+    settings.direction,
+    settings.objectHeight,
+    settings.objectWidth,
+    settings.objectsSizeMode,
+  ]);
 
   const wrapperMargin = React.useMemo<WrapperConfig["margin"]>(() => {
     const values = [
@@ -1433,6 +1508,7 @@ function App() {
                 "pair",
                 "full",
                 "firstChild",
+                "each",
                 "none",
               ] as const
             }
@@ -1455,6 +1531,60 @@ function App() {
                 value={settings.objectHeight}
               />
             </div>
+          )}
+          {settings.objectsSizeMode === "each" && (
+            <>
+              <NumberField
+                label={settings.direction === "x" ? "column h" : "column w"}
+                max={600}
+                min={20}
+                onChange={(value) =>
+                  update(
+                    settings.direction === "x" ? "objectHeight" : "objectWidth",
+                    value,
+                  )
+                }
+                value={
+                  settings.direction === "x"
+                    ? settings.objectHeight
+                    : settings.objectWidth
+                }
+              />
+              <div className="two-col">
+                <NumberField
+                  label={settings.direction === "x" ? "min w" : "min h"}
+                  max={600}
+                  min={20}
+                  onChange={(value) => update("eachMin", value)}
+                  step={10}
+                  value={settings.eachMin}
+                />
+                <NumberField
+                  label={settings.direction === "x" ? "max w" : "max h"}
+                  max={600}
+                  min={20}
+                  onChange={(value) => update("eachMax", value)}
+                  step={10}
+                  value={settings.eachMax}
+                />
+              </div>
+              <div className="two-col">
+                <NumberField
+                  label="round to"
+                  max={100}
+                  min={1}
+                  onChange={(value) => update("eachStep", value)}
+                  value={settings.eachStep}
+                />
+                <button
+                  className="ghost-btn"
+                  onClick={() => update("eachSeed", settings.eachSeed + 1)}
+                  type="button"
+                >
+                  reshuffle
+                </button>
+              </div>
+            </>
           )}
           <NumberField
             label="crossCount"
