@@ -600,9 +600,11 @@ export type MorphScroll = {
    *   scroll, so nothing else can end a line*
    * @note *`"each"` on its own is the short way of saying it about both
    * sides — the same as `["each", "each"]`*
-   * @note *`align` lines the rows up against the widest one — that row is
-   * the width of the content and has nowhere to move; the rest close the gap
-   * that separates them from it. A fill has no rows, so each object closes
+   * @note *`align` lines the rows up against the widest one — widest across
+   * the scroll, the vertical spread on a horizontal scroll same as the
+   * horizontal one on a vertical scroll. That row is as much room as the
+   * content needs and has nowhere to move; the rest close the gap that
+   * separates them from it. A fill has no rows, so each object closes
    * its own gap instead — the one between it and whatever sits past it, or
    * the edge of the room if nothing does. `"center"` stops halfway between
    * where the fit first placed it and where `"end"` would push it. Nothing

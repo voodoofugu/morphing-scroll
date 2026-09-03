@@ -307,6 +307,27 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Тот же случай при direction="x" — оси зеркально поменяны местами. Кладка
+   * и поток для горизонтальной прокрутки уже проверялись; заполнение с обеими
+   * сторонами "each" при isX=true — нет. Числа посчитаны вручную зеркалом
+   * от прошлого теста: cross-координата (там — left, здесь — top) и
+   * main-координата (там — top, здесь — left) меняются местами.
+   */
+  test("align в заполнении толкает каждый объект отдельно (direction=x)", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=fillAlignRowsX");
+    await settled(page);
+
+    const boxesXY = (await boxes(page)).sort((p, q) => p.i - q.i);
+    const [a, b, c] = boxesXY;
+
+    expect([a.x, a.y, a.w, a.h]).toEqual([0, 30, 50, 80]);
+    expect([b.x, b.y, b.w, b.h]).toEqual([0, 120, 50, 80]);
+    expect([c.x, c.y, c.w, c.h]).toEqual([60, 10, 40, 190]);
+  });
+
+  /*
    * Объекты живут внутри полей обёртки, значит и переносить их надо по
    * месту за вычетом полей — иначе последний в строке уезжает за край.
    */
