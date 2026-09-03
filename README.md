@@ -541,7 +541,7 @@ Each object is wrapped in an <code>.ms-object-box</code> of its own — this is 
 <b>Usage:</b><br />
 
 ```tsx
-size: 100; // or [100, 70] | "full" | "firstChild" | "none"
+size: 100; // or [100, 70] | "full" | "firstChild" | "each" | "none"
 ```
 
 <b>Default:</b><br />
@@ -560,17 +560,34 @@ the dimensions will be taken from <code>size</code>.<br />
 creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
+<code><b>"each"</b></code>:<br />
+every object gets the size it asks for, and the library measures it. Put it on the axis the scroll runs along and give the other one a width — <code>[90, "each"]</code> for a vertical scroll: that width is the column, and the height comes from the object. Objects are then packed into columns, each one into the shortest column at that moment, so the bottom stays even and nothing is left hanging.<br />
+<br />
+Measuring is done by one observer for the whole scroll, not one per object, and each object is measured once: after that it is remembered by its <code>key</code>, and the observer lets it go. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
+<br />
 <code><b>"none"</b></code>:<br />
 cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. Leaving <code>size</code> out does exactly this, so the word earns its place in a pair, where there is no empty slot to leave: <code>[100, "none"]</code> is a fixed width with the height decided by the content. A computed <code>undefined</code> in that place means the same thing.<br />
 <br />
 ✦ Note:<br />
-<b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out.<br />
+
+<ul>
+  <li><b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out. <b>"each"</b> is: the library measures the objects, so <code>render</code> has the numbers it needs.</li>
+  <li><b>"each"</b> needs <code>mode="scroll"</code> and a single <code>direction</code>: pages are all one size, and <code>"hybrid"</code> has no single axis to measure along.</li>
+  <li>an object that changes size after it has been measured — a picture arriving late without room reserved for it — is not measured again. Reserve its space in CSS (<code>aspect-ratio</code> does it in one line) and the layout stays right.</li>
+</ul>
 </em><br />
 <b>Example:</b>
 
 ```tsx
 <MorphScroll {...props} objects={{ size: [70, 100] }}>
   {children}
+</MorphScroll>
+```
+
+```tsx
+// a masonry of cards: 90 wide, as tall as each card turns out to be
+<MorphScroll {...props} objects={{ size: [90, "each"], gap: 10 }}>
+  {cards}
 </MorphScroll>
 ```
 

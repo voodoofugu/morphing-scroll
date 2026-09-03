@@ -37,6 +37,8 @@ import {
   isTouchDevice,
 } from "../helpers/addFunctions";
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
+import createSizeStore from "../helpers/createSizeStore";
+import packObjects from "../helpers/packObjects";
 import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
@@ -213,6 +215,34 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       console.error(
         `"render" needs a known objects.size: "none" and no size at all leave nothing to place${errorTextEnd}`,
       );
+
+    /*
+     * `"each"` — это кладка, а у кладки нет ровного шага. Слайдер листает
+     * страницами одного размера, `hybrid` не знает, какая из осей главная:
+     * ни там, ни там укладывать нечего.
+     */
+    const eachAxis = Array.isArray(objectsSize)
+      ? objectsSize.findIndex((axis) => axis === "each")
+      : objectsSize === "each"
+        ? (direction === "x" ? 0 : 1)
+        : -1;
+
+    if (eachAxis !== -1) {
+      if (mode !== "scroll")
+        console.error(
+          `objects.size: "each" gives objects their own size, and pages need one size for all — "${mode}" cannot turn them${errorTextEnd}`,
+        );
+
+      if (direction === "hybrid")
+        console.error(
+          `objects.size: "each" measures along the scroll, and "hybrid" scrolls both ways — there is no axis to measure along${errorTextEnd}`,
+        );
+
+      if (eachAxis !== (direction === "x" ? 0 : 1))
+        console.error(
+          `objects.size: "each" belongs on the axis the scroll runs along; across it the objects need a width to make columns from${errorTextEnd}`,
+        );
+    }
 
     // ♦ refs
     const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -586,11 +616,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [objectsSizeST],
     );
 
+    /*
+     * `"each"` — размер знает только сам объект. Главная ось меряется по
+     * каждому, поперечная должна быть известна заранее: из неё складываются
+     * колонки, а колонку из неизвестного не сложить. При `hybrid` осей две, и
+     * какая из них главная — вопрос без ответа, поэтому там кладки нет.
+     */
+    const mainAxis = direction === "x" ? 0 : 1;
+    const crossAxis = mainAxis === 0 ? 1 : 0;
+    const isEach =
+      direction !== "hybrid" && objectsSizing[mainAxis] === "each";
+
     const objectsSizeLocal = React.useMemo(() => {
       const { height, width } = receivedChildSizeRef.current;
 
       const getSize = (
-        val: number | "none" | "firstChild" | "full" | null,
+        val: number | "none" | "firstChild" | "full" | "each" | null,
         receivedSize: number,
         sizeLocal: number,
       ) =>
@@ -709,7 +750,103 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       crossCount,
     ]);
 
+    /*
+     * Кладка. Колонок столько, сколько влезает по известной поперечной
+     * стороне; если и она отдана объектам, число колонок задаёт `crossCount`,
+     * а ширина колонки делится из окна.
+     */
+    const sizes = useConst(() => createSizeStore(() => triggerRAF()));
+    React.useEffect(() => () => sizes.destroy(), [sizes]);
+
+
+    const eachColumns = React.useMemo(() => {
+      if (!isEach) return 1;
+
+      const cell = objectsSizeLocal[crossAxis];
+      const gapCross = gapLocal[crossAxis === 0 ? 1 : 0];
+
+      if (!cell) return Math.max(1, crossCount ?? 1);
+
+      const fit = Math.max(
+        1,
+        Math.floor((sizeLocal[crossAxis] + gapCross) / (cell + gapCross)),
+      );
+
+      return crossCount ? Math.min(crossCount, fit) : fit;
+    }, [
+      isEach,
+      objectsSizeLocal[crossAxis],
+      gapLocal.join(),
+      sizeLocal[crossAxis],
+      crossCount,
+      crossAxis,
+    ]);
+
+    const eachCell = React.useMemo(() => {
+      if (!isEach) return 0;
+
+      const known = objectsSizeLocal[crossAxis];
+      if (known) return known;
+
+      const gapCross = gapLocal[crossAxis === 0 ? 1 : 0];
+
+      return Math.max(
+        0,
+        (sizeLocal[crossAxis] - gapCross * (eachColumns - 1)) / eachColumns,
+      );
+    }, [
+      isEach,
+      objectsSizeLocal[crossAxis],
+      sizeLocal[crossAxis],
+      gapLocal.join(),
+      eachColumns,
+      crossAxis,
+    ]);
+
+    /*
+     * Колонка стала другой ширины — значит и высоты стали другими: текст
+     * перетёк, картинка пересчиталась. Записанное больше не про эти объекты,
+     * и мерить надо заново.
+     */
+    React.useEffect(() => {
+      if (isEach) sizes.clear();
+    }, [isEach, eachCell, sizes]);
+
+    // ушедшие из списка уносят с собой и свой размер
+    React.useEffect(() => {
+      if (isEach) sizes.keep(new Set(validChildrenKeys));
+    }, [isEach, validChildrenKeys.join(), sizes]);
+
+    const packed = React.useMemo(() => {
+      if (!isEach)
+        return { items: [], mainSize: 0, measuredPrefix: 0 };
+
+      return packObjects({
+        keys: validChildrenKeys,
+        sizes,
+        crossCount: eachColumns,
+        crossSize: eachCell,
+        gap: [gapLocal[mainAxis === 0 ? 1 : 0], gapLocal[crossAxis === 0 ? 1 : 0]],
+        isX: mainAxis === 0,
+      });
+    }, [
+      isEach,
+      validChildrenKeys.join(),
+      eachColumns,
+      eachCell,
+      gapLocal.join(),
+      mainAxis,
+      crossAxis,
+      sizes.version,
+    ]);
+
+    /** сторона обёртки поперёк прокрутки: колонки со своими зазорами */
+    const eachCrossSize =
+      eachColumns * eachCell + gapLocal[crossAxis === 0 ? 1 : 0] * (eachColumns - 1);
+
     const objectsWrapperWidth = React.useMemo(() => {
+      if (isEach) return mainAxis === 0 ? packed.mainSize : eachCrossSize;
+
       const childsGap =
         objectsPerDirection[0] < 1
           ? 1
@@ -737,9 +874,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       receivedChildSizeRef.current.width,
       renderLocal.mode,
       validChildrenKeys.length,
+          isEach,
+      packed.mainSize,
+      eachCrossSize,
+      mainAxis,
     ]);
 
     const objectsWrapperHeight = React.useMemo(() => {
+      if (isEach) return mainAxis === 1 ? packed.mainSize : eachCrossSize;
+
       const childsGap =
         objectsPerDirection[1] < 1
           ? 1
@@ -763,6 +906,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       receivedWrapSizeRef.current.height,
       receivedChildSizeRef.current.height,
       renderLocal.mode,
+          isEach,
+      packed.mainSize,
+      eachCrossSize,
+      mainAxis,
     ]);
 
     const objectsWrapperHeightFull = React.useMemo(() => {
@@ -898,6 +1045,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     };
 
     const memoizedChildrenData = React.useMemo(() => {
+      // кладка считает координаты сама, и считает их всегда: по ним она и кладка
+      if (isEach) return packed.items;
+
       if (!renderLocal.mode) return [{ top: 0, bottom: 0, left: 0, right: 0 }];
 
       let alignSpace: number = 0;
@@ -984,6 +1134,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderLocal.mode,
       objectsDirection,
       direction,
+          isEach,
+      packed,
     ]);
 
     const wrapperAlignLocal = React.useMemo(() => {
@@ -1056,7 +1208,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             ? `${objectsWrapperWidth}px`
             : "fit-content",
         ...(gap &&
-          !renderLocal.mode && { gap: `${gapLocal[0]}px ${gapLocal[1]}px` }),
+          !renderLocal.mode &&
+          !isEach && { gap: `${gapLocal[0]}px ${gapLocal[1]}px` }),
         ...(wrapper?.minSize &&
           getWrapperMinSizeStyle(
             wrapper.minSize,
@@ -1068,7 +1221,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         ...((direction === "hybrid" || direction === "x") && { flexShrink: 0 }), // для горизонтального выравнивания при "hybrid"/"x"
       };
 
-      if (renderLocal.mode) {
+      // кладка размещает объекты абсолютно, значит обёртке нужен свой отсчёт
+      if (renderLocal.mode || isEach) {
         return {
           ...common,
           position: "relative",
@@ -1112,6 +1266,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsPerDirection[0],
       objectsDirection,
       objectsAlign,
+          isEach,
     ]);
 
     // ♦ events
@@ -2145,10 +2300,29 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         children?: React.ReactNode,
         visibility?: number | null,
       ) => {
+        /*
+         * В кладке задаём только поперечную сторону: главную решает сам
+         * объект, за тем его и меряем. Разложены объекты абсолютно — в потоке
+         * колонки разной высоты не собрать.
+         */
+        const crossPx = isEach ? `${eachCell}px` : undefined;
+
         const wrapStyle: React.CSSProperties = {
-          width: objectsSizeLocal[0] ? `${objectsSizeLocal[0]}px` : undefined,
-          height: objectsSizeLocal[1] ? `${objectsSizeLocal[1]}px` : undefined,
-          ...(renderLocal.mode && {
+          width: isEach
+            ? mainAxis === 0
+              ? undefined
+              : crossPx
+            : objectsSizeLocal[0]
+              ? `${objectsSizeLocal[0]}px`
+              : undefined,
+          height: isEach
+            ? mainAxis === 1
+              ? undefined
+              : crossPx
+            : objectsSizeLocal[1]
+              ? `${objectsSizeLocal[1]}px`
+              : undefined,
+          ...((renderLocal.mode || isEach) && {
             position: "absolute",
             transform: `translate(${left}px, ${elementTop}px)`,
           }),
@@ -2171,6 +2345,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                   [CONST.WRAP_ATR]: `${key}`,
                 }
               : {})}
+            ref={isEach ? (el) => sizes.watch(el, key) : undefined}
             className="ms-object-box"
             style={wrapStyle}
             onClick={emptyObjectsLocal ? updateEmptyKeysClickLocal : undefined}
@@ -2189,6 +2364,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsPerDirection[0],
         updateEmptyKeysClickLocal,
         renderLocal.mode,
+        isEach,
+        eachCell,
+        mainAxis,
+        sizes,
       ],
     );
 
@@ -2234,7 +2413,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
 
       // ===== NO VIRTUAL =====
-      if (!renderLocal.mode) return scrollObjectWrapper(key, 0, 0, childLocal);
+      if (!renderLocal.mode && !isEach)
+        return scrollObjectWrapper(key, 0, 0, childLocal);
 
       /*
        * Курица и яйцо: при `objectsSize: "firstChild"` размер ячейки берётся
@@ -2250,6 +2430,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // обработка виртуализации
       const { top, bottom, left, right } = memoizedChildrenData[index];
+
+      if (isEach) {
+        /*
+         * Неизмеренный объект надо нарисовать, иначе мерить нечего — но не
+         * всех сразу: тысяча карточек в первом кадре и есть та задержка,
+         * ради которой всё это делается. Рисуем очередную пачку за уже
+         * измеренными, остальные ждут своей.
+         */
+        if (!packed.items[index]?.measured)
+          return index < packed.measuredPrefix + CONST.MEASURE_BATCH
+            ? scrollObjectWrapper(key, top, left, childLocal)
+            : null;
+
+        // размер известен: дальше или обычная отрисовка, или общая виртуализация
+        if (!renderLocal.mode)
+          return scrollObjectWrapper(key, top, left, childLocal);
+      }
 
       // проверка видимости
       const getVisibilityRatio = (withRootMargin: boolean = true): number => {

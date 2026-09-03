@@ -453,6 +453,73 @@ function CommandOnNone() {
 
 scenarios.commandOnNone = <CommandOnNone />;
 
+/*
+ * Кладка: высоты знает только вёрстка, колонки складывает библиотека.
+ * Высоты нарочно неровные и повторяются по кругу, чтобы порядок колонок
+ * можно было проверить руками.
+ */
+const MASONRY = [40, 90, 60, 120, 30, 70, 50, 110, 80, 100];
+
+scenarios.masonry = (
+  <MorphScroll
+    objects={{ size: [90, "each"], gap: 10 }}
+    size={[200, 300]}
+    controls={{ wheel: true }}
+    onScrollPosition={onScrollPosition}
+  >
+    {Array.from({ length: 20 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        data-testid={`card-${i}`}
+        style={{ height: MASONRY[i % MASONRY.length] }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* много карточек: проверяем, что первый кадр не монтирует их все разом */
+scenarios.masonryMany = (
+  <MorphScroll
+    objects={{ size: [90, "each"], gap: 10 }}
+    size={[200, 300]}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 500 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{ height: MASONRY[i % MASONRY.length] }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.masonryVirtual = (
+  <MorphScroll
+    objects={{ size: [90, "each"], gap: 10 }}
+    size={[200, 300]}
+    render="virtual"
+    controls={{ wheel: true }}
+    onScrollPosition={onScrollPosition}
+  >
+    {Array.from({ length: 60 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        data-testid={`card-${i}`}
+        style={{ height: MASONRY[i % MASONRY.length] }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /** то же самое, но декларативно — для сравнения */
 scenarios.positionOnMountMeasured = (
   <div style={{ width: 280, height: 300 }}>

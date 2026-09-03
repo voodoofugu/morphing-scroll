@@ -6,7 +6,7 @@ type Edges = [top: number, right: number, bottom: number, left: number];
 type SpacingValue = number | Vec2 | Edges;
 type Align = "start" | "center" | "end";
 type MinSize = number | "full";
-type ObjectSize = number | "full" | "firstChild" | "none";
+type ObjectSize = number | "full" | "firstChild" | "each" | "none";
 
 /** the short form of `controls` */
 export type ControlName =
@@ -569,10 +569,10 @@ export type MorphScroll = {
    * @description
    * - `size`: *the size of one object — a number, a pair for both axes,
    *   `"full"` for the size of the scroll, `"firstChild"` to measure the first
-   *   one, or `"none"` to leave it to your own CSS. Leaving it out means
-   *   `"none"` on both axes, so the word earns its place in a pair, where
-   *   there is no empty slot to leave: `[100, "none"]` — and a computed
-   *   `undefined` there means the same*
+   *   one, `"each"` to measure every one of them, or `"none"` to leave it to
+   *   your own CSS. Leaving it out means `"none"` on both axes, so the word
+   *   earns its place in a pair, where there is no empty slot to leave:
+   *   `[100, "none"]` — and a computed `undefined` there means the same*
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `crossCount`: *how many of them fit across the scrolling axis*
    * - `align`: *where a short last line sits*
@@ -581,7 +581,13 @@ export type MorphScroll = {
    *   replaces them with a placeholder; the object form adds `fallback` and
    *   `clickTrigger`*
    * @note the sizes are what the virtual and lazy rendering count with, so
-   * `render` needs a `size` it can rely on
+   * `render` needs a `size` it can rely on — `"each"` counts as one, because
+   * the library measures it and then knows it
+   * @note *`"each"` goes on the axis the scroll runs along, and the other one
+   * gives the column its width: `[90, "each"]` for a vertical scroll. Objects
+   * are packed into columns, each one into the shortest at the time, so the
+   * bottom stays even. Pages need one size for all, so `"each"` is for
+   * `mode="scroll"`*
    * @example
    * ```tsx
    * <MorphScroll {...props}

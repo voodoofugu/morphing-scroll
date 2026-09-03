@@ -13,6 +13,7 @@ const CONST = {
   SCROLL_READY_MAX_FRAMES: 60, // Frames to wait for the content to become scrollable
   SCROLL_READY_STILL_FRAMES: 5, // Frames of an unchanged range that end that wait
   SLIDER_AIM_DURATION: 120, // ms — перелёт к пункту, в который целится жест по бару
+  MEASURE_BATCH: 30, // objects.size: "each" — сколько неизмеренных рисуем за раз
 
   // инерция для прокрутки
   MIN_VELOCITY: 0.05, // px/ms
