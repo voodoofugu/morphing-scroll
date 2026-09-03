@@ -30,7 +30,7 @@ render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
 `edge`, `arrows`, the `bar` scrollbar, `direction`/`crossCount`,
 `objectsSize` modes, `gap`/`wrapper.margin`/`wrapper.minSize`/`wrapper.align`/
 `objectsAlign`, `bar.reverse`, `onRenderedKeysChange`, `onScrollPosition`,
-`onNavigate` (reason/page, one event per gesture), `progressTrigger.keys`,
+`onNavigate` (reason/page, one event per gesture), `controls.keys`,
 `ref.step`/`ref.pan` with a caller's own reason, hybrid wheel falling back to
 the axis that can move,
 `scrollPosition` (number/end), `mode: sliderMenu` snapping, `autoScrollOnDrag`

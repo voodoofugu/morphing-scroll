@@ -45,7 +45,7 @@ const markup = (props: Partial<MorphScrollProps>) => {
 const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>]> = [
   ["className", {}, { className: "mine" }],
   ["children", {}, { children: items(3) }],
-  ["mode", { progressTrigger: { bar: <i /> } }, { mode: "slider", objects: { size: 300 }, progressTrigger: { bar: <i /> } }],
+  ["mode", { controls: { bar: <i /> } }, { mode: "slider", objects: { size: 300 }, controls: { bar: <i /> } }],
   ["direction", {}, { direction: "x" }],
   ["size", {}, { size: [200, 150] }],
   ["objects.size", {}, { objects: { size: 60 } }],
@@ -67,27 +67,27 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["fallback", { suspending: true, children: <Suspends key="a" /> },
     { suspending: true, fallback: <b className="mine" />, children: <Suspends key="a" /> }],
 
-  // — progressTrigger —
-  ["progressTrigger.wheel", { progressTrigger: { bar: true } }, { progressTrigger: { wheel: true, bar: true } }],
-  ["progressTrigger.content", {}, { progressTrigger: { content: true } }],
-  ["progressTrigger.arrows", {}, { progressTrigger: { arrows: true } }],
-  ["arrows.element", { progressTrigger: { arrows: true } }, { progressTrigger: { arrows: { element: <b /> } } }],
-  ["arrows.size", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, size: 80 } } }],
+  // — controls —
+  ["controls.wheel", { controls: { bar: true } }, { controls: { wheel: true, bar: true } }],
+  ["controls.content", {}, { controls: { drag: true } }],
+  ["controls.arrows", {}, { controls: { arrows: true } }],
+  ["arrows.element", { controls: { arrows: true } }, { controls: { arrows: { element: <b /> } } }],
+  ["arrows.size", { controls: { arrows: { element: <b /> } } }, { controls: { arrows: { element: <b />, size: 80 } } }],
   // по умолчанию стрелки лежат поверх, место забирают по просьбе
-  ["arrows.reserveSpace", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, reserveSpace: true } } }],
-  ["arrows.loop", { progressTrigger: { arrows: { element: <b /> } } }, { progressTrigger: { arrows: { element: <b />, loop: true } } }],
+  ["arrows.reserveSpace", { controls: { arrows: { element: <b /> } } }, { controls: { arrows: { element: <b />, reserveSpace: true } } }],
+  ["arrows.loop", { controls: { arrows: { element: <b /> } } }, { controls: { arrows: { element: <b />, loop: true } } }],
 
-  // — progressTrigger.bar —
-  ["bar", {}, { progressTrigger: { bar: <i /> } }],
-  ["bar: true", {}, { progressTrigger: { bar: true } }],
-  ["bar.element", { progressTrigger: { bar: <i /> } }, { progressTrigger: { bar: <u /> } }],
-  ["bar.edgeGap", { progressTrigger: { bar: <i /> } }, { progressTrigger: { bar: { element: <i />, edgeGap: 12 } } }],
-  ["bar.trackGap", { progressTrigger: { bar: <i /> } }, { progressTrigger: { bar: { element: <i />, trackGap: 20 } } }],
-  ["bar.reverse", { progressTrigger: { bar: <i /> } }, { progressTrigger: { bar: { element: <i />, reverse: true } } }],
-  ["bar.showOnHover", { progressTrigger: { bar: <i /> } }, { progressTrigger: { bar: { element: <i />, showOnHover: true } } }],
+  // — controls.bar —
+  ["bar", {}, { controls: { bar: <i /> } }],
+  ["bar: true", {}, { controls: { bar: true } }],
+  ["bar.element", { controls: { bar: <i /> } }, { controls: { bar: <u /> } }],
+  ["bar.edgeGap", { controls: { bar: <i /> } }, { controls: { bar: { element: <i />, edgeGap: 12 } } }],
+  ["bar.trackGap", { controls: { bar: <i /> } }, { controls: { bar: { element: <i />, trackGap: 20 } } }],
+  ["bar.reverse", { controls: { bar: <i /> } }, { controls: { bar: { element: <i />, reverse: true } } }],
+  ["bar.showOnHover", { controls: { bar: <i /> } }, { controls: { bar: { element: <i />, showOnHover: true } } }],
   // 12 items over 3 columns make a 400px wrapper, so the thumb is 225px
   // on its own — the floor has to be above that to bind
-  ["bar.thumbMinSize", { progressTrigger: { bar: <i /> } }, { progressTrigger: { bar: { element: <i />, thumbMinSize: 280 } } }],
+  ["bar.thumbMinSize", { controls: { bar: <i /> } }, { controls: { bar: { element: <i />, thumbMinSize: 280 } } }],
 ];
 
 describe("MorphScroll — every prop is read", () => {
@@ -104,7 +104,7 @@ describe("MorphScroll — the x-axis bar settings need an x-axis bar", () => {
     markup({
       direction: "hybrid",
       objects: { size: 100, crossCount: 4 },
-      progressTrigger: { bar: { element: <i />, ...bar } as never },
+      controls: { bar: { element: <i />, ...bar } as never },
     });
 
   it("edgeGap x moves the horizontal bar", () => {
@@ -117,7 +117,7 @@ describe("MorphScroll — the x-axis bar settings need an x-axis bar", () => {
 
   it("but does nothing on a single vertical axis", () => {
     const y = (bar: Record<string, unknown>) =>
-      markup({ progressTrigger: { bar: { element: <i />, ...bar } as never } });
+      markup({ controls: { bar: { element: <i />, ...bar } as never } });
 
     expect(y({ edgeGap: [30, 0] })).toBe(y({ edgeGap: [0, 0] }));
   });
@@ -274,7 +274,7 @@ describe("MorphScroll — size auto before anything is measured", () => {
           size="auto"
           mode="slider"
           direction="hybrid"
-          progressTrigger={{ wheel: true, bar: <i /> }}
+          controls={{ wheel: true, bar: <i /> }}
         >
           {Array.from({ length: 12 }, (_, i) => (
             <div key={`item-${i}`}>item {i}</div>

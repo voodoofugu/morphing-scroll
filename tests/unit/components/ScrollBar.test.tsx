@@ -13,7 +13,7 @@ const items = (n: number) =>
 const withBar = (count: number) => (
   <MorphScroll objects={{ size: OBJ }}
     size={[100, VIEW]}
-    progressTrigger={{ wheel: true, bar: <div className="knob" /> }}
+    controls={{ wheel: true, bar: <div className="knob" /> }}
   >
     {items(count)}
   </MorphScroll>
@@ -79,7 +79,7 @@ describe("ScrollBar — showOnHover", () => {
   const onHover = (
     <MorphScroll objects={{ size: OBJ }}
       size={[100, VIEW]}
-      progressTrigger={{
+      controls={{
         wheel: true,
         bar: { element: <div className="knob" />, showOnHover: true },
       }}
@@ -152,7 +152,7 @@ describe("ScrollBar — a changed progressElement", () => {
   const withThumb = (label: string) => (
     <MorphScroll objects={{ size: OBJ }}
       size={[100, VIEW]}
-      progressTrigger={{ wheel: true, bar: <b>{label}</b> }}
+      controls={{ wheel: true, bar: <b>{label}</b> }}
     >
       {items(20)}
     </MorphScroll>
@@ -162,7 +162,7 @@ describe("ScrollBar — a changed progressElement", () => {
     <MorphScroll objects={{ size: VIEW }}
       size={[100, VIEW]}
       mode="sliderMenu"
-      progressTrigger={{ wheel: true, bar: <b>{label}</b> }}
+      controls={{ wheel: true, bar: <b>{label}</b> }}
     >
       {items(9)}
     </MorphScroll>
@@ -200,7 +200,7 @@ describe("ScrollBar — edgeGap", () => {
     render(
       <MorphScroll objects={{ size: OBJ }}
         size={[100, VIEW]}
-        progressTrigger={{ wheel: true, bar: config as never }}
+        controls={{ wheel: true, bar: config as never }}
       >
         {items(20)}
       </MorphScroll>,
@@ -234,7 +234,7 @@ describe("ScrollBar — edgeGap", () => {
       <MorphScroll objects={{ size: 100, crossCount: 4 }}
         size={[300, 300]}
         direction="hybrid"
-        progressTrigger={{
+        controls={{
           wheel: true,
           bar: { element: <i />, edgeGap: [4, 16] },
         }}
@@ -262,7 +262,7 @@ describe("ScrollBar — edgeGap", () => {
       <MorphScroll objects={{ size: 100 }}
         size={[300, 300]}
         direction="x"
-        progressTrigger={{
+        controls={{
           wheel: true,
           bar: { element: <i />, edgeGap: [4, 16], reverse: [true, false] },
         }}

@@ -8,15 +8,15 @@ type Align = "start" | "center" | "end";
 type MinSize = number | "full";
 type ObjectSize = number | "full" | "firstChild" | "none";
 
-/** the short form of `progressTrigger` */
-export type ProgressTriggerName =
+/** the short form of `controls` */
+export type ControlName =
   | "wheel"
-  | "content"
+  | "drag"
   | "arrows"
   | "bar"
   | "keys";
 
-/** the object form of `progressTrigger.bar` */
+/** the object form of `controls.bar` */
 export type BarConfig = {
   /** what the bar is made of; an array feeds one node per slider element */
   element?: React.ReactNode | React.ReactNode[];
@@ -39,7 +39,7 @@ export type BarConfig = {
   thumbMinSize?: number;
 };
 
-/** the object form of `progressTrigger.wheel` */
+/** the object form of `controls.wheel` */
 export type WheelConfig = {
   /** let the wheel switch the axis it scrolls */
   changeDirection?: boolean;
@@ -51,7 +51,7 @@ export type WheelConfig = {
   changeDirectionBtn?: string;
 };
 
-/** the object form of `progressTrigger.keys` */
+/** the object form of `controls.keys` */
 export type KeysConfig = {
   /**
    * what an arrow key does:
@@ -65,7 +65,7 @@ export type KeysConfig = {
   step?: number;
 };
 
-/** the object form of `progressTrigger.arrows` */
+/** the object form of `controls.arrows` */
 export type ArrowsConfig = {
   /** the icon; author it pointing right, the library turns it for the rest */
   element?: React.ReactNode;
@@ -77,10 +77,10 @@ export type ArrowsConfig = {
   loop?: boolean;
 };
 
-/** the object form of `progressTrigger` */
-export type ProgressTriggerConfig = {
+/** the object form of `controls` */
+export type ControlsConfig = {
   wheel?: boolean | WheelConfig;
-  content?: boolean;
+  drag?: boolean;
   keys?: boolean | KeysConfig;
   bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
   arrows?: boolean | React.ReactNode | ArrowsConfig;
@@ -629,28 +629,28 @@ export type MorphScroll = {
 
   // — LAYOUT —
 
-  // — PROGRESS —
+  // — CONTROLS —
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***progressTrigger***:
-   * triggers for the scroll progress.
+   * ### ***controls***:
+   * everything that can move the scroll.
    * @description
    * - `wheel`: *allow to scroll by mouse wheel*
-   * - `content`: *allow to scroll by content drag*
+   * - `drag`: *allow to scroll by dragging the content*
    * - `keys`: *arrow keys move the scroll while it has focus*
    * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*
    * @note
-   * - *a name, or a list of names, switches those triggers on: `"wheel"` is
-   *   the same as `{ wheel: true }`*
+   * - *a name, or a list of names, switches those on: `"wheel"` is the same
+   *   as `{ wheel: true }`*
    * - *`bar` renders as a thumb or as a slider depending on `mode`*
    * - *`bar: true` with `mode="scroll"` hands the job to the browser's own
    *   scrollbar*
-   * - *`content` skips text fields and anything that carries its own drag ([more...](https://www.npmjs.com/package/morphing-scroll))*
+   * - *`drag` skips text fields and anything that carries its own drag ([more...](https://www.npmjs.com/package/morphing-scroll))*
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   progressTrigger={{ wheel: true, bar: <ScrollThumb /> }}
+   *   controls={{ wheel: true, bar: <ScrollThumb /> }}
    * >
    *   {children}
    * </MorphScroll>
@@ -658,16 +658,16 @@ export type MorphScroll = {
    * @example
    * ```tsx
    * // with settings
-   * progressTrigger={{
+   * controls={{
    *   wheel: true,
    *   bar: { element: <ScrollThumb />, edgeGap: 8, showOnHover: true },
    * }}
    * ```
    */
-  progressTrigger?:
-    | ProgressTriggerName
-    | ProgressTriggerName[]
-    | ProgressTriggerConfig;
+  controls?:
+    | ControlName
+    | ControlName[]
+    | ControlsConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***edge***:

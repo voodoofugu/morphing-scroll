@@ -36,9 +36,9 @@ export const everyProp = (
     }}
     wrapper={{ margin: [5, 5], minSize: "full", align: ["center", "end"] }}
     edge={<span className="fade" />}
-    progressTrigger={{
+    controls={{
       wheel: { changeDirection: true },
-      content: true,
+      drag: true,
       bar: {
         element: <i />,
         edgeGap: [4, -8],
@@ -60,13 +60,13 @@ export const everyProp = (
 
 export const triggerShorthand = (
   <>
-    <MorphScroll size={100} progressTrigger="wheel" />
-    <MorphScroll size={100} progressTrigger={["wheel", "content", "arrows", "bar"]} />
+    <MorphScroll size={100} controls="wheel" />
+    <MorphScroll size={100} controls={["wheel", "drag", "arrows", "bar"]} />
   </>
 );
 
 // @ts-expect-error only the four trigger names are shorthand
-export const badTrigger = <MorphScroll size={100} progressTrigger="thumb" />;
+export const badTrigger = <MorphScroll size={100} controls="thumb" />;
 
 /*
  * Эти четыре компилировались в 2.x. `React.ReactNode` в объединении съедал
@@ -98,7 +98,7 @@ export const badReverse = (
   <MorphScroll
     size={100}
     // @ts-expect-error an axis pair takes exactly two values
-    progressTrigger={{ bar: { reverse: [true, false, true] } }}
+    controls={{ bar: { reverse: [true, false, true] } }}
   />
 );
 
@@ -116,14 +116,14 @@ export const commands = (handle: MorphScrollHandle) => {
 };
 
 export const keysModes = (
-  <MorphScroll size={100} progressTrigger={{ keys: { mode: "focus" } }} />
+  <MorphScroll size={100} controls={{ keys: { mode: "focus" } }} />
 );
 
 export const keysModeIsClosed = (
   <MorphScroll
     size={100}
     // @ts-expect-error a key does one of three things, and "jump" is not one
-    progressTrigger={{ keys: { mode: "jump" } }}
+    controls={{ keys: { mode: "jump" } }}
   />
 );
 

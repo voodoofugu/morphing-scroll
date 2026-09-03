@@ -6,7 +6,7 @@ import { stubLayout } from "../../helpers/dom";
 
 /*
  * Стрелки клавиатуры — такой же способ двигать скролл, как колесо или бар,
- * поэтому живут в `progressTrigger`. Что именно они делают, решает `mode`:
+ * поэтому живут в `controls`. Что именно они делают, решает `mode`:
  * листают страницу или подвигают контент.
  */
 
@@ -29,19 +29,19 @@ const press = (el: HTMLElement, key: string, target?: HTMLElement) =>
     fireEvent.keyDown(target ?? el, { key, bubbles: true });
   });
 
-describe("MorphScroll — progressTrigger.keys", () => {
+describe("MorphScroll — controls.keys", () => {
   // прокрутка доезжает за несколько кадров, поэтому ждём, а не читаем сразу
   const landsOn = (el: HTMLElement, value: number) =>
     vi.waitFor(() => expect(el.scrollTop).toBe(value));
 
   it("does nothing at all when it is off", () => {
-    const { el } = mount({ progressTrigger: { wheel: true } });
+    const { el } = mount({ controls: { wheel: true } });
     press(el, "ArrowDown");
     expect(el.scrollTop).toBe(0);
   });
 
   it("nudges the content in pan mode", async () => {
-    const { el } = mount({ progressTrigger: { keys: { mode: "pan" } } });
+    const { el } = mount({ controls: { keys: { mode: "pan" } } });
 
     press(el, "ArrowDown");
     await landsOn(el, 40); // это шаг, а не страница
@@ -49,7 +49,7 @@ describe("MorphScroll — progressTrigger.keys", () => {
 
   it("takes the step size from the config", async () => {
     const { el } = mount({
-      progressTrigger: { keys: { mode: "pan", step: 120 } },
+      controls: { keys: { mode: "pan", step: 120 } },
     });
 
     press(el, "ArrowDown");
@@ -57,7 +57,7 @@ describe("MorphScroll — progressTrigger.keys", () => {
   });
 
   it("turns a whole page in step mode", async () => {
-    const { el } = mount({ progressTrigger: { keys: { mode: "step" } } });
+    const { el } = mount({ controls: { keys: { mode: "step" } } });
 
     press(el, "ArrowDown");
     await landsOn(el, 300);
@@ -67,7 +67,7 @@ describe("MorphScroll — progressTrigger.keys", () => {
     const onNavigate = vi.fn();
     const { el } = mount({
       onNavigate,
-      progressTrigger: { keys: { mode: "step" } },
+      controls: { keys: { mode: "step" } },
     });
 
     press(el, "ArrowDown");
@@ -87,7 +87,7 @@ describe("MorphScroll — progressTrigger.keys", () => {
   });
 
   it("ignores the keys of the other axis", () => {
-    const { el } = mount({ progressTrigger: { keys: { mode: "pan" } } });
+    const { el } = mount({ controls: { keys: { mode: "pan" } } });
 
     press(el, "ArrowRight");
     expect(el.scrollTop).toBe(0);
@@ -98,7 +98,7 @@ describe("MorphScroll — progressTrigger.keys", () => {
     const { container } = render(
       <MorphScroll objects={{ size: 300, crossCount: 1 }}
         size={[300, 300]}
-        progressTrigger={{ keys: { mode: "pan" } }}
+        controls={{ keys: { mode: "pan" } }}
       >
         <input key="field" defaultValue="text" />
         {items(6)}
@@ -122,18 +122,18 @@ describe("MorphScroll — progressTrigger.keys", () => {
   it("defaults to paging in a slider and to nudging in a scroll", async () => {
     const slider = mount({
       mode: "slider",
-      progressTrigger: { keys: true, bar: <i /> },
+      controls: { keys: true, bar: <i /> },
     });
     press(slider.el, "ArrowDown");
     await landsOn(slider.el, 300);
 
-    const plain = mount({ progressTrigger: { keys: true } });
+    const plain = mount({ controls: { keys: true } });
     press(plain.el, "ArrowDown");
     await landsOn(plain.el, 40);
   });
 
   it("takes the shorthand name too", async () => {
-    const { el } = mount({ progressTrigger: ["wheel", "keys"] });
+    const { el } = mount({ controls: ["wheel", "keys"] });
 
     press(el, "ArrowDown");
     await landsOn(el, 40);

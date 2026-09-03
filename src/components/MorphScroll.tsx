@@ -5,7 +5,7 @@ import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
   NavigateReason,
-  ProgressTriggerConfig,
+  ControlsConfig,
   Vec2,
   Pair,
 } from "../types/types";
@@ -103,7 +103,7 @@ const isTextEntry = (target: EventTarget | null) => {
  * - `wrapper`
  *
  * ##### — PROGRESS —
- * - `progressTrigger`
+ * - `controls`
  * - `edge`
  *
  * ##### — OPTIMIZATION —
@@ -145,7 +145,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       edge,
 
       // Progress Bar
-      progressTrigger = { wheel: true },
+      controls = { wheel: true },
 
       // Optimization
       render,
@@ -285,7 +285,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       emptyObjectsST,
       wrapperST,
       gapST,
-      progressTriggerST,
+      controlsST,
       objectsKeysEmptyST,
       edgeST,
     ] = stabilize(
@@ -297,27 +297,27 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       emptyObjects,
       wrapper,
       gap,
-      progressTrigger,
+      controls,
       objectsKeys.current.empty,
       edge,
     );
 
     /*
      * Короткая форма приводится к объектной один раз: дальше по компоненту
-     * `progressTriggerLocal` всегда объект, и ветвлений на строку/массив нет.
+     * `controlsLocal` всегда объект, и ветвлений на строку/массив нет.
      */
-    const progressTriggerLocal = React.useMemo(() => {
-      if (typeof progressTrigger === "string")
-        return { [progressTrigger]: true };
+    const controlsLocal = React.useMemo(() => {
+      if (typeof controls === "string")
+        return { [controls]: true };
 
-      if (Array.isArray(progressTrigger))
-        return Object.fromEntries(progressTrigger.map((name) => [name, true]));
+      if (Array.isArray(controls))
+        return Object.fromEntries(controls.map((name) => [name, true]));
 
-      return progressTrigger;
-    }, [progressTriggerST]) as ProgressTriggerConfig;
+      return controls;
+    }, [controlsST]) as ControlsConfig;
 
-    if (Object.keys(progressTriggerLocal).length === 0)
-      console.error(errorText("progressTrigger"));
+    if (Object.keys(controlsLocal).length === 0)
+      console.error(errorText("controls"));
 
     /*
      * Прилипание задаётся на обе оси разом или на каждую отдельно: при
@@ -370,7 +370,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * готовые значения, что бы ScrollBar не разбирал форму повторно.
      */
     const barLocal = React.useMemo(() => {
-      const bar = progressTriggerLocal.bar;
+      const bar = controlsLocal.bar;
 
       const isConfig =
         !!bar &&
@@ -406,14 +406,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         showOnHover: config.showOnHover ?? false,
         thumbMinSize: config.thumbMinSize ?? 30,
       };
-    }, [progressTriggerST]);
+    }, [controlsST]);
 
     /*
      * По умолчанию клавиша делает то, что в этом режиме вообще имеет смысл:
      * в слайдере листает страницу, в обычном скролле просто подвигает контент.
      */
     const keysLocal = React.useMemo(() => {
-      const keys = progressTriggerLocal.keys;
+      const keys = controlsLocal.keys;
       if (!keys) return null;
 
       const config = typeof keys === "object" ? keys : {};
@@ -422,10 +422,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         mode: config.mode ?? (mode === "scroll" ? "pan" : "step"),
         step: config.step ?? 40,
       };
-    }, [progressTriggerST, mode]);
+    }, [controlsST, mode]);
 
     const arrowsLocal = React.useMemo(() => {
-      const arrows = progressTriggerLocal.arrows;
+      const arrows = controlsLocal.arrows;
       /*
        * Стрелки лежат поверх содержимого, пока не попросили обратного: место
        * под них забирается по просьбе, а не отменяется отказом.
@@ -438,7 +438,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return { ...base, ...arrows };
 
       return base;
-    }, [progressTriggerST]);
+    }, [controlsST]);
 
     const childrenArray = React.useMemo(
       () =>
@@ -531,7 +531,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             ];
 
       if (
-        !progressTriggerLocal.arrows ||
+        !controlsLocal.arrows ||
         !arrowsLocal.size ||
         !arrowsLocal.reserveSpace
       ) {
@@ -554,7 +554,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return [recountX, recountY, x, y]; // [2, 3] is only for customScrollRef
     }, [
       sizeST,
-      progressTriggerST,
+      controlsST,
       direction,
       arrowsLocal,
       receivedScrollSizeRef.current.height,
@@ -817,7 +817,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           );
       },
       [
-        progressTriggerST,
+        controlsST,
         fullHeightOrWidth,
         sizeLocal[0],
         sizeLocal[1],
@@ -1560,9 +1560,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (keyDownX.current) return; // ранний выход
 
         const keyName =
-          typeof progressTriggerLocal.wheel === "object" &&
-          typeof progressTriggerLocal.wheel.changeDirectionBtn === "string"
-            ? progressTriggerLocal.wheel.changeDirectionBtn
+          typeof controlsLocal.wheel === "object" &&
+          typeof controlsLocal.wheel.changeDirectionBtn === "string"
+            ? controlsLocal.wheel.changeDirectionBtn
             : "KeyX";
 
         if (e.code === keyName && direction === "hybrid" && !keyDownX.current) {
@@ -1626,7 +1626,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       [
         direction,
-        progressTriggerST,
+        controlsST,
         keysLocal,
         handleArrowLocal,
         moveFocusLocal,
@@ -1698,7 +1698,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
     }, [
       direction,
-      progressTriggerST,
+      controlsST,
       keysLocal,
       onKeyDown,
       // при изменении размеров
@@ -1731,8 +1731,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       const directionWithPriority =
         direction === "hybrid" &&
-        typeof progressTriggerLocal.wheel === "object" &&
-        progressTriggerLocal.wheel.changeDirection
+        typeof controlsLocal.wheel === "object" &&
+        controlsLocal.wheel.changeDirection
           ? "x"
           : direction;
 
@@ -1792,7 +1792,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
       };
 
-      progressTriggerLocal.wheel &&
+      controlsLocal.wheel &&
         scrollEl.addEventListener("wheel", wheelHandler, { passive: false });
 
       return () => {
@@ -1800,7 +1800,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
     }, [
       direction,
-      progressTriggerST,
+      controlsST,
       objectsWrapperHeight,
       sizeLocal[1],
       mLocalY,
@@ -2030,7 +2030,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * С нативным скроллбаром (`progressElement: true`) сам бегунок остаётся
        * частью элемента прокрутки, и нажатие по нему не должно превращаться в
        * перенос контента. Раньше ради этого перенос отключали целиком — то
-       * есть `content: true` рядом с `progressElement: true` просто не работал.
+       * есть `drag: true` рядом с `progressElement: true` просто не работал.
        * Отсекаем только полосу: clientWidth/clientHeight её не включают.
        */
       const isOnNativeBar = (event: PointerEvent) => {
@@ -2051,17 +2051,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // сложное условие...
       if (
-        progressTriggerLocal.content ||
-        (!progressTriggerLocal.content &&
+        controlsLocal.drag ||
+        (!controlsLocal.drag &&
           isTouchedRef.current &&
-          progressTriggerLocal.wheel)
+          controlsLocal.wheel)
       )
         scrollEl.addEventListener("pointerdown", handler);
 
       return () => {
         scrollEl.removeEventListener("pointerdown", handler);
       };
-    }, [progressTriggerST, onMouseOrTouchDown]);
+    }, [controlsST, onMouseOrTouchDown]);
 
     // установка слушателя нажатия на scrollContentRef
     React.useEffect(() => {
@@ -2384,8 +2384,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
       return (
         map[
-          progressTriggerLocal.wheel ||
-          (progressTriggerLocal.content && mode === "scroll")
+          controlsLocal.wheel ||
+          (controlsLocal.drag && mode === "scroll")
             ? direction
             : "hide"
         ] ?? "hidden"
@@ -2394,7 +2394,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsWrapperWidthFull,
       objectsWrapperHeightFull,
       sizeLocal,
-      progressTriggerST,
+      controlsST,
       direction,
     ]);
 
@@ -2412,7 +2412,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [edgeST, getEdgeOrArrowData, edgeElement, sizeST]);
 
     const arrowsJSX = React.useMemo(() => {
-      if (!progressTriggerLocal.arrows) return null;
+      if (!controlsLocal.arrows) return null;
 
       return getEdgeOrArrowData.map(({ positionType, visibility }) => (
         <Arrow
@@ -2423,7 +2423,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           handleArrow={handleArrowLocal}
         />
       ));
-    }, [progressTriggerST, getEdgeOrArrowData, arrowsLocal, handleArrowLocal]);
+    }, [controlsST, getEdgeOrArrowData, arrowsLocal, handleArrowLocal]);
 
     const scrollBarConfigs = () => {
       const isNotX = direction !== "x";
@@ -2473,7 +2473,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             edgeGap={barLocal.edgeGap[axis]}
             showOnHover={barLocal.showOnHover}
             size={sizeMinusEdge}
-            progressTrigger={[progressTriggerLocal, progressTriggerST]}
+            controls={[controlsLocal, controlsST]}
             scrollBarEvent={
               mode === "sliderMenu" ? smoothScrollLocal : onMoveScrollThumb
             }
@@ -2527,7 +2527,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
 
       if (
-        progressTriggerLocal.arrows &&
+        controlsLocal.arrows &&
         arrowsLocal.reserveSpace &&
         arrowsLocal.size
       ) {
@@ -2540,7 +2540,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       }
 
       return base;
-    }, [sizeLocal, progressTriggerST, arrowsLocal, direction]);
+    }, [sizeLocal, controlsST, arrowsLocal, direction]);
 
     const content = (
       <div
@@ -2583,7 +2583,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                     overflow: "hidden",
                   }
                 : { overflow: overflowStyleValue }),
-              ...(progressTriggerLocal.content && { cursor: "grab" }),
+              ...(controlsLocal.drag && { cursor: "grab" }),
             }}
           >
             {objectsSizeLocal[0] && objectsSizeLocal[1] ? (

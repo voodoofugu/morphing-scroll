@@ -10,7 +10,7 @@ import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
   NavigateEvent,
-  ProgressTriggerConfig,
+  ControlsConfig,
   WrapperConfig,
 } from "@morphing-scroll/src/types/types";
 
@@ -623,7 +623,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
           ? true
           : raw("<YourProgressElement />");
 
-  /** всё про бегунок теперь живёт одним объектом внутри progressTrigger */
+  /** всё про бегунок теперь живёт одним объектом внутри controls */
   const barSettings = {
     edgeGap: [settings.barEdgeGapX, settings.barEdgeGapY],
     reverse: [settings.barReverseX, settings.barReverseY],
@@ -637,14 +637,14 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       ? barElement
       : { element: barElement, ...barSettings };
 
-  const progressTrigger: CodeValue = {
+  const controls: CodeValue = {
     wheel: settings.wheel
       ? {
           changeDirection: settings.wheelChangeDirection,
           changeDirectionBtn: settings.wheelChangeDirectionBtn || "KeyX",
         }
       : false,
-    content: settings.contentDrag,
+    drag: settings.contentDrag,
     keys: settings.keys
       ? settings.keysMode === "pan"
         ? { mode: settings.keysMode, step: settings.keysStep }
@@ -719,7 +719,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       settings.edge ? raw("<YourEdgeElement />") : undefined,
       "value",
     ],
-    ["progressTrigger", progressTrigger, "value"],
+    ["controls", controls, "value"],
     ["render", render, "value"],
 
     ["suspending", settings.suspending || undefined, "boolean"],
@@ -1071,7 +1071,7 @@ function App() {
             setScrollTop(top);
           }
         : undefined,
-      progressTrigger: {
+      controls: {
         arrows: settings.arrows
           ? {
               reserveSpace: settings.arrowContentReduce,
@@ -1080,7 +1080,7 @@ function App() {
               size: settings.arrowSize,
             }
           : false,
-        content: settings.contentDrag,
+        drag: settings.contentDrag,
         keys: settings.keys
           ? { mode: settings.keysMode, step: settings.keysStep }
           : false,
@@ -1571,7 +1571,7 @@ function App() {
 
         <ControlGroup
           defaultOpen
-          hint="progressTrigger · edge"
+          hint="controls · edge"
           title="progress"
         >
           <SubGroup
@@ -1608,7 +1608,7 @@ function App() {
                 value={settings.contentDrag}
               />
             }
-            label="content"
+            label="drag"
           />
 
           <SubGroup

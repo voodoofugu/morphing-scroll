@@ -227,11 +227,11 @@ describe("MorphScroll — edge", () => {
 });
 
 describe("MorphScroll — arrows", () => {
-  it("renders arrow boxes when progressTrigger.arrows is set", () => {
+  it("renders arrow boxes when controls.arrows is set", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={{ arrows: true }}
+        controls={{ arrows: true }}
       >
         {items(10)}
       </MorphScroll>,
@@ -243,7 +243,7 @@ describe("MorphScroll — arrows", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={{ arrows: <span className="my-arrow">→</span> }}
+        controls={{ arrows: <span className="my-arrow">→</span> }}
       >
         {items(10)}
       </MorphScroll>,
@@ -257,7 +257,7 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={{
+        controls={{
           wheel: true,
           bar: <div className="my-thumb" />,
         }}
@@ -274,7 +274,7 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={{
+        controls={{
           wheel: true,
           bar: <div className="my-thumb" />,
         }}
@@ -289,7 +289,7 @@ describe("MorphScroll — scrollbar (progressElement)", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={{ wheel: true, bar: true }}
+        controls={{ wheel: true, bar: true }}
       >
         {items(10)}
       </MorphScroll>,
@@ -321,12 +321,12 @@ describe("MorphScroll — onRenderedKeysChange", () => {
   });
 });
 
-describe("MorphScroll — progressTrigger shorthand", () => {
+describe("MorphScroll — controls shorthand", () => {
   const boxes3 = () => items(10);
 
   it("accepts a single trigger name", () => {
     const { container } = render(
-      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger="arrows">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls="arrows">
         {boxes3()}
       </MorphScroll>,
     );
@@ -337,7 +337,7 @@ describe("MorphScroll — progressTrigger shorthand", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={["content", "arrows"]}
+        controls={["drag", "arrows"]}
       >
         {boxes3()}
       </MorphScroll>,
@@ -351,14 +351,14 @@ describe("MorphScroll — progressTrigger shorthand", () => {
 
   it("means the same as the object form", () => {
     const short = render(
-      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger="content">
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls="drag">
         {boxes3()}
       </MorphScroll>,
     );
     const long = render(
       <MorphScroll objects={{ size: OBJ }}
         size={SIZE}
-        progressTrigger={{ content: true }}
+        controls={{ drag: true }}
       >
         {boxes3()}
       </MorphScroll>,
@@ -372,11 +372,11 @@ describe("MorphScroll — progressTrigger shorthand", () => {
   it("warns when the config is empty", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
-      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger={[]}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls={[]}>
         {boxes3()}
       </MorphScroll>,
     );
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining("progressTrigger"));
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("controls"));
     spy.mockRestore();
   });
 });

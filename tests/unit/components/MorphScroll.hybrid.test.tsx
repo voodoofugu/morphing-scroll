@@ -27,7 +27,7 @@ const mount = (crossCount: number) => {
     <MorphScroll objects={{ size: 100, crossCount: crossCount }}
       size={[300, 300]}
       direction="hybrid"
-      progressTrigger={{ wheel: { changeDirection: true } }}
+      controls={{ wheel: { changeDirection: true } }}
     >
       {items(12)}
     </MorphScroll>,

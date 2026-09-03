@@ -105,7 +105,7 @@ describe("MorphScroll — bar.reverse", () => {
     render(
       <MorphScroll objects={{ size: 100 }}
         size={[100, 300]}
-        progressTrigger={{ wheel: true, bar: { element: <div />, reverse } }}
+        controls={{ wheel: true, bar: { element: <div />, reverse } }}
       >
         {items(10)}
       </MorphScroll>,

@@ -18,11 +18,11 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `scrollPosition={{ duration: 400 }}`                          | `duration={400}`                                           |
 | `edgeGradient="#fff"`                                         | `edge` + your CSS                                          |
 | `edgeGradient={{ color, size }}`                              | `edge` + your CSS, or `edge={<Node />}`                    |
-| `progressTrigger={{ progressElement: X }}`                    | `progressTrigger={{ bar: X }}`                             |
-| `progressReverse={true}`                                      | `progressTrigger={{ bar: { reverse: true } }}`             |
-| `scrollBarOnHover={true}`                                     | `progressTrigger={{ bar: { showOnHover: true } }}`         |
-| `scrollBarEdge={10}`                                          | `progressTrigger={{ bar: { trackGap: 10 } }}`              |
-| `thumbMinSize={24}`                                           | `progressTrigger={{ bar: { thumbMinSize: 24 } }}`          |
+| `controls={{ progressElement: X }}`                    | `controls={{ bar: X }}`                             |
+| `progressReverse={true}`                                      | `controls={{ bar: { reverse: true } }}`             |
+| `scrollBarOnHover={true}`                                     | `controls={{ bar: { showOnHover: true } }}`         |
+| `scrollBarEdge={10}`                                          | `controls={{ bar: { trackGap: 10 } }}`              |
+| `thumbMinSize={24}`                                           | `controls={{ bar: { thumbMinSize: 24 } }}`          |
 | `elementsAlign="center"`                                      | `objects={{ align: "center" }}`                             |
 | `elementsDirection="column"`                                  | `objects={{ direction: "column" }}`                         |
 | `emptyElements="clear"`                                       | `objects={{ empty: "clear" }}`                              |
@@ -38,14 +38,16 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `isScrolling`                                                 | `onScrollingChange`                                        |
 | `arrows: { contentReduce: true }`                             | `arrows: { reserveSpace: true }`                           |
 | `<IntersectionTracker visibleContent>`                        | `<IntersectionTracker>` — that is the only behaviour now   |
+| `progressTrigger={{ … }}`                                     | `controls={{ … }}`                                         |
+| `progressTrigger={{ content: true }}`                          | `controls={{ drag: true }}`                                |
 
-Everything about the scrollbar now lives inside `progressTrigger.bar`, the
+Everything about the scrollbar now lives inside `controls.bar`, the
 same way everything about the arrows already lived inside
-`progressTrigger.arrows`. Four top-level props are gone, and the names lose
+`controls.arrows`. Four top-level props are gone, and the names lose
 the prefixes they no longer need:
 
 ```tsx
-progressTrigger={{
+controls={{
   wheel: true,
   bar: {
     element: <Thumb />,
@@ -58,9 +60,9 @@ progressTrigger={{
 }}
 ```
 
-`progressTrigger` also accepts a name or a list of names —
-`"wheel"`, `["wheel", "content"]`, `"bar"` — which is the same as
-`{ wheel: true }` and `{ wheel: true, content: true }`. The object form is
+`controls` also accepts a name or a list of names —
+`"wheel"`, `["wheel", "drag"]`, `"bar"` — which is the same as
+`{ wheel: true }` and `{ wheel: true, drag: true }`. The object form is
 unchanged.
 
 #### IntersectionTracker only watches now
@@ -114,10 +116,17 @@ both become `{ mode: "fallback", fallback: <Empty /> }`.
 
 #### Names that described something else
 
-Four names pointed away from what they do:
+Six names pointed away from what they do:
 
+- `progressTrigger` was named after `progressElement`, which is itself gone.
+  What the prop holds is everything that can move the scroll — the wheel, the
+  keys, a drag, and the two it draws for you, the bar and the arrows. Some of
+  them are visible and some are not, but they are all controls, so it is
+  `controls`.
+- `controls.content` said what gets dragged; its neighbours all say what does
+  the dragging. It is `controls.drag`, next to `wheel` and `keys`.
 - `dragScroll` was not "scroll by dragging" — that is
-  `progressTrigger.content`. It is the autoscroll that runs near the edges
+  `controls.drag`. It is the autoscroll that runs near the edges
   while you drag an element across the list, so it is `autoScrollOnDrag`.
 - `edgeGradient` no longer draws a gradient; it marks the cut-off edges and
   reports them. It is `edge`, next to `bar` and `arrows`.
@@ -149,7 +158,7 @@ an **object** everywhere now — the word `.ms-object-box` already used — and
 
 Six props described the same thing from different sides, all wearing the
 prefix that said so. They are one group now, the way `wrapper` and
-`progressTrigger` already were:
+`controls` already were:
 
 ```tsx
 objects={{ size: 100, gap: 10 }}
@@ -260,7 +269,7 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Added
 
-- `progressTrigger.keys` — the arrow keys move the scroll while it has
+- `controls.keys` — the arrow keys move the scroll while it has
   focus. `mode: "step"` turns a page and reports through `onNavigate` as
   `"keys"`; `mode: "pan"` nudges by `step` pixels; `mode: "focus"` moves
   focus to the neighbouring object and the scroll follows it, picking the
@@ -298,12 +307,12 @@ themselves are no longer transformed and can be positioned from CSS.
   string and comes back out of `onNavigate` unchanged, which is how a
   gamepad, a remote or your own hotkeys reach the scroll without the library
   growing a driver for each of them.
-- `progressTrigger.bar` accepts an object with everything about the
+- `controls.bar` accepts an object with everything about the
   scrollbar in it. `edgeGap` is new: the distance from the side the bar sits
   on, negative pushes it past the edge.
 - Public types: `MorphScrollProps`, `ResizeTrackerProps`,
   `IntersectionTrackerProps`, `MorphScrollHandle`, `ScrollTarget`,
-  `ProgressTriggerName`, `ProgressTriggerConfig`, `WheelConfig`,
+  `ControlName`, `ControlsConfig`, `WheelConfig`,
   `KeysConfig`, `BarConfig`, `ArrowsConfig`, `ObjectsConfig`,
   `WrapperConfig`, `EmptyObjectsConfig`, `NavigateEvent`, `NavigateReason`,
   `Pair`.
@@ -311,10 +320,10 @@ themselves are no longer transformed and can be positioned from CSS.
   `Pair<number>`, and the loose `boolean[]` / `(number | "full")[]` forms
   are gone — an axis pair no longer accepts an array of any length, so
   `wrapperMinSize={[1, 2, 3, 4]}` stops compiling.
-- `ProgressTriggerConfig` is written out instead of being subtracted from
+- `ControlsConfig` is written out instead of being subtracted from
   the prop with `Exclude<>`, so its shape is readable and its halves have
   names.
-- `progressTrigger` shorthand.
+- `controls` shorthand.
 - `ms-scrolling` on the root while a scroll is running.
 
 ### Fixed
@@ -328,7 +337,7 @@ themselves are no longer transformed and can be positioned from CSS.
   a stray pointer no longer scrolls a list nobody is touching.
 - The document cursor lock is reference counted, so unmounting mid-drag no
   longer leaves `cursor: grabbing` on the page forever.
-- `progressTrigger={{ content: true, bar: true }}` drags the content again;
+- `controls={{ drag: true, bar: true }}` drags the content again;
   only the native scrollbar itself is excluded.
 - `objects.size="firstChild"` with `render` renders at all.
 - A scroll inside a scroll no longer moves both at once.
@@ -393,7 +402,7 @@ themselves are no longer transformed and can be positioned from CSS.
   settle, as `"scroll"`. An arrow pressed again mid-flight now counts its step
   from where the scroll is heading, so a burst of presses turns a page each
   instead of standing still.
-- `progressTrigger.content` drags from buttons and links with a mouse too.
+- `controls.drag` drags from buttons and links with a mouse too.
   It stays a click below 2px of movement, and the native drag of links and
   images is suppressed while the gesture runs. Text fields and anything
   carrying its own drag are still left alone.

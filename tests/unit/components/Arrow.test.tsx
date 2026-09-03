@@ -12,7 +12,7 @@ const items = (n: number) =>
 const arrows = (extra: Record<string, unknown> = {}) => (
   <MorphScroll objects={{ size: OBJ }}
     size={SIZE}
-    progressTrigger={{ arrows: { element: <i />, size: 40, ...extra } }}
+    controls={{ arrows: { element: <i />, size: 40, ...extra } }}
   >
     {items(20)}
   </MorphScroll>
@@ -50,7 +50,7 @@ describe("slider elements", () => {
       <MorphScroll objects={{ size: 300 }}
         size={SIZE}
         mode="sliderMenu"
-        progressTrigger={{ wheel: true, bar: <span /> }}
+        controls={{ wheel: true, bar: <span /> }}
       >
         {items(6)}
       </MorphScroll>,
@@ -66,7 +66,7 @@ describe("arrow and edge layout", () => {
       size={[300, 300]}
       direction="hybrid"
       edge={<i className="fade" />}
-      progressTrigger={{ arrows: { element: <b className="tip" />, size: 40 } }}
+      controls={{ arrows: { element: <b className="tip" />, size: 40 } }}
     >
       {items(20)}
     </MorphScroll>
@@ -138,7 +138,7 @@ describe("Arrow — sizing and cursor", () => {
   const withArrows = (extra: Record<string, unknown> = {}) => (
     <MorphScroll objects={{ size: OBJ }}
       size={SIZE}
-      progressTrigger={{ arrows: { element: <i />, size: 40, ...extra } }}
+      controls={{ arrows: { element: <i />, size: 40, ...extra } }}
     >
       {items(20)}
     </MorphScroll>
@@ -209,7 +209,7 @@ describe("a changed element reaches the DOM", () => {
     <MorphScroll objects={{ size: OBJ }}
       size={SIZE}
       edge={<u>{label}</u>}
-      progressTrigger={{ arrows: { element: <i>{label}</i>, size: 40 } }}
+      controls={{ arrows: { element: <i>{label}</i>, size: 40 } }}
     >
       {items(20)}
     </MorphScroll>

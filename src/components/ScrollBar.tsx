@@ -2,7 +2,7 @@ import React from "react";
 import type {
   MorphScroll,
   NavigateReason,
-  ProgressTriggerConfig,
+  ControlsConfig,
   Vec2,
 } from "../types/types";
 
@@ -41,7 +41,7 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
     y: number;
   }>;
   direction: "x" | "y" | "hybrid";
-  progressTrigger: [ProgressTriggerConfig, number];
+  controls: [ControlsConfig, number];
   maxScrollSize: Vec2;
 };
 
@@ -53,7 +53,7 @@ const ScrollBar = ({
   edgeGap,
   showOnHover: scrollBarOnHover,
   size,
-  progressTrigger,
+  controls,
   scrollBarEvent,
   thumbSize,
   thumbSpace,
@@ -120,7 +120,7 @@ const ScrollBar = ({
   }, [
     objLengthPerSize,
     mode,
-    progressTrigger[1], // только для memo
+    controls[1], // только для memo
     duration,
     sliderCheckLocal,
     markNavigate,
@@ -154,7 +154,7 @@ const ScrollBar = ({
   // - effects -
   React.useEffect(() => {
     // добавление прокрутки по колесом по thumb
-    if (isTouched || !progressTrigger[0].wheel) return; // при touch устроиствах прокрутку не используем
+    if (isTouched || !controls[0].wheel) return; // при touch устроиствах прокрутку не используем
 
     const el = scrollBarRef.current;
     const scrollElem = scrollEl.current;
@@ -180,7 +180,7 @@ const ScrollBar = ({
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [dataDirection, isTouched, progressTrigger[1]]);
+  }, [dataDirection, isTouched, controls[1]]);
 
   React.useEffect(() => {
     // добавление клика на scrollBar или thumb

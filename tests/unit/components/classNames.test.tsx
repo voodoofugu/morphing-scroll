@@ -66,9 +66,9 @@ describe("class names", () => {
         direction="hybrid"
         mode="sliderMenu"
         edge
-        progressTrigger={{
+        controls={{
           wheel: true,
-          content: true,
+          drag: true,
           bar: { element: <span />, showOnHover: true },
           arrows: { element: <span />, size: 40 },
         }}
@@ -89,7 +89,7 @@ describe("class names", () => {
         size={[300, 300]}
         direction="hybrid"
         edge
-        progressTrigger={{ arrows: { element: <span />, size: 40 } }}
+        controls={{ arrows: { element: <span />, size: 40 } }}
       >
         {items(10)}
       </MorphScroll>,

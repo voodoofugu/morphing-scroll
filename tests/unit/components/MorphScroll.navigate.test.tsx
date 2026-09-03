@@ -41,7 +41,7 @@ describe("MorphScroll — onNavigate", () => {
     const onNavigate = vi.fn();
     const { container, el } = mount({
       onNavigate,
-      progressTrigger: { arrows: { element: <b /> } },
+      controls: { arrows: { element: <b /> } },
     });
 
     const down = container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom")!;
@@ -75,7 +75,7 @@ describe("MorphScroll — onNavigate", () => {
     const onNavigate = vi.fn();
     const { container } = mount({
       onNavigate,
-      progressTrigger: { arrows: { element: <b /> } },
+      controls: { arrows: { element: <b /> } },
     });
 
     // пока диапазон не измерен, позиция ставится сразу и лететь неоткуда
@@ -101,7 +101,7 @@ describe("MorphScroll — onNavigate", () => {
     const onNavigate = vi.fn();
     const { container } = mount({
       onNavigate,
-      progressTrigger: { arrows: { element: <b /> } },
+      controls: { arrows: { element: <b /> } },
     });
 
     // вверх с нулевой позиции и без loop — движения нет
@@ -129,7 +129,7 @@ describe("MorphScroll — onNavigate", () => {
     const { container } = mount({
       onNavigate,
       mode: "slider",
-      progressTrigger: { bar: <i /> },
+      controls: { bar: <i /> },
     });
 
     await settled(container);
@@ -141,7 +141,7 @@ describe("MorphScroll — onNavigate", () => {
     const { container, el } = mount({
       onNavigate,
       mode: "slider",
-      progressTrigger: { bar: <i /> },
+      controls: { bar: <i /> },
     });
     await settled(container);
 

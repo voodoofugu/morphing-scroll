@@ -64,7 +64,7 @@ describe("MorphScroll — content drag", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("drags the content", () => {
-    const { el } = mount({ progressTrigger: { content: true } });
+    const { el } = mount({ controls: { drag: true } });
     dragUp(el);
     expect(el.scrollTop).toBeGreaterThan(0);
   });
@@ -73,7 +73,7 @@ describe("MorphScroll — content drag", () => {
     // bar: true means "use the browser's own scrollbar" — it says
     // nothing about whether the content can be grabbed
     const { el } = mount({
-      progressTrigger: { content: true, bar: true },
+      controls: { drag: true, bar: true },
     });
     dragUp(el);
     expect(el.scrollTop).toBeGreaterThan(0);
@@ -81,7 +81,7 @@ describe("MorphScroll — content drag", () => {
 
   it("still drags when a custom thumb is in use", () => {
     const { el } = mount({
-      progressTrigger: { content: true, bar: <i /> },
+      controls: { drag: true, bar: <i /> },
     });
     dragUp(el);
     expect(el.scrollTop).toBeGreaterThan(0);
@@ -101,7 +101,7 @@ describe("MorphScroll — a menu built out of buttons", () => {
   it("drags from a button with a mouse", () => {
     setTouchDevice(false);
     const { el, container } = mount(
-      { progressTrigger: { content: true } },
+      { controls: { drag: true } },
       buttons(),
     );
 
@@ -120,7 +120,7 @@ describe("MorphScroll — a menu built out of buttons", () => {
     // тап по пункту меню обязан остаться тапом: до 2px это ещё не прокрутка
     setTouchDevice(false);
     const { el, container } = mount(
-      { progressTrigger: { content: true } },
+      { controls: { drag: true } },
       buttons(),
     );
 
@@ -140,7 +140,7 @@ describe("MorphScroll — a menu built out of links", () => {
 
   it("scrolls with a finger even though every item is an anchor", () => {
     setTouchDevice(true);
-    const { el, container } = mount({ progressTrigger: { content: true } }, links());
+    const { el, container } = mount({ controls: { drag: true } }, links());
 
     const anchor = container.querySelector<HTMLElement>("a")!;
     drag(anchor, [
@@ -156,7 +156,7 @@ describe("MorphScroll — a menu built out of links", () => {
   it("scrolls with a mouse from an anchor too", () => {
     // мышь была исключением, и меню из кнопок просто не таскалось
     setTouchDevice(false);
-    const { el, container } = mount({ progressTrigger: { content: true } }, links());
+    const { el, container } = mount({ controls: { drag: true } }, links());
 
     const anchor = container.querySelector<HTMLElement>("a")!;
     drag(anchor, [
@@ -171,7 +171,7 @@ describe("MorphScroll — a menu built out of links", () => {
 
   it("keeps the browser from carrying the link away mid-gesture", () => {
     setTouchDevice(false);
-    const { container } = mount({ progressTrigger: { content: true } }, links());
+    const { container } = mount({ controls: { drag: true } }, links());
 
     const anchor = container.querySelector<HTMLElement>("a")!;
     drag(anchor, [
@@ -195,7 +195,7 @@ describe("MorphScroll — the native scrollbar gutter", () => {
 
   it("does not turn a press on the native bar into a content drag", () => {
     const { el } = mount({
-      progressTrigger: { content: true, bar: true },
+      controls: { drag: true, bar: true },
     });
     // the element is 100 wide including a 15px native bar
     stubLayout(el, {

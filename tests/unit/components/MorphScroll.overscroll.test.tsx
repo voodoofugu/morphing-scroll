@@ -24,7 +24,7 @@ const mount = (realScrollWidth: number) => {
     <MorphScroll objects={{ size: OBJ }}
       size={[VIEW, 100]}
       direction="x"
-      progressTrigger={{ content: true }}
+      controls={{ drag: true }}
     >
       {items()}
     </MorphScroll>,

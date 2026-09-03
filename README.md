@@ -43,7 +43,7 @@ If you prefer, you can also import the entire library as a single object using t
 import Morph from "morphing-scroll";
 ```
 
-Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objects` and `progressTrigger` props, which are explained below.
+Start using the `MorphScroll` component by defining the required `size` prop. For better precision and control, it's recommended to begin by understanding the `objects` and `controls` props, which are explained below.
 
 > **✦ Note:**
 >
@@ -51,7 +51,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements.
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
-> - Write objects, arrays and elements straight into the props — `progressTrigger={{ wheel: true }}`, `gap={[10, 20]}`, `progressTrigger={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
+> - Write objects, arrays and elements straight into the props — `controls={{ wheel: true }}`, `gap={[10, 20]}`, `controls={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
 > - With DevTools open the scroll can feel slower: the customization keeps the DOM changing, and the browser spends extra work reporting every change to the panel. It is an artefact of being watched — with DevTools closed, which is how the page is actually used, none of that cost exists.
 
 <h2></h2>
@@ -113,7 +113,7 @@ mode: "slider"; // or "scroll" | "sliderMenu"
 "scroll"<br />
 <br />
 <b>Description:</b><em><br />
-defines how the provided <code>bar</code> behaves within <code>progressTrigger</code> and how you interact with it.<br />
+defines how the provided <code>bar</code> behaves within <code>controls</code> and how you interact with it.<br />
 <br />
 <code><b>scroll</b></code>:<br />
 the default value and represents a standard scrollbar.<br />
@@ -297,7 +297,7 @@ moves focus to the neighbouring object and brings it into view — the same move
 any string, handed back untouched by <code>onNavigate</code>. This is how an input the library knows nothing about gets connected: it does not poll gamepads, listen for remotes or own your hotkeys — your code decides what a button means, and the reason carries that meaning through.<br />
 </em>
 
-<em>A keyboard needs none of this — <code>progressTrigger={{ keys: true }}</code> and the arrow keys work. A gamepad has no events at all, only a snapshot you read per frame, so it needs a loop of your own. The whole of it is fifteen lines:</em>
+<em>A keyboard needs none of this — <code>controls={{ keys: true }}</code> and the arrow keys work. A gamepad has no events at all, only a snapshot you read per frame, so it needs a loop of your own. The whole of it is fifteen lines:</em>
 
 ```tsx
 const scroll = React.useRef<MorphScrollHandle>(null);
@@ -850,25 +850,25 @@ where the wrapper sits when it is smaller than <code>size</code>. One value alig
 
 <h2></h2>
 
-###### **— PROGRESS —**
+###### **— CONTROLS —**
 
-<details><summary><b><code>progressTrigger</code></b></summary><br /><ul><div>
+<details><summary><b><code>controls</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 <ul>
   <li><b>Shorthand</b>:<br />
 
 ```tsx
-progressTrigger: "wheel"; // or ["wheel", "content", "arrows", "bar"]
+controls: "wheel"; // or ["wheel", "drag", "arrows", "bar"]
 ```
 
   </li>
   <li><b>Simple</b>:<br />
   
 ```tsx
-progressTrigger: {
+controls: {
   wheel: true,
-  content: true,
+  drag: true,
   bar: true, // or <ScrollThumbComponent />
   arrows: true, // or <ArrowComponent />
 }
@@ -878,7 +878,7 @@ progressTrigger: {
   <li><b>Advanced</b>:<br />
 
 ```tsx
-progressTrigger: {
+controls: {
   wheel: {
     // if direction="hybrid"
     changeDirection: true,
@@ -901,9 +901,9 @@ progressTrigger: {
 { wheel: true }<br />
 <br />
 <b>Description:</b><em><br />
-this is one of the most important properties, allowing you to define how users interact with the progress bar and customize its appearance.<br />
+everything that can move the scroll lives here: the wheel, the keys and a drag, which are only switched on or off, and the bar and the arrows, which the library also draws for you.<br />
 <br />
-A name, or an array of names, is shorthand for switching those triggers on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when a trigger needs settings, or to pass an element.<br /></em>
+A name, or an array of names, is shorthand for switching those on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when one needs settings, or to pass an element.<br /></em>
 
 <br />
 
@@ -936,7 +936,7 @@ the wheel switches the axis it scrolls instead of always taking the same one.<br
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} progressTrigger={{ wheel: { changeDirection: true } }}>
+<MorphScroll {...props} controls={{ wheel: { changeDirection: true } }}>
   {children}
 </MorphScroll>
 ```
@@ -963,7 +963,7 @@ a held key switches the axis instead. Pass an empty string to disable it. <a hre
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ wheel: { changeDirectionBtn: "KeyZ" } }}
+  controls={{ wheel: { changeDirectionBtn: "KeyZ" } }}
 >
   {children}
 </MorphScroll>
@@ -1016,7 +1016,7 @@ Focus lands on the <code>.ms-object-box</code> itself, so the highlight is the w
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} progressTrigger={{ keys: { mode: "focus" } }}>
+<MorphScroll {...props} controls={{ keys: { mode: "focus" } }}>
   {children}
 </MorphScroll>
 ```
@@ -1041,7 +1041,7 @@ how far one press nudges in <b>"pan"</b>.<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} progressTrigger={{ keys: { mode: "pan", step: 80 } }}>
+<MorphScroll {...props} controls={{ keys: { mode: "pan", step: 80 } }}>
   {children}
 </MorphScroll>
 ```
@@ -1052,11 +1052,11 @@ how far one press nudges in <b>"pan"</b>.<br />
 
 <br />
 
-<details><summary><code><b>content</b></code></summary><br /><ul><div>
+<details><summary><code><b>drag</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-content: true;
+drag: true;
 ```
 
 <b>Description:</b><em><br />
@@ -1076,12 +1076,12 @@ The drag does not start only where the element has a drag or a caret of its own:
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} progressTrigger={{ content: true }}>
+<MorphScroll {...props} controls={{ drag: true }}>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_content.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_drag.png)
 
 </div></ul></details>
 
@@ -1131,7 +1131,7 @@ the node the bar is built from. What it becomes depends on <code>mode</code>: in
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} progressTrigger={{ bar: <ScrollThumbComponent /> }}>
+<MorphScroll {...props} controls={{ bar: <ScrollThumbComponent /> }}>
   {children}
 </MorphScroll>
 ```
@@ -1155,13 +1155,13 @@ distance between the bar and the side it sits on. A negative value pushes it pas
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ bar: { element: <Thumb />, edgeGap: 8 } }}
+  controls={{ bar: { element: <Thumb />, edgeGap: 8 } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_edgeGap.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_bar_edgeGap.png)
 
 </div></ul></details>
 
@@ -1182,13 +1182,13 @@ shortens the track by this much at each of its two ends. Not to be confused with
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ bar: { element: <Thumb />, trackGap: 10 } }}
+  controls={{ bar: { element: <Thumb />, trackGap: 10 } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_trackGap.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_bar_trackGap.png)
 
 </div></ul></details>
 
@@ -1209,13 +1209,13 @@ put the bar on the opposite side.<br />
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ bar: { element: <Thumb />, reverse: true } }}
+  controls={{ bar: { element: <Thumb />, reverse: true } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_reverse.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_bar_reverse.png)
 
 </div></ul></details>
 
@@ -1256,13 +1256,13 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ bar: { element: <Thumb />, showOnHover: true } }}
+  controls={{ bar: { element: <Thumb />, showOnHover: true } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_showOnHover.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_bar_showOnHover.png)
 
 </div></ul></details>
 
@@ -1283,13 +1283,13 @@ the thumb never shrinks below this.<br />
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ bar: { element: <Thumb />, thumbMinSize: 24 } }}
+  controls={{ bar: { element: <Thumb />, thumbMinSize: 24 } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_bar_thumbMinSize.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_bar_thumbMinSize.png)
 
 </div></ul></details>
 
@@ -1327,13 +1327,13 @@ the icon the arrows are made of. Draw it pointing <b>right</b>: that is the one 
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ arrows: { element: <ArrowComponent /> } }}
+  controls={{ arrows: { element: <ArrowComponent /> } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_arrows_element.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_arrows_element.png)
 
 </div></ul></details>
 
@@ -1357,13 +1357,13 @@ thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the el
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ arrows: { element: <Arrow />, size: 60 } }}
+  controls={{ arrows: { element: <Arrow />, size: 60 } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_arrows_size.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_arrows_size.png)
 
 </div></ul></details>
 
@@ -1384,13 +1384,13 @@ the arrows take their strip out of the content instead of lying over it, so noth
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ arrows: { element: <Arrow />, reserveSpace: true } }}
+  controls={{ arrows: { element: <Arrow />, reserveSpace: true } }}
 >
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-progressTrigger_arrows_reserveSpace.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_arrows_reserveSpace.png)
 
 </div></ul></details>
 
@@ -1411,7 +1411,7 @@ the last step wraps around to the other end, so the arrows never run out.<br />
 ```tsx
 <MorphScroll
   {...props}
-  progressTrigger={{ arrows: { element: <Arrow />, loop: true } }}
+  controls={{ arrows: { element: <Arrow />, loop: true } }}
 >
   {children}
 </MorphScroll>

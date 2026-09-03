@@ -104,13 +104,13 @@ describe("MorphScroll isolation — scheduled tasks", () => {
       <>
         <MorphScroll objects={{ size: OBJ }}
           size={SIZE}
-          progressTrigger={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
+          controls={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
         >
           {items(20, "a")}
         </MorphScroll>
         <MorphScroll objects={{ size: OBJ }}
           size={SIZE}
-          progressTrigger={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
+          controls={{ wheel: true, bar: { element: <div />, showOnHover: true } }}
         >
           {items(20, "b")}
         </MorphScroll>
@@ -150,7 +150,7 @@ describe("MorphScroll isolation — pointer gestures", () => {
   });
 
   it("does not cancel an in-flight drag when another instance starts one", () => {
-    const { a, b } = renderPair({ progressTrigger: { content: true } });
+    const { a, b } = renderPair({ controls: { drag: true } });
 
     // A starts dragging and moves.
     drag(a, [
@@ -169,7 +169,7 @@ describe("MorphScroll isolation — pointer gestures", () => {
   });
 
   it("keeps gesture accumulators separate per instance", () => {
-    const { a, b } = renderPair({ progressTrigger: { content: true } });
+    const { a, b } = renderPair({ controls: { drag: true } });
 
     // A drags 100px worth of content.
     drag(a, [
@@ -199,7 +199,7 @@ describe("MorphScroll isolation — concurrent pointers", () => {
   });
 
   it("keeps two simultaneous drags independent", () => {
-    const { a, b } = renderPair({ progressTrigger: { content: true } });
+    const { a, b } = renderPair({ controls: { drag: true } });
 
     // two fingers, one on each list, moving different distances
     pointer("pointerdown", 50, 250, a, 1);
@@ -214,7 +214,7 @@ describe("MorphScroll isolation — concurrent pointers", () => {
   });
 
   it("lifting one finger does not end the other gesture", () => {
-    const { a, b } = renderPair({ progressTrigger: { content: true } });
+    const { a, b } = renderPair({ controls: { drag: true } });
 
     pointer("pointerdown", 50, 250, a, 1);
     pointer("pointerdown", 50, 250, b, 2);
@@ -228,7 +228,7 @@ describe("MorphScroll isolation — concurrent pointers", () => {
   });
 
   it("ignores pointermove from a pointer that never pressed down", () => {
-    const { a } = renderPair({ progressTrigger: { content: true } });
+    const { a } = renderPair({ controls: { drag: true } });
 
     pointer("pointerdown", 50, 250, a, 1);
     pointer("pointermove", 50, 240, document, 1);
@@ -243,7 +243,7 @@ describe("MorphScroll isolation — document cursor lock", () => {
 
   it("releases the cursor lock when the scroll unmounts mid-drag", () => {
     const { container, unmount } = render(
-      <MorphScroll objects={{ size: OBJ }} size={SIZE} progressTrigger={{ content: true }}>
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls={{ drag: true }}>
         {items(20, "a")}
       </MorphScroll>,
     );
@@ -263,7 +263,7 @@ describe("MorphScroll isolation — document cursor lock", () => {
   });
 
   it("keeps the cursor lock while another instance is still dragging", () => {
-    const { a, b } = renderPair({ progressTrigger: { content: true } });
+    const { a, b } = renderPair({ controls: { drag: true } });
 
     pointer("pointerdown", 50, 250, a, 1);
     pointer("pointerdown", 50, 250, b, 2);
@@ -281,14 +281,14 @@ describe("MorphScroll isolation — document cursor lock", () => {
       <>
         <MorphScroll objects={{ size: OBJ }}
           size={SIZE}
-          progressTrigger={{ content: true }}
+          controls={{ drag: true }}
         >
           {items(20, "a")}
         </MorphScroll>
         {show ? (
           <MorphScroll objects={{ size: OBJ }}
             size={SIZE}
-            progressTrigger={{ content: true }}
+            controls={{ drag: true }}
           >
             {items(20, "b")}
           </MorphScroll>

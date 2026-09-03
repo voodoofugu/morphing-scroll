@@ -1,7 +1,7 @@
 const CONST = {
   WRAP_ATR: "ms-wrap-id", // Attribute for identifying scroll wrappers
   BAR_AXIS_ATR: "ms-direction", // which axis a bar belongs to
-  BAR_VISIBILITY_VAR: "--ms-bar-visibility", // 0/1 while progressTrigger.bar.showOnHover is on
+  BAR_VISIBILITY_VAR: "--ms-bar-visibility", // 0/1 while controls.bar.showOnHover is on
   EDGE_VISIBILITY_VAR: "--ms-edge-visibility", // 0/1 when content is cut off at an edge
   CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while render.trackVisibility is on
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running

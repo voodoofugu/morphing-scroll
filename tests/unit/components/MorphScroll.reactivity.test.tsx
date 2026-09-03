@@ -77,7 +77,7 @@ const reacts = (
 
 describe("MorphScroll — пропсы применяются сразу", () => {
   reacts("className", {}, { className: "next" });
-  reacts("mode", { progressTrigger: { bar: <i /> } }, { mode: "slider", progressTrigger: { bar: <i /> } });
+  reacts("mode", { controls: { bar: <i /> } }, { mode: "slider", controls: { bar: <i /> } });
   reacts("direction", {}, { direction: "x" });
   reacts("size", { size: [300, 300] }, { size: [300, 500] });
   reacts("objects.size", {}, { objects: { size: 40 } });
@@ -95,11 +95,11 @@ describe("MorphScroll — пропсы применяются сразу", () =>
   reacts("wrapper.minSize", {}, { wrapper: { minSize: "full" } });
   reacts("objects.align", { objects: { size: 100, crossCount: 3 } }, { objects: { size: 100, crossCount: 3, align: "center" } });
   reacts("objects.direction", { objects: { size: 100, crossCount: 3 } }, { objects: { size: 100, crossCount: 3, direction: "column" } });
-  reacts("progressTrigger.bar", {}, { progressTrigger: { bar: <i className="thumb" /> } });
+  reacts("controls.bar", {}, { controls: { bar: <i className="thumb" /> } });
   reacts(
-    "progressTrigger.arrows",
+    "controls.arrows",
     {},
-    { progressTrigger: { wheel: true, arrows: { element: <i /> } } },
+    { controls: { wheel: true, arrows: { element: <i /> } } },
   );
   reacts("edge", {}, { edge: <i className="fade" /> });
   reacts("render", {}, { render: "lazy" });
@@ -128,7 +128,7 @@ describe("MorphScroll — свежий объект с тем же содерж�
       <MorphScroll objects={{ size: 100, gap: [10, 20] }}
         size={[300, 300]}
         wrapper={{ margin: 8 }}
-        progressTrigger={{ wheel: true, bar: <i /> }}
+        controls={{ wheel: true, bar: <i /> }}
       >
         {items(6)}
       </MorphScroll>
@@ -148,7 +148,7 @@ describe("MorphScroll — свежий объект с тем же содерж�
       <MorphScroll objects={{ size: 100, gap: [10, 20] }}
         size={[300, 300]}
         wrapper={{ margin: 8 }}
-        progressTrigger={{
+        controls={{
           wheel: { changeDirectionBtn: "KeyZ" },
           bar: <i />,
         }}
