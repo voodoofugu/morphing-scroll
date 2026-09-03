@@ -507,8 +507,15 @@ const compactFill = (
  * то ради посадки порядок отдаёт, а тут строка остаётся строкой, просто без
  * пустот под ней.
  *
- * Идём сверху вниз: тот, до кого поднимаем, уже на своём месте. Соседи по
- * одной линии друг друга не держат — они не пересекаются поперёк.
+ * Выше предыдущего не поднимаем никогда, даже когда место там есть: широкий
+ * объект упирается в высокого соседа сверху, а следующий за ним узкий влезает
+ * под низкого — и обгоняет его. На экране это читается как дырка на месте
+ * следующего по счёту и он же сам, всплывший где-то выше. Порядок важнее
+ * закрытой дырки, поэтому подъём ограничен тем, докуда поднялся предыдущий.
+ *
+ * Идём по порядку укладки: он же и порядок сверху вниз, раз выше предыдущего
+ * никто не встаёт. Значит тот, до кого поднимаем, уже на своём месте. Соседи
+ * по одной линии друг друга не держат — они не пересекаются поперёк.
  */
 const compactMain = (
   items: Placed[],
@@ -520,23 +527,22 @@ const compactMain = (
 
   const sky = createSkyline(crossSize);
 
-  const order = items
-    .filter((item) => crossEnd(item, isX) > crossStart(item, isX))
-    .sort(
-      (one, two) =>
-        mainStart(one, isX) - mainStart(two, isX) ||
-        crossStart(one, isX) - crossStart(two, isX),
-    );
+  let floor = 0;
 
-  for (const item of order) {
+  for (const item of items) {
     const at = crossStart(item, isX);
     const span = crossEnd(item, isX) - at;
+
+    if (span <= 0) continue;
+
     const along = mainEnd(item, isX) - mainStart(item, isX);
-
     const rest = sky.restingAt(at, span);
-    // не влез в силуэт — трогать не за что, пусть стоит где стоял
-    const to = rest === null ? mainStart(item, isX) : Math.min(mainStart(item, isX), rest);
+    // не влез в силуэт — поднимать не за что, пусть стоит где стоял
+    const risen =
+      rest === null ? mainStart(item, isX) : Math.min(mainStart(item, isX), rest);
+    const to = Math.max(floor, risen);
 
+    floor = to;
     moveMain(item, to, isX);
     sky.raise(at, span, to + along + gapMain);
   }

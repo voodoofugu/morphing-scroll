@@ -595,7 +595,8 @@ export type MorphScroll = {
    * - *a line is as thick as the thickest object in it, and when that
    *   thickness is the objects' own too — both sides handed over, `crossCount`
    *   ending the line — the shorter ones do not hang under it: each rises into
-   *   the room above it, and the order stays line by line*
+   *   the room above it, but never past the object before it, so top to bottom
+   *   the screen stays in the order of the list*
    * - *both sides — **fill**: every object takes the highest place it fits
    *   into, so nothing is left hanging under a short neighbour. Order gives
    *   way to the fit — an object further down the list can end up higher on
