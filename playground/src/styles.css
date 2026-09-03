@@ -133,6 +133,12 @@ input[type="color"] {
   padding: 5px 8px;
 }
 
+/* на время перетаскивания карточки: текст под курсором иначе выделяется */
+body.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* объект, который сейчас несут: приподнят и не мешает попасть по соседям */
 .demo-item.is-dragging {
   z-index: 2;

@@ -1093,6 +1093,16 @@ function App() {
   const onGrab = React.useCallback((id: number, event: React.PointerEvent) => {
     if (event.button !== 0) return;
 
+    /*
+     * Свой жест, свои последствия: библиотека блокирует выделение текста на
+     * время СВОЕГО перетаскивания (тот же приём, что и здесь — общий стиль
+     * на время жеста), но об этом жесте она не знает и знать не должна —
+     * `ms-custom-drag` просит её не лезть в него, не убирает браузерное
+     * выделение сама.
+     */
+    event.preventDefault();
+    document.body.classList.add("no-select");
+
     const from = event.currentTarget as HTMLElement;
     from.setPointerCapture(event.pointerId);
     setDragging(id);
@@ -1127,6 +1137,7 @@ function App() {
 
     const drop = () => {
       setDragging(null);
+      document.body.classList.remove("no-select");
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", drop);
       document.removeEventListener("pointercancel", drop);
