@@ -70,10 +70,16 @@ const offsetOf = (align: PackArgs["align"], free: number) => {
   return align === "center" ? Math.round(free / 2) : free;
 };
 
-const shift = (items: Placed[], by: number, isX: boolean, from = 0) => {
+const shift = (
+  items: Placed[],
+  by: number,
+  isX: boolean,
+  from = 0,
+  to = items.length,
+) => {
   if (!by) return;
 
-  for (let i = from; i < items.length; i++) {
+  for (let i = from; i < to; i++) {
     const item = items[i];
 
     if (isX) {
@@ -178,15 +184,14 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
 
   /*
    * Строку закрываем, когда она дособралась: раньше её длина неизвестна.
-   *
-   * Двигает `align` каждую строку на её собственный остаток: два небольших
-   * объекта оставляют справа много места, и закрыть его — как раз его работа.
-   * Строка, занявшая всю ширину, не двигается: двигать нечего.
+   * Выравнивать сразу нельзя — не с чем сравнивать.
    */
+  const lines: { from: number; to: number; used: number }[] = [];
+
   const closeLine = () => {
     const used = cursor > 0 ? cursor - gapCross : 0;
 
-    shift(items, offsetOf(a.align, crossLimit - used), isX, lineFrom);
+    lines.push({ from: lineFrom, to: items.length, used });
     widest = Math.max(widest, used);
   };
 
@@ -242,6 +247,15 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   }
 
   closeLine();
+
+  /*
+   * Отсчёт — самая широкая строка, а не всё окно: она и есть ширина
+   * содержимого. Ей двигаться некуда, а остальные закрывают то, чего им до
+   * неё не хватило. Мерить от окна значило бы двигать и её тоже.
+   */
+  for (const line of lines)
+    shift(items, offsetOf(a.align, widest - line.used), isX, line.from, line.to);
+
   const alongSize = lineStart + lineThick;
 
   return {

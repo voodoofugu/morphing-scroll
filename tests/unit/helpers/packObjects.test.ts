@@ -162,10 +162,10 @@ describe("packObjects: flow", () => {
 
 describe("packObjects: align", () => {
   /*
-   * Каждая строка закрывает свой остаток: два небольших объекта оставляют
-   * справа много места, и это как раз то, что `align` должен убрать.
+   * Отсчёт — самая широкая строка, а не окно: она и есть ширина содержимого,
+   * ей двигаться некуда. Остальные закрывают то, чего им до неё не хватило.
    */
-  it("в потоке каждая строка закрывает свой остаток", () => {
+  it("самая широкая строка не двигается, узкие подтягиваются к ней", () => {
     const r = pack({
       layout: "flow",
       keys: ["a", "b", "c"],
@@ -175,36 +175,35 @@ describe("packObjects: align", () => {
       align: "end",
     });
 
-    // первая заняла 60 из 100 — уезжает на 40; вторая 50 — на 50
-    expect(r.items.map((i) => i.left)).toEqual([40, 70, 50]);
+    // широкая — первая (60), она на месте; вторая (50) уезжает на 10
+    expect(r.items.map((i) => i.left)).toEqual([0, 30, 10]);
   });
 
-  it("строка, занявшая всю ширину, не двигается", () => {
+  it("не двигает ничего, когда все строки одной ширины", () => {
     const r = pack({
       layout: "flow",
-      keys: ["a", "b", "c"],
-      sizes: store({ a: [50, 20], b: [50, 20], c: [20, 20] }),
+      keys: ["a", "b", "c", "d"],
+      sizes: store({ a: [50, 20], b: [50, 20], c: [50, 20], d: [50, 20] }),
       columns: 2,
-      crossLimit: 100,
+      crossLimit: 200,
       align: "end",
     });
 
-    expect(r.items[0].left).toBe(0);
-    expect(r.items[1].left).toBe(50);
-    expect(r.items[2].left).toBe(80);
+    expect(r.items.map((i) => i.left)).toEqual([0, 50, 0, 50]);
   });
 
-  it("center делит свободное место пополам", () => {
+  it("center делит между строками пополам", () => {
     const r = pack({
       layout: "flow",
-      keys: ["a"],
-      sizes: store({ a: [30, 20] }),
+      keys: ["a", "b"],
+      sizes: store({ a: [50, 20], b: [30, 20] }),
       columns: 1,
       crossLimit: 100,
       align: "center",
     });
 
-    expect(r.items[0].left).toBe(35);
+    // широкая 50 стоит, узкая 30 встаёт по центру относительно неё
+    expect(r.items.map((i) => i.left)).toEqual([0, 10]);
   });
 
   it("в кладке двигается весь блок колонок", () => {

@@ -407,8 +407,9 @@ themselves are no longer transformed and can be positioned from CSS.
   order gives way to the fit.
 
   `"each"` on its own is the short way of saying it about both sides. `align`
-  moves every line by the room it left over, and the room it measures against
-  is the scroll minus `wrapper.margin`; `direction` is
+  lines the rows up against the widest one — that row is the width of the
+  content and has nowhere to move, while the rest close the gap beside them;
+  the room a row has to fill is the scroll minus `wrapper.margin`; `direction` is
   decided by `"each"` itself, so passing it says so instead of being
   ignored.
 

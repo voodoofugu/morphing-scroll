@@ -284,8 +284,11 @@ test.describe("objects.size: each (real browser)", () => {
     ]);
   });
 
-  /* каждая строка закрывает свой остаток, а не только последняя */
-  test("align уводит к дальнему краю каждую строку", async ({ page }) => {
+  /*
+   * Самой широкой строке двигаться некуда — она и есть ширина содержимого.
+   * Узкие подтягиваются к её краю, а не к краю окна.
+   */
+  test("align подтягивает строки к самой широкой", async ({ page }) => {
     await page.goto("/?scenario=flowAlign");
     await settled(page);
 
@@ -293,12 +296,16 @@ test.describe("objects.size: each (real browser)", () => {
     const lines = [...new Set(all.map((b) => b.y))].sort((a, b) => a - b);
     expect(lines.length).toBeGreaterThan(1);
 
-    for (const y of lines) {
+    const edges = lines.map((y) => {
       const line = all.filter((b) => b.y === y).sort((a, b) => a.x - b.x);
       const last = line[line.length - 1];
 
-      expect(last.x + last.w).toBe(200);
-    }
+      return last.x + last.w;
+    });
+
+    // все строки кончаются в одной точке, и это край не окна, а содержимого
+    expect(new Set(edges).size).toBe(1);
+    expect(edges[0]).toBeLessThan(200);
   });
 
   /*

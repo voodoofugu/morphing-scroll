@@ -600,9 +600,9 @@ export type MorphScroll = {
    *   scroll, so nothing else can end a line*
    * @note *`"each"` on its own is the short way of saying it about both
    * sides — the same as `["each", "each"]`*
-   * @note *`align` moves every line by the room it left over: two small
-   * objects leave a wide gap, and closing it is exactly its job. A line that
-   * filled the width stays where it is. `direction`
+   * @note *`align` lines the rows up against the widest one — that row is
+   * the width of the content and has nowhere to move; the rest close the gap
+   * that separates them from it. `direction`
    * is decided by `"each"` itself — the side you hand over is the side the
    * objects run along*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
