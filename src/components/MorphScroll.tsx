@@ -658,27 +658,51 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     /*
      * `objects.direction` не выбирает раскладку — раскладку выбирают размеры.
-     * Он выбирает порядок: `"row"` идёт поперёк прокрутки, `"column"` — вдоль,
-     * и первая линия забирает первые `ceil(n / линий)` объектов.
+     * Он выбирает порядок, и слова означают ровно то, что говорят: `"row"`
+     * заполняет строку и переходит ниже, `"column"` — столбец и переходит
+     * правее. Одно из двух список делает и так, и какое именно — решает ось
+     * прокрутки: при вертикальной подряд идут строки, при горизонтальной
+     * столбцы. Второе просит переставить порядок: первая линия забирает
+     * первые `ceil(n / линий)` объектов.
      *
-     * Для этого надо знать, сколько будет линий. Кладка знает всегда: колонок
-     * столько, сколько влезло или сколько назвали. Поток знает по `crossCount`,
-     * а без него линии обрывает место, и заранее их не сосчитать. У заполнения
-     * линий нет вовсе — оно и порядок отдаёт ради посадки, это его смысл.
+     * Для перестановки надо знать, сколько будет линий. Кладка знает всегда:
+     * колонок столько, сколько влезло или сколько назвали. Поток знает по
+     * `crossCount`, а без него линию обрывает место, и заранее их не
+     * сосчитать. У заполнения линий нет вовсе — оно отдаёт порядок ради
+     * посадки, это его смысл.
      *
      * При `hybrid` порядок уже выражен осью: «сначала первый столбец» — это
      * ровно то, что делает перестановка осей выше, второй раз не надо.
      */
+    const naturalOrder = mainAxis === 0 ? "column" : "row";
+    const wantsSplit = !isHybrid && objectsDirection !== naturalOrder;
     const eachOrderable =
       eachLayout === "masonry" || (eachLayout === "flow" && !!crossCount);
-    const eachOrder =
-      !isHybrid && objectsDirection === "column" && eachOrderable
-        ? "column"
-        : "row";
+    const eachOrder = wantsSplit && eachOrderable ? objectsDirection : naturalOrder;
 
-    if (isEach && !isHybrid && objectsDirection === "column" && !eachOrderable)
+    /*
+     * Линия в потоке толщиной с самый толстый в ней, и под низкими остаётся
+     * пусто. Закрыть это можно, когда толщину решают сами объекты: тогда
+     * каждый поднимается до того, что стоит над ним, а строка остаётся
+     * строкой. Заданная числом сторона дыр и не оставляет, закрывать нечего.
+     */
+    const eachCompact =
+      eachLayout === "flow" && !!crossCount && eachOnMain;
+
+    /*
+     * Ругаемся только на написанное: `"row"` стоит умолчанием и при
+     * горизонтальной прокрутке просит как раз перестановку — жаловаться на
+     * значение, которого никто не писал, значит шуметь на пустом месте.
+     */
+    if (
+      isEach &&
+      wantsSplit &&
+      !eachOrderable &&
+      objects &&
+      "direction" in objects
+    )
       console.error(
-        `objects.direction: "column" fills the first line to its end before the next one starts, and ${
+        `objects.direction: "${objectsDirection}" fills the first line to its end before the next one starts, and ${
           eachLayout === "fill"
             ? `objects.size: "each" on both sides gives the order up for the fit`
             : `nothing here says how many lines there will be`
@@ -944,6 +968,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         crossLimit: crossRoom,
         align: objectsAlign ?? "start",
         order: eachOrder,
+        compact: eachCompact,
       });
     }, [
       isEach,
@@ -957,6 +982,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       crossRoom,
       objectsAlign,
       eachOrder,
+      eachCompact,
       sizes.version,
     ]);
 

@@ -590,23 +590,29 @@ function eachHint(settings: Settings) {
       : `flow · ${crossCount} per line (crossCount)`;
   }
 
-  // кладка знает число колонок всегда, значит и порядок ей выполним всегда
+  /*
+   * Подряд идут строки при вертикальной прокрутке и столбцы при
+   * горизонтальной; второе слово просит переставить порядок.
+   */
+  const split = mainIsX ? !byColumn : byColumn;
+
+  // кладка знает число колонок всегда, значит перестановка ей выполнима всегда
   if (mainEach && !crossEach)
-    return byColumn
-      ? "masonry · the first column takes the first objects"
-      : "masonry · shortest column wins";
+    return split
+      ? "masonry · the first line takes the first objects"
+      : "masonry · shortest line wins";
 
   if (crossCount)
     return `flow · ${crossCount} per line (crossCount)${
-      byColumn ? " · column first" : ""
-    }`;
+      split ? " · order transposed" : ""
+    }${mainEach ? " · rises into the room above" : ""}`;
 
   const layout =
     mainEach && crossEach
       ? "fill · every object takes the highest place it fits"
       : "flow · a line fills, then the next one starts";
 
-  return byColumn ? `${layout} · column order needs crossCount` : layout;
+  return split ? `${layout} · transposing needs crossCount` : layout;
 }
 
 function sizeFor(index: number, settings: Settings) {

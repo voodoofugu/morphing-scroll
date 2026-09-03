@@ -774,6 +774,32 @@ scenarios.masonryHybrid = (
 );
 
 /*
+ * Строка толщиной с самый толстый оставляет под низкими пусто, и следующие
+ * поднимаются туда — порядок при этом остаётся построчным. Размеры подобраны
+ * так, чтобы поднялись трое из шести, и каждый на своё.
+ */
+scenarios.compactRows = (
+  <MorphScroll
+    objects={{ size: "each", crossCount: 2, gap: 10 }}
+    size={[300, 400]}
+    controls={{ wheel: true }}
+  >
+    {[
+      [100, 80],
+      [120, 30],
+      [90, 40],
+      [110, 60],
+      [80, 50],
+      [100, 20],
+    ].map(([w, h], i) => (
+      <div key={`card-${i}`} className="box" style={{ width: w, height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
  * objects.direction: "column" — порядок идёт вдоль прокрутки. Кладка при этом
  * перестаёт искать самую короткую колонку: первая забирает первые ceil(6 / 2)
  * объектов, вторая остальные. Числа посчитаны вручную.
@@ -786,6 +812,25 @@ scenarios.columnOrder = (
   >
     {[40, 80, 50, 30, 60, 20].map((h, i) => (
       <div key={`card-${i}`} className="box" style={{ height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Та же просьба при горизонтальной прокрутке: подряд там идут столбцы, значит
+ * переставляет порядок уже "row". Числа зеркальны columnOrder.
+ */
+scenarios.rowOrderX = (
+  <MorphScroll
+    objects={{ size: ["each", 170], crossCount: 2, gap: 10, direction: "row" }}
+    size={[300, 360]}
+    direction="x"
+    controls={{ wheel: true }}
+  >
+    {[40, 80, 50, 30, 60, 20].map((w, i) => (
+      <div key={`card-${i}`} className="box" style={{ width: w }}>
         {i}
       </div>
     ))}

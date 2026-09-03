@@ -231,6 +231,36 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Свободное место вдоль прокрутки закрывается: 3 уходит под низкую 1, 4 под
+   * 2, 5 под 3 — каждый на своё, а не строкой. Порядок при этом построчный,
+   * чем это и отличается от заполнения. Числа посчитаны вручную.
+   */
+  test("объекты поднимаются в пустоту под низкими соседями по строке", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=compactRows");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+
+    expect(all.map((b) => [b.x, b.y])).toEqual([
+      [0, 0],
+      [110, 0],
+      [0, 90],
+      [100, 40],
+      [0, 140],
+      [90, 110],
+    ]);
+
+    // и обёртка считается по поднятым: 190, а не по последней строке
+    expect(
+      await page
+        .locator(".ms-objects-wrapper")
+        .evaluate((el) => (el as HTMLElement).offsetHeight),
+    ).toBe(190);
+  });
+
+  /*
    * objects.direction: "column" — порядок вдоль прокрутки. Первая колонка
    * забирает первые три из шести, вторая остальные; самую короткую кладка при
    * этом больше не ищет — 1 остаётся под 0, а не уезжает вправо.
@@ -250,6 +280,28 @@ test.describe("objects.size: each (real browser)", () => {
       [180, 0],
       [180, 40],
       [180, 110],
+    ]);
+  });
+
+  /*
+   * При горизонтальной прокрутке подряд идут столбцы, значит переставляет
+   * порядок уже "row": первая полоса забирает первые три, вторая остальные.
+   */
+  test("при direction=x переставляет порядок row, а не column", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=rowOrderX");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+
+    expect(all.map((b) => [b.x, b.y])).toEqual([
+      [0, 0],
+      [50, 0],
+      [140, 0],
+      [0, 180],
+      [40, 180],
+      [110, 180],
     ]);
   });
 

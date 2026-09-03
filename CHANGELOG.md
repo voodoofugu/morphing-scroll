@@ -419,19 +419,27 @@ themselves are no longer transformed and can be positioned from CSS.
   `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
   nothing moves until every object has been measured.
 
+  A line is as thick as the thickest object in it, and when that thickness is
+  the objects' own too — both sides handed over, `crossCount` ending the line
+  — the shorter ones no longer hang under it: each rises into the room above
+  it on its own, while the order stays line by line. That is the difference
+  from a fill, which closes the same gaps by giving the order up.
+
   `objects.direction` works for `"each"` the same way it works for a known
-  size: it chooses the order, not the layout. `"row"` (the default) runs the
-  order across the scroll, `"column"` along it, so the first line takes the
-  first `ceil(n / lines)` objects and the next line the ones after them — a
-  masonry ordered by columns stops looking for the shortest one, trading an
-  even bottom for reading top to bottom. The count is by number and never by
-  size, so nothing jumps as the objects are measured. Lines have to be
-  countable for that: a masonry always has them, a flow has them when
-  `crossCount` names them, and a fill has none at all, since it gives the
-  order up for the fit. In those two cases `"column"` is not carried out and
-  the library says so. `direction="hybrid"` answers the same request with the
-  axis: `"row"` has `crossCount` bound the width and growth run down,
-  `"column"` bounds the height and growth runs right.
+  size: it chooses the order, not the layout, and the words mean what they say
+  on both axes — `"row"` fills a row and moves down, `"column"` fills a column
+  and moves right. One of the two is what the list already does (a vertical
+  scroll lays rows, a horizontal one lays columns) and the other transposes
+  it: the first line then takes the first `ceil(n / lines)` objects, and a
+  masonry stops looking for the shortest column, trading an even edge for
+  reading straight through. The count is by number and never by size, so
+  nothing jumps as the objects are measured. Transposing needs lines to count:
+  a masonry always has them, a flow has them when `crossCount` names them, and
+  a fill has none at all, since it gives the order up for the fit. There the
+  request is not carried out, and it is reported when you wrote the value
+  yourself. `direction="hybrid"` answers the same request with the axis:
+  `"row"` has `crossCount` bound the width and growth run down, `"column"`
+  bounds the height and growth runs right.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

@@ -24,6 +24,7 @@ const pack = (over: Partial<Parameters<typeof packObjects>[0]>) =>
     crossLimit: 0,
     align: "start",
     order: "row",
+    compact: false,
     ...over,
   } as PackArgs);
 
@@ -533,6 +534,78 @@ describe("packObjects: порядок по столбцам", () => {
   });
 
   /*
+   * При горизонтальной прокрутке слова меняются местами: подряд идут столбцы,
+   * значит переставляет порядок уже `"row"`, а `"column"` — то, что список
+   * делает и так. Числа зеркальны кладке выше.
+   */
+  it("при direction=x переставляет row, а column идёт по самой короткой", () => {
+    const same = {
+      keys: ["a", "b", "c", "d", "e"],
+      sizes: store({
+        a: [50, 60],
+        b: [20, 60],
+        c: [30, 60],
+        d: [10, 60],
+        e: [40, 60],
+      }),
+      layout: "masonry" as const,
+      isX: true,
+      fixed: [0, 60] as [number, number],
+      columns: 2,
+    };
+
+    expect(pack({ ...same, order: "row" }).items.map(box)).toEqual([
+      [0, 0, 50, 60],
+      [50, 0, 70, 60],
+      [70, 0, 100, 60],
+      [0, 60, 10, 120],
+      [10, 60, 50, 120],
+    ]);
+
+    expect(pack({ ...same, order: "column" }).items.map(box)).toEqual([
+      [0, 0, 50, 60],
+      [0, 60, 20, 120],
+      [20, 60, 50, 120],
+      [50, 0, 60, 60],
+      [50, 60, 90, 120],
+    ]);
+  });
+
+  it("поток при direction=x тоже переставляет по row, а не по column", () => {
+    const same = {
+      keys: ["a", "b", "c", "d", "e"],
+      sizes: store({
+        a: [100, 10],
+        b: [100, 20],
+        c: [100, 30],
+        d: [100, 40],
+        e: [100, 50],
+      }),
+      layout: "flow" as const,
+      isX: true,
+      fixed: [100, 0] as [number, number],
+      columns: 2,
+      crossLimit: 1000,
+    };
+
+    expect(pack({ ...same, order: "column" }).items.map(box)).toEqual([
+      [0, 0, 100, 10],
+      [0, 10, 100, 30],
+      [100, 0, 200, 30],
+      [100, 30, 200, 70],
+      [200, 0, 300, 50],
+    ]);
+
+    expect(pack({ ...same, order: "row" }).items.map(box)).toEqual([
+      [0, 0, 100, 10],
+      [100, 0, 200, 20],
+      [200, 0, 300, 30],
+      [0, 10, 100, 50],
+      [100, 20, 200, 70],
+    ]);
+  });
+
+  /*
    * Поток при `"column"` заполняет сначала первый столбец сетки: пять
    * объектов по два в строке — это три строки, и они собираются из a, d /
    * b, e / c. Раскладка та же, что и была, меняется только кто где.
@@ -578,5 +651,55 @@ describe("packObjects: порядок по столбцам", () => {
     expect(pack({ ...same, order: "column" }).items.map(box)).toEqual(
       pack({ ...same, order: "row" }).items.map(box),
     );
+  });
+});
+
+describe("packObjects: свободное место вдоль прокрутки", () => {
+  /*
+   * Строка толщиной с самый толстый: под низкой карточкой остаётся пусто, и
+   * следующая за ней поднимается туда. Соседи по строке друг друга не держат
+   * — поперёк они не пересекаются, — а тот, над кем стоит высокая, остаётся
+   * на месте: подниматься некуда.
+   */
+  const rows = {
+    keys: ["a", "b", "c", "d"],
+    sizes: store({ a: [40, 80], b: [50, 20], c: [30, 30], d: [40, 25] }),
+    layout: "flow" as const,
+    gap: [10, 10] as [number, number],
+    columns: 2,
+    crossLimit: 1000,
+  };
+
+  it("поднимает объект в пустоту под низким соседом", () => {
+    expect(pack({ ...rows, compact: true }).items.map(box)).toEqual([
+      [0, 0, 40, 80],
+      [50, 0, 100, 20],
+      [0, 90, 30, 120],
+      [40, 30, 80, 55],
+    ]);
+  });
+
+  it("без уплотнения та же строка стоит под самой толстой", () => {
+    expect(pack({ ...rows, compact: false }).items.map(box)).toEqual([
+      [0, 0, 40, 80],
+      [50, 0, 100, 20],
+      [0, 90, 30, 120],
+      [40, 90, 80, 115],
+    ]);
+  });
+
+  it("обёртка считается по поднятым, а не по последней строке", () => {
+    const tall = {
+      keys: ["a", "b", "c"],
+      sizes: store({ a: [40, 10], b: [40, 80], c: [40, 10] }),
+      layout: "flow" as const,
+      gap: [10, 10] as [number, number],
+      columns: 2,
+      crossLimit: 1000,
+    };
+
+    // c уходит под a на 20, и высота считается по b, а не по строке c
+    expect(pack({ ...tall, compact: true }).height).toBe(80);
+    expect(pack({ ...tall, compact: false }).height).toBe(100);
   });
 });

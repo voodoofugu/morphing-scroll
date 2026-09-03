@@ -592,6 +592,10 @@ export type MorphScroll = {
    *   between them, and a new line starts when the room across runs out, or
    *   when `crossCount` says the line is full. Each line is as thick as the
    *   thickest object in it*
+   * - *a line is as thick as the thickest object in it, and when that
+   *   thickness is the objects' own too — both sides handed over, `crossCount`
+   *   ending the line — the shorter ones do not hang under it: each rises into
+   *   the room above it, and the order stays line by line*
    * - *both sides — **fill**: every object takes the highest place it fits
    *   into, so nothing is left hanging under a short neighbour. Order gives
    *   way to the fit — an object further down the list can end up higher on
@@ -615,17 +619,18 @@ export type MorphScroll = {
    * where the fit first placed it and where `"end"` would push it. Nothing
    * moves until every object has been measured*
    * @note *`direction` does not choose the layout — the sizes do. It chooses
-   * the order, the same as it does for a known size: `"row"` (the default)
-   * runs it across the scroll, `"column"` along it, so the first line takes
-   * the first `ceil(n / lines)` objects. A masonry ordered by columns stops
-   * looking for the shortest one — an even bottom is what `"row"` buys. The
-   * count is by number, never by size. Lines have to be countable for that: a
-   * masonry always has them, a flow has them when `crossCount` names them, and
-   * a fill has none at all — it gives the order up for the fit. In those two
-   * cases `"column"` is not carried out and the library says so.
-   * `direction="hybrid"` answers the same request with the axis: `"row"` has
-   * `crossCount` bound the width and growth run down, `"column"` bounds the
-   * height and growth runs right*
+   * the order, and the words mean what they say on both axes: `"row"` fills a
+   * row and moves down, `"column"` fills a column and moves right. One of the
+   * two is what the list already does — a vertical scroll lays rows, a
+   * horizontal one lays columns — and the other transposes it, so the first
+   * line takes the first `ceil(n / lines)` objects and a masonry stops looking
+   * for the shortest column. The count is by number, never by size.
+   * Transposing needs lines to count: a masonry always has them, a flow has
+   * them when `crossCount` names them, and a fill has none at all — it gives
+   * the order up for the fit. There the request is not carried out, and it is
+   * reported when you wrote the value yourself. `direction="hybrid"` answers
+   * the same request with the axis: `"row"` has `crossCount` bound the width
+   * and growth run down, `"column"` bounds the height and growth runs right*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx

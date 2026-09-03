@@ -30,9 +30,18 @@ type PackArgs = {
   /** where the objects sit when they do not fill the room across */
   align: "start" | "center" | "end";
   /**
-   * which way the order runs: `row` across the scroll, `column` along it —
-   * the first line then takes the first `ceil(n / lines)` objects. Counted
-   * by number, never by size, so measuring does not move anyone.
+   * close the gaps a line leaves along the scroll: a line is as thick as its
+   * thickest object, and the shorter ones hang with room above them. Only for
+   * `flow`, and only when that side is the objects' own — a line of a given
+   * thickness leaves no gaps to close.
+   */
+  compact: boolean;
+  /**
+   * which way the order runs, in plain geometry: `row` fills a row and moves
+   * down, `column` fills a column and moves right. One of the two is what the
+   * list order already does — which one depends on the scrolling axis — and
+   * the other takes the first `ceil(n / lines)` objects into the first line.
+   * Counted by number, never by size, so measuring does not move anyone.
    */
   order: "row" | "column";
 };
@@ -123,10 +132,12 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
   const items: Placed[] = [];
 
   /*
-   * `"column"` — порядок идёт вдоль прокрутки: первая колонка забирает первые
-   * `ceil(n / колонок)` объектов, вторая следующие. Ровного низа это уже не
-   * даёт — за него отвечает `"row"`, — зато читается сверху вниз.
+   * Правило «в самую короткую» читается поперёк прокрутки: при вертикальной
+   * это строки, при горизонтальной — столбцы. Просьба о другом порядке
+   * отдаёт первой линии первые `ceil(n / линий)` объектов: ровного края это
+   * уже не даёт, зато список читается подряд.
    */
+  const split = isX ? a.order === "row" : a.order === "column";
   const perColumn = Math.ceil(keys.length / ends.length);
 
   for (const [index, key] of keys.entries()) {
@@ -135,7 +146,7 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
 
     // при равенстве — самая левая, чтобы порядок был устойчив
     let column = 0;
-    if (a.order === "column")
+    if (split)
       column = Math.min(ends.length - 1, Math.floor(index / perColumn));
     else for (let c = 1; c < ends.length; c++)
       if (ends[c] < ends[column]) column = c;
@@ -201,15 +212,19 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   const gapCross = gap[cross];
 
   /*
-   * Обход. `"row"` идёт по списку. `"column"` заполняет сначала первый
-   * столбец: для этого надо знать, сколько будет строк, а знает это только
-   * `columns` — без него строки обрывает место, и заранее их не сосчитать.
-   * Тогда порядок остаётся списочным, а сказать об этом — дело компонента.
+   * Обход. Линии тут идут поперёк прокрутки — при вертикальной это строки,
+   * при горизонтальной столбцы, — и по списку заполняется именно они.
+   * Просьба о другом порядке переставляет обход: сначала первая линия целиком
+   * по одному объекту с каждой, — и для этого надо знать, сколько линий
+   * будет. Знает это только `columns`: без него линию обрывает место, и
+   * заранее их не сосчитать. Тогда порядок остаётся списочным, а сказать об
+   * этом — дело компонента.
    */
+  const split = isX ? a.order === "row" : a.order === "column";
   const rows = columns ? Math.ceil(keys.length / columns) : 0;
   const seq: number[] = [];
 
-  if (a.order === "column" && rows)
+  if (split && rows)
     for (let row = 0; row < rows; row++)
       for (let column = 0; column < columns; column++) {
         const index = column * rows + row;
@@ -309,7 +324,16 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
       line.to,
     );
 
-  const alongSize = lineStart + lineThick;
+  /*
+   * Уплотняем после выравнивания: то двигает поперёк, это вдоль, и порядок
+   * между ними важен — иначе поднятый объект уезжал бы вбок уже на новом
+   * месте и упирался бы не в того соседа.
+   */
+  if (a.compact) compactMain(placed, isX, gapMain, widest);
+
+  const alongSize = a.compact
+    ? placed.reduce((max, item) => Math.max(max, mainEnd(item, isX)), 0)
+    : lineStart + lineThick;
 
   const items = new Array<Placed>(keys.length);
   seq.forEach((index, at) => (items[index] = placed[at]));
@@ -337,6 +361,89 @@ const moveCross = (item: Placed, to: number, isX: boolean) => {
     item.left = to;
     item.right = to + width;
   }
+};
+
+const moveMain = (item: Placed, to: number, isX: boolean) => {
+  const along = mainEnd(item, isX) - mainStart(item, isX);
+
+  if (isX) {
+    item.left = to;
+    item.right = to + along;
+  } else {
+    item.top = to;
+    item.bottom = to + along;
+  }
+};
+
+/*
+ * Силуэт занятого: отрезки поперёк, у каждого своя граница по главной оси.
+ * Им пользуются двое — заполнение, чтобы найти самое высокое место, куда
+ * объект влезает, и уплотнение, чтобы поднять объект до того, что над ним.
+ * Сверять каждого с каждым было бы квадратично, а отрезков всегда немного:
+ * соседи одной высоты сливаются в один.
+ */
+const createSkyline = (limit: number) => {
+  let parts: { at: number; size: number; top: number }[] = [
+    { at: 0, size: Math.max(limit, 0), top: 0 },
+  ];
+
+  /** самая низкая точка, в которую упрётся объект шириной `size` из `at` */
+  const restingAt = (at: number, size: number) => {
+    let left = size;
+    let top = 0;
+
+    for (const part of parts) {
+      if (part.at + part.size <= at) continue;
+      if (left <= 0) break;
+
+      top = Math.max(top, part.top);
+      left -= part.at < at ? part.at + part.size - at : part.size;
+    }
+
+    return left > 0 ? null : top;
+  };
+
+  /** поднять силуэт над занятым местом */
+  const raise = (at: number, size: number, top: number) => {
+    const next: typeof parts = [];
+
+    for (const part of parts) {
+      const start = part.at;
+      const end = part.at + part.size;
+
+      if (end <= at || start >= at + size) {
+        next.push(part);
+        continue;
+      }
+
+      if (start < at) next.push({ at: start, size: at - start, top: part.top });
+      if (end > at + size)
+        next.push({ at: at + size, size: end - (at + size), top: part.top });
+    }
+
+    next.push({ at, size, top });
+    next.sort((one, two) => one.at - two.at);
+
+    // соседи одной высоты — это один отрезок; иначе силуэт растёт без нужды
+    parts = next.reduce<typeof parts>((acc, part) => {
+      const last = acc[acc.length - 1];
+
+      if (last && last.top === part.top && last.at + last.size === part.at)
+        last.size += part.size;
+      else acc.push({ ...part });
+
+      return acc;
+    }, []);
+  };
+
+  return {
+    restingAt,
+    raise,
+    /** отрезки на сейчас — заполнение перебирает их начала как места посадки */
+    get parts() {
+      return parts;
+    },
+  };
 };
 
 /*
@@ -394,6 +501,48 @@ const compactFill = (
 };
 
 /*
+ * Свободное место вдоль прокрутки. Линия толщиной с самый толстый объект
+ * оставляет под низкими дыры — поднимаем каждый до того, что стоит над ним.
+ * Порядок при этом остаётся построчным, чем это и отличается от заполнения:
+ * то ради посадки порядок отдаёт, а тут строка остаётся строкой, просто без
+ * пустот под ней.
+ *
+ * Идём сверху вниз: тот, до кого поднимаем, уже на своём месте. Соседи по
+ * одной линии друг друга не держат — они не пересекаются поперёк.
+ */
+const compactMain = (
+  items: Placed[],
+  isX: boolean,
+  gapMain: number,
+  crossSize: number,
+) => {
+  if (crossSize <= 0) return;
+
+  const sky = createSkyline(crossSize);
+
+  const order = items
+    .filter((item) => crossEnd(item, isX) > crossStart(item, isX))
+    .sort(
+      (one, two) =>
+        mainStart(one, isX) - mainStart(two, isX) ||
+        crossStart(one, isX) - crossStart(two, isX),
+    );
+
+  for (const item of order) {
+    const at = crossStart(item, isX);
+    const span = crossEnd(item, isX) - at;
+    const along = mainEnd(item, isX) - mainStart(item, isX);
+
+    const rest = sky.restingAt(at, span);
+    // не влез в силуэт — трогать не за что, пусть стоит где стоял
+    const to = rest === null ? mainStart(item, isX) : Math.min(mainStart(item, isX), rest);
+
+    moveMain(item, to, isX);
+    sky.raise(at, span, to + along + gapMain);
+  }
+};
+
+/*
  * Заполнение: объект встаёт не следующим по очереди, а в самое высокое место,
  * куда влезает. Дырок под низкими соседями не остаётся — но и порядок теперь
  * не построчный: тот, кто ниже по списку, может оказаться выше на экране.
@@ -411,58 +560,8 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
   const gapMain = gap[main];
   const gapCross = gap[cross];
 
-  let sky: { at: number; size: number; top: number }[] = [
-    { at: 0, size: Math.max(crossLimit, 0), top: 0 },
-  ];
-
-  /** самая низкая точка, в которую упрётся объект шириной `size` из `at` */
-  const restingAt = (at: number, size: number) => {
-    let left = size;
-    let top = 0;
-
-    for (const part of sky) {
-      if (part.at + part.size <= at) continue;
-      if (left <= 0) break;
-
-      top = Math.max(top, part.top);
-      left -= part.at < at ? part.at + part.size - at : part.size;
-    }
-
-    return left > 0 ? null : top;
-  };
-
-  /** поднять силуэт над занятым местом */
-  const raise = (at: number, size: number, top: number) => {
-    const next: typeof sky = [];
-
-    for (const part of sky) {
-      const start = part.at;
-      const end = part.at + part.size;
-
-      if (end <= at || start >= at + size) {
-        next.push(part);
-        continue;
-      }
-
-      if (start < at) next.push({ at: start, size: at - start, top: part.top });
-      if (end > at + size)
-        next.push({ at: at + size, size: end - (at + size), top: part.top });
-    }
-
-    next.push({ at, size, top });
-    next.sort((one, two) => one.at - two.at);
-
-    // соседи одной высоты — это один отрезок; иначе силуэт растёт без нужды
-    sky = next.reduce<typeof sky>((acc, part) => {
-      const last = acc[acc.length - 1];
-
-      if (last && last.top === part.top && last.at + last.size === part.at)
-        last.size += part.size;
-      else acc.push({ ...part });
-
-      return acc;
-    }, []);
-  };
+  const sky = createSkyline(crossLimit);
+  const { restingAt, raise } = sky;
 
   const items: Placed[] = [];
 
@@ -479,7 +578,7 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
     if (measured && across > 0) {
       let found = false;
 
-      for (const part of sky) {
+      for (const part of sky.parts) {
         const at = part.at;
         if (at + across > crossLimit) continue;
 
