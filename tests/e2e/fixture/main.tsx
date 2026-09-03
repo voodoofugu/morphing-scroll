@@ -729,7 +729,7 @@ function Growing() {
 
 scenarios.eachGrows = <Growing />;
 
-/* Сетка: в обе стороны едет, границу строки задаёт crossCount */
+/* Поток: в обе стороны едет, границу строки задаёт crossCount */
 scenarios.gridHybrid = (
   <MorphScroll
     objects={{ size: "each", crossCount: 3, gap: 10 }}
@@ -745,6 +745,52 @@ scenarios.gridHybrid = (
           // шире первая строка: колонка должна встать по ней, а не по последней
           width: [50, 90, 70][i % 3] + (i < 3 ? 20 : 0),
           height: [40, 80, 60][Math.floor(i / 3) % 3],
+        }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * hybrid без crossCount: раньше единственный столбец, теперь заполнение —
+ * ширина фиксирована, значит по устройству это ровно кладка в две колонки.
+ */
+scenarios.fillHybrid = (
+  <MorphScroll
+    objects={{ size: [90, "each"], gap: 10 }}
+    size={[200, 300]}
+    direction="hybrid"
+    controls={{ wheel: true }}
+  >
+    {[40, 80, 50, 30].map((h, i) => (
+      <div key={`card-${i}`} className="box" style={{ height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * objects.direction для hybrid: "column" меняет местами, что ограничивает
+ * crossCount — вместо ширины строки высоту столбца, рост уходит вправо.
+ * Числа те же, что у gridHybrid, только оси зеркалом.
+ */
+scenarios.columnHybrid = (
+  <MorphScroll
+    objects={{ size: "each", crossCount: 3, gap: 10, direction: "column" }}
+    size={[240, 200]}
+    direction="hybrid"
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 9 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{
+          height: [50, 90, 70][i % 3] + (i < 3 ? 20 : 0),
+          width: [40, 80, 60][Math.floor(i / 3) % 3],
         }}
       >
         {i}

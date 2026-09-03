@@ -217,37 +217,35 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         `"render" needs a known objects.size: "none" and no size at all leave nothing to place${errorTextEnd}`,
       );
 
-    /*
-     * У объектов своего размера нет ровного шага, а страница — это шаг,
-     * общий для всех. И сетке нужна граница строки: по обеим сторонам
-     * `hybrid` едет, упереться не во что, кроме `crossCount`.
-     */
     const hasEach = Array.isArray(objectsSize)
       ? objectsSize.some((axis) => axis === "each")
       : objectsSize === "each";
 
-    if (hasEach) {
-      if (mode !== "scroll")
-        console.error(
-          `objects.size: "each" gives objects their own size, and pages need one size for all — "${mode}" cannot turn them${errorTextEnd}`,
-        );
+    if (hasEach && mode !== "scroll")
+      console.error(
+        `objects.size: "each" gives objects their own size, and pages need one size for all — "${mode}" cannot turn them${errorTextEnd}`,
+      );
 
-      if (direction === "hybrid" && !crossCount)
-        console.error(
-          `objects.size: "each" with direction="hybrid" needs objects.crossCount: both ways scroll, so nothing else says where a row ends${errorTextEnd}`,
-        );
-
-      /*
-       * Куда идут объекты, решает уже не `direction`, а то, какая сторона
-       * отдана им: вдоль прокрутки — колонки, поперёк — строки. Второго
-       * ответа на тот же вопрос быть не может, поэтому проп не тихо
-       * игнорируется, а говорит об этом.
-       */
-      if (objects && "direction" in objects && objects.direction === "column")
-        console.error(
-          `objects.direction is decided by objects.size: "each" — the side you hand over is the side the objects run along${errorTextEnd}`,
-        );
-    }
+    /*
+     * Куда идут объекты, решает уже не `direction`, а то, какая сторона
+     * отдана им: вдоль прокрутки — колонки, поперёк — строки. Второго
+     * ответа на тот же вопрос быть не может, поэтому проп не тихо
+     * игнорируется, а говорит об этом.
+     *
+     * Кроме `hybrid`: там обе стороны и так прокручиваются, «какая сторона
+     * отдана» не выбирает ось — `objects.direction` остаётся единственным
+     * способом сказать, что чем ограничено.
+     */
+    if (
+      hasEach &&
+      direction !== "hybrid" &&
+      objects &&
+      "direction" in objects &&
+      objects.direction === "column"
+    )
+      console.error(
+        `objects.direction is decided by objects.size: "each" — the side you hand over is the side the objects run along${errorTextEnd}`,
+      );
 
     // ♦ refs
     const customScrollRef = React.useRef<HTMLDivElement | null>(null);
@@ -635,13 +633,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Названный `crossCount` заполнение отменяет: «по столько-то в строке» и
      * «куда влезет» — разные просьбы, и explicit важнее.
      *
-     * При `hybrid` кончиться линии негде: прокрутка идёт в обе стороны, и
-     * оборвать её может только `crossCount`. Выравнивать при этом колонки по
-     * самой широкой нельзя — рядом с узким объектом остаётся дыра, и отступы
-     * перестают быть одинаковыми. Поэтому и там поток, просто по счёту.
+     * `hybrid` не даёт объектам самим выбрать ось — обе прокручиваются, и
+     * «какая сторона отдана» здесь не отвечает на вопрос. Отвечает
+     * `objects.direction`: «row» (по умолчанию) — счёт ограничивает ширину,
+     * рост идёт вниз; «column» — счёт ограничивает высоту, рост идёт вправо.
+     *
+     * Без счёта упереться линии всё равно не во что — тогда заполнение:
+     * оно не спрашивает, где кончается линия, потому что линий у него нет.
      */
     const isHybrid = direction === "hybrid";
-    const mainAxis = direction === "x" ? 0 : 1;
+    const hybridColumn = isHybrid && objectsDirection === "column";
+    const mainAxis = hybridColumn || direction === "x" ? 0 : 1;
     const crossAxis = mainAxis === 0 ? 1 : 0;
 
     const eachOnMain = objectsSizing[mainAxis] === "each";
@@ -649,7 +651,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const isEach = eachOnMain || eachOnCross;
 
     const eachLayout: PackLayout = isHybrid
-      ? "flow"
+      ? crossCount
+        ? "flow"
+        : "fill"
       : eachOnMain && eachOnCross && !crossCount
         ? "fill"
         : eachOnMain && !eachOnCross
@@ -801,9 +805,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (!isEach) return 1;
       /*
        * Поток считает сам, если счёт не назвали: ноль для него — «сколько
-       * влезет». Для `hybrid` влезет сколько угодно, поэтому там счёт нужен.
+       * влезет». При `hybrid` поток вообще не бывает без счёта — без него
+       * там заполнение, счёт туда не попадает.
        */
-      if (eachLayout === "flow") return crossCount ?? (isHybrid ? 1 : 0);
+      if (eachLayout === "flow") return crossCount ?? 0;
 
       const cell = objectsSizeLocal[crossAxis];
       const gapCross = gapLocal[crossAxis === 0 ? 1 : 0];
@@ -819,7 +824,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [
       isEach,
       eachLayout,
-      isHybrid,
       objectsSizeLocal[crossAxis],
       gapLocal.join(),
       crossRoom,

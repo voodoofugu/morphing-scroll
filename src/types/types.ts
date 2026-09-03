@@ -596,8 +596,10 @@ export type MorphScroll = {
    *   way to the fit — an object further down the list can end up higher on
    *   the screen. Naming `crossCount` asks for lines instead, and lines is
    *   what you get*
-   * - *`direction="hybrid"` — flow, wrapped by `crossCount`: both ways
-   *   scroll, so nothing else can end a line*
+   * - *`direction="hybrid"` — both ways scroll, so which side is `"each"`
+   *   says nothing about which axis a line runs along. Name `crossCount` and
+   *   it is flow, wrapped by that count; leave it out and it is fill, same as
+   *   handing over both sides*
    * @note *`"each"` on its own is the short way of saying it about both
    * sides — the same as `["each", "each"]`*
    * @note *`align` lines the rows up against the widest one — widest across
@@ -610,7 +612,10 @@ export type MorphScroll = {
    * where the fit first placed it and where `"end"` would push it. Nothing
    * moves until every object has been measured. `direction`
    * is decided by `"each"` itself — the side you hand over is the side the
-   * objects run along*
+   * objects run along. `direction="hybrid"` hands over neither, so there
+   * `objects.direction` is what says it: `"row"` (the default) has
+   * `crossCount` bound the width and growth run down; `"column"` swaps
+   * them — `crossCount` bounds the height, growth runs right*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx

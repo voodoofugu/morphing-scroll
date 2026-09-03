@@ -400,11 +400,13 @@ themselves are no longer transformed and can be positioned from CSS.
   along the scroll it is a masonry (`[90, "each"]`: fixed columns, each
   object into the shortest one, so the bottom stays even); across it a flow,
   where objects follow one another with the same gap between them and a line
-  ends when the room across runs out — or when `crossCount` says it is full,
-  which is what `direction="hybrid"` uses, since both ways scroll and nothing
-  else can end a line; and on both sides a fill, where every object takes the
-  highest place it fits into, so nothing hangs under a short neighbour and
-  order gives way to the fit.
+  ends when the room across runs out — or when `crossCount` says it is full;
+  and on both sides a fill, where every object takes the highest place it
+  fits into, so nothing hangs under a short neighbour and order gives way to
+  the fit. `direction="hybrid"` hands over neither side, so `objects.size`
+  alone cannot say which axis a line runs along there — naming `crossCount`
+  gives flow wrapped by that count, leaving it out gives fill, same as
+  handing over both sides.
 
   `"each"` on its own is the short way of saying it about both sides. `align`
   lines the rows up against the widest one — that row is the width of the
@@ -413,8 +415,10 @@ themselves are no longer transformed and can be positioned from CSS.
   `"center"` stops it halfway between where the fit placed it and where
   `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
   nothing moves until every object has been measured; `direction` is
-  decided by `"each"` itself, so passing it says so instead of being
-  ignored.
+  decided by `"each"` itself for a single scrolling axis, so passing it says
+  so instead of being ignored — except for `direction="hybrid"`, which hands
+  over neither axis, so `objects.direction` is what decides there: `"row"`
+  has `crossCount` bound the width, `"column"` bounds the height instead.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

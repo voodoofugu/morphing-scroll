@@ -209,6 +209,51 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Без crossCount упереть линию было не во что, и hybrid оставался в один
+   * столбец. Теперь там заполнение: ширина зафиксирована (90 у всех), значит
+   * по устройству это ровно кладка в две колонки — числа предсказаны вручную.
+   */
+  test("hybrid без crossCount раскладывает в две колонки, а не в один длинный столбец", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=fillHybrid");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+
+    expect(all.map((b) => [b.x, b.y])).toEqual([
+      [0, 0],
+      [100, 0],
+      [0, 50],
+      [100, 90],
+    ]);
+  });
+
+  /*
+   * objects.direction: "column" для hybrid должно менять местами, что
+   * ограничивает crossCount — числа те же, что у "row", только оси зеркалом.
+   */
+  test("objects.direction для hybrid меняет местами, что ограничивает crossCount", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=columnHybrid");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+
+    // по три в столбце — теперь ограничена высота, не ширина
+    expect(all.slice(0, 3).map((b) => b.x)).toEqual([0, 0, 0]);
+    expect(all[3].x).toBeGreaterThan(0);
+
+    for (const col of [0, 1, 2]) {
+      const line = all.slice(col * 3, col * 3 + 3);
+
+      for (let i = 1; i < line.length; i++)
+        expect(line[i].y - (line[i - 1].y + line[i - 1].h)).toBe(10);
+    }
+  });
+
+  /*
    * Обе стороны за объектом — значит и раскладка идёт по месту, а не по
    * очереди: каждый встаёт в самое высокое, куда влезает.
    */

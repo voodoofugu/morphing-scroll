@@ -34,14 +34,18 @@ describe('objects.size: "each"', () => {
     expect(said("pages need one size for all")).toBe(true);
   });
 
-  it("ругается на hybrid без crossCount: строку нечем оборвать", () => {
+  /*
+   * Без crossCount у hybrid раньше не было куда упереть линию — теперь там
+   * заполнение, и упирать линию не во что незачем: у заполнения линий нет.
+   */
+  it("hybrid без crossCount молчит: без счёта там заполнение", () => {
     render(
       <MorphScroll size={[200, 300]} direction="hybrid" objects={{ size: "each" }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(said("needs objects.crossCount")).toBe(true);
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("с crossCount hybrid молчит", () => {
@@ -50,6 +54,25 @@ describe('objects.size: "each"', () => {
         size={[200, 300]}
         direction="hybrid"
         objects={{ size: "each", crossCount: 3 }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  /*
+   * У hybrid нет стороны, которую можно "отдать" объектам, — обе и так
+   * прокручиваются. objects.direction здесь остаётся единственным способом
+   * сказать, что чем ограничено, поэтому "column" не ругается, а работает.
+   */
+  it("objects.direction для hybrid не ругается — там это единственный выбор оси", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        direction="hybrid"
+        objects={{ size: "each", crossCount: 3, direction: "column" }}
       >
         {items()}
       </MorphScroll>,
