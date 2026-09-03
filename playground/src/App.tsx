@@ -69,7 +69,7 @@ type Settings = {
   wrapperAlignX: Align;
   wrapperAlignY: Align;
   objectsAlign: Align;
-  objectsDirection: "row" | "column";
+  objectsDirection: "auto" | "row" | "column";
   edge: boolean;
   edgeColor: string;
   edgeSize: number;
@@ -160,7 +160,7 @@ const defaultSettings: Settings = {
   wrapperAlignX: "start",
   wrapperAlignY: "start",
   objectsAlign: "start",
-  objectsDirection: "row",
+  objectsDirection: "auto",
   edge: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
@@ -561,31 +561,56 @@ function eachPair(
   // обе стороны — это просто "each"; в сниппете так и пишем
   if (eachSide === "both") return short ? "each" : ["each", "each"];
 
-  // при hybrid главной оси нет; берём ту же, что и библиотека
-  const mainIsX = settings.direction === "x";
+  // при hybrid главную ось выбирает objects.direction — как и в библиотеке
+  const mainIsX =
+    settings.direction === "hybrid"
+      ? settings.objectsDirection === "column"
+      : settings.direction === "x";
   const eachOnX = eachSide === "main" ? mainIsX : !mainIsX;
 
   return eachOnX ? ["each", objectHeight] : [objectWidth, "each"];
 }
 
-/** какое правило укладки выйдет из выбранных сторон */
+/** какое правило укладки выйдет из выбранных сторон и objects.direction */
 function eachHint(settings: Settings) {
-  if (settings.direction === "hybrid")
-    return `flow · ${settings.crossCount || 1} per line (crossCount)`;
+  const { direction, objectsDirection, crossCount } = settings;
+  const isHybrid = direction === "hybrid";
+  const mainIsX = isHybrid ? objectsDirection === "column" : direction === "x";
 
   const pair = eachPair(settings) as ["each" | number, "each" | number];
-  const mainIsX = settings.direction === "x";
   const mainEach = pair[mainIsX ? 0 : 1] === "each";
   const crossEach = pair[mainIsX ? 1 : 0] === "each";
 
-  if (mainEach && !crossEach) return "masonry · shortest column wins";
+  const perLine = `flow · ${crossCount} per line (crossCount)`;
+  const byRoom = "flow · a line fills, then the next one starts";
 
-  if (settings.crossCount)
-    return `flow · ${settings.crossCount} per line (crossCount)`;
+  if (isHybrid) {
+    if (!crossCount) return "needs crossCount · nothing else ends a line";
 
-  return mainEach && crossEach
-    ? "fill · every object takes the highest place it fits"
-    : "flow · a line fills, then the next one starts";
+    return mainEach && !crossEach
+      ? `masonry · ${crossCount} columns (crossCount)`
+      : perLine;
+  }
+
+  // "row"/"column" называют линию: вдоль прокрутки — кладка, поперёк — поток
+  const alongScroll = mainIsX ? "row" : "column";
+  const wantsMasonry = objectsDirection === alongScroll;
+  const wantsFlow = objectsDirection !== "auto" && !wantsMasonry;
+
+  const layout =
+    wantsFlow || (crossEach && !mainEach)
+      ? crossCount
+        ? perLine
+        : byRoom
+      : !crossEach && (wantsMasonry || mainEach)
+        ? "masonry · shortest column wins"
+        : crossCount
+          ? perLine
+          : "fill · every object takes the highest place it fits";
+
+  return wantsMasonry && crossEach
+    ? `${layout} · objects.direction has no column width to use`
+    : layout;
 }
 
 function sizeFor(index: number, settings: Settings) {
@@ -841,7 +866,10 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : [settings.gapX, settings.gapY],
     crossCount: numberOrUndefined(settings.crossCount),
     align: settings.objectsAlign,
-    direction: settings.objectsDirection,
+    direction:
+      settings.objectsDirection === "auto"
+        ? undefined
+        : settings.objectsDirection,
     empty: emptyObjects,
   };
 
@@ -1291,7 +1319,10 @@ function App() {
             : [settings.gapX, settings.gapY],
         crossCount: numberOrUndefined(settings.crossCount),
         align: settings.objectsAlign,
-        direction: settings.objectsDirection,
+        direction:
+          settings.objectsDirection === "auto"
+            ? undefined
+            : settings.objectsDirection,
         empty: emptyObjects,
       },
       onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
@@ -1874,7 +1905,7 @@ function App() {
             <SelectField
               label="objectsDirection"
               onChange={(value) => update("objectsDirection", value)}
-              options={["row", "column"] as const}
+              options={["auto", "row", "column"] as const}
               value={settings.objectsDirection}
             />
           </div>
