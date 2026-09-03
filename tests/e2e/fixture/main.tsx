@@ -774,17 +774,17 @@ scenarios.masonryHybrid = (
 );
 
 /*
- * objects.direction поперёк прокрутки: те же размеры, что у обычной кладки,
- * но линии просят строками — значит поток, со строгим порядком и ступенькой
- * под низкой карточкой, которой кладка бы не оставила.
+ * objects.direction: "column" — порядок идёт вдоль прокрутки. Кладка при этом
+ * перестаёт искать самую короткую колонку: первая забирает первые ceil(6 / 2)
+ * объектов, вторая остальные. Числа посчитаны вручную.
  */
-scenarios.flowByDirection = (
+scenarios.columnOrder = (
   <MorphScroll
-    objects={{ size: [90, "each"], gap: 10, direction: "row" }}
-    size={[200, 300]}
+    objects={{ size: [170, "each"], crossCount: 2, gap: 10, direction: "column" }}
+    size={[360, 300]}
     controls={{ wheel: true }}
   >
-    {[40, 80, 50, 30].map((h, i) => (
+    {[40, 80, 50, 30, 60, 20].map((h, i) => (
       <div key={`card-${i}`} className="box" style={{ height: h }}>
         {i}
       </div>
@@ -793,16 +793,17 @@ scenarios.flowByDirection = (
 );
 
 /*
- * Обе стороны за объектом — по умолчанию заполнение; "row" просит строки, и
- * порядок возвращается ценой ступенек. Размеры те же, что у fillFree.
+ * Тот же порядок в потоке: пять объектов по два в строке — три строки, и
+ * собираются они из столбцов, а не из подряд идущих.
  */
-scenarios.rowsOverFill = (
+scenarios.columnOrderFlow = (
   <MorphScroll
-    objects={{ size: "each", gap: 10, direction: "row" }}
-    size={[200, 300]}
+    objects={{ size: ["each", 60], crossCount: 2, gap: 10, direction: "column" }}
+    size={[300, 300]}
+    controls={{ wheel: true }}
   >
-    {[40, 120, 50, 30, 60, 20].map((h, i) => (
-      <div key={`card-${i}`} className="box" style={{ width: 90, height: h }}>
+    {[30, 40, 50, 60, 70].map((w, i) => (
+      <div key={`card-${i}`} className="box" style={{ width: w, height: "100%" }}>
         {i}
       </div>
     ))}

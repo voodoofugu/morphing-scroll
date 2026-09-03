@@ -419,18 +419,19 @@ themselves are no longer transformed and can be positioned from CSS.
   `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
   nothing moves until every object has been measured.
 
-  `objects.direction` names the line the objects run along, and it is heard
-  on every axis. A single scrolling axis is already taken, leaving two
-  readings: lines along it are columns — masonry — and lines across it are
-  rows — flow. Leave it out and the side you hand over decides, as before;
-  name it and it decides instead, so `[90, "each"]` with `direction: "row"`
-  is strict rows rather than a masonry. Columns need a width, so asking for
-  them while that side is the objects' own is the one reading that cannot be
-  built, and the library says so. For `direction="hybrid"` it picks the axis
-  itself: `"row"` has `crossCount` bound the width, `"column"` bounds the
-  height instead. Leaving the prop out is its own answer rather than a quiet
-  `"row"` — with `"each"` the two differ, and it is the only prop of the
-  group where they do.
+  `objects.direction` works for `"each"` the same way it works for a known
+  size: it chooses the order, not the layout. `"row"` (the default) runs the
+  order across the scroll, `"column"` along it, so the first line takes the
+  first `ceil(n / lines)` objects and the next line the ones after them — a
+  masonry ordered by columns stops looking for the shortest one, trading an
+  even bottom for reading top to bottom. The count is by number and never by
+  size, so nothing jumps as the objects are measured. Lines have to be
+  countable for that: a masonry always has them, a flow has them when
+  `crossCount` names them, and a fill has none at all, since it gives the
+  order up for the fit. In those two cases `"column"` is not carried out and
+  the library says so. `direction="hybrid"` answers the same request with the
+  axis: `"row"` has `crossCount` bound the width and growth run down,
+  `"column"` bounds the height and growth runs right.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

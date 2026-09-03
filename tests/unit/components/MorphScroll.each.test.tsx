@@ -93,10 +93,10 @@ describe('objects.size: "each"', () => {
   });
 
   /*
-   * "column" при вертикальной прокрутке — линии вдоль неё, то есть колонки, и
-   * это ровно то, что кладка и делает. Просьба выполнима — ругаться не на что.
+   * Кладка всегда знает, сколько у неё колонок, поэтому порядок по столбцам
+   * ей выполним — что при названном счёте, что при посчитанном по месту.
    */
-  it("молчит на objects.direction вдоль прокрутки: это и есть кладка", () => {
+  it("молчит на column в кладке: число колонок ей известно всегда", () => {
     render(
       <MorphScroll
         size={[200, 300]}
@@ -109,11 +109,11 @@ describe('objects.size: "each"', () => {
     expect(error).not.toHaveBeenCalled();
   });
 
-  it("молчит на objects.direction поперёк прокрутки: это поток", () => {
+  it("молчит на column в потоке, когда счёт назван", () => {
     render(
       <MorphScroll
         size={[200, 300]}
-        objects={{ size: [90, "each"], direction: "row" }}
+        objects={{ size: ["each", 90], crossCount: 2, direction: "column" }}
       >
         {items()}
       </MorphScroll>,
@@ -123,10 +123,10 @@ describe('objects.size: "each"', () => {
   });
 
   /*
-   * Колонке нужна ширина, а эта сторона отдана объектам — раскладывать по
-   * колонкам не по чему, и просьбу выполнить нечем.
+   * Без счёта строки в потоке обрывает место, и сколько их будет, заранее не
+   * сказать — а порядку по столбцам это число и нужно.
    */
-  it("ругается на колонки, когда ширины колонки нет", () => {
+  it("ругается на column в потоке без счёта: линий не сосчитать", () => {
     render(
       <MorphScroll
         size={[200, 300]}
@@ -136,26 +136,31 @@ describe('objects.size: "each"', () => {
       </MorphScroll>,
     );
 
-    expect(said("lines along it are columns")).toBe(true);
+    expect(said("how many lines there will be")).toBe(true);
   });
 
   /*
-   * При горизонтальной прокрутке линии вдоль неё — строки, и не хватает им
-   * высоты, а не ширины: то же правило, но названо своими словами.
+   * У заполнения линий нет вовсе: оно отдаёт порядок ради посадки, и просить
+   * у него порядок — просить отменить его же смысл.
    */
-  it("ругается на строки при direction=x теми же словами, но про высоту", () => {
+  it("ругается на column в заполнении: порядок там отдан за посадку", () => {
     render(
-      <MorphScroll
-        size={[200, 300]}
-        direction="x"
-        objects={{ size: "each", crossCount: 2, direction: "row" }}
-      >
+      <MorphScroll size={[200, 300]} objects={{ size: "each", direction: "column" }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(said("lines along it are rows")).toBe(true);
-    expect(said("hands their height over")).toBe(true);
+    expect(said("gives the order up for the fit")).toBe(true);
+  });
+
+  it("молчит на row: это порядок по умолчанию, и он выполним всегда", () => {
+    render(
+      <MorphScroll size={[200, 300]} objects={{ size: "each", direction: "row" }}>
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("молчит на обычной кладке и не требует render", () => {

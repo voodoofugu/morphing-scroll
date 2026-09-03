@@ -642,34 +642,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const isEach = eachOnMain || eachOnCross;
 
     /*
-     * `objects.direction` называет линию, вдоль которой идут объекты. При x/y
-     * ось прокрутки уже занята, и выбор из этого остаётся ровно один: линии
-     * вдоль неё — кладка, поперёк — поток. Не названо — как и раньше решает
-     * сторона, отданная объектам.
-     */
-    const wantedLine =
-      objects && "direction" in objects ? objects.direction : undefined;
-    const alongScroll = mainAxis === 0 ? "row" : "column";
-    const wantsMasonry = !isHybrid && wantedLine === alongScroll;
-    const wantsFlow =
-      !isHybrid && wantedLine !== undefined && wantedLine !== alongScroll;
-
-    /*
-     * Линии вдоль прокрутки — это колонки при вертикальной и строки при
-     * горизонтальной, и той и другой нужна толщина поперёк. Когда эта сторона
-     * тоже отдана объектам, толщины нет и раскладывать линии не по чему:
-     * просьбу не выполняем и не молчим об этом.
-     */
-    if (isEach && wantsMasonry && eachOnCross)
-      console.error(
-        `objects.direction: "${wantedLine}" runs the objects along the scroll, and lines along it are ${
-          mainAxis === 0 ? "rows" : "columns"
-        } — objects.size hands their ${
-          mainAxis === 0 ? "height" : "width"
-        } over to the objects too, so there is none left to lay them out in${errorTextEnd}`,
-      );
-
-    /*
      * При `hybrid` кладка тоже возможна — но только по названному счёту:
      * колонок ровно столько, сколько сказали, и дырок под низкими соседями
      * они не оставляют, чего поток по тому же счёту не умеет.
@@ -678,13 +650,40 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ? eachOnMain && !eachOnCross && crossCount
         ? "masonry"
         : "flow"
-      : wantsFlow || (eachOnCross && !eachOnMain)
-        ? "flow"
-        : !eachOnCross && (wantsMasonry || eachOnMain)
+      : eachOnMain && eachOnCross && !crossCount
+        ? "fill"
+        : eachOnMain && !eachOnCross
           ? "masonry"
-          : crossCount
-            ? "flow"
-            : "fill";
+          : "flow";
+
+    /*
+     * `objects.direction` не выбирает раскладку — раскладку выбирают размеры.
+     * Он выбирает порядок: `"row"` идёт поперёк прокрутки, `"column"` — вдоль,
+     * и первая линия забирает первые `ceil(n / линий)` объектов.
+     *
+     * Для этого надо знать, сколько будет линий. Кладка знает всегда: колонок
+     * столько, сколько влезло или сколько назвали. Поток знает по `crossCount`,
+     * а без него линии обрывает место, и заранее их не сосчитать. У заполнения
+     * линий нет вовсе — оно и порядок отдаёт ради посадки, это его смысл.
+     *
+     * При `hybrid` порядок уже выражен осью: «сначала первый столбец» — это
+     * ровно то, что делает перестановка осей выше, второй раз не надо.
+     */
+    const eachOrderable =
+      eachLayout === "masonry" || (eachLayout === "flow" && !!crossCount);
+    const eachOrder =
+      !isHybrid && objectsDirection === "column" && eachOrderable
+        ? "column"
+        : "row";
+
+    if (isEach && !isHybrid && objectsDirection === "column" && !eachOrderable)
+      console.error(
+        `objects.direction: "column" fills the first line to its end before the next one starts, and ${
+          eachLayout === "fill"
+            ? `objects.size: "each" on both sides gives the order up for the fit`
+            : `nothing here says how many lines there will be`
+        } — name objects.crossCount${errorTextEnd}`,
+      );
 
     const objectsSizeLocal = React.useMemo(() => {
       const { height, width } = receivedChildSizeRef.current;
@@ -944,6 +943,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         columns: eachColumns,
         crossLimit: crossRoom,
         align: objectsAlign ?? "start",
+        order: eachOrder,
       });
     }, [
       isEach,
@@ -956,6 +956,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       crossAxis,
       crossRoom,
       objectsAlign,
+      eachOrder,
       sizes.version,
     ]);
 

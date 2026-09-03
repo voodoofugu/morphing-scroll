@@ -29,6 +29,12 @@ type PackArgs = {
   crossLimit: number;
   /** where the objects sit when they do not fill the room across */
   align: "start" | "center" | "end";
+  /**
+   * which way the order runs: `row` across the scroll, `column` along it —
+   * the first line then takes the first `ceil(n / lines)` objects. Counted
+   * by number, never by size, so measuring does not move anyone.
+   */
+  order: "row" | "column";
 };
 
 type Placed = {
@@ -98,9 +104,10 @@ const shift = (
 
 /*
  * Кладка: следующий объект уходит в ту колонку, которая сейчас короче всех.
- * Это единственное правило, которое даёт ровный низ; «сначала первая колонка
- * до конца, потом вторая» ровный низ не даёт и порядок чтения всё равно
- * ломает, так что выбирать тут не из чего.
+ * Это единственное правило, которое даёт ровный низ, поэтому оно и стоит по
+ * умолчанию. `order: "column"` меняет его на «первая колонка до конца, потом
+ * вторая»: низ становится рваным, зато список читается сверху вниз — и это
+ * решает тот, кто просил, а не размеры.
  */
 const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
   const { keys, sizes, isX, fixed, gap, columns } = a;
@@ -115,13 +122,23 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
   const ends = new Array<number>(Math.max(1, columns)).fill(0);
   const items: Placed[] = [];
 
-  for (const key of keys) {
+  /*
+   * `"column"` — порядок идёт вдоль прокрутки: первая колонка забирает первые
+   * `ceil(n / колонок)` объектов, вторая следующие. Ровного низа это уже не
+   * даёт — за него отвечает `"row"`, — зато читается сверху вниз.
+   */
+  const perColumn = Math.ceil(keys.length / ends.length);
+
+  for (const [index, key] of keys.entries()) {
     const known = sizes.get(key);
     const measured = known !== undefined;
 
     // при равенстве — самая левая, чтобы порядок был устойчив
     let column = 0;
-    for (let c = 1; c < ends.length; c++) if (ends[c] < ends[column]) column = c;
+    if (a.order === "column")
+      column = Math.min(ends.length - 1, Math.floor(index / perColumn));
+    else for (let c = 1; c < ends.length; c++)
+      if (ends[c] < ends[column]) column = c;
 
     const start = ends[column];
     const along = measured ? sideOf(known, fixed, main) : 0;
@@ -183,7 +200,26 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   const gapMain = gap[main];
   const gapCross = gap[cross];
 
-  const items: Placed[] = [];
+  /*
+   * Обход. `"row"` идёт по списку. `"column"` заполняет сначала первый
+   * столбец: для этого надо знать, сколько будет строк, а знает это только
+   * `columns` — без него строки обрывает место, и заранее их не сосчитать.
+   * Тогда порядок остаётся списочным, а сказать об этом — дело компонента.
+   */
+  const rows = columns ? Math.ceil(keys.length / columns) : 0;
+  const seq: number[] = [];
+
+  if (a.order === "column" && rows)
+    for (let row = 0; row < rows; row++)
+      for (let column = 0; column < columns; column++) {
+        const index = column * rows + row;
+
+        if (index < keys.length) seq.push(index);
+      }
+  else for (let index = 0; index < keys.length; index++) seq.push(index);
+
+  // кладём в порядке обхода, а раздаём по местам в списке
+  const placed: Placed[] = [];
 
   let lineStart = 0;
   let lineThick = 0;
@@ -201,11 +237,12 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   const closeLine = () => {
     const used = cursor > 0 ? cursor - gapCross : 0;
 
-    lines.push({ from: lineFrom, to: items.length, used });
+    lines.push({ from: lineFrom, to: placed.length, used });
     widest = Math.max(widest, used);
   };
 
-  for (const key of keys) {
+  for (const index of seq) {
+    const key = keys[index];
     const known = sizes.get(key);
     const measured = known !== undefined;
 
@@ -224,13 +261,13 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     if (full) {
       closeLine();
       lineStart += lineThick + gapMain;
-      lineFrom = items.length;
+      lineFrom = placed.length;
       cursor = 0;
       lineThick = 0;
       inLine = 0;
     }
 
-    items.push(
+    placed.push(
       isX
         ? {
             left: lineStart,
@@ -265,7 +302,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
    */
   for (const line of lines)
     shift(
-      items,
+      placed,
       offsetOf(a.align, widest - line.used, ready),
       isX,
       line.from,
@@ -273,6 +310,9 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     );
 
   const alongSize = lineStart + lineThick;
+
+  const items = new Array<Placed>(keys.length);
+  seq.forEach((index, at) => (items[index] = placed[at]));
 
   return {
     items,

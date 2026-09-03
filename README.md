@@ -529,7 +529,7 @@ objects: {
 </ul>
 
 <b>Default:</b><br />
-{ size: "none" }, with <code>direction</code> falling back to <code>"row"</code> where nothing else answers for it<br />
+{ size: "none", direction: "row" }<br />
 <br />
 <b>Description:</b><em><br />
 everything about the objects themselves: how big they are, how they sit next to each other, and what to do with the ones that render nothing.<br />
@@ -574,7 +574,11 @@ every object gets the size it asks for, and the library measures it. Which side 
 <br />
 <code>align</code> lines the rows up against the widest one — widest across the scroll, which is the vertical spread on a horizontal scroll just as much as the horizontal one on a vertical scroll. That row is as much room as the content actually needs and has nowhere to move; a row of two small objects leaves a gap beside it, and closing that gap is exactly what <code>align</code> is for. A fill has no rows at all, so each object closes its own gap instead — the one between it and whatever sits past it in that direction, or the edge of the room if nothing does; two objects side by side with room past both of them both move, each by as much as it individually has. <code>"center"</code> stops an object halfway between where the fit first placed it and where <code>"end"</code> would have pushed it. That room, in every case, is the scroll minus <code>wrapper.margin</code>, and nothing moves until every object has been measured, so the layout does not walk back as the sizes arrive.<br />
 <br />
-<code>direction</code> names the line the objects run along, and it is heard on every axis. A single scrolling axis is already taken, which leaves exactly two readings of it: lines along the scroll are columns — masonry — and lines across it are rows — flow. Leave it out and the side you hand over decides, as it always did; name it and it decides instead. <code>[90, "each"]</code> on a vertical scroll is masonry, and the same cards with <code>direction: "row"</code> become strict rows, with a step left under the short ones — the trade masonry exists to avoid, and sometimes the one you want. Columns need a width to be laid out in, so asking for them while that side is the objects' own is the one reading the library cannot build: it says so and keeps the layout it can. <code>direction="hybrid"</code> hands over neither axis, so there it is the only thing that picks one: <code>"row"</code>, the default, has <code>crossCount</code> bound the width and growth run down; <code>"column"</code> swaps them — <code>crossCount</code> bounds the height, growth runs right.<br />
+<code>direction</code> does not choose the layout — the sizes do. It chooses the <b>order</b>, and it means the same thing here as it does for a known size: <code>"row"</code>, the default, runs the order across the scroll, and <code>"column"</code> runs it along the scroll, so the first line takes the first <code>ceil(n / lines)</code> objects and the next line the ones after them. A masonry ordered that way stops looking for the shortest column — an even bottom is what <code>"row"</code> buys, reading top to bottom is what <code>"column"</code> buys instead. The count is by number and never by size, so nothing jumps as the objects are measured.<br />
+<br />
+For that to work there have to be lines to count. A masonry always has them — as many columns as fit, or as many as <code>crossCount</code> names. A flow has them when <code>crossCount</code> names them; without it a line ends where the room does, and how many there will be is not knowable in advance. A fill has none at all: it gives the order up for the fit, which is the whole point of handing over both sides. In those two cases <code>"column"</code> is not carried out, and the library says so instead of doing something else quietly.<br />
+<br />
+<code>direction="hybrid"</code> answers the same request with the axis instead: <code>"row"</code> has <code>crossCount</code> bound the width and growth run down, <code>"column"</code> bounds the height and growth runs right — which is "the first column first", written as an axis rather than as an order.<br />
 
 <ul>
 </ul>
@@ -712,12 +716,12 @@ direction: "row"; // or "column"
 ```
 
 <b>Default:</b><br />
-not set — <code>"row"</code> for a known size, and for <code>size: "each"</code> the side you hand over<br />
+"row"<br />
 <br />
 <b>Description:</b><em><br />
 changes the order of the provided elements based on the provided value.<br />
 <br />
-Leaving it out is its own answer, not a quiet <code>"row"</code>: with <code>size: "each"</code> the layout then follows the side you handed over, and naming the prop takes that decision away from the size. It is the only prop of the group where the two differ, so a config that spells every value out is asking for what it spells.</em><br />
+<code>"row"</code> runs the order across the scroll, <code>"column"</code> along it — the first line then takes the first <code>ceil(n / lines)</code> objects and the next line the ones after them. It means the same thing for <code>size: "each"</code>, where a masonry ordered by columns stops looking for the shortest one; see <code>size</code> for the two cases that have no lines to count.</em><br />
 <br />
 <b>Example:</b>
 

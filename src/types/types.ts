@@ -565,8 +565,7 @@ export type MorphScroll = {
    * ### ***objects***:
    * everything about the objects themselves: how big they are, how they sit
    * next to each other, and what to do with the empty ones.
-   * @default { size: "none" } — `direction` falls back to `"row"` only where
-   * nothing else answers for it
+   * @default { size: "none", direction: "row" }
    * @description
    * - `size`: *the size of one object — a number, a pair for both axes,
    *   `"full"` for the size of the scroll, `"firstChild"` to measure the first
@@ -577,8 +576,8 @@ export type MorphScroll = {
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `crossCount`: *how many of them fit across the scrolling axis*
    * - `align`: *where a short last line sits*
-   * - `direction`: *whether the objects run in rows or in columns; leaving it
-   *   out is its own answer, and with `size: "each"` it differs from `"row"`*
+   * - `direction`: *which way the order runs — `"row"` across the scroll,
+   *   `"column"` along it*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
    *   replaces them with a placeholder; the object form adds `fallback` and
    *   `clickTrigger`*
@@ -615,16 +614,18 @@ export type MorphScroll = {
    * the edge of the room if nothing does. `"center"` stops halfway between
    * where the fit first placed it and where `"end"` would push it. Nothing
    * moves until every object has been measured*
-   * @note *`direction` names the line the objects run along, on every axis. A
-   * single scrolling axis is already taken, leaving two readings: lines along
-   * it are columns — masonry — and lines across it are rows — flow. Leave it
-   * out and the side you hand over decides; name it and it decides instead,
-   * so `[90, "each"]` with `direction: "row"` is strict rows rather than
-   * masonry. Columns need a width, so asking for them while that side is the
-   * objects' own is the one reading that cannot be built. `direction="hybrid"`
-   * hands over neither axis: `"row"` (the default) has `crossCount` bound the
-   * width and growth run down; `"column"` swaps them — `crossCount` bounds
-   * the height, growth runs right*
+   * @note *`direction` does not choose the layout — the sizes do. It chooses
+   * the order, the same as it does for a known size: `"row"` (the default)
+   * runs it across the scroll, `"column"` along it, so the first line takes
+   * the first `ceil(n / lines)` objects. A masonry ordered by columns stops
+   * looking for the shortest one — an even bottom is what `"row"` buys. The
+   * count is by number, never by size. Lines have to be countable for that: a
+   * masonry always has them, a flow has them when `crossCount` names them, and
+   * a fill has none at all — it gives the order up for the fit. In those two
+   * cases `"column"` is not carried out and the library says so.
+   * `direction="hybrid"` answers the same request with the axis: `"row"` has
+   * `crossCount` bound the width and growth run down, `"column"` bounds the
+   * height and growth runs right*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx

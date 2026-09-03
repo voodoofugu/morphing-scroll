@@ -69,7 +69,7 @@ type Settings = {
   wrapperAlignX: Align;
   wrapperAlignY: Align;
   objectsAlign: Align;
-  objectsDirection: "auto" | "row" | "column";
+  objectsDirection: "row" | "column";
   edge: boolean;
   edgeColor: string;
   edgeSize: number;
@@ -160,7 +160,7 @@ const defaultSettings: Settings = {
   wrapperAlignX: "start",
   wrapperAlignY: "start",
   objectsAlign: "start",
-  objectsDirection: "auto",
+  objectsDirection: "row",
   edge: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
@@ -571,46 +571,42 @@ function eachPair(
   return eachOnX ? ["each", objectHeight] : [objectWidth, "each"];
 }
 
-/** какое правило укладки выйдет из выбранных сторон и objects.direction */
+/** какое правило укладки выйдет из выбранных сторон и в каком порядке */
 function eachHint(settings: Settings) {
   const { direction, objectsDirection, crossCount } = settings;
   const isHybrid = direction === "hybrid";
   const mainIsX = isHybrid ? objectsDirection === "column" : direction === "x";
+  const byColumn = objectsDirection === "column";
 
   const pair = eachPair(settings) as ["each" | number, "each" | number];
   const mainEach = pair[mainIsX ? 0 : 1] === "each";
   const crossEach = pair[mainIsX ? 1 : 0] === "each";
-
-  const perLine = `flow · ${crossCount} per line (crossCount)`;
-  const byRoom = "flow · a line fills, then the next one starts";
 
   if (isHybrid) {
     if (!crossCount) return "needs crossCount · nothing else ends a line";
 
     return mainEach && !crossEach
       ? `masonry · ${crossCount} columns (crossCount)`
-      : perLine;
+      : `flow · ${crossCount} per line (crossCount)`;
   }
 
-  // "row"/"column" называют линию: вдоль прокрутки — кладка, поперёк — поток
-  const alongScroll = mainIsX ? "row" : "column";
-  const wantsMasonry = objectsDirection === alongScroll;
-  const wantsFlow = objectsDirection !== "auto" && !wantsMasonry;
+  // кладка знает число колонок всегда, значит и порядок ей выполним всегда
+  if (mainEach && !crossEach)
+    return byColumn
+      ? "masonry · the first column takes the first objects"
+      : "masonry · shortest column wins";
+
+  if (crossCount)
+    return `flow · ${crossCount} per line (crossCount)${
+      byColumn ? " · column first" : ""
+    }`;
 
   const layout =
-    wantsFlow || (crossEach && !mainEach)
-      ? crossCount
-        ? perLine
-        : byRoom
-      : !crossEach && (wantsMasonry || mainEach)
-        ? "masonry · shortest column wins"
-        : crossCount
-          ? perLine
-          : "fill · every object takes the highest place it fits";
+    mainEach && crossEach
+      ? "fill · every object takes the highest place it fits"
+      : "flow · a line fills, then the next one starts";
 
-  return wantsMasonry && crossEach
-    ? `${layout} · objects.direction has no column width to use`
-    : layout;
+  return byColumn ? `${layout} · column order needs crossCount` : layout;
 }
 
 function sizeFor(index: number, settings: Settings) {
@@ -866,10 +862,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : [settings.gapX, settings.gapY],
     crossCount: numberOrUndefined(settings.crossCount),
     align: settings.objectsAlign,
-    direction:
-      settings.objectsDirection === "auto"
-        ? undefined
-        : settings.objectsDirection,
+    direction: settings.objectsDirection,
     empty: emptyObjects,
   };
 
@@ -1319,10 +1312,7 @@ function App() {
             : [settings.gapX, settings.gapY],
         crossCount: numberOrUndefined(settings.crossCount),
         align: settings.objectsAlign,
-        direction:
-          settings.objectsDirection === "auto"
-            ? undefined
-            : settings.objectsDirection,
+        direction: settings.objectsDirection,
         empty: emptyObjects,
       },
       onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
@@ -1905,7 +1895,7 @@ function App() {
             <SelectField
               label="objectsDirection"
               onChange={(value) => update("objectsDirection", value)}
-              options={["auto", "row", "column"] as const}
+              options={["row", "column"] as const}
               value={settings.objectsDirection}
             />
           </div>
