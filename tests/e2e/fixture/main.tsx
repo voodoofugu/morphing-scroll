@@ -480,6 +480,94 @@ scenarios.masonry = (
   </MorphScroll>
 );
 
+/*
+ * Поток по вертикали: ширину карточки выбирает сама, высота задана. Строка
+ * набирается, пока следующая помещается в 200.
+ */
+scenarios.flowRow = (
+  <MorphScroll
+    objects={{ size: ["each", 40], gap: 10 }}
+    size={[200, 300]}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{ width: [60, 110, 80, 40][i % 4], height: "100%" }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* Обе стороны за объектом: строка становится толщиной с самый толстый в ней */
+scenarios.flowFree = (
+  <MorphScroll
+    objects={{ size: "each", gap: 10 }}
+    size={[200, 300]}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{
+          width: [60, 110, 80, 40][i % 4],
+          height: [30, 70, 50, 90][i % 4],
+        }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* Поток по горизонтали: колонка набирается вниз, потом начинается следующая */
+scenarios.flowColumn = (
+  <MorphScroll
+    objects={{ size: [70, "each"], gap: 10 }}
+    size={[300, 200]}
+    direction="x"
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{ width: "100%", height: [40, 90, 60, 30][i % 4] }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* Сетка: в обе стороны едет, границу строки задаёт crossCount */
+scenarios.gridHybrid = (
+  <MorphScroll
+    objects={{ size: "each", crossCount: 3, gap: 10 }}
+    size={[240, 200]}
+    direction="hybrid"
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 9 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{
+          // шире первая строка: колонка должна встать по ней, а не по последней
+          width: [50, 90, 70][i % 3] + (i < 3 ? 20 : 0),
+          height: [40, 80, 60][Math.floor(i / 3) % 3],
+        }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* много карточек: проверяем, что первый кадр не монтирует их все разом */
 scenarios.masonryMany = (
   <MorphScroll
@@ -580,3 +668,21 @@ createRoot(document.getElementById("root")!).render(
     {scenarios[scenario] ?? <div>unknown scenario: {scenario}</div>}
   </React.StrictMode>,
 );
+
+/*
+ * Сколько объектов доехало до первого кадра. Снаружи это не поймать: пока
+ * тест успеет спросить, пачки уже разъедутся — а вопрос именно про первый.
+ */
+const countFirstFrame = () => {
+  const boxes = document.querySelectorAll(".ms-object-box").length;
+
+  // React коммитит не в том же кадре, что и render — ждём первого, где кто-то есть
+  if (!boxes) {
+    requestAnimationFrame(countFirstFrame);
+    return;
+  }
+
+  (window as unknown as { __firstFrame: number }).__firstFrame = boxes;
+};
+
+requestAnimationFrame(countFirstFrame);

@@ -396,15 +396,19 @@ themselves are no longer transformed and can be positioned from CSS.
   turns something on instead of cancelling it. A 2.x scroll that relied on
   the old default needs `reserveSpace: true` to look the same.
 - `objects.size` takes `"each"`: objects keep the size they came with, and
-  the library measures it. It goes on the axis the scroll runs along, the
-  other one is the column width — `[90, "each"]` — and objects are packed
-  into columns, each into the shortest one at the time, so the bottom stays
-  even. One observer per scroll, not one per object; each object measured
-  once and then remembered by its `key`; not-yet-measured objects drawn a
-  batch at a time, so five hundred cards do not arrive in one frame. `render`
-  works on top of it — once the sizes are known there is nothing left to
-  guess. Pages need one size for all, so `"each"` is for `mode="scroll"` and
-  a single `direction`.
+  the library measures it. Which side is handed over decides the layout —
+  along the scroll it is a masonry (`[90, "each"]`: fixed columns, each
+  object into the shortest one, so the bottom stays even), across it a flow
+  (`["each", 90]`: a line fills until the next object no longer fits), both
+  sides a flow whose lines are as thick as their thickest object, and with
+  `direction="hybrid"` a grid, where `crossCount` ends the row and columns
+  and rows align to their largest.
+
+  One observer per scroll, not one per object; each object measured once and
+  then remembered by its `key`; not-yet-measured objects drawn a batch at a
+  time, so five hundred cards do not arrive in one frame. `render` works on
+  top of all of it — once the sizes are known there is nothing left to guess.
+  Pages need one size for all, so `"each"` is for `mode="scroll"`.
 - `onNavigate` reports a page turn when it is asked for, not when the ride
   ends. Three quick presses of an arrow share one ride and used to arrive as
   one event; now they arrive as three, and a drag along the slider reports

@@ -120,7 +120,8 @@ const createSizeStore = (notify: () => void): Store => {
     },
 
     clear: () => {
-      if (sizes.size) version += 1;
+      // версия меняется и от снятого наблюдения: перерисовка вернёт его назад
+      if (sizes.size || watched.size) version += 1;
       sizes.clear();
       for (const el of watched.values()) observer?.unobserve(el);
       watched.clear();

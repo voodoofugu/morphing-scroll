@@ -561,8 +561,15 @@ creates a <code>ResizeTracker</code> wrapper for the first child of your list. T
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
 <code><b>"each"</b></code>:<br />
-every object gets the size it asks for, and the library measures it. Put it on the axis the scroll runs along and give the other one a width — <code>[90, "each"]</code> for a vertical scroll: that width is the column, and the height comes from the object. Objects are then packed into columns, each one into the shortest column at that moment, so the bottom stays even and nothing is left hanging.<br />
-<br />
+every object gets the size it asks for, and the library measures it. Which side you hand over decides how the objects are then laid out:<br />
+
+<ul>
+  <li><b>along the scroll</b> — <b>masonry</b>. <code>[90, "each"]</code> on a vertical scroll: 90 is the column, the height comes from the object, and each object goes into the shortest column at that moment, so the bottom stays even.</li>
+  <li><b>across it</b> — <b>flow</b>. <code>["each", 90]</code> on a vertical scroll: rows are 90 tall, widths are the objects' own, and a row fills until the next object no longer fits.</li>
+  <li><b>both sides</b> — <b>flow</b> again, and every line is as thick as the thickest object in it.</li>
+  <li><code>direction="hybrid"</code> — <b>grid</b>. Both ways scroll, so nothing bounds a line except <code>crossCount</code>: it says how many go in a row, columns take the width of their widest object and rows the height of their tallest.</li>
+</ul>
+
 Measuring is done by one observer for the whole scroll, not one per object, and each object is measured once: after that it is remembered by its <code>key</code>, and the observer lets it go. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
 <br />
 <code><b>"none"</b></code>:<br />
@@ -572,7 +579,8 @@ cells are still created, but <code>MorphScroll</code> does not measure them — 
 
 <ul>
   <li><b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out. <b>"each"</b> is: the library measures the objects, so <code>render</code> has the numbers it needs.</li>
-  <li><b>"each"</b> needs <code>mode="scroll"</code> and a single <code>direction</code>: pages are all one size, and <code>"hybrid"</code> has no single axis to measure along.</li>
+  <li><b>"each"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
+  <li>with <code>direction="hybrid"</code> it needs <code>crossCount</code> — that is the only thing left that can end a row.</li>
   <li>an object that changes size after it has been measured — a picture arriving late without room reserved for it — is not measured again. Reserve its space in CSS (<code>aspect-ratio</code> does it in one line) and the layout stays right.</li>
 </ul>
 </em><br />
@@ -588,6 +596,13 @@ cells are still created, but <code>MorphScroll</code> does not measure them — 
 // a masonry of cards: 90 wide, as tall as each card turns out to be
 <MorphScroll {...props} objects={{ size: [90, "each"], gap: 10 }}>
   {cards}
+</MorphScroll>
+```
+
+```tsx
+// a flow of tags: 28 tall, each as wide as its own word
+<MorphScroll {...props} objects={{ size: ["each", 28], gap: 8 }}>
+  {tags}
 </MorphScroll>
 ```
 

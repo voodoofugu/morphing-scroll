@@ -17,6 +17,7 @@ import type {
 type Align = "start" | "center" | "end";
 type Direction = "x" | "y" | "hybrid";
 type EmptyMode = "off" | "clear" | "fallback" | "fallbackWithClick";
+type EachSide = "main" | "cross" | "both";
 type ObjectsSizeMode =
   | "default"
   | "number"
@@ -47,6 +48,7 @@ type Settings = {
   height: number;
   squareSize: number;
   objectsSizeMode: ObjectsSizeMode;
+  eachSide: EachSide;
   eachMin: number;
   eachMax: number;
   eachStep: number;
@@ -138,6 +140,7 @@ const defaultSettings: Settings = {
   objectsSizeMode: "pair",
   objectWidth: 170,
   objectHeight: 118,
+  eachSide: "main",
   eachMin: 60,
   eachMax: 240,
   eachStep: 20,
@@ -216,6 +219,7 @@ const presets: Record<string, Partial<Settings>> = {
     width: 680,
     height: 430,
     objectsSizeMode: "each",
+    eachSide: "main",
     objectWidth: 170,
     eachMin: 60,
     eachMax: 240,
@@ -225,6 +229,25 @@ const presets: Record<string, Partial<Settings>> = {
     gapY: 12,
     renderMode: "virtual",
     rootMargin: 200,
+    progressElementMode: "custom",
+    contentDrag: true,
+    autoScrollOnDrag: false,
+  },
+  flow: {
+    itemCount: 80,
+    mode: "scroll",
+    direction: "y",
+    sizeMode: "fixed",
+    width: 680,
+    height: 430,
+    objectsSizeMode: "each",
+    eachSide: "both",
+    eachMin: 80,
+    eachMax: 220,
+    eachStep: 20,
+    gapX: 12,
+    gapY: 12,
+    renderMode: "off",
     progressElementMode: "custom",
     contentDrag: true,
     autoScrollOnDrag: false,
@@ -521,6 +544,38 @@ function SegmentedField<T extends string>({
  * размеры меняются на каждый рендер, смотреть не на что. Один и тот же seed
  * даёт один и тот же список; кнопка рядом с полями его меняет.
  */
+/*
+ * Какая сторона достаётся объектам. Вдоль прокрутки — кладка, поперёк —
+ * поток, обе — поток по обеим (а при hybrid — сетка по crossCount).
+ */
+function eachPair(settings: Settings): ["each" | number, "each" | number] {
+  const { eachSide, objectWidth, objectHeight } = settings;
+
+  if (eachSide === "both") return ["each", "each"];
+
+  // при hybrid главной оси нет; берём ту же, что и библиотека
+  const mainIsX = settings.direction === "x";
+  const eachOnX = eachSide === "main" ? mainIsX : !mainIsX;
+
+  return eachOnX ? ["each", objectHeight] : [objectWidth, "each"];
+}
+
+/** какое правило укладки выйдет из выбранных сторон */
+function eachHint(settings: Settings) {
+  if (settings.direction === "hybrid")
+    return `grid · ${settings.crossCount || 1} per row (crossCount)`;
+
+  const pair = eachPair(settings);
+  const mainIsX = settings.direction === "x";
+  const mainEach = pair[mainIsX ? 0 : 1] === "each";
+  const crossEach = pair[mainIsX ? 1 : 0] === "each";
+
+  if (mainEach && !crossEach) return "masonry · shortest column wins";
+  if (crossEach) return "flow · a line fills, then the next one starts";
+
+  return "";
+}
+
 function sizeFor(index: number, settings: Settings) {
   const { eachMin, eachMax, eachStep, eachSeed } = settings;
 
@@ -537,7 +592,7 @@ function sizeFor(index: number, settings: Settings) {
 
 function buildItems(settings: Settings) {
   const each = settings.objectsSizeMode === "each";
-  const alongX = settings.direction === "x";
+  const pair = eachPair(settings);
 
   return Array.from({ length: settings.itemCount }, (_, index) => {
     const number = index + 1;
@@ -545,7 +600,10 @@ function buildItems(settings: Settings) {
     const isTall = settings.variableItems && index % 7 === 0;
     const isWide = settings.variableItems && index % 11 === 0;
     const eachSize = each
-      ? { [alongX ? "width" : "height"]: sizeFor(index, settings) }
+      ? {
+          ...(pair[0] === "each" && { width: sizeFor(index, settings) }),
+          ...(pair[1] === "each" && { height: sizeFor(index * 31 + 7, settings) }),
+        }
       : undefined;
 
     return (
@@ -646,9 +704,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : settings.objectsSizeMode === "pair"
           ? [settings.objectWidth, settings.objectHeight]
           : settings.objectsSizeMode === "each"
-            ? settings.direction === "x"
-              ? ["each", settings.objectHeight]
-              : [settings.objectWidth, "each"]
+            ? eachPair(settings)
             : settings.objectsSizeMode;
 
   const wrapperMargin: CodeValue | undefined = [
@@ -1007,22 +1063,10 @@ function App() {
     if (settings.objectsSizeMode === "pair")
       return [settings.objectWidth, settings.objectHeight];
 
-    /*
-     * `"each"` стоит на оси прокрутки, поперечная задаёт ширину колонки —
-     * иначе колонку не из чего сложить.
-     */
-    if (settings.objectsSizeMode === "each")
-      return settings.direction === "x"
-        ? ["each", settings.objectHeight]
-        : [settings.objectWidth, "each"];
+    if (settings.objectsSizeMode === "each") return eachPair(settings);
 
     return settings.objectsSizeMode;
-  }, [
-    settings.direction,
-    settings.objectHeight,
-    settings.objectWidth,
-    settings.objectsSizeMode,
-  ]);
+  }, [settings]);
 
   const wrapperMargin = React.useMemo<WrapperConfig["margin"]>(() => {
     const values = [
@@ -1534,25 +1578,36 @@ function App() {
           )}
           {settings.objectsSizeMode === "each" && (
             <>
-              <NumberField
-                label={settings.direction === "x" ? "column h" : "column w"}
-                max={600}
-                min={20}
-                onChange={(value) =>
-                  update(
-                    settings.direction === "x" ? "objectHeight" : "objectWidth",
-                    value,
-                  )
-                }
-                value={
-                  settings.direction === "x"
-                    ? settings.objectHeight
-                    : settings.objectWidth
-                }
+              <SegmentedField
+                label="each side"
+                onChange={(value) => update("eachSide", value)}
+                options={["main", "cross", "both"] as const}
+                value={settings.eachSide}
               />
+              <div className="hint-line">{eachHint(settings)}</div>
+              {settings.eachSide !== "both" && (
+                <NumberField
+                  label={eachPair(settings)[0] === "each" ? "fixed h" : "fixed w"}
+                  max={600}
+                  min={20}
+                  onChange={(value) =>
+                    update(
+                      eachPair(settings)[0] === "each"
+                        ? "objectHeight"
+                        : "objectWidth",
+                      value,
+                    )
+                  }
+                  value={
+                    eachPair(settings)[0] === "each"
+                      ? settings.objectHeight
+                      : settings.objectWidth
+                  }
+                />
+              )}
               <div className="two-col">
                 <NumberField
-                  label={settings.direction === "x" ? "min w" : "min h"}
+                  label="min"
                   max={600}
                   min={20}
                   onChange={(value) => update("eachMin", value)}
@@ -1560,7 +1615,7 @@ function App() {
                   value={settings.eachMin}
                 />
                 <NumberField
-                  label={settings.direction === "x" ? "max w" : "max h"}
+                  label="max"
                   max={600}
                   min={20}
                   onChange={(value) => update("eachMax", value)}

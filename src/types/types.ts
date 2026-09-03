@@ -583,11 +583,18 @@ export type MorphScroll = {
    * @note the sizes are what the virtual and lazy rendering count with, so
    * `render` needs a `size` it can rely on — `"each"` counts as one, because
    * the library measures it and then knows it
-   * @note *`"each"` goes on the axis the scroll runs along, and the other one
-   * gives the column its width: `[90, "each"]` for a vertical scroll. Objects
-   * are packed into columns, each one into the shortest at the time, so the
-   * bottom stays even. Pages need one size for all, so `"each"` is for
-   * `mode="scroll"`*
+   * @note *which side is `"each"` decides how the objects are laid out:*
+   * - *along the scroll — **masonry**: the other side is the column, and each
+   *   object goes into the shortest column at that moment, so the bottom
+   *   stays even. `[90, "each"]` for a vertical scroll*
+   * - *across it — **flow**: a line fills until the next object no longer
+   *   fits, then the next line starts. `["each", 90]` for a vertical scroll*
+   * - *both sides — **flow** as well, and each line is as thick as the
+   *   thickest object in it*
+   * - *`direction="hybrid"` — **grid**: nothing bounds either side, so
+   *   `crossCount` says where a row ends; columns take the width of their
+   *   widest object, rows the height of their tallest*
+   * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx
    * <MorphScroll {...props}

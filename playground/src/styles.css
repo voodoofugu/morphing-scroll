@@ -133,6 +133,13 @@ input[type="color"] {
   padding: 5px 8px;
 }
 
+/* строка-подсказка под переключателем: что за раскладка вышла */
+.hint-line {
+  margin: -2px 0 2px;
+  font-size: 11px;
+  color: #6b7a76;
+}
+
 /* кнопка в ряд с числовым полем — та же высота, что у поля */
 .ghost-btn {
   align-self: end;

@@ -34,24 +34,38 @@ describe('objects.size: "each"', () => {
     expect(said("pages need one size for all")).toBe(true);
   });
 
-  it("ругается на hybrid: мерить не вдоль чего", () => {
+  it("ругается на hybrid без crossCount: строку нечем оборвать", () => {
     render(
       <MorphScroll size={[200, 300]} direction="hybrid" objects={{ size: "each" }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(said("there is no axis to measure along")).toBe(true);
+    expect(said("needs objects.crossCount")).toBe(true);
   });
 
-  it("ругается, когда each стоит поперёк прокрутки", () => {
+  it("с crossCount hybrid молчит", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        direction="hybrid"
+        objects={{ size: "each", crossCount: 3 }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("молчит, когда each стоит поперёк прокрутки: это поток", () => {
     render(
       <MorphScroll size={[200, 300]} objects={{ size: ["each", 90] }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(said("belongs on the axis the scroll runs along")).toBe(true);
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("молчит на обычной кладке и не требует render", () => {
@@ -74,7 +88,7 @@ describe('objects.size: "each"', () => {
     expect(said("needs a known objects.size")).toBe(false);
   });
 
-  it("раскладывает объекты абсолютно и задаёт им только поперечную сторону", () => {
+  it("раскладывает объекты абсолютно и задаёт только заданную сторону", () => {
     const { container } = render(
       <MorphScroll size={[200, 300]} objects={{ size: [90, "each"] }}>
         {items(3)}
@@ -85,6 +99,31 @@ describe('objects.size: "each"', () => {
     expect(box.style.position).toBe("absolute");
     expect(box.style.width).toBe("90px");
     expect(box.style.height).toBe("");
+  });
+
+  it("в потоке объект выбирает обе стороны сам", () => {
+    const { container } = render(
+      <MorphScroll size={[200, 300]} objects={{ size: "each" }}>
+        {items(3)}
+      </MorphScroll>,
+    );
+
+    const box = container.querySelector<HTMLElement>(".ms-object-box")!;
+    expect(box.style.position).toBe("absolute");
+    expect(box.style.width).toBe("");
+    expect(box.style.height).toBe("");
+  });
+
+  it("вдоль прокрутки сторону задаёт проп, поперёк — сам объект", () => {
+    const { container } = render(
+      <MorphScroll size={[200, 300]} objects={{ size: ["each", 60] }}>
+        {items(3)}
+      </MorphScroll>,
+    );
+
+    const box = container.querySelector<HTMLElement>(".ms-object-box")!;
+    expect(box.style.width).toBe("");
+    expect(box.style.height).toBe("60px");
   });
 
   it("рисует первую пачку, а не весь список", () => {
