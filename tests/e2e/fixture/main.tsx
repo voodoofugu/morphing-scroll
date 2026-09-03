@@ -544,6 +544,33 @@ scenarios.flowColumn = (
   </MorphScroll>
 );
 
+/* Карточка, которая выросла уже после замера: раскладка должна это заметить */
+function Growing() {
+  const [tall, setTall] = React.useState(false);
+
+  return (
+    <div style={{ width: 220, height: 300 }}>
+      <MorphScroll objects={{ size: [90, "each"], gap: 10 }} size={[200, 300]}>
+        {Array.from({ length: 6 }, (_, i) => (
+          <div
+            key={`card-${i}`}
+            className="box"
+            data-testid={`card-${i}`}
+            style={{ height: i === 0 && tall ? 160 : 40 }}
+          >
+            {i}
+          </div>
+        ))}
+      </MorphScroll>
+      <button data-testid="grow" onClick={() => setTall(true)} type="button">
+        grow
+      </button>
+    </div>
+  );
+}
+
+scenarios.eachGrows = <Growing />;
+
 /* Сетка: в обе стороны едет, границу строки задаёт crossCount */
 scenarios.gridHybrid = (
   <MorphScroll

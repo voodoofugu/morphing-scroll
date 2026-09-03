@@ -20,7 +20,7 @@ const pack = (over: Partial<Parameters<typeof packObjects>[0]>) =>
     isX: false,
     fixed: [0, 0],
     gap: [0, 0],
-    columns: 1,
+    columns: 0, // 0 — «сколько влезет»: поток меряет местом, кладка берёт одну
     crossLimit: 0,
     ...over,
   } as PackArgs);
@@ -159,33 +159,56 @@ describe("packObjects: flow", () => {
   });
 });
 
-describe("packObjects: grid", () => {
-  it("колонка шириной с самый широкий, строка высотой с самый высокий", () => {
+describe("packObjects: flow по счёту", () => {
+  it("crossCount обрывает линию вместо места", () => {
     const r = pack({
-      layout: "grid",
+      layout: "flow",
       keys: ["a", "b", "c", "d"],
       sizes: store({ a: [30, 40], b: [70, 20], c: [50, 60], d: [20, 10] }),
       columns: 2,
+      crossLimit: 10_000,
     });
 
-    // колонки: max(30,50)=50 и max(70,20)=70; строки: max(40,20)=40 и max(60,10)=60
     expect(r.items.map(box)).toEqual([
-      [0, 0, 50, 40],
-      [50, 0, 120, 40],
+      [0, 0, 30, 40],
+      [30, 0, 100, 20],
       [0, 40, 50, 100],
-      [50, 40, 120, 100],
+      [50, 40, 70, 50],
     ]);
-    expect(r.width).toBe(120);
+    expect(r.width).toBe(100);
     expect(r.height).toBe(100);
   });
 
-  it("зазоры идут между колонками и строками, но не по краям", () => {
+  /*
+   * То, ради чего колонки перестали выравниваться: сосед-великан больше не
+   * раздвигает отступ у соседа-малыша.
+   */
+  it("отступ между объектами один и тот же, каким бы ни был сосед", () => {
     const r = pack({
-      layout: "grid",
+      layout: "flow",
+      keys: ["a", "b", "c"],
+      sizes: store({ a: [30, 40], b: [70, 40], c: [20, 40] }),
+      columns: 3,
+      gap: [10, 0],
+      crossLimit: 10_000,
+    });
+
+    const xs = r.items.map((i) => i.left);
+    expect(xs).toEqual([0, 40, 120]);
+
+    // каждый начинается ровно через 10 после конца предыдущего
+    for (let i = 1; i < r.items.length; i++)
+      expect(r.items[i].left - r.items[i - 1].right).toBe(10);
+  });
+
+  it("зазоры идут между объектами и строками, но не по краям", () => {
+    const r = pack({
+      layout: "flow",
       keys: ["a", "b", "c", "d"],
       sizes: store({ a: [30, 30], b: [30, 30], c: [30, 30], d: [30, 30] }),
       columns: 2,
       gap: [10, 20],
+      crossLimit: 10_000,
     });
 
     expect(r.items.map((i) => [i.left, i.top])).toEqual([
@@ -198,17 +221,18 @@ describe("packObjects: grid", () => {
     expect(r.height).toBe(80);
   });
 
-  it("неизмеренная строка не занимает места", () => {
+  it("неизмеренный не растягивает свою линию", () => {
     const r = pack({
-      layout: "grid",
+      layout: "flow",
       keys: ["a", "b", "c"],
       sizes: store({ a: [30, 30], b: [30, 30] }),
       columns: 2,
       gap: [10, 10],
+      crossLimit: 10_000,
     });
 
-    // c один во второй строке и ещё не измерен — высота остаётся первой строкой
-    expect(r.height).toBe(30);
     expect(r.items[2].measured).toBe(false);
+    expect(r.items[2].bottom - r.items[2].top).toBe(0);
+    expect(r.items[2].right - r.items[2].left).toBe(0);
   });
 });

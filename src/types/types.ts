@@ -587,13 +587,12 @@ export type MorphScroll = {
    * - *along the scroll — **masonry**: the other side is the column, and each
    *   object goes into the shortest column at that moment, so the bottom
    *   stays even. `[90, "each"]` for a vertical scroll*
-   * - *across it — **flow**: a line fills until the next object no longer
-   *   fits, then the next line starts. `["each", 90]` for a vertical scroll*
-   * - *both sides — **flow** as well, and each line is as thick as the
-   *   thickest object in it*
-   * - *`direction="hybrid"` — **grid**: nothing bounds either side, so
-   *   `crossCount` says where a row ends; columns take the width of their
-   *   widest object, rows the height of their tallest*
+   * - *across it, or both — **flow**: objects follow one another with the
+   *   same gap between them, and a new line starts when the room across runs
+   *   out, or when `crossCount` says the line is full. Each line is as thick
+   *   as the thickest object in it*
+   * - *`direction="hybrid"` — flow as well, wrapped by `crossCount`: both
+   *   ways scroll, so nothing else can end a line*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx

@@ -565,12 +565,11 @@ every object gets the size it asks for, and the library measures it. Which side 
 
 <ul>
   <li><b>along the scroll</b> — <b>masonry</b>. <code>[90, "each"]</code> on a vertical scroll: 90 is the column, the height comes from the object, and each object goes into the shortest column at that moment, so the bottom stays even.</li>
-  <li><b>across it</b> — <b>flow</b>. <code>["each", 90]</code> on a vertical scroll: rows are 90 tall, widths are the objects' own, and a row fills until the next object no longer fits.</li>
-  <li><b>both sides</b> — <b>flow</b> again, and every line is as thick as the thickest object in it.</li>
-  <li><code>direction="hybrid"</code> — <b>grid</b>. Both ways scroll, so nothing bounds a line except <code>crossCount</code>: it says how many go in a row, columns take the width of their widest object and rows the height of their tallest.</li>
+  <li><b>across it, or both</b> — <b>flow</b>. <code>["each", 90]</code> on a vertical scroll: rows are 90 tall, widths are the objects' own. Objects follow one another with the same gap between them, and a row ends when the next object no longer fits — or when <code>crossCount</code> says the row is full. Every line is as thick as the thickest object in it.</li>
+  <li><code>direction="hybrid"</code> — flow as well, wrapped by <code>crossCount</code>: both ways scroll, so nothing else can end a line.</li>
 </ul>
 
-Measuring is done by one observer for the whole scroll, not one per object, and each object is measured once: after that it is remembered by its <code>key</code>, and the observer lets it go. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
+Measuring is done by one observer for the whole scroll, not one per object, and an object is watched for as long as it is on screen: a picture that arrives late or a text that changes moves its neighbours, instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
 <br />
 <code><b>"none"</b></code>:<br />
 cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. Leaving <code>size</code> out does exactly this, so the word earns its place in a pair, where there is no empty slot to leave: <code>[100, "none"]</code> is a fixed width with the height decided by the content. A computed <code>undefined</code> in that place means the same thing.<br />
@@ -581,7 +580,7 @@ cells are still created, but <code>MorphScroll</code> does not measure them — 
   <li><b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out. <b>"each"</b> is: the library measures the objects, so <code>render</code> has the numbers it needs.</li>
   <li><b>"each"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
   <li>with <code>direction="hybrid"</code> it needs <code>crossCount</code> — that is the only thing left that can end a row.</li>
-  <li>an object that changes size after it has been measured — a picture arriving late without room reserved for it — is not measured again. Reserve its space in CSS (<code>aspect-ratio</code> does it in one line) and the layout stays right.</li>
+  <li>the layout follows the objects, so anything that changes their size while they are on screen repacks them. Reserving space for a late picture (<code>aspect-ratio</code> does it in one line) still saves that repack.</li>
 </ul>
 </em><br />
 <b>Example:</b>

@@ -157,10 +157,11 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * При hybrid не ограничена ни одна сторона: колонки выравниваются по самому
-   * широкому в колонке, строки — по самому высокому в строке.
+   * При hybrid линию обрывает `crossCount`, а не место — упереться там не во
+   * что. Колонки при этом не выравниваются: рядом с узким объектом иначе
+   * остаётся дыра, и отступы перестают быть одинаковыми.
    */
-  test("сетка: колонки и строки выравниваются по своим самым большим", async ({
+  test("hybrid: строку обрывает crossCount, отступы одинаковые", async ({
     page,
   }) => {
     await page.goto("/?scenario=gridHybrid");
@@ -168,15 +169,49 @@ test.describe("objects.size: each (real browser)", () => {
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
-    // колонки по самым широким: 70, 110, 90 — их дала последняя строка
-    expect([...new Set(all.map((b) => b.x))].sort((a, b) => a - b)).toEqual([
-      0, 80, 200,
-    ]);
+    // по три в строке
+    expect(all.slice(0, 3).map((b) => b.y)).toEqual([0, 0, 0]);
+    expect(all[3].y).toBeGreaterThan(0);
 
-    // высоты строк 40, 80, 60
-    expect([...new Set(all.map((b) => b.y))].sort((a, b) => a - b)).toEqual([
-      0, 50, 140,
-    ]);
+    // внутри строки каждый начинается ровно через зазор после предыдущего
+    for (const row of [0, 1, 2]) {
+      const line = all.slice(row * 3, row * 3 + 3);
+
+      for (let i = 1; i < line.length; i++)
+        expect(line[i].x - (line[i - 1].x + line[i - 1].w)).toBe(10);
+    }
+  });
+
+  /*
+   * Содержимое живое: картинка догрузилась, текст сменился. Раскладка,
+   * посчитанная по старому размеру, разъехалась бы — значит следить надо,
+   * пока объект в DOM, а не до первого замера.
+   */
+  test("объект, выросший после замера, двигает соседей", async ({ page }) => {
+    await page.goto("/?scenario=eachGrows");
+    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+
+    const before = (await boxes(page)).sort((a, b) => a.i - b.i);
+    expect(before[0].h).toBe(40);
+    const heightBefore = await packed(page);
+
+    await page.getByTestId("grow").click();
+
+    /*
+     * Ждём саму раскладку, а не высоту: коробка меняется на перерисовке, а
+     * переложить колонки успевают только следующим кадром.
+     */
+    await expect
+      .poll(async () =>
+        (await boxes(page))
+          .filter((b) => b.x === 0 && b.i !== 0)
+          .sort((a, b) => a.y - b.y)
+          .at(0)?.y,
+      )
+      .toBe(170);
+
+    expect((await boxes(page)).find((b) => b.i === 0)?.h).toBe(160);
+    expect(await packed(page)).toBeGreaterThan(heightBefore);
   });
 
   /*

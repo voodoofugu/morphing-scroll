@@ -5,12 +5,11 @@ import type { SizeStore } from "./createSizeStore";
  *
  * - `masonry` — the side along the scroll is measured, the one across it is
  *   known: fixed columns, and every object goes into the shortest one.
- * - `flow` — the side across the scroll is measured: objects fill a line
- *   until the next one no longer fits, then a new line starts.
- * - `grid` — nothing bounds either side, so `crossCount` does: columns take
- *   the width of their widest object, rows the height of their tallest.
+ * - `flow` — the side across the scroll is measured: objects fill a line one
+ *   after another, and a new line starts when the room across runs out or
+ *   when `crossCount` says the line is full.
  */
-type PackLayout = "masonry" | "flow" | "grid";
+type PackLayout = "masonry" | "flow";
 
 type PackArgs = {
   keys: string[];
@@ -22,7 +21,7 @@ type PackArgs = {
   fixed: [number, number];
   /** [x, y] */
   gap: [number, number];
-  /** columns for `masonry` and `grid` */
+  /** columns for `masonry`; for `flow` — how many go in a line, 0 to fit by room */
   columns: number;
   /** how much room a line has across the scroll — `flow` wraps by it */
   crossLimit: number;
@@ -128,7 +127,7 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
  * не задали числом.
  */
 const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
-  const { keys, sizes, isX, fixed, gap, crossLimit } = a;
+  const { keys, sizes, isX, fixed, gap, crossLimit, columns } = a;
   const main: 0 | 1 = isX ? 0 : 1;
   const cross: 0 | 1 = isX ? 1 : 0;
 
@@ -141,6 +140,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   let lineThick = 0;
   let cursor = 0;
   let widest = 0;
+  let inLine = 0;
 
   for (const key of keys) {
     const known = sizes.get(key);
@@ -149,12 +149,21 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     const across = measured ? sideOf(known, fixed, cross) : 0;
     const along = measured ? sideOf(known, fixed, main) : 0;
 
-    // перенос по месту, а не по счёту: где кончилась строка, там и конец
-    if (cursor > 0 && cursor + across > crossLimit) {
+    /*
+     * Считанный `crossCount` важнее места: он единственное, чем можно
+     * оборвать строку там, где места нет вовсе — при `hybrid` прокрутка идёт
+     * в обе стороны, и упереться не во что.
+     */
+    const full = columns
+      ? inLine >= columns
+      : cursor > 0 && cursor + across > crossLimit;
+
+    if (full) {
       lineStart += lineThick + gapMain;
       widest = Math.max(widest, cursor - gapCross);
       cursor = 0;
       lineThick = 0;
+      inLine = 0;
     }
 
     items.push(
@@ -175,6 +184,8 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
           },
     );
 
+    inLine += 1;
+
     if (measured) {
       cursor += across + gapCross;
       lineThick = Math.max(lineThick, along);
@@ -192,69 +203,6 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   };
 };
 
-/*
- * Сетка: ни одна сторона не ограничена — при `hybrid` прокрутка идёт в обе, —
- * поэтому линию обрывает `crossCount`. Колонка становится шириной с самый
- * широкий свой объект, строка — высотой с самый высокий: иначе получается не
- * сетка, а рваная лесенка, по которой в обе стороны не поездишь.
- */
-const grid = (a: PackArgs, measuredPrefix: number): PackResult => {
-  const { keys, sizes, fixed, gap, columns } = a;
-  const cols = Math.max(1, columns);
-  const rows = Math.ceil(keys.length / cols) || 1;
-
-  const colWidth = new Array<number>(cols).fill(0);
-  const rowHeight = new Array<number>(rows).fill(0);
-
-  keys.forEach((key, i) => {
-    const known = sizes.get(key);
-    if (!known) return;
-
-    const c = i % cols;
-    const r = Math.floor(i / cols);
-
-    colWidth[c] = Math.max(colWidth[c], sideOf(known, fixed, 0));
-    rowHeight[r] = Math.max(rowHeight[r], sideOf(known, fixed, 1));
-  });
-
-  const runningX = [0];
-  for (let c = 0; c < cols; c++)
-    runningX.push(runningX[c] + colWidth[c] + (colWidth[c] ? gap[0] : 0));
-
-  const runningY = [0];
-  for (let r = 0; r < rows; r++)
-    runningY.push(runningY[r] + rowHeight[r] + (rowHeight[r] ? gap[1] : 0));
-
-  const items = keys.map((key, i) => {
-    const measured = sizes.get(key) !== undefined;
-    const c = i % cols;
-    const r = Math.floor(i / cols);
-
-    return {
-      left: runningX[c],
-      right: runningX[c] + colWidth[c],
-      top: runningY[r],
-      bottom: runningY[r] + rowHeight[r],
-      measured,
-    };
-  });
-
-  // край сетки — правый край последней непустой колонки, без зазора за ним
-  const extent = (running: number[], sides: number[]) => {
-    let last = -1;
-    for (let i = 0; i < sides.length; i++) if (sides[i] > 0) last = i;
-
-    return last === -1 ? 0 : running[last] + sides[last];
-  };
-
-  return {
-    items,
-    width: extent(runningX, colWidth),
-    height: extent(runningY, rowHeight),
-    measuredPrefix,
-  };
-};
-
 const packObjects = (args: PackArgs): PackResult => {
   let measuredPrefix = 0;
   for (const key of args.keys) {
@@ -262,10 +210,9 @@ const packObjects = (args: PackArgs): PackResult => {
     measuredPrefix += 1;
   }
 
-  if (args.layout === "flow") return flow(args, measuredPrefix);
-  if (args.layout === "grid") return grid(args, measuredPrefix);
-
-  return masonry(args, measuredPrefix);
+  return args.layout === "flow"
+    ? flow(args, measuredPrefix)
+    : masonry(args, measuredPrefix);
 };
 
 export default packObjects;

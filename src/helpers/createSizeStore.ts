@@ -5,8 +5,11 @@ type Store = {
   readonly size: number;
   /** goes up on every change — a dependency that never lies */
   readonly version: number;
-  /** watch this box until its size is known, then stop watching it */
-  watch: (el: Element | null, key: string) => void;
+  /**
+  * a `ref` for this object's box — the same function every time, so React
+  * attaches it once instead of on every render
+  */
+  refFor: (key: string) => (el: Element | null) => void;
   /** the list changed — forget everything that is no longer in it */
   keep: (keys: Set<string>) => void;
   /** everything has to be measured again: the cell size changed under them */
@@ -29,6 +32,7 @@ const createSizeStore = (notify: () => void): Store => {
   let version = 0;
   const keyOf = new WeakMap<Element, string>();
   const watched = new Map<string, Element>();
+  const refs = new Map<string, (el: Element | null) => void>();
 
   let pending = false;
 
@@ -70,15 +74,6 @@ const createSizeStore = (notify: () => void): Store => {
             sizes.set(key, [width, height]);
             version += 1;
             learned = true;
-
-            /*
-             * Измерили — отписываемся. Дальше объект живёт по записанному
-             * размеру, и его собственные шевеления никого не двигают: иначе
-             * картинка, догрузившаяся внутри карточки, перекладывала бы весь
-             * столбец на каждом кадре загрузки.
-             */
-            observer?.unobserve(entry.target);
-            watched.delete(key);
           }
 
           if (learned) schedule();
@@ -95,17 +90,47 @@ const createSizeStore = (notify: () => void): Store => {
       return version;
     },
 
-    watch: (el, key) => {
-      if (!el || !observer) return;
-      if (sizes.has(key)) return;
-      if (watched.get(key) === el) return;
+    /*
+     * Следим, пока объект в DOM, а не «до первого замера»: содержимое живое —
+     * догрузилась картинка, сменился текст, — и раскладка, посчитанная по
+     * старому размеру, разъезжается. Лишних срабатываний это не приносит:
+     * `ResizeObserver` молчит, пока размер не менялся, а ответы всё равно
+     * собираются в одну пачку.
+     *
+     * Функция на ключ одна и та же: React снимает и вешает ссылку заново
+     * каждый раз, как она поменялась, а это отписка и подписка на каждый
+     * рендер — на ровном месте.
+     *
+     * `null` приходит, когда бокс ушёл из DOM: отпускаем, иначе наблюдатель
+     * держал бы ссылку на элемент, которого уже нет.
+     */
+    refFor: (key) => {
+      let ref = refs.get(key);
+      if (ref) return ref;
 
-      const old = watched.get(key);
-      if (old) observer.unobserve(old);
+      ref = (el) => {
+        if (!observer) return;
 
-      keyOf.set(el, key);
-      watched.set(key, el);
-      observer.observe(el);
+        const old = watched.get(key);
+
+        if (!el) {
+          if (old) observer.unobserve(old);
+          watched.delete(key);
+
+          return;
+        }
+
+        if (old === el) return;
+        if (old) observer.unobserve(old);
+
+        keyOf.set(el, key);
+        watched.set(key, el);
+        observer.observe(el);
+      };
+
+      refs.set(key, ref);
+
+      return ref;
     },
 
     keep: (alive) => {
@@ -117,20 +142,32 @@ const createSizeStore = (notify: () => void): Store => {
           observer?.unobserve(el);
           watched.delete(key);
         }
+
+      for (const key of [...refs.keys()]) if (!alive.has(key)) refs.delete(key);
     },
 
+    /*
+     * Стёрли измеренное — надо и померить заново, а ссылки React заново не
+     * дёрнет: они те же самые. Поэтому наблюдение не снимаем, только забываем
+     * числа; `ResizeObserver` пришлёт их следующим кадром сам.
+     */
     clear: () => {
-      // версия меняется и от снятого наблюдения: перерисовка вернёт его назад
-      if (sizes.size || watched.size) version += 1;
+      if (!sizes.size) return;
+
       sizes.clear();
-      for (const el of watched.values()) observer?.unobserve(el);
-      watched.clear();
+      version += 1;
+
+      for (const el of watched.values()) {
+        observer?.unobserve(el);
+        observer?.observe(el);
+      }
     },
 
     destroy: () => {
       observer?.disconnect();
       sizes.clear();
       watched.clear();
+      refs.clear();
     },
   };
 };

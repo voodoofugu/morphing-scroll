@@ -398,15 +398,17 @@ themselves are no longer transformed and can be positioned from CSS.
 - `objects.size` takes `"each"`: objects keep the size they came with, and
   the library measures it. Which side is handed over decides the layout —
   along the scroll it is a masonry (`[90, "each"]`: fixed columns, each
-  object into the shortest one, so the bottom stays even), across it a flow
-  (`["each", 90]`: a line fills until the next object no longer fits), both
-  sides a flow whose lines are as thick as their thickest object, and with
-  `direction="hybrid"` a grid, where `crossCount` ends the row and columns
-  and rows align to their largest.
+  object into the shortest one, so the bottom stays even); across it, or on
+  both sides, a flow, where objects follow one another with the same gap
+  between them and a line ends when the room across runs out — or when
+  `crossCount` says it is full, which is what `direction="hybrid"` uses,
+  since both ways scroll and nothing else can end a line.
 
-  One observer per scroll, not one per object; each object measured once and
-  then remembered by its `key`; not-yet-measured objects drawn a batch at a
-  time, so five hundred cards do not arrive in one frame. `render` works on
+  One observer per scroll, not one per object, and an object is watched while
+  it is on screen — a picture arriving late moves its neighbours instead of
+  leaving the layout wrong. Sizes are remembered by the child's `key`, so
+  they survive virtualization; not-yet-measured objects are drawn a batch at
+  a time, so five hundred cards do not arrive in one frame. `render` works on
   top of all of it — once the sizes are known there is nothing left to guess.
   Pages need one size for all, so `"each"` is for `mode="scroll"`.
 - `onNavigate` reports a page turn when it is asked for, not when the ride

@@ -615,10 +615,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      *
      * — вдоль прокрутки: колонок известное число, каждый уходит в самую
      *   короткую — кладка;
-     * — поперёк: сколько влезло в линию, столько и встало, дальше новая
-     *   линия — поток;
-     * — при `hybrid` не ограничена ни одна сторона, границу задаёт
-     *   `crossCount` — сетка.
+     * — поперёк или в обе: объекты идут друг за другом, пока линия не
+     *   кончится — поток.
+     *
+     * При `hybrid` кончиться линии негде: прокрутка идёт в обе стороны, и
+     * оборвать её может только `crossCount`. Выравнивать при этом колонки по
+     * самой широкой нельзя — рядом с узким объектом остаётся дыра, и отступы
+     * перестают быть одинаковыми. Поэтому и там поток, просто по счёту.
      */
     const isHybrid = direction === "hybrid";
     const mainAxis = direction === "x" ? 0 : 1;
@@ -628,7 +631,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const eachOnCross = objectsSizing[crossAxis] === "each";
     const isEach = eachOnMain || eachOnCross;
 
-    const eachLayout = isHybrid ? "grid" : eachOnCross ? "flow" : "masonry";
+    const eachLayout =
+      !isHybrid && eachOnMain && !eachOnCross ? "masonry" : "flow";
 
     const objectsSizeLocal = React.useMemo(() => {
       const { height, width } = receivedChildSizeRef.current;
@@ -764,8 +768,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const eachColumns = React.useMemo(() => {
       if (!isEach) return 1;
-      // сетке и потоку колонки не считают: у первой их называют, второй — меряет
-      if (eachLayout !== "masonry") return Math.max(1, crossCount ?? 1);
+      /*
+       * Поток считает сам, если счёт не назвали: ноль для него — «сколько
+       * влезет». Для `hybrid` влезет сколько угодно, поэтому там счёт нужен.
+       */
+      if (eachLayout === "flow") return crossCount ?? (isHybrid ? 1 : 0);
 
       const cell = objectsSizeLocal[crossAxis];
       const gapCross = gapLocal[crossAxis === 0 ? 1 : 0];
@@ -781,6 +788,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [
       isEach,
       eachLayout,
+      isHybrid,
       objectsSizeLocal[crossAxis],
       gapLocal.join(),
       sizeLocal[crossAxis],
@@ -2370,7 +2378,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                   [CONST.WRAP_ATR]: `${key}`,
                 }
               : {})}
-            ref={isEach ? (el) => sizes.watch(el, key) : undefined}
+            ref={isEach ? sizes.refFor(key) : undefined}
             className="ms-object-box"
             style={wrapStyle}
             onClick={emptyObjectsLocal ? updateEmptyKeysClickLocal : undefined}
