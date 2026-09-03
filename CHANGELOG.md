@@ -422,7 +422,9 @@ themselves are no longer transformed and can be positioned from CSS.
   A line is as thick as the thickest object in it, and when that thickness is
   the objects' own too — both sides handed over, `crossCount` ending the line
   — the shorter ones no longer hang under it: each rises into the room above
-  it on its own, while the order stays line by line. That is the difference
+  it on its own, while the order stays line by line, and stops a gap short of
+  whatever it comes near — sideways as well as head on, since keeping objects
+  of different lines apart used to be the line's job. That is the difference
   from a fill, which closes the same gaps by giving the order up.
 
   `objects.direction` works for `"each"` the same way it works for a known

@@ -663,7 +663,7 @@ describe("packObjects: свободное место вдоль прокрутк
    */
   const rows = {
     keys: ["a", "b", "c", "d"],
-    sizes: store({ a: [40, 80], b: [50, 20], c: [30, 30], d: [40, 25] }),
+    sizes: store({ a: [40, 20], b: [50, 80], c: [30, 30], d: [40, 25] }),
     layout: "flow" as const,
     gap: [10, 10] as [number, number],
     columns: 2,
@@ -671,18 +671,19 @@ describe("packObjects: свободное место вдоль прокрутк
   };
 
   it("поднимает объект в пустоту под низким соседом", () => {
+    // c уходит под низкую a на 30; d держит высокая b, с которой она рядом
     expect(pack({ ...rows, compact: true }).items.map(box)).toEqual([
-      [0, 0, 40, 80],
-      [50, 0, 100, 20],
-      [0, 90, 30, 120],
-      [40, 30, 80, 55],
+      [0, 0, 40, 20],
+      [50, 0, 100, 80],
+      [0, 30, 30, 60],
+      [40, 90, 80, 115],
     ]);
   });
 
   it("без уплотнения та же строка стоит под самой толстой", () => {
     expect(pack({ ...rows, compact: false }).items.map(box)).toEqual([
-      [0, 0, 40, 80],
-      [50, 0, 100, 20],
+      [0, 0, 40, 20],
+      [50, 0, 100, 80],
       [0, 90, 30, 120],
       [40, 90, 80, 115],
     ]);
@@ -701,5 +702,55 @@ describe("packObjects: свободное место вдоль прокрутк
     // c уходит под a на 20, и высота считается по b, а не по строке c
     expect(pack({ ...tall, compact: true }).height).toBe(80);
     expect(pack({ ...tall, compact: false }).height).toBe(100);
+  });
+
+
+  /*
+   * Силуэт держит зазор между теми, чьи поперечные границы пересекаются. У
+   * этих двух они ровно соприкасаются — «не мешаем друг другу», — и подъём
+   * съедал зазор, который до уплотнения давала сама линия: 5 вставала вплотную
+   * к правому краю 2 и перекрывала её по вертикали на 5 пикселей.
+   */
+  it("не подъезжает вплотную к тому, с кем едва разошёлся поперёк", () => {
+    const touching = {
+      keys: ["a", "b", "c", "d", "e", "f"],
+      sizes: store({
+        a: [150, 126],
+        b: [161, 135],
+        c: [171, 142],
+        d: [156, 125],
+        e: [159, 185],
+        f: [85, 179],
+      }),
+      layout: "flow" as const,
+      gap: [12, 12] as [number, number],
+      columns: 2,
+      crossLimit: 1000,
+      compact: true,
+    };
+
+    const items = pack(touching).items;
+
+    // f поднялась бы на 284, к самому краю c — но там ей не хватает зазора
+    expect(items.map(box)).toEqual([
+      [0, 0, 150, 126],
+      [162, 0, 323, 135],
+      [0, 147, 171, 289],
+      [183, 147, 339, 272],
+      [0, 301, 159, 486],
+      [171, 301, 256, 480],
+    ]);
+
+    // и вообще никто ни с кем не сошёлся ближе зазора
+    for (let i = 0; i < items.length; i++)
+      for (let j = i + 1; j < items.length; j++) {
+        const one = items[i];
+        const two = items[j];
+        const alongX = Math.min(one.right, two.right) - Math.max(one.left, two.left);
+        const alongY =
+          Math.min(one.bottom, two.bottom) - Math.max(one.top, two.top);
+
+        expect(alongX <= -12 || alongY <= -12).toBe(true);
+      }
   });
 });

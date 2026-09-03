@@ -329,7 +329,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
    * между ними важен — иначе поднятый объект уезжал бы вбок уже на новом
    * месте и упирался бы не в того соседа.
    */
-  if (a.compact) compactMain(placed, isX, gapMain, widest);
+  if (a.compact) compactMain(placed, isX, gapMain, gapCross, widest);
 
   const alongSize = a.compact
     ? placed.reduce((max, item) => Math.max(max, mainEnd(item, isX)), 0)
@@ -507,13 +507,22 @@ const compactFill = (
  * то ради посадки порядок отдаёт, а тут строка остаётся строкой, просто без
  * пустот под ней.
  *
- * Идём сверху вниз: тот, до кого поднимаем, уже на своём месте. Соседи по
- * одной линии друг друга не держат — они не пересекаются поперёк.
+ * Идём сверху вниз: тот, до кого поднимаем, уже на своём месте.
+ *
+ * Упираемся не только в то, что стоит прямо над нами, но и в то, что рядом
+ * ближе зазора: до уплотнения соседей из разных линий разводила сама линия, а
+ * теперь объект может подъехать вплотную к тому, с кем едва разошёлся поперёк.
+ * Поэтому спрашиваем силуэт про свой отрезок, расширенный на зазор в обе
+ * стороны, — а поднимаем силуэт по своему собственному, чтобы расширения
+ * соседей не затирали друг друга. Сосед по своей же линии при этом не мешает:
+ * от него ровно зазор и есть, а отрезок, кончающийся там, где начинается
+ * запрос, силуэт не считает пересечением.
  */
 const compactMain = (
   items: Placed[],
   isX: boolean,
   gapMain: number,
+  gapCross: number,
   crossSize: number,
 ) => {
   if (crossSize <= 0) return;
@@ -533,9 +542,12 @@ const compactMain = (
     const span = crossEnd(item, isX) - at;
     const along = mainEnd(item, isX) - mainStart(item, isX);
 
-    const rest = sky.restingAt(at, span);
+    const from = Math.max(0, at - gapCross);
+    const till = Math.min(crossSize, at + span + gapCross);
+    const rest = sky.restingAt(from, till - from);
     // не влез в силуэт — трогать не за что, пусть стоит где стоял
-    const to = rest === null ? mainStart(item, isX) : Math.min(mainStart(item, isX), rest);
+    const to =
+      rest === null ? mainStart(item, isX) : Math.min(mainStart(item, isX), rest);
 
     moveMain(item, to, isX);
     sky.raise(at, span, to + along + gapMain);
