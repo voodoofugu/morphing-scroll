@@ -587,15 +587,22 @@ export type MorphScroll = {
    * - *along the scroll — **masonry**: the other side is the column, and each
    *   object goes into the shortest column at that moment, so the bottom
    *   stays even. `[90, "each"]` for a vertical scroll*
-   * - *across it, or both — **flow**: objects follow one another with the
-   *   same gap between them, and a new line starts when the room across runs
-   *   out, or when `crossCount` says the line is full. Each line is as thick
-   *   as the thickest object in it*
-   * - *`direction="hybrid"` — flow as well, wrapped by `crossCount`: both
-   *   ways scroll, so nothing else can end a line*
+   * - *across it — **flow**: objects follow one another with the same gap
+   *   between them, and a new line starts when the room across runs out, or
+   *   when `crossCount` says the line is full. Each line is as thick as the
+   *   thickest object in it*
+   * - *both sides — **fill**: every object takes the highest place it fits
+   *   into, so nothing is left hanging under a short neighbour. Order gives
+   *   way to the fit — an object further down the list can end up higher on
+   *   the screen. Naming `crossCount` asks for lines instead, and lines is
+   *   what you get*
+   * - *`direction="hybrid"` — flow, wrapped by `crossCount`: both ways
+   *   scroll, so nothing else can end a line*
    * @note *`"each"` on its own is the short way of saying it about both
    * sides — the same as `["each", "each"]`*
-   * @note *`align` moves a line that did not fill the room across; `direction`
+   * @note *`align` moves the last line — the one that did not fill up; a full
+   * line has no free room, only a tail too short for one more object.
+   * `direction`
    * is decided by `"each"` itself — the side you hand over is the side the
    * objects run along*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*

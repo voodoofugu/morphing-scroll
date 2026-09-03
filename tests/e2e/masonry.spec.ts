@@ -209,6 +209,32 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Обе стороны за объектом — значит и раскладка идёт по месту, а не по
+   * очереди: каждый встаёт в самое высокое, куда влезает.
+   */
+  test("заполнение не оставляет дыр под низкими соседями", async ({ page }) => {
+    await page.goto("/?scenario=fillFree");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+
+    // высоты 40, 120, 50, 30, 60, 20 при ширине 90 и окне 200 — две колонки
+    expect(all.map((b) => [b.x, b.y])).toEqual([
+      [0, 0],
+      [100, 0],
+      [0, 50],
+      [0, 110],
+      [100, 130],
+      [0, 150],
+    ]);
+
+    // под каждым объектом левой колонки нет пустоты больше зазора
+    const left = all.filter((b) => b.x === 0).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < left.length; i++)
+      expect(left[i].y - (left[i - 1].y + left[i - 1].h)).toBe(10);
+  });
+
+  /*
    * Объекты живут внутри полей обёртки, значит и переносить их надо по
    * месту за вычетом полей — иначе последний в строке уезжает за край.
    */
@@ -229,15 +255,25 @@ test.describe("objects.size: each (real browser)", () => {
     ]);
   });
 
-  test("align уводит строку к дальнему краю", async ({ page }) => {
+  /*
+   * Полные строки align не трогает: там не свободное место, а хвост, в
+   * который просто не влез ещё один объект.
+   */
+  test("align уводит к дальнему краю только последнюю строку", async ({
+    page,
+  }) => {
     await page.goto("/?scenario=flowAlign");
     await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
-    const line = all.filter((b) => b.y === all[0].y);
+    const lastY = Math.max(...all.map((b) => b.y));
 
-    // строка кончается ровно на дальнем краю окна
-    const last = line[line.length - 1];
+    // первая строка осталась у ближнего края
+    expect(all.filter((b) => b.y !== lastY).map((b) => b.x)[0]).toBe(0);
+
+    // последняя кончается ровно на дальнем
+    const tail = all.filter((b) => b.y === lastY);
+    const last = tail[tail.length - 1];
     expect(last.x + last.w).toBe(200);
   });
 

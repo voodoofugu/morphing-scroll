@@ -398,15 +398,19 @@ themselves are no longer transformed and can be positioned from CSS.
 - `objects.size` takes `"each"`: objects keep the size they came with, and
   the library measures it. Which side is handed over decides the layout —
   along the scroll it is a masonry (`[90, "each"]`: fixed columns, each
-  object into the shortest one, so the bottom stays even); across it, or on
-  both sides, a flow, where objects follow one another with the same gap
-  between them and a line ends when the room across runs out — or when
-  `crossCount` says it is full, which is what `direction="hybrid"` uses,
-  since both ways scroll and nothing else can end a line. `"each"` on its own
-  is the short way of saying it about both sides. `align` moves a line that
-  did not fill the room across — and that room is the scroll minus
-  `wrapper.margin`; `direction` is decided by `"each"` itself, so passing it
-  says so instead of being ignored.
+  object into the shortest one, so the bottom stays even); across it a flow,
+  where objects follow one another with the same gap between them and a line
+  ends when the room across runs out — or when `crossCount` says it is full,
+  which is what `direction="hybrid"` uses, since both ways scroll and nothing
+  else can end a line; and on both sides a fill, where every object takes the
+  highest place it fits into, so nothing hangs under a short neighbour and
+  order gives way to the fit.
+
+  `"each"` on its own is the short way of saying it about both sides. `align`
+  moves the last line — the one that did not fill up — and the room it
+  measures against is the scroll minus `wrapper.margin`; `direction` is
+  decided by `"each"` itself, so passing it says so instead of being
+  ignored.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

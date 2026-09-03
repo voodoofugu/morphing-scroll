@@ -565,13 +565,14 @@ every object gets the size it asks for, and the library measures it. Which side 
 
 <ul>
   <li><b>along the scroll</b> — <b>masonry</b>. <code>[90, "each"]</code> on a vertical scroll: 90 is the column, the height comes from the object, and each object goes into the shortest column at that moment, so the bottom stays even.</li>
-  <li><b>across it, or both</b> — <b>flow</b>. <code>["each", 90]</code> on a vertical scroll: rows are 90 tall, widths are the objects' own. Objects follow one another with the same gap between them, and a row ends when the next object no longer fits — or when <code>crossCount</code> says the row is full. Every line is as thick as the thickest object in it.</li>
+  <li><b>across it</b> — <b>flow</b>. <code>["each", 90]</code> on a vertical scroll: rows are 90 tall, widths are the objects' own. Objects follow one another with the same gap between them, and a row ends when the next object no longer fits — or when <code>crossCount</code> says the row is full. Every line is as thick as the thickest object in it.</li>
+  <li><b>both sides</b> — <b>fill</b>. Every object takes the highest place it fits into, so nothing is left hanging under a short neighbour. Order gives way to the fit: an object further down the list can end up higher on the screen — that is what handing over both sides asks for. Naming <code>crossCount</code> asks for lines instead, and lines is what you get.</li>
   <li><code>direction="hybrid"</code> — flow as well, wrapped by <code>crossCount</code>: both ways scroll, so nothing else can end a line.</li>
 </ul>
 
 <code>"each"</code> on its own says it about both sides at once — the same as <code>["each", "each"]</code>.<br />
 <br />
-<code>align</code> works as everywhere else: it moves a line that did not fill the room across, and that room is the scroll minus <code>wrapper.margin</code>. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
+<code>align</code> works as everywhere else: it moves the last line — the one that did not fill up — and the room it measures against is the scroll minus <code>wrapper.margin</code>. A full line has no free room, only a tail too short for one more object, so it stays where it is. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
 
 <ul>
 </ul>

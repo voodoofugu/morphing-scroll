@@ -161,7 +161,11 @@ describe("packObjects: flow", () => {
 });
 
 describe("packObjects: align", () => {
-  it("в потоке каждая строка двигается на своё свободное место", () => {
+  /*
+   * У полных строк свободного места нет: там хвост, в который просто не влез
+   * ещё один объект. Двигают только последнюю — ту, что не добралась.
+   */
+  it("в потоке двигается только последняя строка", () => {
     const r = pack({
       layout: "flow",
       keys: ["a", "b", "c"],
@@ -171,8 +175,8 @@ describe("packObjects: align", () => {
       align: "end",
     });
 
-    // первая строка заняла 60 из 100 — уезжает на 40; вторая 50 — на 50
-    expect(r.items.map((i) => i.left)).toEqual([40, 70, 50]);
+    // первая строка стоит на месте, последняя (50 из 100) уезжает на 50
+    expect(r.items.map((i) => i.left)).toEqual([0, 30, 50]);
   });
 
   it("center делит свободное место пополам", () => {
@@ -213,6 +217,68 @@ describe("packObjects: align", () => {
     });
 
     expect(r.items[0].left).toBe(0);
+  });
+});
+
+describe("packObjects: fill", () => {
+  it("низкий сосед не оставляет под собой дыру", () => {
+    const r = pack({
+      layout: "fill",
+      keys: ["a", "b", "c"],
+      sizes: store({ a: [50, 20], b: [50, 60], c: [50, 30] }),
+      crossLimit: 100,
+    });
+
+    // a и b встали рядом, c влез под a, а не под самый низкий край строки
+    expect(r.items.map(box)).toEqual([
+      [0, 0, 50, 20],
+      [50, 0, 100, 60],
+      [0, 20, 50, 50],
+    ]);
+    expect(r.height).toBe(60);
+  });
+
+  it("порядок уступает месту: следующий может встать выше предыдущего", () => {
+    const r = pack({
+      layout: "fill",
+      keys: ["tall", "wide", "small"],
+      sizes: store({ tall: [60, 100], wide: [40, 80], small: [40, 10] }),
+      crossLimit: 100,
+    });
+
+    // small влезает над wide, хотя в списке идёт после него
+    expect(r.items[2].top).toBe(80);
+    expect(r.items[2].left).toBe(60);
+    expect(r.height).toBe(100);
+  });
+
+  it("зазор держится и между соседями, и над ними", () => {
+    const r = pack({
+      layout: "fill",
+      keys: ["a", "b", "c"],
+      sizes: store({ a: [40, 20], b: [40, 20], c: [40, 20] }),
+      gap: [10, 10],
+      crossLimit: 100,
+    });
+
+    expect(r.items.map((i) => [i.left, i.top])).toEqual([
+      [0, 0],
+      [50, 0],
+      [0, 30],
+    ]);
+  });
+
+  it("неизмеренный ничего не занимает и никого не двигает", () => {
+    const r = pack({
+      layout: "fill",
+      keys: ["a", "b", "c"],
+      sizes: store({ a: [40, 20], c: [40, 20] }),
+      crossLimit: 100,
+    });
+
+    expect(r.items[1].measured).toBe(false);
+    expect(r.items[1].right - r.items[1].left).toBe(0);
+    expect(r.items[2].left).toBe(40);
   });
 });
 

@@ -544,6 +544,28 @@ scenarios.flowColumn = (
   </MorphScroll>
 );
 
+/* Заполнение: обе стороны за объектом, дырок под низкими быть не должно */
+scenarios.fillFree = (
+  <MorphScroll objects={{ size: "each", gap: 10 }} size={[200, 300]}>
+    {[
+      [90, 40],
+      [90, 120],
+      [90, 50],
+      [90, 30],
+      [90, 60],
+      [90, 20],
+    ].map(([w, h], i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{ width: w, height: h }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* Поля обёртки: перенос должен считать место за их вычетом, а не всё окно */
 scenarios.flowMargin = (
   <MorphScroll

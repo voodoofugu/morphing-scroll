@@ -8,8 +8,10 @@ import type { SizeStore } from "./createSizeStore";
  * - `flow` — the side across the scroll is measured: objects fill a line one
  *   after another, and a new line starts when the room across runs out or
  *   when `crossCount` says the line is full.
+ * - `fill` — both sides are the objects' own: every object takes the highest
+ *   place it fits into, so no holes are left. Order gives way to the fit.
  */
-type PackLayout = "masonry" | "flow";
+type PackLayout = "masonry" | "flow" | "fill";
 
 type PackArgs = {
   keys: string[];
@@ -174,11 +176,17 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   let inLine = 0;
   let lineFrom = 0;
 
-  // строку выравниваем, когда она дособралась: раньше её длина неизвестна
-  const closeLine = () => {
+  /*
+   * Строку закрываем, когда она дособралась: раньше её длина неизвестна.
+   *
+   * Выравниваем при этом только последнюю: у полных строк свободного места
+   * нет — там остался хвост, в который просто не влез ещё один объект, и
+   * двигать за него всю строку значит рвать ровный край на всех остальных.
+   */
+  const closeLine = (last = false) => {
     const used = cursor > 0 ? cursor - gapCross : 0;
 
-    shift(items, offsetOf(a.align, crossLimit - used), isX, lineFrom);
+    if (last) shift(items, offsetOf(a.align, crossLimit - used), isX, lineFrom);
     widest = Math.max(widest, used);
   };
 
@@ -233,7 +241,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     }
   }
 
-  closeLine();
+  closeLine(true);
   const alongSize = lineStart + lineThick;
 
   return {
@@ -244,12 +252,160 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   };
 };
 
+/*
+ * Заполнение: объект встаёт не следующим по очереди, а в самое высокое место,
+ * куда влезает. Дырок под низкими соседями не остаётся — но и порядок теперь
+ * не построчный: тот, кто ниже по списку, может оказаться выше на экране.
+ *
+ * Занятое помним силуэтом — списком отрезков поперёк с высотой каждого. Для
+ * очередного объекта перебираем начала отрезков: годится то, где он влезает
+ * в ширину и упирается ниже всех.
+ */
+const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
+  const { keys, sizes, isX, fixed, gap, crossLimit } = a;
+  const main: 0 | 1 = isX ? 0 : 1;
+  const cross: 0 | 1 = isX ? 1 : 0;
+
+  const gapMain = gap[main];
+  const gapCross = gap[cross];
+
+  let sky: { at: number; size: number; top: number }[] = [
+    { at: 0, size: Math.max(crossLimit, 0), top: 0 },
+  ];
+
+  /** самая низкая точка, в которую упрётся объект шириной `size` из `at` */
+  const restingAt = (at: number, size: number) => {
+    let left = size;
+    let top = 0;
+
+    for (const part of sky) {
+      if (part.at + part.size <= at) continue;
+      if (left <= 0) break;
+
+      top = Math.max(top, part.top);
+      left -= part.at < at ? part.at + part.size - at : part.size;
+    }
+
+    return left > 0 ? null : top;
+  };
+
+  /** поднять силуэт над занятым местом */
+  const raise = (at: number, size: number, top: number) => {
+    const next: typeof sky = [];
+
+    for (const part of sky) {
+      const start = part.at;
+      const end = part.at + part.size;
+
+      if (end <= at || start >= at + size) {
+        next.push(part);
+        continue;
+      }
+
+      if (start < at) next.push({ at: start, size: at - start, top: part.top });
+      if (end > at + size)
+        next.push({ at: at + size, size: end - (at + size), top: part.top });
+    }
+
+    next.push({ at, size, top });
+    next.sort((one, two) => one.at - two.at);
+
+    // соседи одной высоты — это один отрезок; иначе силуэт растёт без нужды
+    sky = next.reduce<typeof sky>((acc, part) => {
+      const last = acc[acc.length - 1];
+
+      if (last && last.top === part.top && last.at + last.size === part.at)
+        last.size += part.size;
+      else acc.push({ ...part });
+
+      return acc;
+    }, []);
+  };
+
+  const items: Placed[] = [];
+
+  for (const key of keys) {
+    const known = sizes.get(key);
+    const measured = known !== undefined;
+
+    const across = measured ? sideOf(known, fixed, cross) : 0;
+    const along = measured ? sideOf(known, fixed, main) : 0;
+
+    let bestAt = 0;
+    let bestTop = 0;
+
+    if (measured && across > 0) {
+      let found = false;
+
+      for (const part of sky) {
+        const at = part.at;
+        if (at + across > crossLimit) continue;
+
+        const top = restingAt(at, across);
+        if (top === null) continue;
+
+        if (!found || top < bestTop || (top === bestTop && at < bestAt)) {
+          found = true;
+          bestAt = at;
+          bestTop = top;
+        }
+      }
+
+      // шире отведённого — кладём с начала, за край он выйдет сам
+      if (!found) bestTop = restingAt(0, Math.max(crossLimit, 1)) ?? 0;
+    }
+
+    items.push(
+      isX
+        ? {
+            left: bestTop,
+            right: bestTop + along,
+            top: bestAt,
+            bottom: bestAt + across,
+            measured,
+          }
+        : {
+            top: bestTop,
+            bottom: bestTop + along,
+            left: bestAt,
+            right: bestAt + across,
+            measured,
+          },
+    );
+
+    if (measured && across > 0)
+      raise(
+        bestAt,
+        Math.min(across + gapCross, Math.max(crossLimit - bestAt, across)),
+        bestTop + along + gapMain,
+      );
+  }
+
+  const alongSize = items.reduce(
+    (max, i) => Math.max(max, isX ? i.right : i.bottom),
+    0,
+  );
+  const acrossSize = items.reduce(
+    (max, i) => Math.max(max, isX ? i.bottom : i.right),
+    0,
+  );
+
+  return {
+    items,
+    width: isX ? alongSize : acrossSize,
+    height: isX ? acrossSize : alongSize,
+    measuredPrefix,
+  };
+};
+
 const packObjects = (args: PackArgs): PackResult => {
   let measuredPrefix = 0;
   for (const key of args.keys) {
     if (args.sizes.get(key) === undefined) break;
     measuredPrefix += 1;
   }
+
+  if (args.layout === "fill") return fill(args, measuredPrefix);
 
   return args.layout === "flow"
     ? flow(args, measuredPrefix)

@@ -39,6 +39,7 @@ import {
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
 import createSizeStore from "../helpers/createSizeStore";
 import packObjects from "../helpers/packObjects";
+import type { PackLayout } from "../helpers/packObjects";
 import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
@@ -626,8 +627,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      *
      * — вдоль прокрутки: колонок известное число, каждый уходит в самую
      *   короткую — кладка;
-     * — поперёк или в обе: объекты идут друг за другом, пока линия не
-     *   кончится — поток.
+     * — поперёк: объекты идут друг за другом, пока линия не кончится — поток;
+     * — обе стороны за объектом: каждый встаёт в самое высокое место, куда
+     *   влезает — заполнение. Дырок не остаётся, но и порядок построчным быть
+     *   перестаёт: это и есть смысл `["each", "each"]`.
+     *
+     * Названный `crossCount` заполнение отменяет: «по столько-то в строке» и
+     * «куда влезет» — разные просьбы, и explicit важнее.
      *
      * При `hybrid` кончиться линии негде: прокрутка идёт в обе стороны, и
      * оборвать её может только `crossCount`. Выравнивать при этом колонки по
@@ -642,8 +648,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const eachOnCross = objectsSizing[crossAxis] === "each";
     const isEach = eachOnMain || eachOnCross;
 
-    const eachLayout =
-      !isHybrid && eachOnMain && !eachOnCross ? "masonry" : "flow";
+    const eachLayout: PackLayout = isHybrid
+      ? "flow"
+      : eachOnMain && eachOnCross && !crossCount
+        ? "fill"
+        : eachOnMain && !eachOnCross
+          ? "masonry"
+          : "flow";
 
     const objectsSizeLocal = React.useMemo(() => {
       const { height, width } = receivedChildSizeRef.current;

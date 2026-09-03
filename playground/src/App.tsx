@@ -577,8 +577,11 @@ function eachHint(settings: Settings) {
 
   if (mainEach && !crossEach) return "masonry · shortest column wins";
 
-  return settings.crossCount
-    ? `flow · ${settings.crossCount} per line (crossCount)`
+  if (settings.crossCount)
+    return `flow · ${settings.crossCount} per line (crossCount)`;
+
+  return mainEach && crossEach
+    ? "fill · every object takes the highest place it fits"
     : "flow · a line fills, then the next one starts";
 }
 
