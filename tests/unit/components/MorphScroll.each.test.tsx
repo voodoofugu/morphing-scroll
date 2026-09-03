@@ -35,17 +35,18 @@ describe('objects.size: "each"', () => {
   });
 
   /*
-   * Без crossCount у hybrid раньше не было куда упереть линию — теперь там
-   * заполнение, и упирать линию не во что незачем: у заполнения линий нет.
+   * У hybrid едут обе стороны: оборвать линию нечем, кроме счёта. Заполнением
+   * это не подменить — ему нужна граница поперёк, а взять её можно только из
+   * окна, и тогда вторая сторона перестанет ехать.
    */
-  it("hybrid без crossCount молчит: без счёта там заполнение", () => {
+  it("ругается на hybrid без crossCount: линию нечем оборвать", () => {
     render(
       <MorphScroll size={[200, 300]} direction="hybrid" objects={{ size: "each" }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(error).not.toHaveBeenCalled();
+    expect(said("needs objects.crossCount")).toBe(true);
   });
 
   it("с crossCount hybrid молчит", () => {
@@ -91,7 +92,11 @@ describe('objects.size: "each"', () => {
     expect(error).not.toHaveBeenCalled();
   });
 
-  it("ругается на objects.direction: сторону решает уже не он", () => {
+  /*
+   * "column" при вертикальной прокрутке — линии вдоль неё, то есть колонки, и
+   * это ровно то, что кладка и делает. Просьба выполнима — ругаться не на что.
+   */
+  it("молчит на objects.direction вдоль прокрутки: это и есть кладка", () => {
     render(
       <MorphScroll
         size={[200, 300]}
@@ -101,7 +106,37 @@ describe('objects.size: "each"', () => {
       </MorphScroll>,
     );
 
-    expect(said("objects.direction is decided by objects.size")).toBe(true);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("молчит на objects.direction поперёк прокрутки: это поток", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        objects={{ size: [90, "each"], direction: "row" }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  /*
+   * Колонке нужна ширина, а эта сторона отдана объектам — раскладывать по
+   * колонкам не по чему, и просьбу выполнить нечем.
+   */
+  it("ругается на колонки, когда ширины колонки нет", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        objects={{ size: ["each", 90], direction: "column" }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(said("there is no column width")).toBe(true);
   });
 
   it("молчит на обычной кладке и не требует render", () => {

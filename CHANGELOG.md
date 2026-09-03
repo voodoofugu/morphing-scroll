@@ -404,9 +404,12 @@ themselves are no longer transformed and can be positioned from CSS.
   and on both sides a fill, where every object takes the highest place it
   fits into, so nothing hangs under a short neighbour and order gives way to
   the fit. `direction="hybrid"` hands over neither side, so `objects.size`
-  alone cannot say which axis a line runs along there — naming `crossCount`
-  gives flow wrapped by that count, leaving it out gives fill, same as
-  handing over both sides.
+  alone cannot say which axis a line runs along there — `crossCount` is the
+  only thing that can end a line, and a fill cannot stand in for it, since a
+  fill needs a boundary across and the only one on offer is the scroll
+  itself. With `crossCount` and a known size across it is a masonry, so
+  nothing hangs under a short neighbour; with both sides handed over, a flow
+  by that count.
 
   `"each"` on its own is the short way of saying it about both sides. `align`
   lines the rows up against the widest one — that row is the width of the
@@ -414,11 +417,18 @@ themselves are no longer transformed and can be positioned from CSS.
   a fill has no rows, so each object closes its own gap instead, and
   `"center"` stops it halfway between where the fit placed it and where
   `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
-  nothing moves until every object has been measured; `direction` is
-  decided by `"each"` itself for a single scrolling axis, so passing it says
-  so instead of being ignored — except for `direction="hybrid"`, which hands
-  over neither axis, so `objects.direction` is what decides there: `"row"`
-  has `crossCount` bound the width, `"column"` bounds the height instead.
+  nothing moves until every object has been measured.
+
+  `objects.direction` names the line the objects run along, and it is heard
+  on every axis. A single scrolling axis is already taken, leaving two
+  readings: lines along it are columns — masonry — and lines across it are
+  rows — flow. Leave it out and the side you hand over decides, as before;
+  name it and it decides instead, so `[90, "each"]` with `direction: "row"`
+  is strict rows rather than a masonry. Columns need a width, so asking for
+  them while that side is the objects' own is the one reading that cannot be
+  built, and the library says so. For `direction="hybrid"` it picks the axis
+  itself: `"row"` has `crossCount` bound the width, `"column"` bounds the
+  height instead.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

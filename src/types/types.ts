@@ -597,9 +597,11 @@ export type MorphScroll = {
    *   the screen. Naming `crossCount` asks for lines instead, and lines is
    *   what you get*
    * - *`direction="hybrid"` — both ways scroll, so which side is `"each"`
-   *   says nothing about which axis a line runs along. Name `crossCount` and
-   *   it is flow, wrapped by that count; leave it out and it is fill, same as
-   *   handing over both sides*
+   *   says nothing about which axis a line runs along: `crossCount` is the
+   *   only thing left that can end one. A fill cannot stand in for it — it
+   *   needs a boundary across, and the only one on offer is the scroll
+   *   itself. With `crossCount` and a known size across it is masonry; with
+   *   both sides handed over, flow by that count*
    * @note *`"each"` on its own is the short way of saying it about both
    * sides — the same as `["each", "each"]`*
    * @note *`align` lines the rows up against the widest one — widest across
@@ -610,12 +612,17 @@ export type MorphScroll = {
    * its own gap instead — the one between it and whatever sits past it, or
    * the edge of the room if nothing does. `"center"` stops halfway between
    * where the fit first placed it and where `"end"` would push it. Nothing
-   * moves until every object has been measured. `direction`
-   * is decided by `"each"` itself — the side you hand over is the side the
-   * objects run along. `direction="hybrid"` hands over neither, so there
-   * `objects.direction` is what says it: `"row"` (the default) has
-   * `crossCount` bound the width and growth run down; `"column"` swaps
-   * them — `crossCount` bounds the height, growth runs right*
+   * moves until every object has been measured*
+   * @note *`direction` names the line the objects run along, on every axis. A
+   * single scrolling axis is already taken, leaving two readings: lines along
+   * it are columns — masonry — and lines across it are rows — flow. Leave it
+   * out and the side you hand over decides; name it and it decides instead,
+   * so `[90, "each"]` with `direction: "row"` is strict rows rather than
+   * masonry. Columns need a width, so asking for them while that side is the
+   * objects' own is the one reading that cannot be built. `direction="hybrid"`
+   * hands over neither axis: `"row"` (the default) has `crossCount` bound the
+   * width and growth run down; `"column"` swaps them — `crossCount` bounds
+   * the height, growth runs right*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx

@@ -754,18 +754,55 @@ scenarios.gridHybrid = (
 );
 
 /*
- * hybrid без crossCount: раньше единственный столбец, теперь заполнение —
- * ширина фиксирована, значит по устройству это ровно кладка в две колонки.
+ * hybrid со счётом и известной шириной: колонок ровно столько, сколько
+ * назвали, и каждый уходит в самую короткую — дырок под низкими соседями
+ * поток по тому же счёту не закрывает, а кладка закрывает.
  */
-scenarios.fillHybrid = (
+scenarios.masonryHybrid = (
   <MorphScroll
-    objects={{ size: [90, "each"], gap: 10 }}
+    objects={{ size: [90, "each"], crossCount: 2, gap: 10 }}
     size={[200, 300]}
     direction="hybrid"
     controls={{ wheel: true }}
   >
     {[40, 80, 50, 30].map((h, i) => (
       <div key={`card-${i}`} className="box" style={{ height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * objects.direction поперёк прокрутки: те же размеры, что у обычной кладки,
+ * но линии просят строками — значит поток, со строгим порядком и ступенькой
+ * под низкой карточкой, которой кладка бы не оставила.
+ */
+scenarios.flowByDirection = (
+  <MorphScroll
+    objects={{ size: [90, "each"], gap: 10, direction: "row" }}
+    size={[200, 300]}
+    controls={{ wheel: true }}
+  >
+    {[40, 80, 50, 30].map((h, i) => (
+      <div key={`card-${i}`} className="box" style={{ height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Обе стороны за объектом — по умолчанию заполнение; "row" просит строки, и
+ * порядок возвращается ценой ступенек. Размеры те же, что у fillFree.
+ */
+scenarios.rowsOverFill = (
+  <MorphScroll
+    objects={{ size: "each", gap: 10, direction: "row" }}
+    size={[200, 300]}
+  >
+    {[40, 120, 50, 30, 60, 20].map((h, i) => (
+      <div key={`card-${i}`} className="box" style={{ width: 90, height: h }}>
         {i}
       </div>
     ))}
