@@ -15,6 +15,16 @@ import Morph, {
 } from "../../src";
 import type { MorphScrollHandle } from "../../src";
 
+/* `"each"` понимается и одной строкой на обе стороны, и в паре */
+export const eachShorthand = (
+  <>
+    <MorphScroll size={200} objects={{ size: "each" }} />
+    <MorphScroll size={200} objects={{ size: ["each", "each"] }} />
+    <MorphScroll size={200} objects={{ size: [100, "each"] }} />
+    <MorphScroll size={200} objects={{ size: ["each", 100] }} />
+  </>
+);
+
 export const everyProp = (
   <MorphScroll
     className="custom"

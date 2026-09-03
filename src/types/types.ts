@@ -593,6 +593,11 @@ export type MorphScroll = {
    *   as the thickest object in it*
    * - *`direction="hybrid"` — flow as well, wrapped by `crossCount`: both
    *   ways scroll, so nothing else can end a line*
+   * @note *`"each"` on its own is the short way of saying it about both
+   * sides — the same as `["each", "each"]`*
+   * @note *`align` moves a line that did not fill the room across; `direction`
+   * is decided by `"each"` itself — the side you hand over is the side the
+   * objects run along*
    * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
    * @example
    * ```tsx

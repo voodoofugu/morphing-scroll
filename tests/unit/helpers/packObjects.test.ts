@@ -22,6 +22,7 @@ const pack = (over: Partial<Parameters<typeof packObjects>[0]>) =>
     gap: [0, 0],
     columns: 0, // 0 — «сколько влезет»: поток меряет местом, кладка берёт одну
     crossLimit: 0,
+    align: "start",
     ...over,
   } as PackArgs);
 
@@ -156,6 +157,62 @@ describe("packObjects: flow", () => {
       [30, 50, 60, 80],
     ]);
     expect(r.width).toBe(60);
+  });
+});
+
+describe("packObjects: align", () => {
+  it("в потоке каждая строка двигается на своё свободное место", () => {
+    const r = pack({
+      layout: "flow",
+      keys: ["a", "b", "c"],
+      sizes: store({ a: [30, 20], b: [30, 20], c: [50, 20] }),
+      columns: 2,
+      crossLimit: 100,
+      align: "end",
+    });
+
+    // первая строка заняла 60 из 100 — уезжает на 40; вторая 50 — на 50
+    expect(r.items.map((i) => i.left)).toEqual([40, 70, 50]);
+  });
+
+  it("center делит свободное место пополам", () => {
+    const r = pack({
+      layout: "flow",
+      keys: ["a"],
+      sizes: store({ a: [30, 20] }),
+      columns: 1,
+      crossLimit: 100,
+      align: "center",
+    });
+
+    expect(r.items[0].left).toBe(35);
+  });
+
+  it("в кладке двигается весь блок колонок", () => {
+    const r = pack({
+      keys: ["a", "b"],
+      sizes: store({ a: [40, 20], b: [40, 20] }),
+      columns: 2,
+      fixed: [40, 0],
+      crossLimit: 100,
+      align: "end",
+    });
+
+    // две колонки по 40 — блок 80, свободных 20
+    expect(r.items.map((i) => i.left)).toEqual([20, 60]);
+  });
+
+  it("не двигает, когда объекты шире отведённого", () => {
+    const r = pack({
+      layout: "flow",
+      keys: ["a"],
+      sizes: store({ a: [200, 20] }),
+      columns: 1,
+      crossLimit: 100,
+      align: "center",
+    });
+
+    expect(r.items[0].left).toBe(0);
   });
 });
 

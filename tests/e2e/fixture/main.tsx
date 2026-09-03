@@ -544,6 +544,43 @@ scenarios.flowColumn = (
   </MorphScroll>
 );
 
+/* Поля обёртки: перенос должен считать место за их вычетом, а не всё окно */
+scenarios.flowMargin = (
+  <MorphScroll
+    objects={{ size: ["each", 40], gap: 10 }}
+    wrapper={{ margin: [30, 0] }} // [x, y] — по 30 слева и справа
+    size={[200, 300]}
+  >
+    {Array.from({ length: 8 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{ width: [60, 50, 40, 30][i % 4], height: "100%" }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* Выравнивание строки, когда она не заняла всё место поперёк */
+scenarios.flowAlign = (
+  <MorphScroll
+    objects={{ size: ["each", 40], gap: 10, align: "end" }}
+    size={[200, 300]}
+  >
+    {Array.from({ length: 4 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{ width: [60, 50, 40, 30][i % 4], height: "100%" }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* Карточка, которая выросла уже после замера: раскладка должна это заметить */
 function Growing() {
   const [tall, setTall] = React.useState(false);

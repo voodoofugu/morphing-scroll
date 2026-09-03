@@ -9,6 +9,32 @@ const packed = (page: import("@playwright/test").Page) =>
     .evaluate((el) => (el as HTMLElement).offsetHeight);
 
 /*
+ * Объекты меряются пачками, и обёртка растёт по мере того, как их измеряют.
+ * Ненулевого размера мало — читать координаты можно, только когда он перестал
+ * меняться, иначе половина ещё лежит по нулям.
+ */
+const settled = async (page: import("@playwright/test").Page) => {
+  let prev = "";
+
+  for (let i = 0; i < 60; i++) {
+    const now = await page
+      .locator(".ms-objects-wrapper")
+      .evaluate((el) => {
+        const box = el as HTMLElement;
+
+        return `${box.offsetWidth}x${box.offsetHeight}`;
+      });
+
+    if (now === prev && now !== "0x0") return now;
+
+    prev = now;
+    await page.waitForTimeout(50);
+  }
+
+  throw new Error(`раскладка не устоялась: ${prev}`);
+};
+
+/*
  * Читаем координаты из инлайнового стиля, а не из вычисленного: на боксе
  * может лежать transition, и в вычисленном ловится середина переезда.
  */
@@ -38,7 +64,7 @@ test.describe("objects.size: each (real browser)", () => {
     await expect(page.locator(".ms-object-box")).toHaveCount(20);
 
     // ждём, пока кладка разложит: до этого обёртка нулевой высоты
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
@@ -60,7 +86,7 @@ test.describe("objects.size: each (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=masonry");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
@@ -78,7 +104,7 @@ test.describe("objects.size: each (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=masonry");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = await boxes(page);
     const bottom = Math.max(...all.map((b) => b.y + b.h));
@@ -89,7 +115,7 @@ test.describe("objects.size: each (real browser)", () => {
 
   test("виртуализация выбрасывает то, что уехало из окна", async ({ page }) => {
     await page.goto("/?scenario=masonryVirtual");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
     await page.waitForTimeout(400);
 
     const atTop = (await boxes(page)).map((b) => b.i).sort((a, b) => a - b);
@@ -114,7 +140,7 @@ test.describe("objects.size: each (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=flowRow");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
@@ -132,7 +158,7 @@ test.describe("objects.size: each (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=flowFree");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
@@ -144,7 +170,7 @@ test.describe("objects.size: each (real browser)", () => {
 
   test("поток по горизонтали: колонка набирается вниз", async ({ page }) => {
     await page.goto("/?scenario=flowColumn");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
@@ -165,7 +191,7 @@ test.describe("objects.size: each (real browser)", () => {
     page,
   }) => {
     await page.goto("/?scenario=gridHybrid");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
@@ -183,13 +209,46 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
+   * Объекты живут внутри полей обёртки, значит и переносить их надо по
+   * месту за вычетом полей — иначе последний в строке уезжает за край.
+   */
+  test("перенос считает место за вычетом полей обёртки", async ({ page }) => {
+    await page.goto("/?scenario=flowMargin");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+
+    // окно 200, поля по 30 с боков — строке остаётся 140
+    for (const b of all) expect(b.x + b.w).toBeLessThanOrEqual(140);
+
+    // 60 + 10 + 50 = 120 влезло, + 10 + 40 = 170 — уже нет
+    expect(all.slice(0, 3).map((b) => [b.x, b.y])).toEqual([
+      [0, 0],
+      [70, 0],
+      [0, 50],
+    ]);
+  });
+
+  test("align уводит строку к дальнему краю", async ({ page }) => {
+    await page.goto("/?scenario=flowAlign");
+    await settled(page);
+
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
+    const line = all.filter((b) => b.y === all[0].y);
+
+    // строка кончается ровно на дальнем краю окна
+    const last = line[line.length - 1];
+    expect(last.x + last.w).toBe(200);
+  });
+
+  /*
    * Содержимое живое: картинка догрузилась, текст сменился. Раскладка,
    * посчитанная по старому размеру, разъехалась бы — значит следить надо,
    * пока объект в DOM, а не до первого замера.
    */
   test("объект, выросший после замера, двигает соседей", async ({ page }) => {
     await page.goto("/?scenario=eachGrows");
-    await expect.poll(() => packed(page)).toBeGreaterThan(0);
+    await settled(page);
 
     const before = (await boxes(page)).sort((a, b) => a.i - b.i);
     expect(before[0].h).toBe(40);

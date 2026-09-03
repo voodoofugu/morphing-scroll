@@ -68,6 +68,19 @@ describe('objects.size: "each"', () => {
     expect(error).not.toHaveBeenCalled();
   });
 
+  it("ругается на objects.direction: сторону решает уже не он", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        objects={{ size: [90, "each"], direction: "column" }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(said("objects.direction is decided by objects.size")).toBe(true);
+  });
+
   it("молчит на обычной кладке и не требует render", () => {
     render(
       <MorphScroll size={[200, 300]} objects={{ size: [90, "each"] }}>

@@ -235,6 +235,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         console.error(
           `objects.size: "each" with direction="hybrid" needs objects.crossCount: both ways scroll, so nothing else says where a row ends${errorTextEnd}`,
         );
+
+      /*
+       * Куда идут объекты, решает уже не `direction`, а то, какая сторона
+       * отдана им: вдоль прокрутки — колонки, поперёк — строки. Второго
+       * ответа на тот же вопрос быть не может, поэтому проп не тихо
+       * игнорируется, а говорит об этом.
+       */
+      if (objects && "direction" in objects && objects.direction === "column")
+        console.error(
+          `objects.direction is decided by objects.size: "each" — the side you hand over is the side the objects run along${errorTextEnd}`,
+        );
     }
 
     // ♦ refs
@@ -766,6 +777,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     React.useEffect(() => () => sizes.destroy(), [sizes]);
 
 
+    /*
+     * Место поперёк — окно за вычетом полей обёртки: объекты живут внутри
+     * них, и мерить перенос по всему окну значит выпускать их за край.
+     */
+    const crossRoom = Math.max(
+      0,
+      sizeLocal[crossAxis] - (crossAxis === 0 ? mLocalX : mLocalY),
+    );
+
     const eachColumns = React.useMemo(() => {
       if (!isEach) return 1;
       /*
@@ -781,7 +801,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       const fit = Math.max(
         1,
-        Math.floor((sizeLocal[crossAxis] + gapCross) / (cell + gapCross)),
+        Math.floor((crossRoom + gapCross) / (cell + gapCross)),
       );
 
       return crossCount ? Math.min(crossCount, fit) : fit;
@@ -791,7 +811,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       isHybrid,
       objectsSizeLocal[crossAxis],
       gapLocal.join(),
-      sizeLocal[crossAxis],
+      crossRoom,
       crossCount,
       crossAxis,
     ]);
@@ -807,13 +827,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       return Math.max(
         0,
-        (sizeLocal[crossAxis] - gapCross * (eachColumns - 1)) / eachColumns,
+        (crossRoom - gapCross * (eachColumns - 1)) / eachColumns,
       );
     }, [
       isEach,
       eachLayout,
       objectsSizeLocal[crossAxis],
-      sizeLocal[crossAxis],
+      crossRoom,
       gapLocal.join(),
       eachColumns,
       crossAxis,
@@ -874,7 +894,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         fixed: eachFixed,
         gap: gapXY,
         columns: eachColumns,
-        crossLimit: sizeLocal[crossAxis],
+        crossLimit: crossRoom,
+        align: objectsAlign ?? "start",
       });
     }, [
       isEach,
@@ -885,7 +906,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       gapXY.join(),
       mainAxis,
       crossAxis,
-      sizeLocal[crossAxis],
+      crossRoom,
+      objectsAlign,
       sizes.version,
     ]);
 

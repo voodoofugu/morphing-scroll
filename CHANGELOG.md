@@ -402,7 +402,11 @@ themselves are no longer transformed and can be positioned from CSS.
   both sides, a flow, where objects follow one another with the same gap
   between them and a line ends when the room across runs out — or when
   `crossCount` says it is full, which is what `direction="hybrid"` uses,
-  since both ways scroll and nothing else can end a line.
+  since both ways scroll and nothing else can end a line. `"each"` on its own
+  is the short way of saying it about both sides. `align` moves a line that
+  did not fill the room across — and that room is the scroll minus
+  `wrapper.margin`; `direction` is decided by `"each"` itself, so passing it
+  says so instead of being ignored.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of

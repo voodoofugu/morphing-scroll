@@ -569,6 +569,13 @@ every object gets the size it asks for, and the library measures it. Which side 
   <li><code>direction="hybrid"</code> — flow as well, wrapped by <code>crossCount</code>: both ways scroll, so nothing else can end a line.</li>
 </ul>
 
+<code>"each"</code> on its own says it about both sides at once — the same as <code>["each", "each"]</code>.<br />
+<br />
+<code>align</code> works as everywhere else: it moves a line that did not fill the room across, and that room is the scroll minus <code>wrapper.margin</code>. <code>direction</code>, on the other hand, is already decided — the side you hand over is the side the objects run along — so passing it says so out loud instead of being ignored.<br />
+
+<ul>
+</ul>
+
 Measuring is done by one observer for the whole scroll, not one per object, and an object is watched for as long as it is on screen: a picture that arrives late or a text that changes moves its neighbours, instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
 <br />
 <code><b>"none"</b></code>:<br />

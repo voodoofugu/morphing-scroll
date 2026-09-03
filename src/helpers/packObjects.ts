@@ -25,6 +25,8 @@ type PackArgs = {
   columns: number;
   /** how much room a line has across the scroll — `flow` wraps by it */
   crossLimit: number;
+  /** where the objects sit when they do not fill the room across */
+  align: "start" | "center" | "end";
 };
 
 type Placed = {
@@ -55,6 +57,32 @@ const sideOf = (
   fixed: [number, number],
   axis: 0 | 1,
 ) => (fixed[axis] ? fixed[axis] : known ? known[axis] : 0);
+
+/*
+ * Свободное место поперёк делится по `align`. В минус не уходим: если объекты
+ * шире отведённого, двигать их ещё дальше за край незачем.
+ */
+const offsetOf = (align: PackArgs["align"], free: number) => {
+  if (free <= 0 || align === "start") return 0;
+
+  return align === "center" ? Math.round(free / 2) : free;
+};
+
+const shift = (items: Placed[], by: number, isX: boolean, from = 0) => {
+  if (!by) return;
+
+  for (let i = from; i < items.length; i++) {
+    const item = items[i];
+
+    if (isX) {
+      item.top += by;
+      item.bottom += by;
+    } else {
+      item.left += by;
+      item.right += by;
+    }
+  }
+};
 
 /*
  * Кладка: следующий объект уходит в ту колонку, которая сейчас короче всех.
@@ -113,6 +141,9 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
   const alongSize = longest > 0 ? longest - gapMain : 0;
   const acrossSize = ends.length * cell + gapCross * (ends.length - 1);
 
+  // колонки не заняли всю ширину — двигаем весь их блок целиком
+  shift(items, offsetOf(a.align, a.crossLimit - acrossSize), isX);
+
   return {
     items,
     width: isX ? alongSize : acrossSize,
@@ -141,6 +172,15 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
   let cursor = 0;
   let widest = 0;
   let inLine = 0;
+  let lineFrom = 0;
+
+  // строку выравниваем, когда она дособралась: раньше её длина неизвестна
+  const closeLine = () => {
+    const used = cursor > 0 ? cursor - gapCross : 0;
+
+    shift(items, offsetOf(a.align, crossLimit - used), isX, lineFrom);
+    widest = Math.max(widest, used);
+  };
 
   for (const key of keys) {
     const known = sizes.get(key);
@@ -159,8 +199,9 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
       : cursor > 0 && cursor + across > crossLimit;
 
     if (full) {
+      closeLine();
       lineStart += lineThick + gapMain;
-      widest = Math.max(widest, cursor - gapCross);
+      lineFrom = items.length;
       cursor = 0;
       lineThick = 0;
       inLine = 0;
@@ -192,7 +233,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     }
   }
 
-  widest = Math.max(widest, cursor > 0 ? cursor - gapCross : 0);
+  closeLine();
   const alongSize = lineStart + lineThick;
 
   return {

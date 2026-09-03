@@ -549,10 +549,14 @@ function SegmentedField<T extends string>({
  * Какая сторона достаётся объектам. Вдоль прокрутки — кладка, поперёк —
  * поток, обе — поток по обеим (а при hybrid — сетка по crossCount).
  */
-function eachPair(settings: Settings): ["each" | number, "each" | number] {
+function eachPair(
+  settings: Settings,
+  short = false,
+): "each" | ["each" | number, "each" | number] {
   const { eachSide, objectWidth, objectHeight } = settings;
 
-  if (eachSide === "both") return ["each", "each"];
+  // обе стороны — это просто "each"; в сниппете так и пишем
+  if (eachSide === "both") return short ? "each" : ["each", "each"];
 
   // при hybrid главной оси нет; берём ту же, что и библиотека
   const mainIsX = settings.direction === "x";
@@ -566,7 +570,7 @@ function eachHint(settings: Settings) {
   if (settings.direction === "hybrid")
     return `flow · ${settings.crossCount || 1} per line (crossCount)`;
 
-  const pair = eachPair(settings);
+  const pair = eachPair(settings) as ["each" | number, "each" | number];
   const mainIsX = settings.direction === "x";
   const mainEach = pair[mainIsX ? 0 : 1] === "each";
   const crossEach = pair[mainIsX ? 1 : 0] === "each";
@@ -600,7 +604,7 @@ function sizeFor(index: number, settings: Settings) {
 
 function buildItems(settings: Settings) {
   const each = settings.objectsSizeMode === "each";
-  const pair = eachPair(settings);
+  const pair = eachPair(settings) as ["each" | number, "each" | number];
 
   return Array.from({ length: settings.itemCount }, (_, index) => {
     const number = index + 1;
@@ -712,7 +716,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         : settings.objectsSizeMode === "pair"
           ? [settings.objectWidth, settings.objectHeight]
           : settings.objectsSizeMode === "each"
-            ? eachPair(settings)
+            ? eachPair(settings, true)
             : settings.objectsSizeMode;
 
   const wrapperMargin: CodeValue | undefined = [
