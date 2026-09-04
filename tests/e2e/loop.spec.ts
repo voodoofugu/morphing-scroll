@@ -483,4 +483,125 @@ test.describe("loop (real browser)", () => {
 
     expect(await scrollTop(page)).toBe(260);
   });
+
+  /*
+   * Шаг стрелки рано или поздно приходится на стык. Плавная прокрутка едет от
+   * запомненного начала к запомненной цели и живую позицию не смотрит — если
+   * перенос не сдвинет её цель, следующий же кадр затрёт перенос, и шаг
+   * пропадёт. Проверяем, что ни один из десяти не пропал.
+   */
+  test("стрелка шагает и через стык копий", async ({ page }) => {
+    await page.goto("/?scenario=loopArrows");
+    await settle(page);
+
+    const next = page.locator(".ms-arrow-box.ms-bottom");
+    const seen: number[] = [];
+
+    for (let step = 0; step < 10; step++) {
+      const before = await scrollTop(page);
+
+      await next.click();
+      await page.waitForTimeout(260);
+
+      const after = await scrollTop(page);
+
+      // сдвиг либо на шаг вперёд, либо на шаг минус период — если был перенос
+      seen.push(Math.round(after - before));
+    }
+
+    const period = 420;
+    const moved = seen.filter(
+      (step) => Math.abs(step) > 1 && Math.abs(step + period) !== 0,
+    );
+
+    // все десять шагов состоялись
+    expect(moved).toHaveLength(10);
+
+    // и позиция всё это время оставалась в круге
+    const at = await scrollTop(page);
+    expect(at).toBeGreaterThanOrEqual(period);
+    expect(at).toBeLessThan(period * 2);
+  });
+
+  /*
+   * Дорожка бегунка стоит за оборот, а не за ленту, — значит и ход бегунка
+   * надо переводить в оборот. Считай его по ленте, и тот же ход увёз бы
+   * контент во столько раз дальше, сколько копий в ленте.
+   */
+  test("бегунок увозит контент ровно на свой ход, а не на всю ленту", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopThumb");
+    await settle(page);
+
+    const thumb = page.locator(".ms-thumb");
+    await expect(thumb).toBeVisible();
+
+    const box = (await thumb.boundingBox())!;
+    const track = 300;
+    const travel = track - box.height;
+
+    const before = await scrollTop(page);
+
+    // ведём бегунок на половину его хода — это половина оборота
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(
+      box.x + box.width / 2,
+      box.y + box.height / 2 + travel / 2,
+      { steps: 10 },
+    );
+    await page.mouse.up();
+    await settle(page);
+
+    const moved = (await scrollTop(page)) - before;
+
+    // половина оборота — это 210; допуск на округления дорожки
+    expect(moved).toBeGreaterThan(150);
+    expect(moved).toBeLessThan(280);
+  });
+
+  /*
+   * Число в круге значит место внутри оборота, а не в ленте: попросить встать
+   * «на 100» можно только про контент. Позиция при этом живёт в средней копии,
+   * поэтому 100 — это 520.
+   */
+  test("scrollTo ведёт к месту внутри оборота", async ({ page }) => {
+    await page.goto("/?scenario=loopCommand");
+    await settle(page);
+
+    const period = 420;
+
+    await page.getByTestId("to-100").click();
+    await settle(page);
+
+    expect(await scrollTop(page)).toBe(period + 100);
+
+    await page.getByTestId("to-300").click();
+    await settle(page);
+
+    expect(await scrollTop(page)).toBe(period + 300);
+  });
+
+  test("то же число дважды едет оба раза", async ({ page }) => {
+    await page.goto("/?scenario=loopCommand");
+    await settle(page);
+
+    const period = 420;
+
+    await page.getByTestId("to-300").click();
+    await settle(page);
+    expect(await scrollTop(page)).toBe(period + 300);
+
+    // уехали сами, и просим то же самое снова
+    await page
+      .locator(".ms-viewport")
+      .evaluate((el) => (el.scrollTop = 500));
+    await settle(page);
+
+    await page.getByTestId("to-300").click();
+    await settle(page);
+
+    expect(await scrollTop(page)).toBe(period + 300);
+  });
 });

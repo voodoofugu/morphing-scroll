@@ -899,6 +899,82 @@ scenarios.loopEachPlain = (
   </MorphScroll>
 );
 
+/*
+ * Круг со стрелками: шаг — окно, и на каком-то из шагов он неизбежно
+ * приходится на стык. Плавная прокрутка едет по своим числам, а перенос
+ * меняет позицию под ней — если цель не сдвинуть следом, шаг не состоится.
+ */
+scenarios.loopArrows = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 150]}
+    loop
+    render={{ mode: "virtual" }}
+    duration={80}
+    controls={{ arrows: <b /> }}
+    onScrollPosition={onScrollPosition}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Круг с бегунком: дорожка показывает оборот, значит и ход бегунка должен
+ * переводиться в оборот. Считай его по всей ленте — контент убежит втрое.
+ */
+scenarios.loopThumb = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 300]}
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ bar: thumb }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* круг под управлением ref: то же число дважды должно ехать оба раза */
+const LoopCommand = () => {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  return (
+    <>
+      <button data-testid="to-100" onClick={() => ref.current?.scrollTo(100)}>
+        100
+      </button>
+      <button data-testid="to-300" onClick={() => ref.current?.scrollTo(300)}>
+        300
+      </button>
+      <MorphScroll
+        ref={ref}
+        objects={{ size: [180, 60], gap: 10 }}
+        size={[200, 150]}
+        loop
+        render={{ mode: "virtual" }}
+        duration={0}
+        controls={{ wheel: true }}
+      >
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={`card-${i}`} className="box">
+            {i}
+          </div>
+        ))}
+      </MorphScroll>
+    </>
+  );
+};
+
+scenarios.loopCommand = <LoopCommand />;
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

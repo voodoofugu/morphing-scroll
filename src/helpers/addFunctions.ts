@@ -54,7 +54,7 @@ async function checkScrollReady(el: Element, isY: boolean, target: number) {
  * что бы отличить повторный запрос той же цели от новой, а `alive` гасит
  * кадры прошлой анимации: снятая задача их уже не остановит.
  */
-type Aim = { target: number; alive: boolean };
+type Aim = { target: number; alive: boolean; shift: number };
 const aimedAt = new WeakMap<Element, { x: Aim | null; y: Aim | null }>();
 
 const aimsOf = (el: Element) => {
@@ -73,6 +73,19 @@ const aimsOf = (el: Element) => {
  */
 const aimOf = (el: Element, direction: "x" | "y") =>
   aimedAt.get(el)?.[direction]?.target ?? null;
+
+/*
+ * Перенос позиции в круге сдвигает и цель, к которой едет анимация. Иначе она
+ * везёт от запомненного начала к запомненному концу и живую позицию не
+ * смотрит: следующий же кадр затрёт перенос, и шаг через стык не состоится.
+ */
+const shiftAim = (el: Element, direction: "x" | "y", by: number) => {
+  const aim = aimedAt.get(el)?.[direction];
+  if (!aim) return;
+
+  aim.target += by;
+  aim.shift += by;
+};
 
 async function smoothScroll(
   direction: "x" | "y",
@@ -149,7 +162,7 @@ async function smoothScroll(
     drop();
   }
 
-  const aim: Aim = { target: clampedTargetScroll, alive: true };
+  const aim: Aim = { target: clampedTargetScroll, alive: true, shift: 0 };
   aims[direction] = aim;
 
   tasks.setLockTask(
@@ -164,14 +177,17 @@ async function smoothScroll(
         const progress = Math.min(timeElapsed / duration, 1);
 
         const nextScroll = clampValue(
-          startScroll + (clampedTargetScroll - startScroll) * progress,
+          startScroll +
+            aim.shift +
+            (clampedTargetScroll - startScroll) * progress,
           0,
           maxScroll,
         );
 
         scrollEl[topOrLeft] = nextScroll;
 
-        if (progress < 1 && nextScroll !== clampedTargetScroll)
+        // цель могло сдвинуть переносом, поэтому сверяемся с живой отметкой
+        if (progress < 1 && nextScroll !== aim.target)
           rafScrollAnim(rafKey, animate);
       };
 
@@ -353,6 +369,7 @@ export {
   objectsPerSize,
   smoothScroll,
   aimOf,
+  shiftAim,
   sliderCheck,
   getWrapperMinSizeStyle,
   getWrapperAlignStyle,

@@ -35,6 +35,7 @@ import {
   createResizeHandler,
   getStyleAlign,
   isTouchDevice,
+  shiftAim,
 } from "../helpers/addFunctions";
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
 import createSizeStore from "../helpers/createSizeStore";
@@ -1610,6 +1611,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           objLengthPerSize,
           isDraggingRef,
           maxScrollSize,
+          barRange: loopPeriods,
           emitNavigate: (reason, axis, from, to) =>
             emitNavigateRef.current(reason, axis, from, to),
           pointerId: event.pointerId,
@@ -1878,6 +1880,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
             if (axis === 0) scrollStateRef.current.targetScrollX += moved;
             else scrollStateRef.current.targetScrollY += moved;
+
+            // и цель плавной прокрутки: она едет по своим числам, не по живым
+            shiftAim(scrollEl, axis === 0 ? "x" : "y", moved);
           });
         }
 
@@ -2277,6 +2282,28 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * пользователя обратно вниз, если он сам ушёл вверх; явная команда обязана
      * сработать всегда.
      */
+    /*
+     * В круге число значит место внутри оборота, а не в ленте: лента — приём,
+     * и просить «встань на 100» пользователь может только про контент. Едем к
+     * ближайшему из повторов: они все одинаковые, и мотать через полкруга,
+     * когда рядом такой же, незачем.
+     */
+    const loopTarget = React.useCallback(
+      (dir: "x" | "y", value: number) => {
+        const period = loopPeriods[dir === "x" ? 0 : 1];
+        const scrollEl = scrollElementRef.current;
+
+        if (!period || !scrollEl) return value;
+
+        const at = dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+        const inside = ((value % period) + period) % period;
+        const ahead = ((inside - at) % period + period) % period;
+
+        return at + (ahead <= period / 2 ? ahead : ahead - period);
+      },
+      [loopPeriods.join()],
+    );
+
     const applyScrollPosition = React.useCallback(
       (
         target: (number | "end" | null)[],
@@ -2307,12 +2334,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             else if (typeof value === "number") {
               lastScrollTargetRef.current[dir] = value;
 
-              smoothScrollLocal(value, dir, duration);
+              smoothScrollLocal(loopTarget(dir, value), dir, duration);
             }
           });
         });
       },
-      [direction, endObjectsWrapper.w, endObjectsWrapper.h, smoothScrollLocal],
+      [
+        direction,
+        endObjectsWrapper.w,
+        endObjectsWrapper.h,
+        smoothScrollLocal,
+        loopTarget,
+      ],
     );
 
     /*
@@ -2997,9 +3030,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const scrollBarConfigs = () => {
       const isNotX = direction !== "x";
 
+      /*
+       * Меряем оборотом, а не лентой: лента в круге длиннее окна всегда — на
+       * то она и лента, — и бар выходил бы даже там, где показывать нечего:
+       * оборот целиком в окне, бегунок во всю дорожку и неподвижен.
+       */
       const base: any[] = [
         {
-          shouldRender: fullHeightOrWidth > sizeLocal[isNotX ? 1 : 0],
+          shouldRender:
+            (isNotX ? barSpan.h : barSpan.w) > sizeLocal[isNotX ? 1 : 0],
           direction,
           thumbSize: isNotX ? thumbSizeMemo.y : thumbSizeMemo.x,
           thumbSpace: isNotX ? thumbSpace.y : thumbSpace.x,
@@ -3007,8 +3046,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           progressReverseIndex: 0,
         },
         {
-          shouldRender:
-            direction === "hybrid" && objectsWrapperWidthFull > sizeLocal[0],
+          shouldRender: direction === "hybrid" && barSpan.w > sizeLocal[0],
           direction: "x" as const,
           thumbSize: thumbSizeMemo.x,
           thumbSpace: thumbSpace.x,

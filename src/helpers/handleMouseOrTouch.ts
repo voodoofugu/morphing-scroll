@@ -47,6 +47,8 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
+  /** how much scrolling the bar's track stands for — one turn under `loop` */
+  barRange?: Vec2;
   /** one page turn, reported the moment the gesture aims at a new one */
   emitNavigate: (
     reason: string,
@@ -410,7 +412,13 @@ function handleMouseOrTouch(args: HandleMouseT) {
       (args.sizeLocal[wh] - args.scrollBarEdge[wh] - args.thumbSize) *
       visualDiff[wh];
 
-    thumbRatio = args.maxScrollSize[wh] / maxThumbPos;
+    /*
+     * Сколько прокрутки приходится на ход бегунка. В круге дорожка стоит за
+     * оборот, а не за всю ленту, — значит и переводить ход надо в оборот:
+     * иначе тот же ход увозил бы контент во столько раз дальше, сколько копий
+     * в ленте.
+     */
+    thumbRatio = (args.barRange?.[wh] || args.maxScrollSize[wh]) / maxThumbPos;
     // защита
     if (!Number.isFinite(thumbRatio) || thumbRatio <= 0) thumbRatio = 1;
   }

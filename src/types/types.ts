@@ -522,9 +522,11 @@ export type MorphScroll = {
    * and the count stops mattering — without it a long list is paid for several
    * times over, so give a long one virtualising*
    * @note *`edge` stays lit on both sides — there really is more content both
-   * ways — and the progress element shows the position within one turn rather
-   * than within the whole strip. `stickToEnd` has no end to hold onto and is
-   * refused*
+   * ways. The progress element shows the position within one turn rather than
+   * within the whole strip, appears only when a turn is longer than the
+   * window, and its thumb moves the content by that same turn. `scrollTo`
+   * takes a number as a place within the turn and goes the short way round.
+   * `stickToEnd` has no end to hold onto and is refused*
    * @note *`direction="hybrid"` turns in both directions at once: the content
    * repeats to the right and downward, and the copies lie in a grid*
    * @note *`objects.size: "each"` waits: a period is the length of the

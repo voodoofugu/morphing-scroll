@@ -297,8 +297,12 @@ themselves are no longer transformed and can be positioned from CSS.
   one set per copy, and they come back round to the first.
   Around it: `edge` stays lit on both sides, since there really is more
   content both ways; the progress element shows the position within one turn
-  rather than within the strip, so it cycles instead of jumping; and
-  `stickToEnd` is refused, having no end to hold onto. The list itself is
+  rather than within the strip, so it cycles instead of jumping, and it
+  appears only when a turn is longer than the window — a strip that is always
+  longer would otherwise always show one; dragging its thumb moves the content
+  by that same turn, so it stays under the finger; `scrollTo` takes a number
+  as a place within the turn and goes the short way round; and `stickToEnd` is
+  refused, having no end to hold onto. The list itself is
   repeated rather than referenced, so a few copies of every child are mounted
   at once — with `render.mode` only the ones in the window are, which is why
   a long list wants it.
