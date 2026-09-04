@@ -38,7 +38,7 @@ describe("loop", () => {
     expect(said("never settles into one")).toBe(true);
   });
 
-  it("ругается на hybrid: круг один, а осей две", () => {
+  it("молчит на hybrid: там круг идёт по обеим осям", () => {
     render(
       <MorphScroll
         size={[200, 300]}
@@ -51,7 +51,7 @@ describe("loop", () => {
       </MorphScroll>,
     );
 
-    expect(said("there is no single way around")).toBe(true);
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("молчит на страницы: их в круге столько, сколько в обороте", () => {
@@ -119,18 +119,24 @@ describe("loop", () => {
    * Осталось ровно две несовместимости, и обе про то, что периода не собрать.
    * Остальное круг умеет: и страницы, и отрисовку без виртуализации.
    */
-  it("без loop про hybrid ничего не говорит", () => {
-    render(
+  it("круг по обеим осям: обе стороны стали длиннее одного оборота", () => {
+    const { container } = render(
       <MorphScroll
         size={[200, 300]}
         direction="hybrid"
+        loop
         render={{ mode: "virtual" }}
-        objects={{ size: [90, 60] }}
+        objects={{ size: [90, 60], gap: 10, crossCount: 2 }}
       >
         {items()}
       </MorphScroll>,
     );
 
-    expect(error).not.toHaveBeenCalled();
+    const wrap = container.querySelector<HTMLElement>(".ms-objects-wrapper")!;
+
+    // два в ряд по 90 с зазором — оборот 200 при окне 200, три копии: 600
+    expect(wrap.style.width).toBe("600px");
+    // три ряда по 60 — оборот 210, а окно 300 длиннее его: копий четыре, 840
+    expect(wrap.style.height).toBe("840px");
   });
 });

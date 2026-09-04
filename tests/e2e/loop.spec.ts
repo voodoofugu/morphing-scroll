@@ -368,4 +368,40 @@ test.describe("loop (real browser)", () => {
     expect(at).toBeGreaterThanOrEqual(1800);
     expect(at).toBeLessThan(3600);
   });
+
+  /*
+   * При `hybrid` едут обе стороны, значит и круг идёт по обеим: контент
+   * повторяется и вправо, и вниз, а копии ложатся решёткой.
+   */
+  test("hybrid ходит по кругу в обе стороны", async ({ page }) => {
+    await page.goto("/?scenario=loopHybrid");
+    await settle(page);
+
+    const view = page.locator(".ms-viewport");
+
+    // обороты 200 вширь и 210 ввысь, по три копии на сторону
+    expect(await view.evaluate((el) => el.scrollWidth)).toBe(600);
+    expect(await view.evaluate((el) => el.scrollHeight)).toBe(630);
+
+    // открывается со средней клетки решётки
+    expect(await view.evaluate((el) => el.scrollLeft)).toBe(200);
+    expect(await view.evaluate((el) => el.scrollTop)).toBe(210);
+
+    // уход за клетку возвращает по обеим осям независимо
+    await view.evaluate((el) => {
+      el.scrollLeft = 430;
+      el.scrollTop = 450;
+    });
+    await settle(page);
+
+    expect(await view.evaluate((el) => el.scrollLeft)).toBe(230);
+    expect(await view.evaluate((el) => el.scrollTop)).toBe(240);
+
+    // и назад по одной оси, не трогая другую
+    await view.evaluate((el) => (el.scrollLeft = 100));
+    await settle(page);
+
+    expect(await view.evaluate((el) => el.scrollLeft)).toBe(300);
+    expect(await view.evaluate((el) => el.scrollTop)).toBe(240);
+  });
 });

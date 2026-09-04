@@ -250,13 +250,13 @@ With <code>render.mode</code> the objects are still mounted a window at a time, 
 <br />
 The slider modes turn in a circle too. Pages are counted within one turn, so the progress element shows as many dots as there really are — not one per copy — and they come back round to the first.</em><br />
 <br />
+<b>Note:</b><em><br />
+the list is repeated, not referenced — a few copies of every child are mounted at once. With <code>render.mode</code> only the ones in the window are, and the length of the list stops mattering; without it a long one is paid for several times over. For anything but a handful of objects, give the circle virtualising.</em><br />
+<br />
+<code>direction="hybrid"</code> turns in both directions at once: the content repeats to the right and downward alike, the copies lie in a grid, and each axis is brought back to its own middle on its own.</em><br />
+<br />
 <b>Needs:</b><em><br />
-a size it can repeat, and one axis to repeat along:<br /></em>
-<ul>
-  <li><code>objects.size</code> as a number or <code>"firstChild"</code> — <code>"each"</code> is measured as it goes and never settles into a period</li>
-  <li><code>direction</code> of <code>"x"</code> or <code>"y"</code> — <code>"hybrid"</code> scrolls both ways, and a circle runs around one</li>
-</ul>
-<em>Both are said out loud when they are missing, rather than the prop quietly doing nothing.</em><br />
+a size it can repeat — <code>objects.size</code> as a number or <code>"firstChild"</code>. <code>"each"</code> is measured as it goes and never settles into a period, and that is said out loud rather than the prop quietly doing nothing.</em><br />
 <br />
 <b>What changes around it:</b><em><br /></em>
 <ul>

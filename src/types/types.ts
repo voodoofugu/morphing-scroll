@@ -517,13 +517,18 @@ export type MorphScroll = {
    * The slider modes turn in a circle too: pages are counted within one turn,
    * so the progress element shows as many as there really are and its dots
    * come back round to the first.
+   * @note *the list is repeated, not referenced: a few copies of every child
+   * are mounted at once. With `render.mode` only the ones in the window are,
+   * and the count stops mattering — without it a long list is paid for several
+   * times over, so give a long one virtualising*
    * @note *`edge` stays lit on both sides — there really is more content both
    * ways — and the progress element shows the position within one turn rather
    * than within the whole strip. `stickToEnd` has no end to hold onto and is
    * refused*
-   * @note *needs a size it can repeat: `objects.size: "each"` is measured as
-   * it goes and never gives a settled period, and `direction="hybrid"` has no
-   * single axis to run around*
+   * @note *`direction="hybrid"` turns in both directions at once: the content
+   * repeats to the right and downward, and the copies lie in a grid*
+   * @note *needs a size it can repeat, so `objects.size: "each"` is out — it
+   * is measured as it goes and never gives a settled period*
    * @example
    * ```tsx
    * <MorphScroll {...props} loop render={{ mode: "virtual" }}>

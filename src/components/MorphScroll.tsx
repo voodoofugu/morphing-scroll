@@ -254,10 +254,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           `loop repeats the content through a period, and objects.size: "each" is measured as it goes — it never settles into one${errorTextEnd}`,
         );
 
-      if (direction === "hybrid")
-        console.error(
-          `loop runs the content around one axis, and direction="hybrid" scrolls both — there is no single way around${errorTextEnd}`,
-        );
 
 
 
@@ -1089,16 +1085,28 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * сказано выше, один раз.
      */
     const loopLocal = React.useMemo(() => {
-      if (!loop || isEach || direction === "hybrid") return null;
+      if (!loop || isEach) return null;
 
-      const isX = direction === "x";
-      const extent = isX ? objectsWrapperWidth : objectsWrapperHeight;
-      const period = extent + (isX ? gapLocal[1] : gapLocal[0]);
-      const copies = loopCopies(period, sizeLocal[isX ? 0 : 1]);
+      const round = (axis: 0 | 1) => {
+        const extent = axis === 0 ? objectsWrapperWidth : objectsWrapperHeight;
+        // gapLocal лежит в обратном порядке, отсюда перевёрнутый индекс
+        const period = extent + gapLocal[axis === 0 ? 1 : 0];
+        const copies = loopCopies(period, sizeLocal[axis]);
 
-      if (!copies || !Number.isFinite(period)) return null;
+        return copies && Number.isFinite(period)
+          ? { period, copies, span: period * copies }
+          : null;
+      };
 
-      return { period, copies, span: period * copies };
+      /*
+       * При `hybrid` едут обе стороны — значит и круг идёт по обеим: контент
+       * повторяется и вправо, и вниз, а копии ложатся решёткой. По каждой оси
+       * при этом всё то же самое, просто дважды.
+       */
+      const x = direction !== "y" ? round(0) : null;
+      const y = direction !== "x" ? round(1) : null;
+
+      return x || y ? { x, y } : null;
     }, [
       loop,
       isEach,
@@ -1114,10 +1122,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Наружу обёртка отдаёт длину всего круга, а не одной копии: по ней
      * браузер и даёт ту прокрутку, внутри которой окно будет ходить.
      */
-    const loopedHeight =
-      loopLocal && direction !== "x" ? loopLocal.span : objectsWrapperHeight;
-    const loopedWidth =
-      loopLocal && direction === "x" ? loopLocal.span : objectsWrapperWidth;
+    const loopedHeight = loopLocal?.y ? loopLocal.y.span : objectsWrapperHeight;
+    const loopedWidth = loopLocal?.x ? loopLocal.x.span : objectsWrapperWidth;
 
     const objectsWrapperHeightFull = React.useMemo(() => {
       return loopedHeight + mLocalY;
@@ -1160,15 +1166,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * дёргается — она сдвигает ровно на период, а внутри оборота это то же
      * самое место.
      */
-    const barSpan = React.useMemo(() => {
-      const along = loopLocal ? loopLocal.period : 0;
-      const isX = direction === "x";
-
-      return {
-        w: along && isX ? along : objectsWrapperWidthFull,
-        h: along && !isX ? along : objectsWrapperHeightFull,
-      };
-    }, [loopLocal, direction, objectsWrapperWidthFull, objectsWrapperHeightFull]);
+    const barSpan = React.useMemo(
+      () => ({
+        w: loopLocal?.x ? loopLocal.x.period : objectsWrapperWidthFull,
+        h: loopLocal?.y ? loopLocal.y.period : objectsWrapperHeightFull,
+      }),
+      [loopLocal, objectsWrapperWidthFull, objectsWrapperHeightFull],
+    );
 
     const getThumbSize = React.useCallback(
       (dir: "x" | "y") => {
@@ -1252,8 +1256,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * значит вычитаем период — и получаем, сколько круга пройдено. Полный
      * оборот при этом ровно проходит дорожку из конца в начало.
      */
-    const loopAxis: 0 | 1 = direction === "x" ? 0 : 1;
-    const loopPeriod = loopLocal?.period ?? 0;
+    const loopPeriods: [number, number] = [
+      loopLocal?.x?.period ?? 0,
+      loopLocal?.y?.period ?? 0,
+    ];
 
     const barAt = (axis: 0 | 1) => {
       const at =
@@ -1261,11 +1267,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? scrollElementRef.current?.scrollLeft || 0
           : scrollElementRef.current?.scrollTop || 0;
 
-      return loopPeriod && axis === loopAxis ? at - loopPeriod : at;
+      return loopPeriods[axis] ? at - loopPeriods[axis] : at;
     };
 
     const barEnd = (axis: 0 | 1, whole: number) =>
-      loopPeriod && axis === loopAxis ? loopPeriod : whole;
+      loopPeriods[axis] || whole;
 
     // высчитываем сдвиг scroll и ограничиваем его
     const thumbSpace = {
@@ -1766,16 +1772,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         scrollBarsRef.current,
         direction,
         objLengthPerSize,
-        loopLocal?.period ?? 0,
-        loopAxis,
+        loopPeriods,
       );
     }, [
       sizeLocal.join(),
       direction,
       mode,
       objLengthPerSize.join(),
-      loopLocal,
-      loopAxis,
+      loopPeriods.join(),
     ]);
 
     const onRenderedKeysChangeUpdate = React.useCallback(
@@ -1850,12 +1854,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * слушатель не получил ту, которой через кадр не будет.
          */
         if (loopLocal) {
-          const alongX = direction === "x";
-          const at = alongX ? scrollEl.scrollLeft : scrollEl.scrollTop;
-          const to = loopShift(at, loopLocal.period);
+          const rounds = [loopLocal.x, loopLocal.y] as const;
 
-          if (to !== null && to !== at) {
-            if (alongX) scrollEl.scrollLeft = to;
+          rounds.forEach((round, axis) => {
+            if (!round) return;
+
+            const at = axis === 0 ? scrollEl.scrollLeft : scrollEl.scrollTop;
+            const to = loopShift(at, round.period);
+
+            if (to === null || to === at) return;
+
+            if (axis === 0) scrollEl.scrollLeft = to;
             else scrollEl.scrollTop = to;
 
             /*
@@ -1866,9 +1875,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
              */
             const moved = to - at;
 
-            if (alongX) scrollStateRef.current.targetScrollX += moved;
+            if (axis === 0) scrollStateRef.current.targetScrollX += moved;
             else scrollStateRef.current.targetScrollY += moved;
-          }
+          });
         }
 
         // уведомляем о прокрутке пропс
@@ -2364,17 +2373,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Период появляется не сразу: пока размер объектов неизвестен, круга нет.
      * Поэтому смотрим на период, а не на монтирование.
      */
-    const loopStartRef = React.useRef(0);
+    const loopStartRef = React.useRef("");
     React.useEffect(() => {
       const scrollEl = scrollElementRef.current;
       if (!loopLocal || !scrollEl) return;
-      if (loopStartRef.current === loopLocal.period) return;
 
-      loopStartRef.current = loopLocal.period;
+      const mark = loopPeriods.join();
+      if (loopStartRef.current === mark) return;
 
-      if (direction === "x") scrollEl.scrollLeft = loopLocal.period;
-      else scrollEl.scrollTop = loopLocal.period;
-    }, [loopLocal, direction]);
+      loopStartRef.current = mark;
+
+      if (loopLocal.x) scrollEl.scrollLeft = loopLocal.x.period;
+      if (loopLocal.y) scrollEl.scrollTop = loopLocal.y.period;
+    }, [loopLocal, loopPeriods.join()]);
 
     /*
      * А это правило, а не движение: контент дорос — едем за ним. От ушедшего
@@ -2694,16 +2705,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       index: number,
       scrollLeft: number,
       scrollTop: number,
-      copy: number = 0,
+      copyX: number = 0,
+      copyY: number = 0,
     ) => {
       /*
-       * Копия — тот же ребёнок, сдвинутый на период. Ключ для React у неё
-       * свой, иначе одинаковые ключи среди соседей, а наружу — в `ms-wrap-id`
-       * и в `onRenderedKeysChange` — уходит по-прежнему тот ключ, который
-       * написал пользователь: копии его дело не касаются.
+       * Копия — тот же ребёнок, сдвинутый на период. При `hybrid` копии лежат
+       * решёткой, поэтому их две координаты. Ключ для React у копии свой,
+       * иначе одинаковые ключи среди соседей, а наружу — в `ms-wrap-id` и в
+       * `onRenderedKeysChange` — уходит по-прежнему тот ключ, который написал
+       * пользователь: копии его дело не касаются.
        */
-      const domKey = copy ? `${key}${CONST.LOOP_KEY_SEP}${copy}` : key;
-      const copyShift = copy && loopLocal ? copy * loopLocal.period : 0;
+      const domKey =
+        copyX || copyY
+          ? `${key}${CONST.LOOP_KEY_SEP}${copyX}-${copyY}`
+          : key;
+      const shiftX = copyX && loopLocal?.x ? copyX * loopLocal.x.period : 0;
+      const shiftY = copyY && loopLocal?.y ? copyY * loopLocal.y.period : 0;
       // ищем реальный child по ключу
       const child = childrenMap.get(key);
 
@@ -2748,11 +2765,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // обработка виртуализации
       const placed = memoizedChildrenData[index];
-      const alongX = direction === "x";
-      const top = placed.top + (alongX ? 0 : copyShift);
-      const bottom = placed.bottom + (alongX ? 0 : copyShift);
-      const left = placed.left + (alongX ? copyShift : 0);
-      const right = placed.right + (alongX ? copyShift : 0);
+      const top = placed.top + shiftY;
+      const bottom = placed.bottom + shiftY;
+      const left = placed.left + shiftX;
+      const right = placed.right + shiftX;
 
       if (isEach) {
         /*
@@ -3042,9 +3058,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           }}
         >
           {loopLocal
-            ? Array.from({ length: loopLocal.copies }, (_, copy) =>
-                validChildrenKeys.map((key, i) =>
-                  renderChild(key, i, scrollLeft, scrollTop, copy),
+            ? Array.from({ length: loopLocal.x?.copies ?? 1 }, (_, copyX) =>
+                Array.from({ length: loopLocal.y?.copies ?? 1 }, (_, copyY) =>
+                  validChildrenKeys.map((key, i) =>
+                    renderChild(key, i, scrollLeft, scrollTop, copyX, copyY),
+                  ),
                 ),
               )
             : validChildrenKeys.map((key, i) =>

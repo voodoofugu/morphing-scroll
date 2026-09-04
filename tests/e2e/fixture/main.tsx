@@ -835,6 +835,28 @@ scenarios.loopSliderGap = (
   </MorphScroll>
 );
 
+/*
+ * Круг по обеим осям: два в ряд по 90 с зазором 10 — оборот вширь 200; три
+ * ряда по 60 — оборот ввысь 210. Окно меньше обоих, значит копий по три на
+ * сторону, и ложатся они решёткой три на три.
+ */
+scenarios.loopHybrid = (
+  <MorphScroll
+    objects={{ size: [90, 60], gap: 10, crossCount: 2 }}
+    size={[150, 160]}
+    direction="hybrid"
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

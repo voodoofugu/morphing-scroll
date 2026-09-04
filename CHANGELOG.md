@@ -280,9 +280,12 @@ themselves are no longer transformed and can be positioned from CSS.
   position moves by exactly one period, where the content is the same. The
   wheel and inertia carry their own marks, so those move with it; otherwise
   they would pull the window straight back out.
-  It needs a size it can repeat and one axis to repeat along: a number or
-  `"firstChild"` for `objects.size`, and `direction` of `"x"` or `"y"`. Both
-  are said out loud when they are missing. Nothing else is required — the
+  `direction="hybrid"` turns in both directions at once: the content repeats
+  to the right and downward alike, the copies lie in a grid, and each axis is
+  brought back to its own middle on its own.
+  It needs a size it can repeat — a number or `"firstChild"` for
+  `objects.size` — and says so out loud when there is none. Nothing else is
+  required: the
   circle places its copies by coordinate with or without `render.mode`, and
   with it they are mounted a window at a time as usual.
   The slider modes turn in a circle too: pages are counted within one turn,
@@ -291,7 +294,10 @@ themselves are no longer transformed and can be positioned from CSS.
   Around it: `edge` stays lit on both sides, since there really is more
   content both ways; the progress element shows the position within one turn
   rather than within the strip, so it cycles instead of jumping; and
-  `stickToEnd` is refused, having no end to hold onto.
+  `stickToEnd` is refused, having no end to hold onto. The list itself is
+  repeated rather than referenced, so a few copies of every child are mounted
+  at once — with `render.mode` only the ones in the window are, which is why
+  a long list wants it.
   It replaces `controls.arrows.loop`, which only imitated this: at the end the
   arrow jumped back to the start, which is a jump and not a scroll, and only
   the arrows knew about it. The wheel, a drag and the keys ran into the same
