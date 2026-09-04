@@ -1063,6 +1063,22 @@ scenarios.loopSliderDrag = (
   </MorphScroll>
 );
 
+/* доля видимости без всякой виртуализации: рисуем всех, но каждый знает своё */
+scenarios.visibilityPlain = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 200]}
+    render={{ trackVisibility: true }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

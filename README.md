@@ -1677,11 +1677,13 @@ trackVisibility: true;
 
 <b>Description:</b><em><br />
 sets the <code>--ms-content-visibility</code> variable on each object box, which is what a fade-in is styled with: <code>opacity: var(--ms-content-visibility);</code>.<br />
-</em><br />
+<br />
+It needs no <code>mode</code> of its own. What stood in the way was never the rendering but the coordinates — they were worked out for the virtual modes alone — and asking to watch now works them out too. Without a <code>mode</code> nothing is dropped: every object stays mounted and simply knows how much of itself shows.</em><br />
+<br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} render={{ mode: "lazy", trackVisibility: true }}>
+<MorphScroll {...props} render={{ trackVisibility: true }}>
   {children}
 </MorphScroll>
 ```

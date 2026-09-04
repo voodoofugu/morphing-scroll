@@ -216,11 +216,24 @@ const sliderCheck = (
     const dir = i === 0 ? direction : "x";
     const axisIndex = dir === "x" ? 0 : 1;
 
-    // Обновляем кэш только если изменилось количество элементов
-    if (!cache || cache.elements.length !== objLengthPerSize[axisIndex]) {
+    /*
+     * Кэш пересобираем, когда точек стало другое число или когда прежние узлы
+     * ушли из документа: React мог заменить их, оставив счёт прежним, и
+     * пометки уходили бы в оторванные.
+     *
+     * Пересобрав, снимаем пометку со всех: `lastIndex` обнуляется, а класс
+     * оставался висеть на прежней точке — и активных становилось две.
+     */
+    if (
+      !cache ||
+      cache.elements.length !== objLengthPerSize[axisIndex] ||
+      !cache.elements[0]?.isConnected
+    ) {
       const elements = Array.from(
         msSlider.querySelectorAll(".ms-slider-item"),
       );
+
+      for (const el of elements) el.classList.remove("ms-active");
 
       cache = { elements, lastIndex: -1 };
       sliderCache.set(msSlider, cache);

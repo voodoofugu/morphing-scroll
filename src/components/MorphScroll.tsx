@@ -1129,6 +1129,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     ]);
 
     /*
+     * Координаты объектам считаются одним и тем же кодом, а включали его до
+     * сих пор только виртуализация да измеряемый размер. Кругу они нужны для
+     * копий, а слежению за видимостью — что бы было с чем сверять окно; ни то
+     * ни другое к отрисовке отношения не имеет. Отсюда один признак на всех.
+     */
+    const byCoords = !!(
+      renderLocal.mode ||
+      isEach ||
+      loopLocal ||
+      renderLocal.trackVisibility
+    );
+
+    /*
      * Наружу обёртка отдаёт длину всего круга, а не одной копии: по ней
      * браузер и даёт ту прокрутку, внутри которой окно будет ходить.
      */
@@ -1309,13 +1322,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // кладка считает координаты сама, и считает их всегда: по ним она и кладка
       if (isEach) return packed.items;
 
-      /*
-       * Круг ставит копии по координате, значит координаты ему нужны так же,
-       * как виртуализации: без них объекты раскладывает поток, а он про
-       * период ничего не знает — и подмена позиции стала бы видна.
-       */
-      if (!renderLocal.mode && !loopLocal)
-        return [{ top: 0, bottom: 0, left: 0, right: 0 }];
+      // считаем всем, кому координаты нужны, а не одной лишь виртуализации
+      if (!byCoords) return [{ top: 0, bottom: 0, left: 0, right: 0 }];
 
       let alignSpace: number = 0;
 
@@ -1398,12 +1406,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       validChildrenKeys.length,
       objectsPerDirection[0],
       objectsPerDirection[1],
-      renderLocal.mode,
+      byCoords,
       objectsDirection,
       direction,
           isEach,
       packed,
-      loopLocal,
     ]);
 
     const wrapperAlignLocal = React.useMemo(() => {
@@ -1508,7 +1515,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
 
       // кладка размещает объекты абсолютно, значит обёртке нужен свой отсчёт
-      if (renderLocal.mode || isEach || loopLocal) {
+      if (byCoords) {
         return {
           ...common,
           position: "relative",
@@ -2719,7 +2726,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const wrapStyle: React.CSSProperties = {
           width: sidePx(0),
           height: sidePx(1),
-          ...((renderLocal.mode || isEach || loopLocal) && {
+          ...(byCoords && {
             position: "absolute",
             transform: `translate(${left}px, ${elementTop}px)`,
           }),
@@ -2737,7 +2744,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return (
           <div
             key={domKey ?? key}
-            {...(renderLocal.mode || emptyObjectsLocal || loopLocal
+            {...(byCoords || emptyObjectsLocal
               ? {
                   [CONST.WRAP_ATR]: `${key}`,
                 }
@@ -2825,7 +2832,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
 
       // ===== NO VIRTUAL =====
-      if (!renderLocal.mode && !isEach && !loopLocal)
+      if (!byCoords)
         return scrollObjectWrapper(key, 0, 0, childLocal, undefined, domKey);
 
       /*
@@ -2846,30 +2853,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const bottom = placed.bottom + shiftY;
       const left = placed.left + shiftX;
       const right = placed.right + shiftX;
-
-      if (isEach) {
-        /*
-         * Неизмеренный объект надо нарисовать, иначе мерить нечего — но не
-         * всех сразу: тысяча карточек в первом кадре и есть та задержка,
-         * ради которой всё это делается. Рисуем очередную пачку за уже
-         * измеренными, остальные ждут своей.
-         */
-        if (!packed.items[index]?.measured)
-          return index < packed.measuredPrefix + CONST.MEASURE_BATCH
-            ? scrollObjectWrapper(key, top, left, childLocal, undefined, domKey)
-            : null;
-
-        // размер известен: дальше или обычная отрисовка, или общая виртуализация
-        if (!renderLocal.mode)
-          return scrollObjectWrapper(key, top, left, childLocal, undefined, domKey);
-      }
-
-      /*
-       * Круг без виртуализации: копии уже стоят по координатам, а окно никто
-       * не просил сужать — рисуем всё.
-       */
-      if (!renderLocal.mode)
-        return scrollObjectWrapper(key, top, left, childLocal, undefined, domKey);
 
       // проверка видимости
       const getVisibilityRatio = (withRootMargin: boolean = true): number => {
@@ -2915,10 +2898,46 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         return direction === "x" ? checkAxis("x") : checkAxis("y");
       };
-      const visibilityRatio = getVisibilityRatio();
       const visibilityRatioWithoutMargin = renderLocal.trackVisibility
         ? getVisibilityRatio(false)
         : null;
+
+      if (isEach) {
+        /*
+         * Неизмеренный объект надо нарисовать, иначе мерить нечего — но не
+         * всех сразу: тысяча карточек в первом кадре и есть та задержка,
+         * ради которой всё это делается. Рисуем очередную пачку за уже
+         * измеренными, остальные ждут своей.
+         */
+        if (!packed.items[index]?.measured)
+          return index < packed.measuredPrefix + CONST.MEASURE_BATCH
+            ? scrollObjectWrapper(
+                key,
+                top,
+                left,
+                childLocal,
+                visibilityRatioWithoutMargin,
+                domKey,
+              )
+            : null;
+      }
+
+      /*
+       * Отрисовку никто не сужал — рисуем всё. Долю видимости при этом всё
+       * равно отдаём: считать её мешала не отрисовка, а отсутствие координат,
+       * и раз они есть, скрывать её незачем.
+       */
+      if (!renderLocal.mode)
+        return scrollObjectWrapper(
+          key,
+          top,
+          left,
+          childLocal,
+          visibilityRatioWithoutMargin,
+          domKey,
+        );
+
+      const visibilityRatio = getVisibilityRatio();
 
       // - LAZY -
       if (renderLocal.mode === "lazy") {

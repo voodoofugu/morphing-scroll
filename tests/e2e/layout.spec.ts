@@ -249,3 +249,48 @@ test.describe("edge slots", () => {
     expect(await box(".ms-edge.ms-left .ms-edge-inner")).toEqual([24, 200]);
   });
 });
+
+/*
+ * Долю видимости считать мешала не отрисовка, а отсутствие координат: их
+ * включала одна виртуализация. Теперь их включает и сама просьба следить —
+ * значит переменная доходит до всех карточек, а не только до окна из них.
+ */
+test.describe("content visibility without a render mode", () => {
+  const seen = (page: import("@playwright/test").Page) =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".ms-object-box")].map((el) =>
+        Number(el.style.getPropertyValue("--ms-content-visibility")),
+      ),
+    );
+
+  test("переменная приходит каждой карточке, и они все на месте", async ({
+    page,
+  }) => {
+    await open(page, "visibilityPlain");
+    await page.waitForTimeout(300);
+
+    const values = await seen(page);
+
+    // никто не выброшен: двенадцать карточек, у каждой своё число
+    expect(values).toHaveLength(12);
+    expect(values.every((v) => v >= 0 && v <= 1)).toBe(true);
+
+    // окно 200 при шаге 70 — сверху видно целиком, внизу не видно вовсе
+    expect(values[0]).toBe(1);
+    expect(values[11]).toBe(0);
+  });
+
+  test("после прокрутки числа переезжают вместе с окном", async ({ page }) => {
+    await open(page, "visibilityPlain");
+    await page.waitForTimeout(300);
+
+    // до самого низа: двенадцать по 70 без последнего зазора — 830 на окно 200
+    await page.locator(".ms-viewport").evaluate((el) => (el.scrollTop = 630));
+    await page.waitForTimeout(300);
+
+    const values = await seen(page);
+
+    expect(values[0]).toBe(0);
+    expect(values[11]).toBe(1);
+  });
+});

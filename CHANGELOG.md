@@ -311,6 +311,11 @@ themselves are no longer transformed and can be positioned from CSS.
   the arrows knew about it. The wheel, a drag and the keys ran into the same
   wall as before. Now the content itself is endless and every way of moving it
   sees the same thing.
+- `render.trackVisibility` no longer needs a `mode`. What stood in the way was
+  never the rendering but the coordinates — they were worked out for the
+  virtual modes alone — and asking to watch now works them out too. Without a
+  `mode` nothing is dropped: every object stays mounted and simply knows how
+  much of itself shows through `--ms-content-visibility`.
 - `edge` takes `{ element, size }`: the node is authored once, the way it
   looks along the top, and the library turns it onto the other three sides —
   the same bargain as the arrows, where one icon is drawn pointing right
@@ -377,6 +382,14 @@ themselves are no longer transformed and can be positioned from CSS.
 - `ms-scrolling` on the root while a scroll is running.
 
 ### Fixed
+
+- the slider could mark two pages active at once. Its cache is rebuilt when the
+  number of pages changes — with a measured size that happens as the
+  measurements come in — and rebuilding reset the bookkeeping without taking
+  the class off the page that had it. It is taken off all of them now, and the
+  cache is rebuilt when the old nodes leave the document too: React could
+  replace them while the count stayed the same, and the mark went to nodes that
+  were no longer there.
 
 - Two scrolls on one page no longer interfere. Scheduled work, gesture
   state, rAF schedulers and the overscroll loop were module-level, so a

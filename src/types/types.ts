@@ -811,7 +811,10 @@ export type MorphScroll = {
    *   - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
    * - `stopLoadOnScroll`: *stops loading content when scrolling*
-   * - `trackVisibility`: *sets the `--ms-content-visibility` variable*
+   * - `trackVisibility`: *sets the `--ms-content-visibility` variable on every
+   *   object box; it needs no `mode` of its own, and without one nothing is
+   *   dropped — every object stays mounted and simply knows how much of it
+   *   shows*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
    * @example
@@ -827,7 +830,8 @@ export type MorphScroll = {
     | "lazy"
     | "virtual"
     | {
-        mode: "lazy" | "virtual";
+        /** leave it out to keep every object mounted and only watch them */
+        mode?: "lazy" | "virtual";
         rootMargin?: SpacingValue;
         stopLoadOnScroll?: boolean;
         trackVisibility?: boolean;
