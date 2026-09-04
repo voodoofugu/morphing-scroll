@@ -1114,6 +1114,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       const round = (axis: 0 | 1) => {
         const extent = axis === 0 ? objectsWrapperWidth : objectsWrapperHeight;
+
+        /*
+         * Пока протяжённости нет, повторять нечего. Считать круг по нулю
+         * нельзя: период выродится в один зазор, а копий на окно понадобится
+         * столько, сколько зазоров в него влезет — целая решётка повторов на
+         * один кадр, до первого замера. Круг подождёт размера так же, как
+         * ждёт его при «each».
+         */
+        if (!(extent > 0)) return null;
+
         // gapLocal лежит в обратном порядке, отсюда перевёрнутый индекс
         const period = extent + gapLocal[axis === 0 ? 1 : 0];
         const copies = loopCopies(period, sizeLocal[axis]);
@@ -2581,13 +2591,50 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       duration,
     ]);
 
+    /*
+     * Команды держим в ссылке, а наружу отдаём один и тот же объект на всю
+     * жизнь скролла.
+     *
+     * Список зависимостей у `useImperativeHandle` собирал бы объект заново на
+     * каждое изменение размеров — а прежний оставался бы у того, кто положил
+     * его в переменную или передал дочернему компоненту. И этот прежний молча
+     * переставал работать: внутри него размеры ещё нулевые, любая цель
+     * обрезается в текущее место, вызов проходит и не делает ничего. Молчащая
+     * команда — худший вид поломки, поэтому объект неизменен, а свежие
+     * действия достаются из ссылки в момент вызова.
+     */
+    const commandsRef = React.useRef({
+      applyScrollPosition,
+      handleArrowLocal,
+      moveFocusLocal,
+      smoothScrollLocal,
+      markNavigate,
+      duration,
+    });
+
+    /*
+     * Обновляем после коммита, а не в теле: команда действует на то дерево,
+     * которое сейчас на экране, а не на то, которое React ещё только считает
+     * и может выбросить.
+     */
+    React.useLayoutEffect(() => {
+      commandsRef.current = {
+        applyScrollPosition,
+        handleArrowLocal,
+        moveFocusLocal,
+        smoothScrollLocal,
+        markNavigate,
+        duration,
+      };
+    });
+
     React.useImperativeHandle(
       ref,
       () => ({
         scrollTo: (target, options) =>
-          applyScrollPosition(
+          commandsRef.current.applyScrollPosition(
             resolveScrollTarget(target),
-            options?.duration ?? duration,
+            options?.duration ?? commandsRef.current.duration,
             false,
           ),
 
@@ -2598,37 +2645,43 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * `reason` довозит это знание до `onNavigate` нетронутым.
          */
         step: (side, options) =>
-          handleArrowLocal(side, options?.reason ?? "arrows"),
+          commandsRef.current.handleArrowLocal(
+            side,
+            options?.reason ?? "arrows",
+          ),
 
         pan: (delta, options) => {
           const scrollEl = scrollElementRef.current;
           if (!scrollEl) return;
 
-          if (options?.reason) markNavigate(options.reason);
+          const now = commandsRef.current;
 
-          const moveDuration = options?.duration ?? duration;
+          if (options?.reason) now.markNavigate(options.reason);
+
+          const moveDuration = options?.duration ?? now.duration;
 
           if (delta.x)
-            smoothScrollLocal(scrollEl.scrollLeft + delta.x, "x", moveDuration);
+            now.smoothScrollLocal(
+              scrollEl.scrollLeft + delta.x,
+              "x",
+              moveDuration,
+            );
           if (delta.y)
-            smoothScrollLocal(scrollEl.scrollTop + delta.y, "y", moveDuration);
+            now.smoothScrollLocal(
+              scrollEl.scrollTop + delta.y,
+              "y",
+              moveDuration,
+            );
         },
 
         moveFocus: (side, options) =>
-          moveFocusLocal(
+          commandsRef.current.moveFocusLocal(
             side,
             options?.reason ?? "keys",
-            options?.duration ?? duration,
+            options?.duration ?? commandsRef.current.duration,
           ),
       }),
-      [
-        applyScrollPosition,
-        duration,
-        handleArrowLocal,
-        moveFocusLocal,
-        smoothScrollLocal,
-        markNavigate,
-      ],
+      [],
     );
 
     // эффект запускается раз при старте

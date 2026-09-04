@@ -1380,6 +1380,193 @@ function FocusRig() {
 
 scenarios.focusCommand = <FocusRig />;
 
+/*
+ * Обработчик, запомненный один раз, — так его и держат в приложении. Размеры
+ * здесь измеряются, то есть приходят позже первого рендера: пересоберись
+ * обработчик на них, запомненный остался бы с нулевыми размерами и молча
+ * перестал бы двигать.
+ */
+function KeptRig() {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  React.useEffect(() => {
+    (window as any).__kept = ref.current;
+  }, []);
+
+  return (
+    <MorphScroll
+      objects={{ size: "each", crossCount: 3, gap: 10 }}
+      size={[300, 220]}
+      direction="hybrid"
+      ref={ref}
+      onScrollPosition={onScrollPosition}
+    >
+      {Array.from({ length: 12 }, (_, i) => (
+        <div
+          key={`kept-${i}`}
+          className="box"
+          style={{
+            width: 60 + (i % 3) * 20,
+            height: MASONRY[i % MASONRY.length],
+          }}
+        >
+          {i}
+        </div>
+      ))}
+    </MorphScroll>
+  );
+}
+
+scenarios.handleKept = <KeptRig />;
+
+/*
+ * Круг на измеряемом размере: до первого замера протяжённости ещё нет, и
+ * период тогда вырождается в один зазор. Копий на окно при таком периоде
+ * нужно столько, сколько зазоров в окно влезет — отсюда решётка повторов на
+ * первый кадр. Здесь обе оси и «firstChild», чтобы замер точно опоздал.
+ */
+scenarios.loopUnmeasured = (
+  <MorphScroll
+    objects={{ size: "firstChild", gap: [8, 12] }}
+    size={[300, 220]}
+    direction="hybrid"
+    loop
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div key={`slide-${i}`} className="box" style={{ width: 60, height: 40 }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Стенд для перебора: пропсы приходят строкой из адреса, а не пишутся здесь
+ * сценарием на каждое сочетание. Сочетаний больше, чем можно выписать руками,
+ * и выписанные проверяли бы только то, что кто-то заранее счёл важным — а
+ * ломается обычно там, куда не смотрели.
+ *
+ * Узлы через JSON не пройдут, поэтому в наборе они названы строкой: "@thumb"
+ * разворачивается в бегунок, "@arrow" — в стрелку.
+ */
+const NODES: Record<string, React.ReactNode> = {
+  "@thumb": <div className="thumb" />,
+  "@dot": <div className="dot" />,
+  "@arrow": <div className="arrow" />,
+  "@edge": <div className="edgeMark" />,
+};
+
+const revive = (value: unknown): unknown => {
+  if (typeof value === "string") return NODES[value] ?? value;
+  if (Array.isArray(value)) return value.map(revive);
+
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+
+    for (const [key, item] of Object.entries(value)) out[key] = revive(item);
+    return out;
+  }
+
+  return value;
+};
+
+/* Разнобой по сторонам нужен для "each": на одинаковых укладка не ошибётся. */
+const CRASH_SIZES = [40, 70, 55, 90, 60, 110, 45, 80];
+
+function CrashRig() {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  /*
+   * Обработчик запоминаем один раз, нарочно: так его и держат в приложении —
+   * кладут в переменную, отдают дочернему компоненту. Пересоберись он позже,
+   * запомненный молча перестал бы работать, и стенд обязан это заметить.
+   */
+  React.useEffect(() => {
+    (window as any).__ms = ref.current;
+  }, []);
+
+  const raw = new URLSearchParams(window.location.search).get("props") ?? "{}";
+  const config = revive(JSON.parse(raw)) as MorphScrollProps & {
+    count?: number;
+    vary?: boolean;
+  };
+  const { count = 12, vary = false, ...props } = config;
+
+  return (
+    <MorphScroll
+      {...props}
+      ref={ref}
+      onScrollPosition={onScrollPosition}
+      onNavigate={onNavigate}
+    >
+      {Array.from({ length: count }, (_, i) => (
+        <div
+          key={`crash-${i}`}
+          className="box"
+          data-testid={`crash-${i}`}
+          style={
+            vary
+              ? {
+                  width: CRASH_SIZES[i % CRASH_SIZES.length],
+                  height: CRASH_SIZES[(i + 3) % CRASH_SIZES.length],
+                }
+              : undefined
+          }
+        >
+          {i}
+        </div>
+      ))}
+    </MorphScroll>
+  );
+}
+
+scenarios.crash = <CrashRig />;
+
+/*
+ * Тот же стенд, но с пропсами, которые меняются на ходу. Смонтированный
+ * скролл живёт дольше одного набора: направление переключают, режим меняют,
+ * дети приходят и уходят. Первый набор может лечь безупречно, а второй лечь
+ * поверх него — на памяти о первом.
+ */
+function SwitchRig() {
+  const first = new URLSearchParams(window.location.search).get("props") ?? "{}";
+  const [raw, setRaw] = React.useState(first);
+
+  React.useEffect(() => {
+    (window as any).__set = (next: string) => setRaw(next);
+  }, []);
+
+  const config = revive(JSON.parse(raw)) as MorphScrollProps & {
+    count?: number;
+    vary?: boolean;
+  };
+  const { count = 12, vary = false, ...props } = config;
+
+  return (
+    <MorphScroll {...props} onScrollPosition={onScrollPosition}>
+      {Array.from({ length: count }, (_, i) => (
+        <div
+          key={`crash-${i}`}
+          className="box"
+          style={
+            vary
+              ? {
+                  width: CRASH_SIZES[i % CRASH_SIZES.length],
+                  height: CRASH_SIZES[(i + 3) % CRASH_SIZES.length],
+                }
+              : undefined
+          }
+        >
+          {i}
+        </div>
+      ))}
+    </MorphScroll>
+  );
+}
+
+scenarios.crashSwitch = <SwitchRig />;
+
 const params = new URLSearchParams(window.location.search);
 const scenario = params.get("scenario") ?? "wheel";
 

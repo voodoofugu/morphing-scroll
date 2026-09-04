@@ -250,6 +250,28 @@ test.describe("MorphScroll: a command on mount (real browser)", () => {
 
     await expect.poll(() => scrollTopOf(page)).toBe(600);
   });
+
+  /*
+   * A handle picked up once has to keep working. Sizes that are measured
+   * arrive after the first render, and a handle rebuilt on them leaves the
+   * kept one holding zeroes — every target then clamps to where the scroll
+   * already is, so the call goes through and does nothing at all. A command
+   * that fails silently is the worst kind.
+   */
+  test("a handle kept from mount still moves once sizes are measured", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=handleKept");
+    await page.waitForTimeout(400);
+
+    await page.evaluate(() =>
+      (
+        window as unknown as { __kept: { pan: (d: object, o: object) => void } }
+      ).__kept.pan({ y: 120 }, { duration: 0 }),
+    );
+
+    await expect.poll(() => scrollTopOf(page)).toBe(120);
+  });
 });
 
 test.describe("MorphScroll keys: focus (real browser)", () => {

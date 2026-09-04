@@ -385,6 +385,19 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- `loop` built the circle before the content had been measured. A period is
+  the length of one copy plus the gap, and with nothing measured yet that came
+  out as the gap alone — so the strip needed as many copies as gaps fit in the
+  window, and a grid of hundreds of them was mounted for one frame and taken
+  apart again. Measured sizes were already waited for under `objects.size:
+  "each"`; the wait now covers every size, since a length of zero has nothing
+  to repeat whatever asked for it.
+- a handle kept from mount stopped working once sizes were measured. The
+  handle was rebuilt whenever the sizes changed, and anyone holding the earlier
+  one — a variable, a child component — held a copy that still believed there
+  was nothing to scroll, so every target clamped to where the scroll already
+  was and each call did nothing at all, silently. The handle is now one object
+  for the life of the scroll and reads the current commands when called.
 - the wrap blinked. The position moving by a period is invisible, but the
   copies were separate subtrees with keys of their own, so crossing into the
   next one replaced every mounted object — the same content, rebuilt from

@@ -999,4 +999,26 @@ test.describe("loop (real browser)", () => {
     expect(at).toBeGreaterThanOrEqual(420);
     expect(at).toBeLessThan(840);
   });
+
+  /*
+   * Круг не должен строиться раньше замера. Период тогда равен одному зазору,
+   * а копий на окно нужно столько, сколько зазоров в него влезет: на первый
+   * кадр выходит решётка повторов, которую тут же приходится разбирать. Со
+   * стороны это вспышка мусора, а с тяжёлыми детьми — ещё и заминка.
+   */
+  test("копий на первом кадре не больше, чем в улёгшемся круге", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopUnmeasured");
+    await settle(page);
+
+    const first: number = await page.evaluate(
+      () => (window as unknown as { __firstFrame: number }).__firstFrame,
+    );
+    const settled = await page.locator(".ms-object-box").count();
+
+    expect(settled).toBeGreaterThan(0);
+    expect(first).toBeGreaterThan(0);
+    expect(first).toBeLessThanOrEqual(settled);
+  });
 });
