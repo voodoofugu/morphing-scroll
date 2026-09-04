@@ -604,4 +604,81 @@ test.describe("loop (real browser)", () => {
 
     expect(await scrollTop(page)).toBe(period + 300);
   });
+
+  /*
+   * Резиновость показывает, что дальше края нет. В круге края нет вовсе, и
+   * отскок означал бы конец там, где контент продолжается.
+   */
+  test("не пружинит при перетаскивании: краёв в круге нет", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopTight");
+    await settle(page);
+
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
+    const midX = box.x + box.width / 2;
+
+    // тащим долго и в одну сторону — как раз тем жестом, что раньше упирался
+    await page.mouse.move(midX, box.y + 30);
+    await page.mouse.down();
+
+    let bounced = false;
+
+    for (let step = 1; step <= 14; step++) {
+      await page.mouse.move(midX, box.y + 30 + step * 30);
+
+      const shifted = await page
+        .locator(".ms-objects-wrapper")
+        .evaluate((el) => (el as HTMLElement).style.transform);
+
+      if (shifted.includes("translate") && !shifted.includes("(0px, 0px)"))
+        bounced = true;
+    }
+
+    await page.mouse.up();
+
+    expect(bounced).toBe(false);
+  });
+
+  /*
+   * Оборот редко делится на окно нацело. Остаток в обычном скролле отдельной
+   * страницей не считается — он и есть остаток, — а в круге замыкается на
+   * начало: без своей точки последняя часть оборота показывалась бы первой, и
+   * та залипала бы на полтора окна вместо одного.
+   *
+   * Здесь оборот ввысь 700 при окне 210 — это три с третью окна, значит точек
+   * четыре, и активная идёт по ним подряд.
+   */
+  test("активная точка не залипает, когда оборот не делится на окно нацело", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSliderHybrid");
+    await settle(page);
+
+    const state = () =>
+      page.evaluate(() => {
+        const bar = document.querySelector(".ms-slider")!;
+        const items = [...bar.querySelectorAll(".ms-slider-item")];
+
+        return {
+          count: items.length,
+          active: items.findIndex((el) => el.classList.contains("ms-active")),
+        };
+      });
+
+    // 700 на 210 — четыре точки, а не три
+    expect((await state()).count).toBe(4);
+
+    const seen: number[] = [(await state()).active];
+
+    for (let step = 0; step < 6; step++) {
+      await page.locator(".ms-viewport").evaluate((el) => (el.scrollTop += 100));
+      await settle(page);
+
+      seen.push((await state()).active);
+    }
+
+    // за оборот проходим все четыре подряд и ни разу не возвращаемся раньше
+    expect(seen).toEqual([0, 0, 1, 1, 2, 2, 3]);
+  });
 });

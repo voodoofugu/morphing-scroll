@@ -975,6 +975,50 @@ const LoopCommand = () => {
 
 scenarios.loopCommand = <LoopCommand />;
 
+/*
+ * Круг впритык: четыре объекта по 60 с зазором 10 дают оборот 280, и окно
+ * ровно 280. Тогда край ленты совпадает с границей средней копии — то
+ * единственное место, где резиновость вообще могла бы сработать в круге.
+ */
+scenarios.loopTight = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 280]}
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ drag: true }}
+  >
+    {Array.from({ length: 4 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Страницы по кругу при hybrid: два слайдера, у каждого свой оборот. Оборот
+ * ввысь нарочно не кратен окну — 350 при окне 200, — там и всплывает разница
+ * между «сколько страниц влезло» и «сколько их в обороте».
+ */
+scenarios.loopSliderHybrid = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10, crossCount: 4 }}
+    size={[200, 210]}
+    direction="hybrid"
+    mode="slider"
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ drag: true, bar: <div className="dot" /> }}
+  >
+    {Array.from({ length: 40 }, (_, i) => (
+      <div key={`page-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

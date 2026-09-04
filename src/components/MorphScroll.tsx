@@ -1420,11 +1420,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * втрое больше точек, чем есть на самом деле.
      */
     const objLengthPerSize = React.useMemo(() => {
-      const x = objectsPerSize(barSpan.w, sizeLocal[0]);
-      const y = objectsPerSize(barSpan.h, sizeLocal[1]);
+      /*
+       * Обычный счёт — сколько целых окон влезло: остаток оттого и остаток,
+       * что отдельной страницей не стал. В круге же остатка не бывает: он
+       * замыкается на начало, и если не дать ему своей точки, последняя часть
+       * оборота показывалась бы первой — та бы и залипала, пока остаток не
+       * пройден.
+       */
+      const pages = (axis: 0 | 1, span: number) => {
+        const period = loopPeriods[axis];
 
-      return [x, y];
-    }, [barSpan.w, barSpan.h, sizeLocal.join()]);
+        return period
+          ? Math.max(1, Math.ceil(period / sizeLocal[axis]))
+          : objectsPerSize(span, sizeLocal[axis]);
+      };
+
+      return [pages(0, barSpan.w), pages(1, barSpan.h)];
+    }, [barSpan.w, barSpan.h, sizeLocal.join(), loopPeriods.join()]);
     const objLengthPerSizeXY = React.useMemo(() => {
       return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
     }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
@@ -1611,7 +1623,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           objLengthPerSize,
           isDraggingRef,
           maxScrollSize,
-          barRange: loopPeriods,
+          loopPeriods,
           emitNavigate: (reason, axis, from, to) =>
             emitNavigateRef.current(reason, axis, from, to),
           pointerId: event.pointerId,

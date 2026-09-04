@@ -1532,12 +1532,21 @@ an edge has no size and no colour of its own, so nothing shows until you give it
   opacity: var(--ms-edge-visibility);
   transition: opacity 0.2s ease-in-out;
 }
+/* the slot already stretches across its own axis; give it a thickness */
 .ms-edge.ms-top,
 .ms-edge.ms-bottom {
   height: 40px;
   background: linear-gradient(#fff, transparent);
 }
+/* on the horizontal edges that thickness is a width, not a height */
+.ms-edge.ms-left,
+.ms-edge.ms-right {
+  width: 40px;
+  background: linear-gradient(to left, #fff, transparent);
+}
 ```
+
+<em>Each rule covers both ends of its axis: the far one is the near one mirrored, so a gradient authored for the right serves the left, and one authored for the top serves the bottom. Style only one axis and the other pair stays at zero — present in the DOM, and invisible.</em>
 
 <br />
 <b>Example:</b>

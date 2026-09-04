@@ -1238,15 +1238,21 @@ function App() {
   const edge = React.useMemo<MorphScrollProps["edge"]>(() => {
     if (!settings.edge) return false;
 
-    // размер и цвет теперь дело CSS, поэтому здесь просто узел с ними
+    /*
+     * Размер и цвет — дело CSS, а вот сторону узел о себе не знает: слот
+     * растягивается поперёк своей оси, а толщину берёт отсюда. Значит одной
+     * высоты мало — у левого и правого края толщина это ширина. Отдаём оба
+     * числа переменными, а какое из них куда, решают правила по классу слота.
+     */
     return (
       <div
         className="playground-edge"
-        style={{
-          background: `linear-gradient(${settings.edgeColor}, transparent)`,
-          height: `${settings.edgeSize}px`,
-          width: "100%",
-        }}
+        style={
+          {
+            "--pg-edge-color": settings.edgeColor,
+            "--pg-edge-size": `${settings.edgeSize}px`,
+          } as React.CSSProperties
+        }
       />
     );
   }, [settings.edgeColor, settings.edge, settings.edgeSize]);

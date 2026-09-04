@@ -508,6 +508,25 @@ body.no-select {
   transition: opacity 180ms ease;
 }
 
+/*
+ * Слот тянется поперёк своей оси, а толщину берёт отсюда — значит у верхнего
+ * с нижним толщина это высота, а у левого с правым ширина. Градиент рисуем
+ * один раз на ось: вторую сторону библиотека получает отражением слота.
+ */
+.playground-scroll .ms-edge.ms-top .playground-edge,
+.playground-scroll .ms-edge.ms-bottom .playground-edge {
+  width: 100%;
+  height: var(--pg-edge-size);
+  background: linear-gradient(var(--pg-edge-color), transparent);
+}
+
+.playground-scroll .ms-edge.ms-left .playground-edge,
+.playground-scroll .ms-edge.ms-right .playground-edge {
+  height: 100%;
+  width: var(--pg-edge-size);
+  background: linear-gradient(to left, var(--pg-edge-color), transparent);
+}
+
 .playground-scroll .ms-edge.ms-disabled .playground-edge {
   opacity: 0;
 }

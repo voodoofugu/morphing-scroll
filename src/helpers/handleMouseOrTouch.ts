@@ -47,8 +47,8 @@ type HandleMouseT = {
   objLengthPerSize: number[];
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
-  /** how much scrolling the bar's track stands for — one turn under `loop` */
-  barRange?: Vec2;
+  /** the circle's period per axis, zero where the axis does not loop */
+  loopPeriods?: Vec2;
   /** one page turn, reported the moment the gesture aims at a new one */
   emitNavigate: (
     reason: string,
@@ -277,8 +277,16 @@ const motionHandler = (
     const isAtEnd = currentScroll >= maxScrollSize;
     const isMovingBeforeStart = scrollDelta < 0;
     const isMovingAfterEnd = scrollDelta > 0;
+    /*
+     * В круге края нет: дотащить до него нечего, а если позиция и заехала за
+     * среднюю копию на кадр, это не край, а копия — и тянуть оттуда резинку
+     * значит показать отскок там, где контент продолжается.
+     */
+    const onLoop = (args.loopPeriods?.[axis === "x" ? 0 : 1] ?? 0) > 0;
+
     const shouldStartOverscroll =
-      (isAtStart && isMovingBeforeStart) || (isAtEnd && isMovingAfterEnd);
+      !onLoop &&
+      ((isAtStart && isMovingBeforeStart) || (isAtEnd && isMovingAfterEnd));
 
     // Важно: если движение из середины списка просто перелетело за край,
     // сначала только доводим scroll до границы. Резиновость начинается
@@ -418,7 +426,8 @@ function handleMouseOrTouch(args: HandleMouseT) {
      * иначе тот же ход увозил бы контент во столько раз дальше, сколько копий
      * в ленте.
      */
-    thumbRatio = (args.barRange?.[wh] || args.maxScrollSize[wh]) / maxThumbPos;
+    thumbRatio =
+      (args.loopPeriods?.[wh] || args.maxScrollSize[wh]) / maxThumbPos;
     // защита
     if (!Number.isFinite(thumbRatio) || thumbRatio <= 0) thumbRatio = 1;
   }
