@@ -13,7 +13,7 @@ import {
 } from "./overscrollBackAnim";
 
 import CONST from "../constants";
-import { loopPages } from "./loopWindow";
+import { loopPages, loopPageAt } from "./loopWindow";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
@@ -370,7 +370,7 @@ const motionHandler = (
    * уезжаем, читался бы как «мы там и стоим» — перелёт не отменялся.
    */
   const seen = rt.sliderAim[axis];
-  const current = seen ?? Math.round((el[topOrLeft] - period) / step);
+  const current = seen ?? loopPageAt(el[topOrLeft] - period, step);
   rt.sliderAim[axis] = aimed;
   if (aimed === current) return;
 
@@ -392,7 +392,7 @@ const motionHandler = (
    * повторов: завернувшись с последней страницы на первую, мотать назад через
    * весь круг незачем — рядом та же самая.
    */
-  let target = period + aimed * step;
+  let target = period + Math.round(aimed * step);
 
   if (period) {
     const at = el[topOrLeft];
@@ -587,10 +587,9 @@ function handleUp(args: HandleUpT) {
        */
       const from = position - period;
 
-      const currentPage = Math[
-        !deltaDir ? "round" : deltaDir > 0 ? "floor" : "ceil"
-      ](from / step);
-      const nextValue = period + (currentPage + (deltaDir ?? 0)) * step;
+      const currentPage = loopPageAt(from, step, deltaDir ?? 0);
+      const nextValue =
+        period + Math.round((currentPage + (deltaDir ?? 0)) * step);
 
       /*
        * За границы не выезжаем — но в круге границ нет: там страница за

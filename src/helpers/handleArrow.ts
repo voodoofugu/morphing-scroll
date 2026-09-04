@@ -1,5 +1,5 @@
 import pageAt from "./pageAt";
-import { loopPages } from "./loopWindow";
+import { loopPages, loopPageAt } from "./loopWindow";
 import { aimOf } from "./addFunctions";
 
 type handleArrowT = {
@@ -63,10 +63,11 @@ const handleArrow = ({
     const position = (dir === "x" ? left : top) - period;
     const step = stepOf(dir);
 
-    const page = Math.floor(Math.max(0, position) / step);
+    const page = loopPageAt(Math.max(0, position), step, 1);
     const nextPage = page + delta;
 
-    return period + step * nextPage;
+    // целим в целое: иначе следующий шаг снова окажется под границей
+    return period + Math.round(step * nextPage);
   };
 
   const pageOn = (dir: "x" | "y", value: number) => {

@@ -1929,6 +1929,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
             // и цель плавной прокрутки: она едет по своим числам, не по живым
             shiftAim(scrollEl, axis === 0 ? "x" : "y", moved);
+
+            // и сами копии — на столько же, что бы под окном остались те же
+            loopSlideRef.current[axis] += Math.round(moved / round.period);
           });
         }
 
@@ -2453,6 +2456,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Период появляется не сразу: пока размер объектов неизвестен, круга нет.
      * Поэтому смотрим на период, а не на монтирование.
      */
+    /*
+     * Копии стоят не по своим номерам, а со сдвигом. Без него перенос позиции
+     * менял то, какая копия под окном: узлы у копий разные, и всё видимое
+     * пересоздавалось — контент тот же, а на экране моргание.
+     *
+     * Со сдвигом всё наоборот: перенося позицию на период назад, на столько же
+     * двигаем и копии. Узел остаётся тем же и остаётся на месте — подмену
+     * теперь не только не видно, её и React не замечает.
+     */
+    const loopSlideRef = React.useRef<[number, number]>([0, 0]);
+
     const loopStartRef = React.useRef("");
     React.useEffect(() => {
       const scrollEl = scrollElementRef.current;
@@ -2822,8 +2836,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         copyX || copyY
           ? `${key}${CONST.LOOP_KEY_SEP}${copyX}-${copyY}`
           : key;
-      const shiftX = copyX && loopLocal?.x ? copyX * loopLocal.x.period : 0;
-      const shiftY = copyY && loopLocal?.y ? copyY * loopLocal.y.period : 0;
+      /*
+       * Номер копии — это ключ, а место ей выбирает сдвиг: одна и та же копия
+       * переезжает по ленте, а не заменяется соседней.
+       */
+      const placeOf = (copy: number, axis: 0 | 1) => {
+        const round = axis === 0 ? loopLocal?.x : loopLocal?.y;
+        if (!round) return 0;
+
+        const slid = copy + loopSlideRef.current[axis];
+        const slot = ((slid % round.copies) + round.copies) % round.copies;
+
+        return slot * round.period;
+      };
+
+      const shiftX = placeOf(copyX, 0);
+      const shiftY = placeOf(copyY, 1);
       // ищем реальный child по ключу
       const child = childrenMap.get(key);
 

@@ -845,4 +845,81 @@ test.describe("loop (real browser)", () => {
       await page.waitForTimeout(250);
     }
   });
+
+  /*
+   * Оборот делится на страницы нацело, а на целые пиксели — почти никогда:
+   * шаг выходит дробным, и позиция приземляется на волосок мимо границы.
+   * Этого хватало, что бы счёт страниц увидел предыдущую: шаг вперёд
+   * возвращал туда же, откуда шагнули, а шаг назад перепрыгивал через одну.
+   */
+  test("стрелка не застревает на дробной границе страницы", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSliderEach");
+    await settle(page);
+    await page.waitForTimeout(400);
+
+    const view = page.locator(".ms-viewport");
+    const at = () => view.evaluate((el) => el.scrollLeft);
+
+    const start = await at();
+
+    // назад от начала оборота — это последняя страница, круг же
+    await page.locator(".ms-arrow-box.ms-left").click();
+    await page.waitForTimeout(400);
+
+    const back = await at();
+    expect(back).toBeGreaterThan(start);
+
+    // и вперёд оттуда обязано вернуть, а не стоять на месте
+    await page.locator(".ms-arrow-box.ms-right").click();
+    await page.waitForTimeout(400);
+
+    expect(await at()).toBe(start);
+  });
+
+  /*
+   * Подмену позиции не видно, а вот подмену узлов видно было: копии — разные
+   * поддеревья с разными ключами, и на заворот всё видимое пересоздавалось.
+   * Контент тот же, а на экране моргание. Копии переезжают вместе с позицией,
+   * значит под окном остаются те же узлы.
+   */
+  test("на завороте узлы не пересоздаются", async ({ page }) => {
+    await page.goto("/?scenario=loopY");
+    await settle(page);
+
+    const view = page.locator(".ms-viewport");
+
+    // подходим вплотную к границе средней копии
+    await view.evaluate((el) => (el.scrollTop = 820));
+    await settle(page);
+
+    await page.evaluate(() => {
+      let n = 0;
+
+      for (const el of document.querySelectorAll<HTMLElement>(".ms-object-box"))
+        el.dataset.mark = String(n++);
+    });
+
+    const marked = () =>
+      page.evaluate(
+        () =>
+          [...document.querySelectorAll<HTMLElement>(".ms-object-box")].filter(
+            (el) => el.dataset.mark !== undefined,
+          ).length,
+      );
+
+    const before = await marked();
+    expect(before).toBeGreaterThan(3);
+
+    // и переступаем её
+    await view.evaluate((el) => (el.scrollTop = 850));
+    await settle(page);
+
+    // позиция вернулась в среднюю копию
+    expect(await scrollTop(page)).toBe(430);
+
+    // а узлы остались те же: новым может быть только въехавший снизу
+    expect(await marked()).toBeGreaterThanOrEqual(before - 1);
+  });
 });

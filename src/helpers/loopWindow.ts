@@ -55,3 +55,32 @@ export const loopPages = (period: number, viewport: number, gap: number) => {
 
   return { pages, step: period / pages };
 };
+
+/*
+ * На какой странице стоим. Шаг оборота почти всегда дробный — оборот делится
+ * на страницы нацело, а на целые пиксели нет, — и позиция приземляется на
+ * волосок мимо границы. Округлённого до целого «почти на границе» хватает,
+ * что бы `floor` увидел предыдущую страницу: шаг вперёд тогда возвращает туда
+ * же, откуда шагнули, а шаг назад перепрыгивает через одну.
+ *
+ * Поэтому у границы считаем, что мы на ней, и только вдали от неё — округляем
+ * в ту сторону, куда просили.
+ */
+export const loopPageAt = (
+  position: number,
+  step: number,
+  toward: 0 | 1 | -1 = 0,
+) => {
+  if (!(step > 0)) return 0;
+
+  const raw = position / step;
+  const near = Math.round(raw);
+
+  if (Math.abs(raw - near) < 0.01) return near;
+
+  return toward > 0
+    ? Math.floor(raw)
+    : toward < 0
+      ? Math.ceil(raw)
+      : Math.round(raw);
+};

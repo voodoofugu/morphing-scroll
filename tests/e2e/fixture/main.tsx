@@ -1088,7 +1088,7 @@ scenarios.loopSliderEach = (
     mode="slider"
     loop
     render={{ mode: "lazy", rootMargin: 100, trackVisibility: true }}
-    controls={{ drag: true, bar: <div className="dot" /> }}
+    controls={{ drag: true, arrows: <b />, bar: <div className="dot" /> }}
   >
     {Array.from({ length: 56 }, (_, i) => (
       <div

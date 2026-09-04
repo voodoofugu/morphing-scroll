@@ -385,6 +385,25 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- the wrap blinked. The position moving by a period is invisible, but the
+  copies were separate subtrees with keys of their own, so crossing into the
+  next one replaced every mounted object — the same content, rebuilt from
+  scratch. The copies now move along with the position instead: the object
+  under the window stays the very same node, and React no longer notices the
+  wrap either.
+- stepping a page under `loop` did not come back. Pages were measured by the
+  window, and a turn is rarely a whole number of windows: past the last page
+  the turn ended somewhere in the middle of it, and after the wrap the grid
+  started over with an offset — a step forward and a step back landed
+  somewhere else. Pages now divide the turn evenly, none of them longer than
+  the window, so nothing is skipped and the arrows, the snap, the aim and the
+  dots all count the same pages.
+- an arrow could stall on a page boundary. A turn divides into whole pages but
+  not into whole pixels, so the step comes out fractional and the position
+  lands a hair short of the line; that was enough for the page count to read
+  the one before, and a step forward returned where it started while a step
+  back skipped one. Page boundaries are landed on as whole pixels now, and a
+  position within a hair of one counts as being on it.
 - the slider read its axis from the bar's place in the list rather than from
   the bar itself. With `direction="hybrid"` there are two of them, but either
   can go missing — when there is nothing to scroll along its side, say — and
