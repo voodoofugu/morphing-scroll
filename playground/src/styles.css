@@ -549,6 +549,13 @@ body.no-select {
 }
 
 .demo-item {
+  /*
+   * Долю видимости библиотека кладёт переменной на бокс объекта — карточка
+   * внутри его наследует. Без trackVisibility переменной нет, и запасная
+   * единица держит карточку видимой.
+   */
+  opacity: var(--ms-content-visibility, 1);
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;

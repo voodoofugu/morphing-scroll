@@ -1079,6 +1079,32 @@ scenarios.visibilityPlain = (
   </MorphScroll>
 );
 
+/* твой случай целиком: слайдер по кругу, обе оси, свои размеры, lazy */
+scenarios.loopSliderEach = (
+  <MorphScroll
+    objects={{ size: "each", gap: 12, crossCount: 2, direction: "column" }}
+    size={[680, 430]}
+    direction="hybrid"
+    mode="slider"
+    loop
+    render={{ mode: "lazy", rootMargin: 100, trackVisibility: true }}
+    controls={{ drag: true, bar: <div className="dot" /> }}
+  >
+    {Array.from({ length: 56 }, (_, i) => (
+      <div
+        key={`card-${i}`}
+        className="box"
+        style={{
+          width: 140 + ((i * 37) % 80),
+          height: 90 + ((i * 53) % 70),
+        }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

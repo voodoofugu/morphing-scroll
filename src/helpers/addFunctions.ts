@@ -213,7 +213,20 @@ const sliderCheck = (
 ) => {
   [...scrollBars].forEach((msSlider, i) => {
     let cache = sliderCache.get(msSlider);
-    const dir = i === 0 ? direction : "x";
+
+    /*
+     * Ось спрашиваем у самого бара, а не считаем по его месту в списке. При
+     * `hybrid` баров два, но любой из них может не выйти — например когда по
+     * своей стороне прокручивать нечего, — и тогда оставшийся занимал чужое
+     * место: горизонтальный ездил по вертикали и на своё движение не отвечал.
+     */
+    const marked = msSlider.getAttribute("ms-direction");
+    const dir: "x" | "y" =
+      marked === "x" || marked === "y"
+        ? marked
+        : i === 0 && direction !== "hybrid"
+          ? direction
+          : "x";
     const axisIndex = dir === "x" ? 0 : 1;
 
     /*

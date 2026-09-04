@@ -718,4 +718,102 @@ test.describe("loop (real browser)", () => {
       expect((at - period) % step).toBe(0);
     }
   });
+
+  /*
+   * При `hybrid` баров два, но любой может не выйти — здесь оборот ввысь
+   * короче окна, и вертикального нет. Ось бара тогда нельзя считать по его
+   * месту в списке: оставшийся горизонтальный занимал место первого и ездил
+   * по вертикали — на своё движение не отвечал вовсе, а на чужое отвечал.
+   */
+  test("бар слушает свою ось, даже когда второго бара нет", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSliderEach");
+    await settle(page);
+    await page.waitForTimeout(400);
+
+    const bars = page.locator(".ms-slider");
+    await expect(bars).toHaveCount(1);
+    expect(await bars.getAttribute("ms-direction")).toBe("x");
+
+    const active = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll(".ms-slider-item")].findIndex((el) =>
+          el.classList.contains("ms-active"),
+        ),
+      );
+
+    const view = page.locator(".ms-viewport");
+    const before = await active();
+
+    // чужая ось бар не трогает
+    for (let step = 0; step < 3; step++) {
+      await view.evaluate((el) => (el.scrollTop += 120));
+      await settle(page);
+    }
+
+    expect(await active()).toBe(before);
+
+    // а своя — двигает
+    await expect
+      .poll(async () => {
+        await view.evaluate((el) => (el.scrollLeft += 200));
+        await settle(page);
+
+        return active();
+      })
+      .toBeGreaterThan(before);
+  });
+
+  /*
+   * По бару слайдера ведут указателем, и страницу выбирает то, куда он
+   * показывает. За краем бара обычный слайдер упирается — дальше первой и
+   * последней страницы идти некуда. В круге некуда не бывает: за последней
+   * снова первая, и прицел должен заворачиваться, а не упираться.
+   */
+  test("прицел по бару заворачивается за краем, а не упирается", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSliderDrag");
+    await settle(page);
+
+    const period = 1400;
+    const step = 320;
+    const items = page.locator(".ms-slider-item");
+    const first = (await items.first().boundingBox())!;
+    const last = (await items.last().boundingBox())!;
+
+    // ведём от первой точки к последней
+    await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(last.x + last.width / 2, last.y + last.height / 2, {
+      steps: 6,
+    });
+    await settle(page);
+
+    const atLast = await scrollTop(page);
+    expect(atLast).toBe(period + step * 4);
+
+    /*
+     * И на волосок дальше края бара — в круге это снова первая страница.
+     * Смотрим, не отпуская: на отпускании отработает ещё и снап, и по нему
+     * было бы не отличить, тронулся ли прицел.
+     */
+    const bar = (await page.locator(".ms-slider").boundingBox())!;
+
+    await page.mouse.move(
+      bar.x + bar.width / 2,
+      bar.y + bar.height + 10,
+      { steps: 4 },
+    );
+    await settle(page);
+
+    const after = await scrollTop(page);
+
+    await page.mouse.up();
+
+    // завернулись на первую страницу, а не остались на последней
+    expect(after).not.toBe(atLast);
+    expect(after).toBe(period);
+  });
 });

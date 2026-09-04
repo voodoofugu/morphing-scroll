@@ -383,6 +383,14 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- the slider read its axis from the bar's place in the list rather than from
+  the bar itself. With `direction="hybrid"` there are two of them, but either
+  can go missing — when there is nothing to scroll along its side, say — and
+  the remaining one then took the absent one's place: a horizontal bar
+  followed the vertical axis and never answered its own.
+- dragging along the slider bar stopped at the ends. In a circle there are no
+  ends: past the last page comes the first, so the aim wraps instead of
+  stopping, and goes there the short way round.
 - the slider could mark two pages active at once. Its cache is rebuilt when the
   number of pages changes — with a measured size that happens as the
   measurements come in — and rebuilding reset the bookkeeping without taking

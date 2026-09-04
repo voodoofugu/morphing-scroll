@@ -835,15 +835,21 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       : false,
   };
 
-  const render: CodeValue | undefined =
-    settings.renderMode === "off"
-      ? undefined
-      : {
-          mode: settings.renderMode,
-          rootMargin: settings.rootMargin,
-          stopLoadOnScroll: settings.stopLoadOnScroll,
-          trackVisibility: settings.trackVisibility,
-        };
+  /*
+   * Слежение за видимостью само по себе тоже режим отрисовки — просто ничего
+   * не выбрасывающий. Значит `render` нужен и без `mode`.
+   */
+  const renderOff =
+    settings.renderMode === "off" && !settings.trackVisibility;
+
+  const render: CodeValue | undefined = renderOff
+    ? undefined
+    : {
+        ...(settings.renderMode !== "off" && { mode: settings.renderMode }),
+        rootMargin: settings.rootMargin,
+        stopLoadOnScroll: settings.stopLoadOnScroll,
+        trackVisibility: settings.trackVisibility,
+      };
 
   const emptyObjects: CodeValue | undefined =
     settings.emptyMode === "off"
@@ -1269,12 +1275,14 @@ function App() {
   }, [progressMenu, settings.progressElementMode, settings.mode]);
 
   const render = React.useMemo<MorphScrollProps["render"]>(() => {
-    if (settings.renderMode === "off") return undefined;
+    if (settings.renderMode === "off" && !settings.trackVisibility)
+      return undefined;
+
     return {
       rootMargin: settings.rootMargin,
       stopLoadOnScroll: settings.stopLoadOnScroll,
       trackVisibility: settings.trackVisibility,
-      mode: settings.renderMode,
+      ...(settings.renderMode !== "off" && { mode: settings.renderMode }),
     };
   }, [
     settings.renderMode,

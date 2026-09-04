@@ -344,11 +344,17 @@ const motionHandler = (
   const barSize = isX ? bar.width : bar.height;
   if (barSize <= 0) return;
 
-  const aimed = clampValue(
-    Math.floor(((point[axis] - barStart) / barSize) * pages),
-    0,
-    pages - 1,
-  );
+  const period = args.loopPeriods?.[wh] ?? 0;
+  const reach = Math.floor(((point[axis] - barStart) / barSize) * pages);
+
+  /*
+   * За краем бара обычный слайдер упирается: дальше первого и последнего
+   * пункта идти некуда. В круге некуда не бывает — за последним снова первый,
+   * — поэтому там прицел не упирается, а заворачивается.
+   */
+  const aimed = period
+    ? ((reach % pages) + pages) % pages
+    : clampValue(reach, 0, pages - 1);
 
   const step = el[isX ? "clientWidth" : "clientHeight"] + args.gap[wh];
   if (!(step > 0)) return;
@@ -359,7 +365,7 @@ const motionHandler = (
    * уезжаем, читался бы как «мы там и стоим» — перелёт не отменялся.
    */
   const seen = rt.sliderAim[axis];
-  const current = seen ?? Math.round(el[topOrLeft] / step);
+  const current = seen ?? Math.round((el[topOrLeft] - period) / step);
   rt.sliderAim[axis] = aimed;
   if (aimed === current) return;
 
@@ -376,8 +382,22 @@ const motionHandler = (
    * движение выглядело то прокруткой, то подменой позиции. Ноль остаётся
    * нулём: выключенная анимация выключена и здесь.
    */
+  /*
+   * Страницы в круге отсчитываются от начала оборота. И едем к ближайшему из
+   * повторов: завернувшись с последней страницы на первую, мотать назад через
+   * весь круг незачем — рядом та же самая.
+   */
+  let target = period + aimed * step;
+
+  if (period) {
+    const at = el[topOrLeft];
+    const ahead = (((target - at) % period) + period) % period;
+
+    target = at + (ahead <= period / 2 ? ahead : ahead - period);
+  }
+
   args.smoothScroll(
-    aimed * step,
+    target,
     axis,
     Math.min(args.duration, CONST.SLIDER_AIM_DURATION),
   );
