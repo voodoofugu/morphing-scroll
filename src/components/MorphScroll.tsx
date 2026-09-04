@@ -242,21 +242,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }
 
     /*
-     * Круг водит окно подменой позиции, а для этого нужен период — расстояние,
-     * через которое контент повторяется. Меряемый размер его не даёт: он
-     * известен только после замера, а виртуализация ровно затем и нужна, чтобы
-     * мерить не всё. При `hybrid` период тоже не собрать: осей две, а круг
-     * один. Страницы же считают свои границы сами, и круг им пока не объяснить.
+     * Круг водит окно подменой позиции, а конца у него нет — значит и ехать к
+     * концу некуда.
      */
     if (loop) {
-      if (hasEach)
-        console.error(
-          `loop repeats the content through a period, and objects.size: "each" is measured as it goes — it never settles into one${errorTextEnd}`,
-        );
-
-
-
-
       if (stickToEnd)
         console.error(
           `loop and stickToEnd pull against each other: one keeps the window in the circle, the other drives it to an end the circle does not have${errorTextEnd}`,
@@ -1085,7 +1074,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * сказано выше, один раз.
      */
     const loopLocal = React.useMemo(() => {
-      if (!loop || isEach) return null;
+      if (!loop) return null;
+
+      /*
+       * Измеряемый размер круг тоже умеет, но только когда измерены все:
+       * период — это протяжённость контента, а она растёт, пока приходят
+       * замеры. Крутить по меняющемуся периоду значит дёргать раскладку на
+       * каждой пачке. Поэтому ждём: до конца замера это обычная прокрутка, а
+       * круг включается сам, когда мерить больше нечего.
+       */
+      if (isEach && packed.measuredPrefix !== validChildrenKeys.length)
+        return null;
 
       const round = (axis: 0 | 1) => {
         const extent = axis === 0 ? objectsWrapperWidth : objectsWrapperHeight;
@@ -1110,6 +1109,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [
       loop,
       isEach,
+      packed,
+      validChildrenKeys.length,
       direction,
       objectsWrapperWidth,
       objectsWrapperHeight,
@@ -2381,10 +2382,33 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const mark = loopPeriods.join();
       if (loopStartRef.current === mark) return;
 
+      const was = loopStartRef.current
+        ? loopStartRef.current.split(",").map(Number)
+        : null;
+
       loopStartRef.current = mark;
 
-      if (loopLocal.x) scrollEl.scrollLeft = loopLocal.x.period;
-      if (loopLocal.y) scrollEl.scrollTop = loopLocal.y.period;
+      /*
+       * Период может смениться под ногами: при измеряемом размере что-то
+       * доросло. Прыгать от этого в начало оборота нельзя — под окном стоит
+       * то, что читают. Сохраняем место внутри оборота, а не саму позицию:
+       * тогда видно примерно то же, что и было.
+       */
+      const place = (axis: 0 | 1, period: number) => {
+        if (!period) return;
+
+        const before = was?.[axis] ?? 0;
+        const at = axis === 0 ? scrollEl.scrollLeft : scrollEl.scrollTop;
+        const inside = before
+          ? Math.min(Math.max(at - before, 0), period - 1)
+          : 0;
+
+        if (axis === 0) scrollEl.scrollLeft = period + inside;
+        else scrollEl.scrollTop = period + inside;
+      };
+
+      place(0, loopPeriods[0]);
+      place(1, loopPeriods[1]);
     }, [loopLocal, loopPeriods.join()]);
 
     /*

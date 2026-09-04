@@ -283,9 +283,13 @@ themselves are no longer transformed and can be positioned from CSS.
   `direction="hybrid"` turns in both directions at once: the content repeats
   to the right and downward alike, the copies lie in a grid, and each axis is
   brought back to its own middle on its own.
-  It needs a size it can repeat — a number or `"firstChild"` for
-  `objects.size` — and says so out loud when there is none. Nothing else is
-  required: the
+  `objects.size: "each"` turns too, only not at once: a period is the length
+  of the content, and that keeps growing while the measurements come in.
+  Until they are all in it scrolls as usual, and the circle closes by itself
+  once there is nothing left to measure — so a long list pays for a full
+  measuring pass before it turns. If something grows later, the position keeps
+  its place within the turn rather than jumping back to the start of it.
+  Nothing else is required: the
   circle places its copies by coordinate with or without `render.mode`, and
   with it they are mounted a window at a time as usual.
   The slider modes turn in a circle too: pages are counted within one turn,

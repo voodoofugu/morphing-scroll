@@ -404,4 +404,83 @@ test.describe("loop (real browser)", () => {
     expect(await view.evaluate((el) => el.scrollLeft)).toBe(300);
     expect(await view.evaluate((el) => el.scrollTop)).toBe(240);
   });
+
+  /*
+   * Измеряемый размер: период известен только после замера, поэтому круг
+   * включается сам, когда мерить больше нечего. Высоты 40, 80, 50, 30 через
+   * зазор 10 дают протяжённость 230, оборот — 240, лента — 720.
+   */
+  test("объекты своего размера тоже ходят по кругу", async ({ page }) => {
+    await page.goto("/?scenario=loopEach");
+
+    const view = page.locator(".ms-viewport");
+
+    // ждём, пока замер кончится и круг соберётся
+    await expect.poll(() => view.evaluate((el) => el.scrollHeight)).toBe(720);
+
+    expect(await scrollTop(page)).toBe(240);
+
+    await view.evaluate((el) => (el.scrollTop = 500));
+    await settle(page);
+
+    expect(await scrollTop(page)).toBe(260);
+
+    // и объекты идут по кругу: за третьим снова нулевой, через тот же зазор
+    const boxes = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+        .map((el) => {
+          const m = /translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/.exec(
+            el.style.transform,
+          );
+
+          return {
+            n: Number(el.textContent),
+            y: Math.round(Number(m?.[2] ?? 0)),
+            h: Math.round(el.getBoundingClientRect().height),
+          };
+        })
+        .sort((one, two) => one.y - two.y),
+    );
+
+    for (let i = 1; i < boxes.length; i++) {
+      expect(boxes[i].y - (boxes[i - 1].y + boxes[i - 1].h)).toBe(10);
+      expect(boxes[i].n).toBe((boxes[i - 1].n + 1) % 4);
+    }
+  });
+
+  /*
+   * Тот же круг, но копии смонтированы все — у каждого ключа в документе по
+   * три бокса разом. Замер должен пережить и это: следить надо за всеми
+   * копиями, иначе уход одной стирает размер, которым живут остальные.
+   */
+  test("свой размер меряется, даже когда копий каждого несколько", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopEachPlain");
+
+    const view = page.locator(".ms-viewport");
+
+    await expect.poll(() => view.evaluate((el) => el.scrollHeight)).toBe(720);
+
+    // четыре объекта на три копии — все на месте
+    expect(await page.locator(".ms-object-box").count()).toBe(12);
+
+    // и у каждого свой размер, а не общий: 40, 80, 50, 30 по три раза
+    const heights = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".ms-object-box")].map((el) =>
+        Math.round(el.getBoundingClientRect().height),
+      ),
+    );
+
+    expect(heights.filter((h) => h === 40)).toHaveLength(3);
+    expect(heights.filter((h) => h === 80)).toHaveLength(3);
+    expect(heights.filter((h) => h === 50)).toHaveLength(3);
+    expect(heights.filter((h) => h === 30)).toHaveLength(3);
+
+    // и круг всё так же водит позицию
+    await view.evaluate((el) => (el.scrollTop = 500));
+    await settle(page);
+
+    expect(await scrollTop(page)).toBe(260);
+  });
 });

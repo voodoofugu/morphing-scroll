@@ -250,13 +250,13 @@ With <code>render.mode</code> the objects are still mounted a window at a time, 
 <br />
 The slider modes turn in a circle too. Pages are counted within one turn, so the progress element shows as many dots as there really are — not one per copy — and they come back round to the first.<br />
 <br />
-<code>direction="hybrid"</code> turns in both directions at once: the content repeats to the right and downward alike, the copies lie in a grid, and each axis is brought back to its own middle on its own.</em><br />
+<code>direction="hybrid"</code> turns in both directions at once: the content repeats to the right and downward alike, the copies lie in a grid, and each axis is brought back to its own middle on its own.<br />
+<br />
+<code>objects.size: "each"</code> turns too, only not at once. A period is the length of the content, and that keeps growing while the measurements come in — turning on a period that moves would jolt the layout on every batch. So it waits: until everything is measured this scrolls as usual, and the circle closes by itself once there is nothing left to measure. A long list pays for a full measuring pass before it turns, and if something grows later the position keeps its place within the turn rather than jumping back to the start of it.</em><br />
 <br />
 <b>Note:</b><em><br />
 the list is repeated, not referenced — a few copies of every child are mounted at once. With <code>render.mode</code> only the ones in the window are, and the length of the list stops mattering; without it a long one is paid for several times over. For anything but a handful of objects, give the circle virtualising.</em><br />
 <br />
-<b>Needs:</b><em><br />
-a size it can repeat — <code>objects.size</code> as a number or <code>"firstChild"</code>. <code>"each"</code> is measured as it goes and never settles into a period, and that is said out loud rather than the prop quietly doing nothing.</em><br />
 <br />
 <b>What changes around it:</b><em><br /></em>
 <ul>

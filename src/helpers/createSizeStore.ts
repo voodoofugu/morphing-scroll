@@ -31,7 +31,13 @@ const createSizeStore = (notify: () => void): Store => {
   const sizes = new Map<string, [number, number]>();
   let version = 0;
   const keyOf = new WeakMap<Element, string>();
-  const watched = new Map<string, Element>();
+  /*
+   * За ключом стоит не один элемент, а сколько угодно: в круге тот же ребёнок
+   * лежит в каждой копии. Размер у них общий — на то они и копии, — но следить
+   * надо за всеми, иначе размонтирование одной стирало бы замер, которым живут
+   * остальные.
+   */
+  const watched = new Map<string, Set<Element>>();
   const refs = new Map<string, (el: Element | null) => void>();
 
   let pending = false;
@@ -108,23 +114,37 @@ const createSizeStore = (notify: () => void): Store => {
       let ref = refs.get(key);
       if (ref) return ref;
 
+      /*
+       * React зовёт ref с `null` при размонтировании, но какой именно элемент
+       * ушёл, не говорит. Поэтому снимаем те, что уже не в документе: живые
+       * копии остаются под наблюдением.
+       */
       ref = (el) => {
         if (!observer) return;
 
-        const old = watched.get(key);
+        const seen = watched.get(key);
 
         if (!el) {
-          if (old) observer.unobserve(old);
-          watched.delete(key);
+          if (!seen) return;
+
+          for (const old of [...seen])
+            if (!old.isConnected) {
+              observer.unobserve(old);
+              seen.delete(old);
+            }
+
+          if (!seen.size) watched.delete(key);
 
           return;
         }
 
-        if (old === el) return;
-        if (old) observer.unobserve(old);
+        if (seen?.has(el)) return;
 
         keyOf.set(el, key);
-        watched.set(key, el);
+
+        if (seen) seen.add(el);
+        else watched.set(key, new Set([el]));
+
         observer.observe(el);
       };
 
@@ -137,9 +157,9 @@ const createSizeStore = (notify: () => void): Store => {
       for (const key of [...sizes.keys()])
         if (!alive.has(key) && sizes.delete(key)) version += 1;
 
-      for (const [key, el] of [...watched])
+      for (const [key, seen] of [...watched])
         if (!alive.has(key)) {
-          observer?.unobserve(el);
+          for (const el of seen) observer?.unobserve(el);
           watched.delete(key);
         }
 
@@ -157,10 +177,11 @@ const createSizeStore = (notify: () => void): Store => {
       sizes.clear();
       version += 1;
 
-      for (const el of watched.values()) {
-        observer?.unobserve(el);
-        observer?.observe(el);
-      }
+      for (const seen of watched.values())
+        for (const el of seen) {
+          observer?.unobserve(el);
+          observer?.observe(el);
+        }
     },
 
     destroy: () => {

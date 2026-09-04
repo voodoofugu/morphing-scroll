@@ -527,8 +527,11 @@ export type MorphScroll = {
    * refused*
    * @note *`direction="hybrid"` turns in both directions at once: the content
    * repeats to the right and downward, and the copies lie in a grid*
-   * @note *needs a size it can repeat, so `objects.size: "each"` is out — it
-   * is measured as it goes and never gives a settled period*
+   * @note *`objects.size: "each"` waits: a period is the length of the
+   * content, and that keeps growing while the measurements come in. Until
+   * they are all in it scrolls as usual, and the circle closes by itself once
+   * there is nothing left to measure — so a long list pays for a full
+   * measuring pass before it turns*
    * @example
    * ```tsx
    * <MorphScroll {...props} loop render={{ mode: "virtual" }}>

@@ -857,6 +857,48 @@ scenarios.loopHybrid = (
   </MorphScroll>
 );
 
+/*
+ * Круг из объектов, которые меряют себя сами. Высоты 40, 80, 50, 30 с зазором
+ * 10 — оборот 210, но узнать его можно только после замера: до тех пор это
+ * обычная прокрутка.
+ */
+scenarios.loopEach = (
+  <MorphScroll
+    objects={{ size: ["each", "each"], gap: 10, crossCount: 1 }}
+    size={[200, 150]}
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ wheel: true }}
+  >
+    {[40, 80, 50, 30].map((h, i) => (
+      <div key={`card-${i}`} className="box" style={{ width: 120, height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Тот же круг из своих размеров, но без виртуализации: копии смонтированы
+ * все, и у каждого ключа в документе по три бокса разом. Хранилище размеров
+ * должно следить за всеми — иначе размонтирование одной копии стирает замер,
+ * которым живут остальные.
+ */
+scenarios.loopEachPlain = (
+  <MorphScroll
+    objects={{ size: ["each", "each"], gap: 10, crossCount: 1 }}
+    size={[200, 150]}
+    loop
+    controls={{ wheel: true }}
+  >
+    {[40, 80, 50, 30].map((h, i) => (
+      <div key={`card-${i}`} className="box" style={{ width: 120, height: h }}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll
