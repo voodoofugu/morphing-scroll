@@ -281,9 +281,13 @@ themselves are no longer transformed and can be positioned from CSS.
   wheel and inertia carry their own marks, so those move with it; otherwise
   they would pull the window straight back out.
   It needs a size it can repeat and one axis to repeat along: a number or
-  `"firstChild"` for `objects.size`, `direction` of `"x"` or `"y"`,
-  `mode="scroll"`, and `render.mode` to place the copies by coordinate. Each
-  of those is said out loud when it is missing.
+  `"firstChild"` for `objects.size`, and `direction` of `"x"` or `"y"`. Both
+  are said out loud when they are missing. Nothing else is required — the
+  circle places its copies by coordinate with or without `render.mode`, and
+  with it they are mounted a window at a time as usual.
+  The slider modes turn in a circle too: pages are counted within one turn,
+  so the progress element shows as many dots as there really are rather than
+  one set per copy, and they come back round to the first.
   Around it: `edge` stays lit on both sides, since there really is more
   content both ways; the progress element shows the position within one turn
   rather than within the strip, so it cycles instead of jumping; and

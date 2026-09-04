@@ -793,6 +793,48 @@ scenarios.loopY = (
   </MorphScroll>
 );
 
+/*
+ * Круг из страниц: шесть страниц по 300 без зазора — оборот 1800, копий три.
+ * Точек слайдера должно быть шесть, по обороту, а не восемнадцать по ленте.
+ */
+scenarios.loopSlider = (
+  <MorphScroll
+    objects={{ size: 300 }}
+    size={300}
+    mode="slider"
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ drag: true, arrows: <b />, bar: <div className="dot" /> }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`page-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Тот же круг, но с зазором: оборот 1920 на окно 300 — не кратно, и место
+ * внутри оборота уже не совпадает с местом в ленте.
+ */
+scenarios.loopSliderGap = (
+  <MorphScroll
+    objects={{ size: 300, gap: 20 }}
+    size={300}
+    mode="slider"
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ drag: true, bar: <div className="dot" /> }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`page-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

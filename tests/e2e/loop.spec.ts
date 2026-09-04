@@ -270,4 +270,102 @@ test.describe("loop (real browser)", () => {
 
     expect(await view.evaluate((el) => el.scrollLeft)).toBe(900 - PERIOD);
   });
+
+  /*
+   * Страницы кругу не помеха: их столько, сколько в обороте, а не сколько
+   * копий уместилось в ленту.
+   */
+  test("слайдер показывает точки оборота, а не всей ленты", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSlider");
+    await settle(page);
+
+    // шесть страниц по 300 — оборот 1800, лента 5400
+    expect(
+      await page.locator(".ms-viewport").evaluate((el) => el.scrollHeight),
+    ).toBe(5400);
+    expect(await scrollTop(page)).toBe(1800);
+
+    expect(await page.locator(".ms-slider-item").count()).toBe(6);
+    expect(await page.locator(".ms-slider-item.ms-active").count()).toBe(1);
+  });
+
+  test("активная точка идёт по кругу и возвращается к первой", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSlider");
+    await settle(page);
+
+    const activeAt = async () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll(".ms-slider-item")].findIndex((el) =>
+          el.classList.contains("ms-active"),
+        ),
+      );
+
+    expect(await activeAt()).toBe(0);
+
+    const view = page.locator(".ms-viewport");
+
+    for (const expected of [1, 2, 3, 4, 5, 0]) {
+      await view.evaluate((el) => (el.scrollTop += 300));
+      await settle(page);
+
+      expect(await activeAt()).toBe(expected);
+    }
+
+    // а позиция всё это время не выходила из круга
+    const at = await scrollTop(page);
+    expect(at).toBeGreaterThanOrEqual(1800);
+    expect(at).toBeLessThan(3600);
+  });
+
+  /*
+   * Когда оборот не кратен окну, место внутри оборота и место в ленте
+   * расходятся — и считать страницу по ленте уже нельзя.
+   */
+  test("страницу считает по обороту, даже когда он не кратен окну", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSliderGap");
+    await settle(page);
+
+    const view = page.locator(".ms-viewport");
+
+    // шесть страниц по 300 с зазором 20 — оборот 1920, лента 5760
+    expect(await view.evaluate((el) => el.scrollHeight)).toBe(5760);
+    expect(await scrollTop(page)).toBe(1920);
+
+    // шестьдесят внутрь оборота — это всё ещё первая страница
+    await view.evaluate((el) => (el.scrollTop = 1980));
+    await settle(page);
+
+    expect(
+      await page.evaluate(() =>
+        [...document.querySelectorAll(".ms-slider-item")].findIndex((el) =>
+          el.classList.contains("ms-active"),
+        ),
+      ),
+    ).toBe(0);
+  });
+
+  test("стрелка листает страницы и не упирается в край", async ({ page }) => {
+    await page.goto("/?scenario=loopSlider");
+    await settle(page);
+
+    const next = page.locator(".ms-arrow-box.ms-bottom");
+
+    // ни одна стрелка не тупик: в круге всегда есть куда ехать
+    await expect(page.locator(".ms-arrow-box.ms-disabled")).toHaveCount(0);
+
+    for (let turn = 0; turn < 8; turn++) {
+      await next.click();
+      await page.waitForTimeout(320);
+    }
+
+    const at = await scrollTop(page);
+    expect(at).toBeGreaterThanOrEqual(1800);
+    expect(at).toBeLessThan(3600);
+  });
 });

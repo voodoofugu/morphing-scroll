@@ -513,6 +513,10 @@ export type MorphScroll = {
    *
    * Objects are still mounted a window at a time when `render.mode` says so —
    * the two are separate, and a short loop does not need virtualising.
+   *
+   * The slider modes turn in a circle too: pages are counted within one turn,
+   * so the progress element shows as many as there really are and its dots
+   * come back round to the first.
    * @note *`edge` stays lit on both sides — there really is more content both
    * ways — and the progress element shows the position within one turn rather
    * than within the whole strip. `stickToEnd` has no end to hold onto and is

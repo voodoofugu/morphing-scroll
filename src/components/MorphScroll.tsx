@@ -259,10 +259,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           `loop runs the content around one axis, and direction="hybrid" scrolls both — there is no single way around${errorTextEnd}`,
         );
 
-      if (mode !== "scroll")
-        console.error(
-          `loop is for mode="scroll" — "${mode}" counts its own pages, and a circle has none to count${errorTextEnd}`,
-        );
 
 
       if (stickToEnd)
@@ -1093,8 +1089,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * сказано выше, один раз.
      */
     const loopLocal = React.useMemo(() => {
-      if (!loop || isEach || direction === "hybrid" || mode !== "scroll")
-        return null;
+      if (!loop || isEach || direction === "hybrid") return null;
 
       const isX = direction === "x";
       const extent = isX ? objectsWrapperWidth : objectsWrapperHeight;
@@ -1108,7 +1103,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       loop,
       isEach,
       direction,
-      mode,
       objectsWrapperWidth,
       objectsWrapperHeight,
       gapLocal[0],
@@ -1412,12 +1406,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsWrapperWidthFull,
     ]);
 
+    /*
+     * Страниц в круге столько, сколько их в обороте: лента длиннее только
+     * потому, что копий в ней несколько, и считать по ней значило бы показать
+     * втрое больше точек, чем есть на самом деле.
+     */
     const objLengthPerSize = React.useMemo(() => {
-      const x = objectsPerSize(objectsWrapperWidthFull, sizeLocal[0]);
-      const y = objectsPerSize(objectsWrapperHeightFull, sizeLocal[1]);
+      const x = objectsPerSize(barSpan.w, sizeLocal[0]);
+      const y = objectsPerSize(barSpan.h, sizeLocal[1]);
 
       return [x, y];
-    }, [objectsWrapperWidthFull, objectsWrapperHeightFull, sizeLocal.join()]);
+    }, [barSpan.w, barSpan.h, sizeLocal.join()]);
     const objLengthPerSizeXY = React.useMemo(() => {
       return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
     }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
@@ -1767,8 +1766,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         scrollBarsRef.current,
         direction,
         objLengthPerSize,
+        loopLocal?.period ?? 0,
+        loopAxis,
       );
-    }, [sizeLocal.join(), direction, mode, objLengthPerSize.join()]);
+    }, [
+      sizeLocal.join(),
+      direction,
+      mode,
+      objLengthPerSize.join(),
+      loopLocal,
+      loopAxis,
+    ]);
 
     const onRenderedKeysChangeUpdate = React.useCallback(
       (callback: MorphScrollProps["onRenderedKeysChange"]) => {

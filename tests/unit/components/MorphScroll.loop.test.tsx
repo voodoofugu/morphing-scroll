@@ -54,7 +54,7 @@ describe("loop", () => {
     expect(said("there is no single way around")).toBe(true);
   });
 
-  it("ругается на страницы: у круга их нет", () => {
+  it("молчит на страницы: их в круге столько, сколько в обороте", () => {
     render(
       <MorphScroll
         size={[200, 300]}
@@ -67,7 +67,7 @@ describe("loop", () => {
       </MorphScroll>,
     );
 
-    expect(said("a circle has none to count")).toBe(true);
+    expect(error).not.toHaveBeenCalled();
   });
 
   /*
@@ -115,13 +115,17 @@ describe("loop", () => {
     expect(error).not.toHaveBeenCalled();
   });
 
-  it("без loop ни на что из этого не ругается", () => {
+  /*
+   * Осталось ровно две несовместимости, и обе про то, что периода не собрать.
+   * Остальное круг умеет: и страницы, и отрисовку без виртуализации.
+   */
+  it("без loop про hybrid ничего не говорит", () => {
     render(
       <MorphScroll
         size={[200, 300]}
-        mode="slider"
+        direction="hybrid"
         render={{ mode: "virtual" }}
-        objects={{ size: [180, 60] }}
+        objects={{ size: [90, 60] }}
       >
         {items()}
       </MorphScroll>,

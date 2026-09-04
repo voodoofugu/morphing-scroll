@@ -192,6 +192,9 @@ const sliderCheck = (
   scrollBars: Set<HTMLElement>,
   direction: Exclude<MorphScroll["direction"], undefined>,
   objLengthPerSize: number[],
+  /* период круга: по нему позиция считается внутри оборота, а не по всей ленте */
+  loopPeriod: number = 0,
+  loopAxis: 0 | 1 = 1,
 ) => {
   [...scrollBars].forEach((msSlider, i) => {
     let cache = sliderCache.get(msSlider);
@@ -210,14 +213,25 @@ const sliderCheck = (
 
     if (!cache.elements.length) return;
 
-    const scrollPosition =
-      dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+    const at = dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
     const visibleSize =
       dir === "x" ? scrollEl.clientWidth : scrollEl.clientHeight;
     const half = visibleSize / 2;
 
+    /*
+     * В круге позиция живёт в средней копии, а страница нужна та, что внутри
+     * оборота: вычитаем период. Последняя половина страницы при этом смотрит
+     * уже на первую — оборот замкнулся, — поэтому индекс берём по кольцу.
+     */
+    const onLoop = loopPeriod > 0 && axisIndex === loopAxis;
+    const scrollPosition = onLoop ? at - loopPeriod : at;
+
     // вычисляем индекс страницы
-    const activeIndex = Math.floor((scrollPosition + half) / visibleSize);
+    const raw = Math.floor((scrollPosition + half) / visibleSize);
+    const activeIndex = onLoop
+      ? ((raw % cache.elements.length) + cache.elements.length) %
+        cache.elements.length
+      : raw;
 
     if (activeIndex === cache.lastIndex) return;
 

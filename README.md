@@ -246,17 +246,17 @@ the content runs in a circle: the same children repeat forever in both direction
 <br />
 The seam is not visible, and the strip does not grow. It cannot: a scroll has a length, the browser cuts it off after tens of millions of pixels, and position and inertia lose their footing long before that. So the strip stays a fixed length — a few copies of the content, as many as the window needs — and the circle is made by moving the position instead. The window is kept in the middle copy, and the moment it leaves, the position moves by one period. Under the window at that moment is the very same content, so there is nothing to see.<br />
 <br />
-Objects are still mounted a window at a time, so a hundred turns cost what one costs.</em><br />
+With <code>render.mode</code> the objects are still mounted a window at a time, so a hundred turns cost what one costs — but the circle does not need it: it places its copies by coordinate either way, and without it simply mounts them all.<br />
+<br />
+The slider modes turn in a circle too. Pages are counted within one turn, so the progress element shows as many dots as there really are — not one per copy — and they come back round to the first.</em><br />
 <br />
 <b>Needs:</b><em><br />
 a size it can repeat, and one axis to repeat along:<br /></em>
 <ul>
   <li><code>objects.size</code> as a number or <code>"firstChild"</code> — <code>"each"</code> is measured as it goes and never settles into a period</li>
   <li><code>direction</code> of <code>"x"</code> or <code>"y"</code> — <code>"hybrid"</code> scrolls both ways, and a circle runs around one</li>
-  <li><code>mode="scroll"</code> — pages count their own boundaries, and a circle has none to count</li>
-  <li><code>render.mode</code> — the copies are placed by coordinate, and without it the objects are laid out by the flow, which knows nothing of a circle</li>
 </ul>
-<em>Each of these is said out loud when it is missing, rather than the prop quietly doing nothing.</em><br />
+<em>Both are said out loud when they are missing, rather than the prop quietly doing nothing.</em><br />
 <br />
 <b>What changes around it:</b><em><br /></em>
 <ul>
@@ -268,6 +268,19 @@ a size it can repeat, and one axis to repeat along:<br /></em>
 
 ```tsx
 <MorphScroll {...props} loop render={{ mode: "virtual" }}>
+  {slides}
+</MorphScroll>
+```
+
+<em>Or as an endless carousel, arrows and dots and all:</em>
+
+```tsx
+<MorphScroll
+  {...props}
+  mode="slider"
+  loop
+  controls={{ arrows: <Arrow />, bar: <Dot /> }}
+>
   {slides}
 </MorphScroll>
 ```
