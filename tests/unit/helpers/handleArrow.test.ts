@@ -23,7 +23,6 @@ const setup = (over: Partial<FakeEl> = {}) => {
     scrollSize: [300, 300],
     smoothScroll,
     duration: 200,
-    loop: false,
     gap: [0, 0],
   };
   return { scrollElement, smoothScroll, base };
@@ -44,18 +43,12 @@ describe("handleArrow", () => {
     expect(smoothScroll).toHaveBeenCalledWith(0, "y", 200);
   });
 
-  it("top: does nothing at the start without loop", () => {
+  it("top: does nothing at the start", () => {
     const { smoothScroll, base } = setup({ scrollTop: 0 });
     handleArrow({ ...base, arrowType: "top" });
     expect(smoothScroll).not.toHaveBeenCalled();
   });
 
-  it("top: wraps to the end when loop is enabled", () => {
-    const { smoothScroll, base } = setup({ scrollTop: 0 });
-    handleArrow({ ...base, arrowType: "top", loop: true });
-    // getMaxValue y,-1 -> height (wrapSize[1]) = 700
-    expect(smoothScroll).toHaveBeenCalledWith(700, "y", 200);
-  });
 
   it("right: pages one viewport along x", () => {
     const { smoothScroll, base } = setup({ scrollLeft: 0 });
@@ -63,13 +56,6 @@ describe("handleArrow", () => {
     expect(smoothScroll).toHaveBeenCalledWith(300, "x", 200);
   });
 
-  it("right: wraps to start-of-axis (0) with loop at the end", () => {
-    const { smoothScroll, base } = setup({ scrollLeft: 400 });
-    // left(400) + scrollSize[0](300) = 700, not < width(700) -> at end
-    handleArrow({ ...base, arrowType: "right", loop: true });
-    // getMaxValue x,+1 -> 0
-    expect(smoothScroll).toHaveBeenCalledWith(0, "x", 200);
-  });
 
   it("accounts for gap in the page step", () => {
     const { smoothScroll, base } = setup({ scrollTop: 0 });

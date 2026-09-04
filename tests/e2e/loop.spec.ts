@@ -115,15 +115,60 @@ test.describe("loop (real browser)", () => {
     const view = page.locator(".ms-viewport");
     await view.hover();
 
+    /*
+     * Считаем, сколько контента проехало под окном. Переносы из счёта
+     * выкидываем — это не движение, а подмена, — и остаётся ровно то, что
+     * накрутило колесо. У колеса своя отметка, и если её не перенести вместе с
+     * позицией, после каждого стыка оно рвётся к старой: контент пролетает в
+     * разы больше накрученного.
+     */
+    await page.evaluate((period) => {
+      const el = document.querySelector(".ms-viewport")!;
+      const trail = { last: el.scrollTop, travelled: 0 };
+
+      (window as unknown as { __trail: typeof trail }).__trail = trail;
+
+      el.addEventListener("scroll", () => {
+        const step = el.scrollTop - trail.last;
+
+        trail.last = el.scrollTop;
+
+        if (Math.abs(Math.abs(step) - period) > 8)
+          trail.travelled += Math.abs(step);
+      });
+    }, PERIOD);
+
+    /*
+     * Крутим подряд, не давая доехать: рывок случается только пока анимация
+     * жива. Отпусти её осесть между щелчками — и колесо возьмёт отметку заново
+     * с текущей позиции, а разницы будет не видно.
+     */
     for (let turn = 0; turn < 12; turn++) {
       await page.mouse.wheel(0, 200);
-      await page.waitForTimeout(60);
-
-      const at = await scrollTop(page);
-
-      expect(at).toBeGreaterThanOrEqual(PERIOD);
-      expect(at).toBeLessThan(PERIOD * 2);
+      await page.waitForTimeout(90);
     }
+
+    /*
+     * Подмена живёт в обработчике прокрутки, а он приходит уже после кадра —
+     * значит один кадр позиция стоит чуть за границей. Это не видно, там
+     * настоящая копия, и само проходит: спрашиваем устоявшееся.
+     */
+    await expect
+      .poll(async () => {
+        const at = await scrollTop(page);
+
+        return at >= PERIOD && at < PERIOD * 2;
+      })
+      .toBe(true);
+
+    const travelled = await page.evaluate(
+      () =>
+        (window as unknown as { __trail: { travelled: number } }).__trail
+          .travelled,
+    );
+
+    // накрутили 2400, с доездом выходит около четырёх тысяч — но не десятки
+    expect(travelled).toBeLessThan(12_000);
 
     // и после всей этой крутки лента не выросла ни на пиксель
     expect(await view.evaluate((el) => el.scrollHeight)).toBe(SPAN);
@@ -171,6 +216,45 @@ test.describe("loop (real browser)", () => {
       expect(at).toBeGreaterThanOrEqual(PERIOD);
       expect(at).toBeLessThan(PERIOD * 2);
     }
+  });
+
+  /*
+   * Круг сам по себе, без виртуализации: копии всё так же стоят по
+   * координатам и всё так же водятся подменой — просто смонтированы все.
+   */
+  test("без render.mode круг работает, только монтирует всё", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopPlain");
+    await settle(page);
+
+    const view = page.locator(".ms-viewport");
+
+    expect(await view.evaluate((el) => el.scrollHeight)).toBe(SPAN);
+    expect(await scrollTop(page)).toBe(PERIOD);
+
+    // шесть объектов на три копии — все на месте, окно никто не сужал
+    expect(await page.locator(".ms-object-box").count()).toBe(18);
+
+    await view.evaluate((el) => (el.scrollTop = 900));
+    await settle(page);
+
+    expect(await scrollTop(page)).toBe(900 - PERIOD);
+
+    // и стоят они подряд, через тот же зазор
+    const ys = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+        .map((el) => {
+          const m = /translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/.exec(
+            el.style.transform,
+          );
+
+          return Math.round(Number(m?.[2] ?? 0));
+        })
+        .sort((one, two) => one - two),
+    );
+
+    for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBe(70);
   });
 
   test("вбок круг ходит так же", async ({ page }) => {

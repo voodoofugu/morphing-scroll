@@ -330,7 +330,7 @@ props describe state, methods do something now. <code>initialPosition</code> and
 Unlike <code>stickToEnd</code>, which follows new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
 <br />
 <code><b>step(side, options?)</b></code>:<br />
-turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run unless <code>arrows.loop</code> is on.<br />
+turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run, unless <code>loop</code> has made it endless.<br />
 <br />
 <code><b>pan(delta, options?)</b></code>:<br />
 nudges the content by <code>{ x, y }</code> pixels. Plain movement, so it shows up in <code>onScrollPosition</code>; it only reaches <code>onNavigate</code> if it settles on a new page of a slider.<br />
@@ -1401,7 +1401,7 @@ arrows: <ArrowComponent />; // or true | an object
 <b>Description:</b><em><br />
 allows you to add custom arrows to the progress bar.<br />
 <br />
-Each arrow is a <b>.ms-arrow-box</b> strip along its own side of the scroll; the element you pass sits inside <b>.ms-arrow</b>, which only rotates it. An arrow with nowhere left to go gets the <code>ms-disabled</code> class and no <code>cursor: pointer</code>, so it does not advertise a click that does nothing — with <code>loop</code> there are no dead ends and the class never appears.<br />
+Each arrow is a <b>.ms-arrow-box</b> strip along its own side of the scroll; the element you pass sits inside <b>.ms-arrow</b>, which only rotates it. An arrow with nowhere left to go gets the <code>ms-disabled</code> class and no <code>cursor: pointer</code>, so it does not advertise a click that does nothing — under <code>loop</code> there are no dead ends and the class never appears.<br />
 </em><br />
 
 <details><summary><code><b>element</b></code></summary><br /><ul><div>
@@ -1483,31 +1483,6 @@ the arrows take their strip out of the content instead of lying over it, so noth
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_arrows_reserveSpace.png)
-
-</div></ul></details>
-
-<br />
-
-<details><summary><code><b>loop</b></code></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-loop: true;
-```
-
-<b>Description:</b><em><br />
-the last step wraps around to the other end, so the arrows never run out.<br />
-</em><br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll
-  {...props}
-  controls={{ arrows: { element: <Arrow />, loop: true } }}
->
-  {children}
-</MorphScroll>
-```
 
 </div></ul></details>
 

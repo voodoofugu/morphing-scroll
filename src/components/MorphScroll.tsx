@@ -264,10 +264,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           `loop is for mode="scroll" — "${mode}" counts its own pages, and a circle has none to count${errorTextEnd}`,
         );
 
-      if (!(typeof render === "string" ? render : render?.mode))
-        console.error(
-          `loop needs render.mode: the copies are placed by coordinate, and without it the objects are laid out by the flow, which knows nothing of a circle${errorTextEnd}`,
-        );
 
       if (stickToEnd)
         console.error(
@@ -491,7 +487,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * Стрелки лежат поверх содержимого, пока не попросили обратного: место
        * под них забирается по просьбе, а не отменяется отказом.
        */
-      const base = { size: defaultSize, reserveSpace: false, loop: false };
+      const base = { size: defaultSize, reserveSpace: false };
 
       if (React.isValidElement(arrows)) return { ...base, element: arrows };
 
@@ -1097,13 +1093,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * сказано выше, один раз.
      */
     const loopLocal = React.useMemo(() => {
-      if (
-        !loop ||
-        isEach ||
-        direction === "hybrid" ||
-        mode !== "scroll" ||
-        !renderLocal.mode
-      )
+      if (!loop || isEach || direction === "hybrid" || mode !== "scroll")
         return null;
 
       const isX = direction === "x";
@@ -1124,7 +1114,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       gapLocal[0],
       gapLocal[1],
       sizeLocal.join(),
-      renderLocal.mode,
     ]);
 
     /*
@@ -1310,7 +1299,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // кладка считает координаты сама, и считает их всегда: по ним она и кладка
       if (isEach) return packed.items;
 
-      if (!renderLocal.mode) return [{ top: 0, bottom: 0, left: 0, right: 0 }];
+      /*
+       * Круг ставит копии по координате, значит координаты ему нужны так же,
+       * как виртуализации: без них объекты раскладывает поток, а он про
+       * период ничего не знает — и подмена позиции стала бы видна.
+       */
+      if (!renderLocal.mode && !loopLocal)
+        return [{ top: 0, bottom: 0, left: 0, right: 0 }];
 
       let alignSpace: number = 0;
 
@@ -1398,6 +1393,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       direction,
           isEach,
       packed,
+      loopLocal,
     ]);
 
     const wrapperAlignLocal = React.useMemo(() => {
@@ -1471,7 +1467,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             : "fit-content",
         ...(gap &&
           !renderLocal.mode &&
-          !isEach && { gap: `${gapLocal[0]}px ${gapLocal[1]}px` }),
+          !isEach &&
+          !loopLocal && { gap: `${gapLocal[0]}px ${gapLocal[1]}px` }),
         ...(wrapper?.minSize &&
           getWrapperMinSizeStyle(
             wrapper.minSize,
@@ -1484,7 +1481,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
 
       // кладка размещает объекты абсолютно, значит обёртке нужен свой отсчёт
-      if (renderLocal.mode || isEach) {
+      if (renderLocal.mode || isEach || loopLocal) {
         return {
           ...common,
           position: "relative",
@@ -1529,6 +1526,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsDirection,
       objectsAlign,
           isEach,
+      loopLocal,
     ]);
 
     // ♦ events
@@ -1734,11 +1732,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           scrollSize: sizeLocal,
           smoothScroll: smoothScrollLocal,
           duration: duration,
-          loop: arrowsLocal.loop,
           gap: gapXY,
         });
 
-        // упёрлись в край без loop — никуда не поехали, и отчитываться не о чем
+        // упёрлись в край — никуда не поехали, и отчитываться не о чем
         if (moved) emitNavigate(reason, moved.axis, moved.from, moved.to);
       },
 
@@ -1748,7 +1745,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsWrapperHeightFull,
         duration,
         smoothScrollLocal,
-        arrowsLocal.loop,
         gapLocal[0],
         gapLocal[1],
         emitNavigate,
@@ -2627,7 +2623,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const wrapStyle: React.CSSProperties = {
           width: sidePx(0),
           height: sidePx(1),
-          ...((renderLocal.mode || isEach) && {
+          ...((renderLocal.mode || isEach || loopLocal) && {
             position: "absolute",
             transform: `translate(${left}px, ${elementTop}px)`,
           }),
@@ -2645,7 +2641,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return (
           <div
             key={domKey ?? key}
-            {...(renderLocal.mode || emptyObjectsLocal
+            {...(renderLocal.mode || emptyObjectsLocal || loopLocal
               ? {
                   [CONST.WRAP_ATR]: `${key}`,
                 }
@@ -2672,6 +2668,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         isEach,
         eachFixed.join(),
         sizes,
+        loopLocal,
       ],
     );
 
@@ -2726,7 +2723,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
 
       // ===== NO VIRTUAL =====
-      if (!renderLocal.mode && !isEach)
+      if (!renderLocal.mode && !isEach && !loopLocal)
         return scrollObjectWrapper(key, 0, 0, childLocal, undefined, domKey);
 
       /*
@@ -2765,6 +2762,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (!renderLocal.mode)
           return scrollObjectWrapper(key, top, left, childLocal, undefined, domKey);
       }
+
+      /*
+       * Круг без виртуализации: копии уже стоят по координатам, а окно никто
+       * не просил сужать — рисуем всё.
+       */
+      if (!renderLocal.mode)
+        return scrollObjectWrapper(key, top, left, childLocal, undefined, domKey);
 
       // проверка видимости
       const getVisibilityRatio = (withRootMargin: boolean = true): number => {

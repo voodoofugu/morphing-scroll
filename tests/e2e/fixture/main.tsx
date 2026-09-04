@@ -793,6 +793,22 @@ scenarios.loopY = (
   </MorphScroll>
 );
 
+/* круг без виртуализации: копии стоят по координатам, но смонтированы все */
+scenarios.loopPlain = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 300]}
+    loop
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* тот же круг, но тащим его пальцем: у инерции своя отметка, и её тоже несёт */
 scenarios.loopDrag = (
   <MorphScroll

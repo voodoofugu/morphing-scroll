@@ -30,14 +30,6 @@ describe("Arrow — disabled state", () => {
     expect(arrow(container, "bottom")).not.toHaveClass("ms-disabled");
   });
 
-  it("never marks an arrow when loop is on", () => {
-    const { container } = render(arrows({ loop: true }));
-
-    // with loop even the top arrow wraps around, so nothing is a dead end
-    expect(arrow(container, "top")).not.toHaveClass("ms-disabled");
-    expect(arrow(container, "bottom")).not.toHaveClass("ms-disabled");
-  });
-
   it("does not use the unprefixed active class", () => {
     const { container } = render(arrows());
     expect(container.querySelector(".ms-arrow-box.active")).toBeNull();
@@ -168,16 +160,6 @@ describe("Arrow — sizing and cursor", () => {
         .cursor,
     ).toBe("pointer");
   });
-
-  it("keeps the cursor on every arrow when loop is on", () => {
-    const { container } = render(withArrows({ loop: true }));
-
-    for (const side of ["top", "bottom"])
-      expect(
-        container.querySelector<HTMLElement>(`.ms-arrow-box.ms-${side}`)!.style
-          .cursor,
-      ).toBe("pointer");
-  });
 });
 
 describe("Arrow — cursor", () => {
@@ -191,16 +173,6 @@ describe("Arrow — cursor", () => {
     expect(
       container.querySelector<HTMLElement>(".ms-arrow-box.ms-top")!.style.cursor,
     ).toBe("");
-  });
-
-  it("keeps the pointer on every arrow when loop is on", () => {
-    const { container } = render(arrows({ loop: true }));
-
-    for (const side of ["top", "bottom"])
-      expect(
-        container.querySelector<HTMLElement>(`.ms-arrow-box.ms-${side}`)!.style
-          .cursor,
-      ).toBe("pointer");
   });
 });
 

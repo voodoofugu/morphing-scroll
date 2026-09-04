@@ -12,7 +12,6 @@ type handleArrowT = {
     duration: number,
   ) => void;
   duration: number;
-  loop: boolean;
   gap: number[];
 };
 
@@ -23,7 +22,6 @@ const handleArrow = ({
   scrollSize,
   smoothScroll,
   duration,
-  loop,
   gap,
 }: handleArrowT) => {
   // - vars -
@@ -40,10 +38,6 @@ const handleArrow = ({
   const left = aimOf(scrollElement, "x") ?? scrollElement.scrollLeft;
 
   // - funcs -
-  const getMaxValue = (dir: "x" | "y", delta: 1 | -1) => {
-    return dir === "x" ? (delta > 0 ? 0 : width) : delta > 0 ? 0 : height;
-  };
-
   const getNewPosition = (dir: "x" | "y", delta: 1 | -1) => {
     const isX = dir === "x";
 
@@ -69,16 +63,16 @@ const handleArrow = ({
     );
   };
 
-  const scrollTo = (dir: "x" | "y", delta: 1 | -1, loop?: boolean) => {
+  const scrollTo = (dir: "x" | "y", delta: 1 | -1) => {
     const isX = dir === "x";
-    const value = loop ? getMaxValue(dir, delta) : getNewPosition(dir, delta);
+    const value = getNewPosition(dir, delta);
 
     smoothScroll(value, dir, duration);
 
     /*
-     * Отчитываемся той страницей, на которой действительно встанем. Заворот
-     * назад целится за последний пункт — прокрутка обрежет цель по краю, а
-     * `onNavigate` иначе назвал бы страницу, которой нет.
+     * Отчитываемся той страницей, на которой действительно встанем: прокрутка
+     * обрежет цель по краю, а `onNavigate` иначе назвал бы страницу, которой
+     * нет.
      */
     const clientSize = scrollElement[isX ? "clientWidth" : "clientHeight"];
     const landing = Math.max(
@@ -98,26 +92,27 @@ const handleArrow = ({
   switch (arrowType) {
     case "top":
       if (top > 0) return scrollTo("y", -1);
-      if (loop) return scrollTo("y", -1, true);
       break;
 
     case "left":
       if (left > 0) return scrollTo("x", -1);
-      if (loop) return scrollTo("x", -1, true);
       break;
 
     case "right":
       if (left + scrollSize[0] < width) return scrollTo("x", 1);
-      if (loop) return scrollTo("x", 1, true);
       break;
 
     case "bottom":
       if (top + scrollSize[1] < height) return scrollTo("y", 1);
-      if (loop) return scrollTo("y", 1, true);
       break;
   }
 
-  return null; // упёрлись в край без loop — никуда не поехали
+  /*
+   * Упёрлись в край — никуда не поехали. Заворачивать здесь незачем: в круге
+   * края нет вовсе, и стрелка просто едет дальше, а без круга прыжок в начало
+   * был бы прыжком, а не прокруткой.
+   */
+  return null;
 };
 
 export default handleArrow;

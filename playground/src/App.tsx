@@ -85,7 +85,6 @@ type Settings = {
   arrows: boolean;
   arrowSize: number;
   arrowContentReduce: boolean;
-  arrowLoop: boolean;
   barReverseX: boolean;
   barReverseY: boolean;
   barShowOnHover: boolean;
@@ -177,7 +176,6 @@ const defaultSettings: Settings = {
   arrows: false,
   arrowSize: 36,
   arrowContentReduce: true,
-  arrowLoop: false,
   barReverseX: false,
   barReverseY: false,
   barShowOnHover: false,
@@ -289,7 +287,6 @@ const presets: Record<string, Partial<Settings>> = {
     renderMode: "off",
     progressElementMode: "custom",
     arrows: true,
-    arrowLoop: true,
     edge: true,
   },
   auto: {
@@ -834,7 +831,6 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
           element: raw("<YourArrow />"),
           size: settings.arrowSize,
           reserveSpace: settings.arrowContentReduce,
-          loop: settings.arrowLoop,
         }
       : false,
   };
@@ -1339,8 +1335,7 @@ function App() {
           ? {
               reserveSpace: settings.arrowContentReduce,
               element: <span className="arrow-mark">&gt;</span>,
-              loop: settings.arrowLoop,
-              size: settings.arrowSize,
+                  size: settings.arrowSize,
             }
           : false,
         drag: settings.contentDrag,
@@ -2097,11 +2092,6 @@ function App() {
                 label="reserveSpace"
                 onChange={(value) => update("arrowContentReduce", value)}
                 value={settings.arrowContentReduce}
-              />
-              <ToggleField
-                label="loop"
-                onChange={(value) => update("arrowLoop", value)}
-                value={settings.arrowLoop}
               />
             </div>
           </SubGroup>

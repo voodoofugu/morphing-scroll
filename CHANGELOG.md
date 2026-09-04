@@ -37,6 +37,7 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `onScrollValue`                                               | `onScrollPosition`                                         |
 | `isScrolling`                                                 | `onScrollingChange`                                        |
 | `arrows: { contentReduce: true }`                             | `arrows: { reserveSpace: true }`                           |
+| `arrows: { loop: true }`                                      | `loop` — see below                                         |
 | `<IntersectionTracker visibleContent>`                        | `<IntersectionTracker>` — that is the only behaviour now   |
 | `progressTrigger={{ … }}`                                     | `controls={{ … }}`                                         |
 | `progressTrigger={{ content: true }}`                          | `controls={{ drag: true }}`                                |
@@ -212,7 +213,7 @@ dependency array then says out loud what the prop used to do silently.
 
 | 2.x                                     | 3.0                                                                                                                     |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `.ms-arrow-box.active`                  | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and is never set with `loop` |
+| `.ms-arrow-box.active`                  | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and under `loop` there is always somewhere |
 | `.ms-slider-element.active`             | `.ms-slider-item.ms-active`                                                                                             |
 | `.active` while dragging                | `.ms-grabbing`                                                                                                          |
 | `.hover` / `.leave` / `.remove`         | `.ms-hover` / `.ms-leave` / `.ms-remove`                                                                                |
@@ -287,6 +288,11 @@ themselves are no longer transformed and can be positioned from CSS.
   content both ways; the progress element shows the position within one turn
   rather than within the strip, so it cycles instead of jumping; and
   `stickToEnd` is refused, having no end to hold onto.
+  It replaces `controls.arrows.loop`, which only imitated this: at the end the
+  arrow jumped back to the start, which is a jump and not a scroll, and only
+  the arrows knew about it. The wheel, a drag and the keys ran into the same
+  wall as before. Now the content itself is endless and every way of moving it
+  sees the same thing.
 - `controls.keys` — the arrow keys move the scroll while it has
   focus. `mode: "step"` turns a page and reports through `onNavigate` as
   `"keys"`; `mode: "pan"` nudges by `step` pixels; `mode: "focus"` moves

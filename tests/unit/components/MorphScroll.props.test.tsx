@@ -75,7 +75,6 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["arrows.size", { controls: { arrows: { element: <b /> } } }, { controls: { arrows: { element: <b />, size: 80 } } }],
   // по умолчанию стрелки лежат поверх, место забирают по просьбе
   ["arrows.reserveSpace", { controls: { arrows: { element: <b /> } } }, { controls: { arrows: { element: <b />, reserveSpace: true } } }],
-  ["arrows.loop", { controls: { arrows: { element: <b /> } } }, { controls: { arrows: { element: <b />, loop: true } } }],
 
   // — controls.bar —
   ["bar", {}, { controls: { bar: <i /> } }],

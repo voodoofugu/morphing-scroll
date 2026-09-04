@@ -3,7 +3,7 @@ import { handleArrowT } from "../helpers/handleArrow";
 
 type ArrowT = {
   visibility: boolean;
-  arrows: { size: number; element?: React.ReactNode; loop?: boolean };
+  arrows: { size: number; element?: React.ReactNode };
   arrowType: handleArrowT["arrowType"];
   handleArrow: (arrowType: handleArrowT["arrowType"]) => void;
 };
@@ -35,10 +35,10 @@ const Arrow = ({ visibility, arrows, arrowType, handleArrow }: ArrowT) => {
 
   /*
    * Класс вешаем на тупик, а не на возможность: так `ms-arrow-box` можно
-   * оформить один раз, а недоступное состояние дописать. При `loop` тупиков
-   * нет — стрелка всегда перекидывает на другой край.
+   * оформить один раз, а недоступное состояние дописать. В круге тупика не
+   * бывает: там всегда есть куда ехать, и стрелка не гаснет сама собой.
    */
-  const isDisabled = !visibility && !arrows.loop;
+  const isDisabled = !visibility;
 
   const boxStyle: React.CSSProperties = {
     position: "absolute",

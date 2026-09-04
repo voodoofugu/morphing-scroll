@@ -57,7 +57,7 @@ export const everyProp = (
         showOnHover: true,
         thumbMinSize: 24,
       },
-      arrows: { element: <b />, size: 40, loop: true },
+      arrows: { element: <b />, size: 40 },
     }}
     render={{ mode: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
     suspending

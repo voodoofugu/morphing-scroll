@@ -73,8 +73,6 @@ export type ArrowsConfig = {
   size?: number;
   /** the strip takes its thickness from the content instead of covering it */
   reserveSpace?: boolean;
-  /** the last step wraps around to the other end */
-  loop?: boolean;
 };
 
 /** the object form of `controls` */
@@ -183,7 +181,7 @@ export type MorphScrollHandle = {
   scrollTo: (target: ScrollTarget, options?: { duration?: number }) => void;
   /**
    * turn one page toward that side — the move the arrow buttons make.
-   * Does nothing at the end of the run unless `arrows.loop` is on.
+   * Does nothing at the end of the run, unless `loop` has made it endless.
    */
   step: (
     side: "top" | "right" | "bottom" | "left",
