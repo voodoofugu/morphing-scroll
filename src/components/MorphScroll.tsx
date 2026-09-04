@@ -1942,6 +1942,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               const [byX, byY] = loopNudgeRef.current;
 
               wrap.style.transform = `translate(${byX}px, ${byY}px)`;
+
+              /*
+               * Перестановка копий — это бухгалтерия, а не движение: объект
+               * остаётся там же, где был. Но на боксе может лежать переход, и
+               * тогда он честно проанимирует эту перестановку через весь
+               * оборот — со стороны объекты уезжают и медленно возвращаются.
+               * Гасим переход на тот единственный кадр, в котором координаты
+               * меняются.
+               */
+              for (const box of wrap.children)
+                (box as HTMLElement).style.transition = "none";
             }
           });
         }
@@ -2500,7 +2511,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       loopNudgeRef.current = [0, 0];
 
       const wrap = objectsWrapperRef.current;
-      if (wrap) wrap.style.transform = "";
+      if (!wrap) return;
+
+      wrap.style.transform = "";
+
+      /*
+       * Новые координаты уже в разметке; заставляем браузер их принять и
+       * только потом возвращаем переходы. Вернуть раньше — значит вернуть до
+       * того, как он их учёл, и переход всё-таки запустится.
+       */
+      void wrap.offsetHeight;
+
+      for (const box of wrap.children) (box as HTMLElement).style.transition = "";
     });
 
     const loopStartRef = React.useRef("");

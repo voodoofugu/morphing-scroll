@@ -393,7 +393,10 @@ themselves are no longer transformed and can be positioned from CSS.
   wrap either. Their move lands a render later than the position does, so for
   that one frame the wrapper carries it — put there by hand and taken off by
   hand once the copies have it, since React compares against what it rendered
-  itself and would never have known to clear it.
+  itself and would never have known to clear it. And because reseating a copy
+  is bookkeeping rather than motion, any `transition` on the object boxes is
+  held off for that one frame: left alone it would animate the reseat across a
+  whole turn, and the objects would drift away and come slowly back.
 - stepping a page under `loop` did not come back. Pages were measured by the
   window, and a turn is rarely a whole number of windows: past the last page
   the turn ended somewhere in the middle of it, and after the wrap the grid
