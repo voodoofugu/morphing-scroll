@@ -311,6 +311,14 @@ themselves are no longer transformed and can be positioned from CSS.
   the arrows knew about it. The wheel, a drag and the keys ran into the same
   wall as before. Now the content itself is endless and every way of moving it
   sees the same thing.
+- `edge` takes `{ element, size }`: the node is authored once, the way it
+  looks along the top, and the library turns it onto the other three sides —
+  the same bargain as the arrows, where one icon is drawn pointing right
+  rather than four being drawn. The sideways slots have their sides swapped
+  before the turn, so a gradient written across a wide strip lands correctly
+  down a narrow one. `size` names the thickness of the strip the way
+  `arrows.size` does — a height at the top and bottom, a width at the sides;
+  without it the thickness is yours to write in CSS.
 - `controls.keys` — the arrow keys move the scroll while it has
   focus. `mode: "step"` turns a page and reports through `onNavigate` as
   `"keys"`; `mode: "pan"` nudges by `step` pixels; `mode: "focus"` moves

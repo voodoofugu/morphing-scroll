@@ -681,4 +681,41 @@ test.describe("loop (real browser)", () => {
     // за оборот проходим все четыре подряд и ни разу не возвращаемся раньше
     expect(seen).toEqual([0, 0, 1, 1, 2, 2, 3]);
   });
+
+  /*
+   * Слайдер после перетаскивания доводит до страницы. Страницы в круге
+   * отсчитываются от начала оборота: лента начинается там, где пришлось, и её
+   * сетка с оборотом не совпадает — считай по ленте, и снап уводил бы в
+   * середину страницы. Оборот 1400, страница 320 — нацело не делится, на этом
+   * и видно.
+   */
+  test("слайдер доводит до страницы оборота, а не до страницы ленты", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopSliderDrag");
+    await settle(page);
+
+    const period = 1400;
+    const step = 320;
+
+    expect(await scrollTop(page)).toBe(period);
+
+    const view = page.locator(".ms-viewport");
+    const box = (await view.boundingBox())!;
+    const midX = box.x + box.width / 2;
+
+    for (let turn = 1; turn <= 3; turn++) {
+      await page.mouse.move(midX, box.y + box.height - 40);
+      await page.mouse.down();
+      await page.mouse.move(midX, box.y + box.height - 140, { steps: 6 });
+      await page.mouse.up();
+      await page.waitForTimeout(500);
+
+      const at = await scrollTop(page);
+
+      // ровно на страницу вперёд, и всегда по сетке оборота
+      expect(at).toBe(period + step * turn);
+      expect((at - period) % step).toBe(0);
+    }
+  });
 });

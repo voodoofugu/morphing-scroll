@@ -1019,6 +1019,50 @@ scenarios.loopSliderHybrid = (
   </MorphScroll>
 );
 
+/* край одним узлом: библиотека сама разворачивает его по четырём сторонам */
+scenarios.edgeTurns = (
+  <MorphScroll
+    objects={{ size: [90, 60], gap: 10 }}
+    size={[200, 200]}
+    direction="hybrid"
+    render={{ mode: "virtual" }}
+    edge={{
+      element: <div style={{ width: "100%", height: "100%" }} />,
+      size: 24,
+    }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 20 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Слайдер по кругу, где страница не равна объекту: объекты по 260 с зазором
+ * 20 дают оборот 1400, а страница — окно с зазором, 320. Сетка страниц ленты
+ * с оборотом не совпадает, и снап после перетаскивания это видно.
+ */
+scenarios.loopSliderDrag = (
+  <MorphScroll
+    objects={{ size: 260, gap: 20 }}
+    size={300}
+    mode="slider"
+    loop
+    render={{ mode: "virtual" }}
+    duration={0}
+    controls={{ drag: true, bar: <div className="dot" /> }}
+  >
+    {Array.from({ length: 5 }, (_, i) => (
+      <div key={`page-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll

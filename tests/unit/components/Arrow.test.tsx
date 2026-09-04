@@ -106,7 +106,11 @@ describe("arrow and edge layout", () => {
     expect(orientation("top")).toBe("rotate(-90deg)");
   });
 
-  it("mirrors one edge node across both ends of an axis", () => {
+  /*
+   * Узел пишут один раз — так, как он выглядит сверху, — а по остальным
+   * сторонам его разворачивает библиотека. Тот же уговор, что у стрелок.
+   */
+  it("turns one edge node onto all four sides", () => {
     const { container } = render(hybrid);
 
     const inner = (side: string) =>
@@ -115,14 +119,50 @@ describe("arrow and edge layout", () => {
 
     expect(container.querySelectorAll(".ms-edge-inner .fade")).toHaveLength(4);
     expect(inner("top")).toBe("");
-    expect(inner("bottom")).toBe("scaleY(-1)");
-    expect(inner("right")).toBe("");
-    expect(inner("left")).toBe("scaleX(-1)");
+    expect(inner("bottom")).toBe("rotate(180deg)");
+    expect(inner("right")).toBe("rotate(90deg) translateY(-100%)");
+    expect(inner("left")).toBe("rotate(270deg) translateX(-100%)");
+
+    // боковым нужен обмен сторон, иначе поворачивать нечего
+    const rightSlot = container.querySelector<HTMLElement>(".ms-edge.ms-right")!;
+    const rightInner = container.querySelector<HTMLElement>(
+      ".ms-edge.ms-right .ms-edge-inner",
+    )!;
+
+    expect(rightSlot.style.containerType).toBe("size");
+    expect(rightInner.style.width).toBe("100cqh");
+    expect(rightInner.style.height).toBe("100cqw");
 
     // the slot itself stays untransformed so CSS can place it predictably
     expect(
       container.querySelector<HTMLElement>(".ms-edge.ms-bottom")!.style.transform,
     ).toBe("");
+  });
+
+  /*
+   * Толщину полосы можно назвать числом — как у стрелок, — и тогда CSS про
+   * геометрию края знать не обязан. У боковых эта толщина ширина, у верхнего с
+   * нижним высота.
+   */
+  it("takes the strip thickness from edge.size, on the right side of each", () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: 100 }}
+        size={[300, 300]}
+        direction="hybrid"
+        edge={{ element: <i className="fade" />, size: 24 }}
+      >
+        {items(20)}
+      </MorphScroll>,
+    );
+
+    const slot = (side: string) =>
+      container.querySelector<HTMLElement>(`.ms-edge.ms-${side}`)!.style;
+
+    expect(slot("top").height).toBe("24px");
+    expect(slot("top").width).toBe("100%");
+    expect(slot("right").width).toBe("24px");
+    expect(slot("right").height).toBe("100%");
   });
 });
 

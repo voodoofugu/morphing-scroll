@@ -217,3 +217,35 @@ test.describe("MorphScroll slider bar drag (real browser)", () => {
     expect((await offsets(page)).top).toBe(0);
   });
 });
+
+/*
+ * Узел края пишут один раз — так, как он выглядит сверху, — а по остальным
+ * сторонам его разворачивает библиотека. Боковой полосе для этого мало
+ * поворота: она узкая и высокая, а узел до поворота широкий и низкий, — ему
+ * меняют стороны местами. Проверяем, что после разворота он ложится в слот
+ * ровно, а не мимо.
+ */
+test.describe("edge slots", () => {
+  test("один узел разворачивается на все четыре стороны и попадает в слот", async ({
+    page,
+  }) => {
+    await open(page, "edgeTurns");
+    await page.waitForTimeout(300);
+
+    const box = (selector: string) =>
+      page.locator(selector).evaluate((el) => {
+        const rect = (el as HTMLElement).getBoundingClientRect();
+
+        return [Math.round(rect.width), Math.round(rect.height)];
+      });
+
+    // толщину назвали числом: сверху это высота, сбоку ширина
+    expect(await box(".ms-edge.ms-top")).toEqual([200, 24]);
+    expect(await box(".ms-edge.ms-right")).toEqual([24, 200]);
+
+    // и повёрнутый узел занимает слот целиком, а не торчит из него
+    expect(await box(".ms-edge.ms-top .ms-edge-inner")).toEqual([200, 24]);
+    expect(await box(".ms-edge.ms-right .ms-edge-inner")).toEqual([24, 200]);
+    expect(await box(".ms-edge.ms-left .ms-edge-inner")).toEqual([24, 200]);
+  });
+});

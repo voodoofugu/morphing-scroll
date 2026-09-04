@@ -551,16 +551,27 @@ function handleUp(args: HandleUpT) {
       const position = el[isX ? "scrollLeft" : "scrollTop"];
       const gapPerDir = isX ? args.gap[0] : args.gap[1];
       const clientSize = el[isX ? "clientWidth" : "clientHeight"];
+      const period = args.loopPeriods?.[isX ? 0 : 1] ?? 0;
 
       const step = clientSize + gapPerDir;
 
+      /*
+       * В круге страницы отсчитываются от начала оборота, а не от начала
+       * ленты: лента начинается там, где пришлось, и её сетка страниц с
+       * оборотом не совпадает — снап уводил бы в середину страницы.
+       */
+      const from = position - period;
+
       const currentPage = Math[
         !deltaDir ? "round" : deltaDir > 0 ? "floor" : "ceil"
-      ](position / step);
-      const nextValue = (currentPage + (deltaDir ?? 0)) * step;
+      ](from / step);
+      const nextValue = period + (currentPage + (deltaDir ?? 0)) * step;
 
-      // защита от скролла за границы
-      if (nextValue <= maxTopOrLeft && nextValue >= 0)
+      /*
+       * За границы не выезжаем — но в круге границ нет: там страница за
+       * средней копией такая же настоящая, и позицию потом довернёт перенос.
+       */
+      if (period || (nextValue <= maxTopOrLeft && nextValue >= 0))
         args.smoothScroll(nextValue, dir, args.duration);
     };
 

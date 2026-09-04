@@ -65,6 +65,14 @@ export type KeysConfig = {
   step?: number;
 };
 
+/** the object form of `edge` */
+export type EdgeConfig = {
+  /** the node; author it as it looks on top, the library turns it for the rest */
+  element?: React.ReactNode;
+  /** thickness of the `.ms-edge` strip; without it your CSS decides */
+  size?: number;
+};
+
 /** the object form of `controls.arrows` */
 export type ArrowsConfig = {
   /** the icon; author it pointing right, the library turns it for the rest */
@@ -774,18 +782,23 @@ export type MorphScroll = {
    * a place and a signal, not a ready-made gradient: `.ms-edge` is stretched
    * along its side and carries `--ms-edge-visibility` (`0` / `1`). What it
    * looks like is up to your CSS or the node you pass in.
-   * @note
-   * *the node is mirrored for you — one gradient serves both ends of an axis*
+   * @note *author the node once, the way it looks along the top: the library
+   * turns it onto the other three sides, swapping the sides of the narrow
+   * slots first so a gradient written across a wide strip lands correctly down
+   * a tall one*
+   * @note *`{ element, size }` names the thickness of the strip too, the way
+   * `arrows.size` does — a height at the top and bottom, a width at the sides.
+   * Without it the thickness is yours to write in CSS*
    * @example
    * ```tsx
    * <MorphScroll {...props}
-   *   edge={<div className="my-fade" />}
+   *   edge={{ element: <div className="my-fade" />, size: 40 }}
    * >
    *   {children}
    * </MorphScroll>
    * ```
    */
-  edge?: boolean | React.ReactNode;
+  edge?: boolean | React.ReactNode | EdgeConfig;
 
   // — OPTIMIZATION —
   /**---

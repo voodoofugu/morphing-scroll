@@ -1521,7 +1521,9 @@ marks the edges where the content is cut off. The library places the slots and r
 <br />
 Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
 <br />
-Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. That wrapper is mirrored — <code>scaleY(-1)</code> at the bottom, <code>scaleX(-1)</code> on the left — so a single gradient authored once serves both ends of an axis instead of four. The slot itself is never transformed, so your CSS can size and place it predictably.<br />
+Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. Author that node once, the way it looks along the top, and the library turns it onto the other three sides — the same bargain as the arrows, where one icon is drawn pointing right rather than four being drawn. The sideways slots get their sides swapped before the turn, so a gradient written across a wide strip lands correctly down a narrow one. The slot itself is never transformed, so your CSS can place it predictably.<br />
+<br />
+Passing <code>{ element, size }</code> adds the thickness of the strip, the way <code>arrows.size</code> does — a height at the top and bottom, a width at the sides, worked out for you. Without it the thickness is yours to write.<br />
 <br />
 ✦ Note:<br />
 an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
@@ -1532,21 +1534,19 @@ an edge has no size and no colour of its own, so nothing shows until you give it
   opacity: var(--ms-edge-visibility);
   transition: opacity 0.2s ease-in-out;
 }
-/* the slot already stretches across its own axis; give it a thickness */
-.ms-edge.ms-top,
-.ms-edge.ms-bottom {
-  height: 40px;
+/* one look for all four: the library turns it and names the thickness */
+.ms-edge-inner {
   background: linear-gradient(#fff, transparent);
-}
-/* on the horizontal edges that thickness is a width, not a height */
-.ms-edge.ms-left,
-.ms-edge.ms-right {
-  width: 40px;
-  background: linear-gradient(to left, #fff, transparent);
 }
 ```
 
-<em>Each rule covers both ends of its axis: the far one is the near one mirrored, so a gradient authored for the right serves the left, and one authored for the top serves the bottom. Style only one axis and the other pair stays at zero — present in the DOM, and invisible.</em>
+```tsx
+<MorphScroll {...props} edge={{ element: <Fade />, size: 40 }}>
+  {children}
+</MorphScroll>
+```
+
+<em>Leave <code>size</code> out and the thickness is yours to write — a <b>height</b> on <code>.ms-top</code> and <code>.ms-bottom</code>, a <b>width</b> on <code>.ms-left</code> and <code>.ms-right</code>. Write only one of those pairs and the other stays at zero: present in the DOM, and invisible.</em>
 
 <br />
 <b>Example:</b>

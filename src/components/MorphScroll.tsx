@@ -398,11 +398,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // ♦ variables
     const defaultSize = 40;
 
-    // `true` — просто разметить края, узел — отрисовать его внутри каждого
-    const edgeElement = React.useMemo(
-      () => (React.isValidElement(edge) ? edge : undefined),
-      [edgeST],
-    );
+    /*
+     * `true` — просто разметить края, узел — отрисовать его внутри каждого,
+     * объект — то же самое плюс названная толщина полосы. Форму разбираем
+     * здесь, что бы `Edge` получал готовое.
+     */
+    const edgeLocal = React.useMemo(() => {
+      if (React.isValidElement(edge)) return { element: edge, size: undefined };
+
+      if (edge && typeof edge === "object" && !Array.isArray(edge))
+        return edge as { element?: React.ReactNode; size?: number };
+
+      return { element: undefined, size: undefined };
+    }, [edgeST]);
 
     /*
      * Всё про бегунок собрано в одном месте — как `arrows`. Наружу отдаём
@@ -3018,12 +3026,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return getEdgeOrArrowData.map(({ positionType, visibility }) => (
         <Edge
           key={`edge-${positionType}`}
-          element={edgeElement}
+          element={edgeLocal.element}
+          size={edgeLocal.size}
           visibility={visibility}
           edgeType={positionType as "left" | "right" | "top" | "bottom"}
         />
       ));
-    }, [edgeST, getEdgeOrArrowData, edgeElement, sizeST]);
+    }, [edgeST, getEdgeOrArrowData, edgeLocal, sizeST]);
 
     const arrowsJSX = React.useMemo(() => {
       if (!controlsLocal.arrows) return null;

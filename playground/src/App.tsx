@@ -890,7 +890,9 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     [
       // цвет и размер края теперь дело CSS, в проп уходит узел
       "edge",
-      settings.edge ? raw("<YourEdgeElement />") : undefined,
+      settings.edge
+        ? raw(`{{ element: <YourEdgeElement />, size: ${settings.edgeSize} }}`)
+        : undefined,
       "value",
     ],
     ["controls", controls, "value"],
@@ -1239,22 +1241,20 @@ function App() {
     if (!settings.edge) return false;
 
     /*
-     * Размер и цвет — дело CSS, а вот сторону узел о себе не знает: слот
-     * растягивается поперёк своей оси, а толщину берёт отсюда. Значит одной
-     * высоты мало — у левого и правого края толщина это ширина. Отдаём оба
-     * числа переменными, а какое из них куда, решают правила по классу слота.
+     * Узел пишем один раз — так, как он выглядит сверху. По остальным сторонам
+     * его развернёт библиотека, а толщину полосы получит из `size`.
      */
-    return (
-      <div
-        className="playground-edge"
-        style={
-          {
-            "--pg-edge-color": settings.edgeColor,
-            "--pg-edge-size": `${settings.edgeSize}px`,
-          } as React.CSSProperties
-        }
-      />
-    );
+    return {
+      size: settings.edgeSize,
+      element: (
+        <div
+          className="playground-edge"
+          style={{
+            background: `linear-gradient(${settings.edgeColor}, transparent)`,
+          }}
+        />
+      ),
+    };
   }, [settings.edgeColor, settings.edge, settings.edgeSize]);
 
   const progressElement = React.useMemo<
