@@ -390,7 +390,10 @@ themselves are no longer transformed and can be positioned from CSS.
   next one replaced every mounted object — the same content, rebuilt from
   scratch. The copies now move along with the position instead: the object
   under the window stays the very same node, and React no longer notices the
-  wrap either.
+  wrap either. Their move lands a render later than the position does, so for
+  that one frame the wrapper carries it — put there by hand and taken off by
+  hand once the copies have it, since React compares against what it rendered
+  itself and would never have known to clear it.
 - stepping a page under `loop` did not come back. Pages were measured by the
   window, and a turn is rarely a whole number of windows: past the last page
   the turn ended somewhere in the middle of it, and after the wrap the grid

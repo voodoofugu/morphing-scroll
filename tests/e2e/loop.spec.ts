@@ -622,22 +622,34 @@ test.describe("loop (real browser)", () => {
     await page.mouse.move(midX, box.y + 30);
     await page.mouse.down();
 
-    let bounced = false;
+    /*
+     * Сдвиг обёртки теперь бывает и не от резиновости: перенос двигает ею
+     * ровно на период, пока рендер не переложит это в копии. Отличаем по
+     * величине — резиновость тянет на сколько угодно, перенос всегда на целый
+     * оборот.
+     */
+    const period = 280;
+    const odd: number[] = [];
 
     for (let step = 1; step <= 14; step++) {
       await page.mouse.move(midX, box.y + 30 + step * 30);
 
-      const shifted = await page
+      const by = await page
         .locator(".ms-objects-wrapper")
-        .evaluate((el) => (el as HTMLElement).style.transform);
+        .evaluate((el) => {
+          const shifted = /translate\(\s*-?[\d.]+px,\s*(-?[\d.]+)px/.exec(
+            (el as HTMLElement).style.transform,
+          );
 
-      if (shifted.includes("translate") && !shifted.includes("(0px, 0px)"))
-        bounced = true;
+          return shifted ? Number(shifted[1]) : 0;
+        });
+
+      if (by % period !== 0) odd.push(by);
     }
 
     await page.mouse.up();
 
-    expect(bounced).toBe(false);
+    expect(odd).toEqual([]);
   });
 
   /*
@@ -921,5 +933,67 @@ test.describe("loop (real browser)", () => {
 
     // а узлы остались те же: новым может быть только въехавший снизу
     expect(await marked()).toBeGreaterThanOrEqual(before - 1);
+  });
+
+  /*
+   * Копии переезжают вместе с позицией — но доедут они только следующим
+   * рендером, а позиция меняется сразу. Один кадр между ними, и в нём контент
+   * стоит уехавшим на целый оборот: объекты пропадают и появляются ниже, а
+   * потом анимация подтягивает их обратно. Дёрганье видно, и это хуже
+   * моргания, которое чинили до того.
+   *
+   * Следим за одним узлом покадрово: за оборот он не должен прыгнуть никуда,
+   * кроме как на шаг анимации.
+   */
+  test("на завороте объект не дёргается: сдвиг копий приходит тем же кадром", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=loopArrows");
+    await settle(page);
+
+    // вплотную к границе средней копии, что бы шаг стрелки её перешёл
+    await page.locator(".ms-viewport").evaluate((el) => (el.scrollTop = 800));
+    await settle(page);
+
+    await page.evaluate(() => {
+      const seen = window as unknown as { __seen: number[] };
+      const boxes = [
+        ...document.querySelectorAll<HTMLElement>(".ms-object-box"),
+      ];
+
+      boxes[Math.floor(boxes.length / 2)].dataset.watch = "1";
+      seen.__seen = [];
+
+      const tick = () => {
+        const box = document.querySelector<HTMLElement>("[data-watch]");
+
+        if (box) seen.__seen.push(Math.round(box.getBoundingClientRect().top));
+        if (seen.__seen.length < 50) requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    });
+
+    await page.locator(".ms-arrow-box.ms-bottom").click();
+    await page.waitForTimeout(1000);
+
+    const seen: number[] = await page.evaluate(
+      () => (window as unknown as { __seen: number[] }).__seen,
+    );
+
+    expect(seen.length).toBeGreaterThan(20);
+
+    // перенос переставляет на 420; шаг анимации — десятки
+    const worst = seen.reduce(
+      (most, top, i) => (i ? Math.max(most, Math.abs(top - seen[i - 1])) : most),
+      0,
+    );
+
+    expect(worst).toBeLessThan(100);
+
+    // и заворот действительно случился
+    const at = await scrollTop(page);
+    expect(at).toBeGreaterThanOrEqual(420);
+    expect(at).toBeLessThan(840);
   });
 });

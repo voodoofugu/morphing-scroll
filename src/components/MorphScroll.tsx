@@ -1932,6 +1932,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
             // и сами копии — на столько же, что бы под окном остались те же
             loopSlideRef.current[axis] += Math.round(moved / round.period);
+
+            // до рендера ту же работу делает обёртка, иначе кадр с прыжком
+            loopNudgeRef.current[axis] += moved;
+
+            const wrap = objectsWrapperRef.current;
+
+            if (wrap) {
+              const [byX, byY] = loopNudgeRef.current;
+
+              wrap.style.transform = `translate(${byX}px, ${byY}px)`;
+            }
           });
         }
 
@@ -2466,6 +2477,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * теперь не только не видно, её и React не замечает.
      */
     const loopSlideRef = React.useRef<[number, number]>([0, 0]);
+
+    /*
+     * Сдвиг копий доедет только следующим рендером, а позиция меняется сразу —
+     * и один кадр контент стоит уехавшим на период. Поэтому тем же движением
+     * двигаем обёртку: она едет на столько же и в ту же сторону, так что на
+     * экране не меняется ничего. Рендер потом переложит это в сами копии и
+     * обёртку отпустит — обмен незаметен, оба слагаемых равны.
+     */
+    const loopNudgeRef = React.useRef<[number, number]>([0, 0]);
+
+    /*
+     * Снимаем сдвиг обёртки сразу после того, как копии встали со своим — до
+     * отрисовки, поэтому промежуточного кадра не бывает. Снимаем руками, а не
+     * стилем: поставили мы его тоже руками, мимо React, и React о нём не
+     * знает — сравнивая со своим прошлым значением, он бы решил, что менять
+     * нечего, и сдвиг остался бы навсегда.
+     */
+    React.useLayoutEffect(() => {
+      if (!loopNudgeRef.current[0] && !loopNudgeRef.current[1]) return;
+
+      loopNudgeRef.current = [0, 0];
+
+      const wrap = objectsWrapperRef.current;
+      if (wrap) wrap.style.transform = "";
+    });
 
     const loopStartRef = React.useRef("");
     React.useEffect(() => {
