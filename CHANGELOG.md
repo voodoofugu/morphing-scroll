@@ -269,6 +269,24 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Added
 
+- `loop` — the content runs in a circle: the same children repeat forever in
+  both directions, with no first object and no last, and no seam to see. The
+  strip does not grow, because a scroll cannot: browsers cut it off after tens
+  of millions of pixels, and position and inertia lose their footing long
+  before that. So the strip stays a fixed length — a few copies, as many as
+  the window needs — and the circle is made by moving the position instead:
+  the window is kept in the middle copy, and the moment it leaves, the
+  position moves by exactly one period, where the content is the same. The
+  wheel and inertia carry their own marks, so those move with it; otherwise
+  they would pull the window straight back out.
+  It needs a size it can repeat and one axis to repeat along: a number or
+  `"firstChild"` for `objects.size`, `direction` of `"x"` or `"y"`,
+  `mode="scroll"`, and `render.mode` to place the copies by coordinate. Each
+  of those is said out loud when it is missing.
+  Around it: `edge` stays lit on both sides, since there really is more
+  content both ways; the progress element shows the position within one turn
+  rather than within the strip, so it cycles instead of jumping; and
+  `stickToEnd` is refused, having no end to hold onto.
 - `controls.keys` — the arrow keys move the scroll while it has
   focus. `mode: "step"` turns a page and reports through `onNavigate` as
   `"keys"`; `mode: "pan"` nudges by `step` pixels; `mode: "focus"` moves

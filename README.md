@@ -231,6 +231,51 @@ This is a standing rule rather than a move: every time the content grows the scr
 
 <h2></h2>
 
+<details><summary><b><code>loop</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+loop: true;
+```
+
+<b>Default:</b><br />
+false<br />
+<br />
+<b>Description:</b><em><br />
+the content runs in a circle: the same children repeat forever in both directions, and there is no first object and no last.<br />
+<br />
+The seam is not visible, and the strip does not grow. It cannot: a scroll has a length, the browser cuts it off after tens of millions of pixels, and position and inertia lose their footing long before that. So the strip stays a fixed length — a few copies of the content, as many as the window needs — and the circle is made by moving the position instead. The window is kept in the middle copy, and the moment it leaves, the position moves by one period. Under the window at that moment is the very same content, so there is nothing to see.<br />
+<br />
+Objects are still mounted a window at a time, so a hundred turns cost what one costs.</em><br />
+<br />
+<b>Needs:</b><em><br />
+a size it can repeat, and one axis to repeat along:<br /></em>
+<ul>
+  <li><code>objects.size</code> as a number or <code>"firstChild"</code> — <code>"each"</code> is measured as it goes and never settles into a period</li>
+  <li><code>direction</code> of <code>"x"</code> or <code>"y"</code> — <code>"hybrid"</code> scrolls both ways, and a circle runs around one</li>
+  <li><code>mode="scroll"</code> — pages count their own boundaries, and a circle has none to count</li>
+  <li><code>render.mode</code> — the copies are placed by coordinate, and without it the objects are laid out by the flow, which knows nothing of a circle</li>
+</ul>
+<em>Each of these is said out loud when it is missing, rather than the prop quietly doing nothing.</em><br />
+<br />
+<b>What changes around it:</b><em><br /></em>
+<ul>
+  <li><code>edge</code> stays lit on both sides: there really is more content both ways</li>
+  <li>the progress element shows the position within one turn, not within the strip, so it cycles instead of jumping</li>
+  <li><code>stickToEnd</code> is refused — it drives to an end the circle does not have</li>
+</ul>
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} loop render={{ mode: "virtual" }}>
+  {slides}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<h2></h2>
+
 <details><summary><b><code>duration</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 

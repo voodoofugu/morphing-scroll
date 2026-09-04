@@ -3,6 +3,8 @@ const CONST = {
   BAR_AXIS_ATR: "ms-direction", // which axis a bar belongs to
   BAR_VISIBILITY_VAR: "--ms-bar-visibility", // 0/1 while controls.bar.showOnHover is on
   EDGE_VISIBILITY_VAR: "--ms-edge-visibility", // 0/1 when content is cut off at an edge
+  // отличает копию контента в круге от оригинала; наружу не выходит
+  LOOP_KEY_SEP: "\u0000loop\u0000",
   CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while render.trackVisibility is on
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)

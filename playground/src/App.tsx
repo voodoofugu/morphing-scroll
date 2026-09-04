@@ -103,6 +103,7 @@ type Settings = {
   fallbackText: string;
   autoScrollOnDrag: boolean;
   stickToEnd: boolean;
+  loop: boolean;
 };
 
 type ScrollCommand = {
@@ -194,6 +195,7 @@ const defaultSettings: Settings = {
   fallbackText: "loading",
   autoScrollOnDrag: false,
   stickToEnd: false,
+  loop: false,
 };
 
 const presets: Record<string, Partial<Settings>> = {
@@ -908,6 +910,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ],
     ["autoScrollOnDrag", settings.autoScrollOnDrag || undefined, "boolean"],
     ["stickToEnd", settings.stickToEnd || undefined, "boolean"],
+    ["loop", settings.loop || undefined, "boolean"],
     [
       "duration",
       scrollCommand.duration === 200 ? undefined : scrollCommand.duration,
@@ -1364,6 +1367,7 @@ function App() {
       },
       render,
       stickToEnd: settings.stickToEnd,
+      loop: settings.loop,
       duration: scrollCommand.duration,
       size,
       suspending: settings.suspending,
@@ -1514,7 +1518,7 @@ function App() {
 
         <ControlGroup
           defaultOpen
-          hint="mode · direction · stickToEnd · scrollTo"
+          hint="mode · direction · stickToEnd · loop · scrollTo"
           title="scroll"
         >
           <SelectField
@@ -1533,6 +1537,11 @@ function App() {
             label="stickToEnd"
             onChange={(value) => update("stickToEnd", value)}
             value={settings.stickToEnd}
+          />
+          <ToggleField
+            label="loop"
+            onChange={(value) => update("loop", value)}
+            value={settings.loop}
           />
           <ToggleField
             label="autoScrollOnDrag"

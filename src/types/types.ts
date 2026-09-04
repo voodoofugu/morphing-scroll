@@ -503,6 +503,35 @@ export type MorphScroll = {
   stickToEnd?: boolean | Pair<boolean>;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***loop***:
+   * the content runs in a circle, with no start and no end.
+   * @default false
+   * @description
+   * The same children repeat forever in both directions, and the seam is not
+   * visible: the scroll keeps a fixed length and moves the position by one
+   * period whenever the window leaves the middle copy — under the window at
+   * that moment is the very same content. Nothing grows, so nothing runs into
+   * the browser's own limit on how long a scroll can be.
+   *
+   * Objects are still mounted a window at a time when `render.mode` says so —
+   * the two are separate, and a short loop does not need virtualising.
+   * @note *`edge` stays lit on both sides — there really is more content both
+   * ways — and the progress element shows the position within one turn rather
+   * than within the whole strip. `stickToEnd` has no end to hold onto and is
+   * refused*
+   * @note *needs a size it can repeat: `objects.size: "each"` is measured as
+   * it goes and never gives a settled period, and `direction="hybrid"` has no
+   * single axis to run around*
+   * @example
+   * ```tsx
+   * <MorphScroll {...props} loop render={{ mode: "virtual" }}>
+   *   {slides}
+   * </MorphScroll>
+   * ```
+   */
+  loop?: boolean;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***duration***:
    * how long a move takes, in ms.
    * @default 200

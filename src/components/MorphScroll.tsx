@@ -39,6 +39,7 @@ import {
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
 import createSizeStore from "../helpers/createSizeStore";
 import packObjects from "../helpers/packObjects";
+import { loopCopies, loopShift } from "../helpers/loopWindow";
 import type { PackLayout } from "../helpers/packObjects";
 import {
   updateLoadedElementsKeys,
@@ -96,6 +97,7 @@ const isTextEntry = (target: EventTarget | null) => {
  * - `direction`
  * - `initialPosition`
  * - `stickToEnd`
+ * - `loop`
  * - `duration`
  * - `ref`
  * - `autoScrollOnDrag`
@@ -134,6 +136,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       direction = "y",
       initialPosition,
       stickToEnd = false,
+      loop = false,
       duration = 200,
 
       onScrollPosition,
@@ -235,6 +238,40 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (direction === "hybrid" && !crossCount)
         console.error(
           `objects.size: "each" with direction="hybrid" needs objects.crossCount: both ways scroll, so nothing else says where a line ends${errorTextEnd}`,
+        );
+    }
+
+    /*
+     * Круг водит окно подменой позиции, а для этого нужен период — расстояние,
+     * через которое контент повторяется. Меряемый размер его не даёт: он
+     * известен только после замера, а виртуализация ровно затем и нужна, чтобы
+     * мерить не всё. При `hybrid` период тоже не собрать: осей две, а круг
+     * один. Страницы же считают свои границы сами, и круг им пока не объяснить.
+     */
+    if (loop) {
+      if (hasEach)
+        console.error(
+          `loop repeats the content through a period, and objects.size: "each" is measured as it goes — it never settles into one${errorTextEnd}`,
+        );
+
+      if (direction === "hybrid")
+        console.error(
+          `loop runs the content around one axis, and direction="hybrid" scrolls both — there is no single way around${errorTextEnd}`,
+        );
+
+      if (mode !== "scroll")
+        console.error(
+          `loop is for mode="scroll" — "${mode}" counts its own pages, and a circle has none to count${errorTextEnd}`,
+        );
+
+      if (!(typeof render === "string" ? render : render?.mode))
+        console.error(
+          `loop needs render.mode: the copies are placed by coordinate, and without it the objects are laid out by the flow, which knows nothing of a circle${errorTextEnd}`,
+        );
+
+      if (stickToEnd)
+        console.error(
+          `loop and stickToEnd pull against each other: one keeps the window in the circle, the other drives it to an end the circle does not have${errorTextEnd}`,
         );
     }
 
@@ -1050,12 +1087,61 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       packed,
     ]);
 
+    /*
+     * Круг: сколько копий контента лежит в ленте и через сколько пикселей он
+     * повторяется. Период — это протяжённость одной копии плюс зазор, иначе
+     * копии слиплись бы вплотную, а внутри копии объекты стоят через зазор.
+     *
+     * Пока размер по главной оси неизвестен, круга нет: он появится сам, когда
+     * появится размер. Ругаться тут уже не на что — про несовместимые условия
+     * сказано выше, один раз.
+     */
+    const loopLocal = React.useMemo(() => {
+      if (
+        !loop ||
+        isEach ||
+        direction === "hybrid" ||
+        mode !== "scroll" ||
+        !renderLocal.mode
+      )
+        return null;
+
+      const isX = direction === "x";
+      const extent = isX ? objectsWrapperWidth : objectsWrapperHeight;
+      const period = extent + (isX ? gapLocal[1] : gapLocal[0]);
+      const copies = loopCopies(period, sizeLocal[isX ? 0 : 1]);
+
+      if (!copies || !Number.isFinite(period)) return null;
+
+      return { period, copies, span: period * copies };
+    }, [
+      loop,
+      isEach,
+      direction,
+      mode,
+      objectsWrapperWidth,
+      objectsWrapperHeight,
+      gapLocal[0],
+      gapLocal[1],
+      sizeLocal.join(),
+      renderLocal.mode,
+    ]);
+
+    /*
+     * Наружу обёртка отдаёт длину всего круга, а не одной копии: по ней
+     * браузер и даёт ту прокрутку, внутри которой окно будет ходить.
+     */
+    const loopedHeight =
+      loopLocal && direction !== "x" ? loopLocal.span : objectsWrapperHeight;
+    const loopedWidth =
+      loopLocal && direction === "x" ? loopLocal.span : objectsWrapperWidth;
+
     const objectsWrapperHeightFull = React.useMemo(() => {
-      return objectsWrapperHeight + mLocalY;
-    }, [objectsWrapperHeight, mLocalY]);
+      return loopedHeight + mLocalY;
+    }, [loopedHeight, mLocalY]);
     const objectsWrapperWidthFull = React.useMemo(() => {
-      return objectsWrapperWidth + mLocalX;
-    }, [objectsWrapperWidth, mLocalX]);
+      return loopedWidth + mLocalX;
+    }, [loopedWidth, mLocalX]);
     const fullHeightOrWidth =
       direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
@@ -1084,6 +1170,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsWrapperWidthFull;
     }
 
+    /*
+     * Прогресс в круге показывает оборот, а не всю ленту: лента — приём, копий
+     * в ней ровно столько, сколько нужно окну, и мерить себя ими странно. По
+     * обороту же бегунок получается честного размера и на подмене позиции не
+     * дёргается — она сдвигает ровно на период, а внутри оборота это то же
+     * самое место.
+     */
+    const barSpan = React.useMemo(() => {
+      const along = loopLocal ? loopLocal.period : 0;
+      const isX = direction === "x";
+
+      return {
+        w: along && isX ? along : objectsWrapperWidthFull,
+        h: along && !isX ? along : objectsWrapperHeightFull,
+      };
+    }, [loopLocal, direction, objectsWrapperWidthFull, objectsWrapperHeightFull]);
+
     const getThumbSize = React.useCallback(
       (dir: "x" | "y") => {
         if (!barLocal.present || !fullHeightOrWidth) return 0;
@@ -1091,13 +1194,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (dir === "x") {
           return calculateThumbSize(
             sizeLocal[0] - barLocal.trackGap[0],
-            objectsWrapperWidthFull,
+            barSpan.w,
             barLocal.thumbMinSize,
           );
         } else
           return calculateThumbSize(
             sizeLocal[1] - barLocal.trackGap[1],
-            objectsWrapperHeightFull,
+            barSpan.h,
             barLocal.thumbMinSize,
           );
       },
@@ -1106,7 +1209,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         fullHeightOrWidth,
         sizeLocal[0],
         sizeLocal[1],
-        objectsWrapperWidthFull,
+        barSpan.w,
+        barSpan.h,
         barLocal.thumbMinSize,
         barLocal.trackGap.join(),
       ],
@@ -1160,13 +1264,33 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const endRef = React.useRef(endObjectsWrapper);
     endRef.current = endObjectsWrapper;
 
+    /*
+     * В круге отсчёт идёт от начала оборота: позиция живёт в средней копии,
+     * значит вычитаем период — и получаем, сколько круга пройдено. Полный
+     * оборот при этом ровно проходит дорожку из конца в начало.
+     */
+    const loopAxis: 0 | 1 = direction === "x" ? 0 : 1;
+    const loopPeriod = loopLocal?.period ?? 0;
+
+    const barAt = (axis: 0 | 1) => {
+      const at =
+        axis === 0
+          ? scrollElementRef.current?.scrollLeft || 0
+          : scrollElementRef.current?.scrollTop || 0;
+
+      return loopPeriod && axis === loopAxis ? at - loopPeriod : at;
+    };
+
+    const barEnd = (axis: 0 | 1, whole: number) =>
+      loopPeriod && axis === loopAxis ? loopPeriod : whole;
+
     // высчитываем сдвиг scroll и ограничиваем его
     const thumbSpace = {
       x:
         direction !== "y"
           ? calculateThumbSpace(
-              scrollElementRef.current?.scrollLeft || 0,
-              endObjectsWrapper.w,
+              barAt(0),
+              barEnd(0, endObjectsWrapper.w),
               sizeMinusEdge[0],
               thumbSizeMemo.x,
             )
@@ -1174,8 +1298,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       y:
         direction !== "x"
           ? calculateThumbSpace(
-              scrollElementRef.current?.scrollTop || 0,
-              endObjectsWrapper.h,
+              barAt(1),
+              barEnd(1, endObjectsWrapper.h),
               sizeMinusEdge[1],
               thumbSizeMemo.y,
             )
@@ -1339,11 +1463,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         margin: wrapper?.margin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
         height:
           objectsSizing[1] && objectsSizing[1] !== "none"
-            ? `${objectsWrapperHeight}px`
+            ? `${loopedHeight}px`
             : "fit-content",
         width:
           objectsSizing[0] && objectsSizing[0] !== "none"
-            ? `${objectsWrapperWidth}px`
+            ? `${loopedWidth}px`
             : "fit-content",
         ...(gap &&
           !renderLocal.mode &&
@@ -1396,8 +1520,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeLocal.join(),
       gapST,
       objectsSizing[1],
-      objectsWrapperHeight,
-      objectsWrapperWidth,
+      loopedHeight,
+      loopedWidth,
       gapST,
       renderLocal.mode,
       direction,
@@ -1715,6 +1839,34 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          */
         updateAtEnd((dir) => !tasks.hasTask(`smoothScrollBlock${dir}`));
 
+        /*
+         * Круг: как только окно ушло из средней копии — переносим позицию на
+         * период назад или вперёд. Под окном в этот момент тот же контент, так
+         * что подмены не видно; наружу же уходит уже новая позиция, чтобы
+         * слушатель не получил ту, которой через кадр не будет.
+         */
+        if (loopLocal) {
+          const alongX = direction === "x";
+          const at = alongX ? scrollEl.scrollLeft : scrollEl.scrollTop;
+          const to = loopShift(at, loopLocal.period);
+
+          if (to !== null && to !== at) {
+            if (alongX) scrollEl.scrollLeft = to;
+            else scrollEl.scrollTop = to;
+
+            /*
+             * Колесо и инерция везут не к позиции, а к своей отметке, и
+             * читают её каждый кадр. Не сдвинув её вместе с позицией, мы бы
+             * тянули окно обратно за границу — и оно ходило бы туда-сюда,
+             * пока отметка убегает всё дальше.
+             */
+            const moved = to - at;
+
+            if (alongX) scrollStateRef.current.targetScrollX += moved;
+            else scrollStateRef.current.targetScrollY += moved;
+          }
+        }
+
         // уведомляем о прокрутке пропс
         onScrollPosition?.(scrollEl.scrollLeft, scrollEl.scrollTop);
 
@@ -1798,6 +1950,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         barLocal.showOnHover,
         renderLocal.mode,
         stickLocal.join(), // читается внутри для трекера конца
+        loopLocal,
+        direction,
       ],
     );
 
@@ -2199,6 +2353,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, []); // именно на монтирование: значение позже не читается
 
     /*
+     * Круг открывается со средней копии, а не с самого начала ленты: из нуля
+     * назад не уехать, там край, — и круг бы им и кончился. Ставим один раз на
+     * период, а дальше позицию водит подмена в обработчике прокрутки.
+     *
+     * Период появляется не сразу: пока размер объектов неизвестен, круга нет.
+     * Поэтому смотрим на период, а не на монтирование.
+     */
+    const loopStartRef = React.useRef(0);
+    React.useEffect(() => {
+      const scrollEl = scrollElementRef.current;
+      if (!loopLocal || !scrollEl) return;
+      if (loopStartRef.current === loopLocal.period) return;
+
+      loopStartRef.current = loopLocal.period;
+
+      if (direction === "x") scrollEl.scrollLeft = loopLocal.period;
+      else scrollEl.scrollTop = loopLocal.period;
+    }, [loopLocal, direction]);
+
+    /*
      * А это правило, а не движение: контент дорос — едем за ним. От ушедшего
      * читать историю его бережёт `respectUserScroll`.
      */
@@ -2437,6 +2611,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         left?: number,
         children?: React.ReactNode,
         visibility?: number | null,
+        domKey?: string,
       ) => {
         /*
          * Сторону задаём только ту, которую объект себе не выбирает: за
@@ -2469,7 +2644,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         return (
           <div
-            key={key}
+            key={domKey ?? key}
             {...(renderLocal.mode || emptyObjectsLocal
               ? {
                   [CONST.WRAP_ATR]: `${key}`,
@@ -2514,7 +2689,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       index: number,
       scrollLeft: number,
       scrollTop: number,
+      copy: number = 0,
     ) => {
+      /*
+       * Копия — тот же ребёнок, сдвинутый на период. Ключ для React у неё
+       * свой, иначе одинаковые ключи среди соседей, а наружу — в `ms-wrap-id`
+       * и в `onRenderedKeysChange` — уходит по-прежнему тот ключ, который
+       * написал пользователь: копии его дело не касаются.
+       */
+      const domKey = copy ? `${key}${CONST.LOOP_KEY_SEP}${copy}` : key;
+      const copyShift = copy && loopLocal ? copy * loopLocal.period : 0;
       // ищем реальный child по ключу
       const child = childrenMap.get(key);
 
@@ -2522,7 +2706,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const childRenderOnScroll =
         renderLocal.stopLoadOnScroll &&
         isScrollingRef.current &&
-        !objectsKeys.current.loaded.has(key)
+        !objectsKeys.current.loaded.has(domKey)
           ? fallbackLocal
           : objectsKeys.current.empty?.has(key)
             ? (emptyObjectsLocal?.fallback ?? fallbackLocal)
@@ -2543,7 +2727,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // ===== NO VIRTUAL =====
       if (!renderLocal.mode && !isEach)
-        return scrollObjectWrapper(key, 0, 0, childLocal);
+        return scrollObjectWrapper(key, 0, 0, childLocal, undefined, domKey);
 
       /*
        * Курица и яйцо: при `objectsSize: "firstChild"` размер ячейки берётся
@@ -2555,10 +2739,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * Поэтому первого ребёнка показываем безусловно, пока мерять нечего.
        */
       if (needsFirstChildMeasure && index === 0)
-        return scrollObjectWrapper(key, 0, 0, childLocal);
+        return scrollObjectWrapper(key, 0, 0, childLocal, undefined, domKey);
 
       // обработка виртуализации
-      const { top, bottom, left, right } = memoizedChildrenData[index];
+      const placed = memoizedChildrenData[index];
+      const alongX = direction === "x";
+      const top = placed.top + (alongX ? 0 : copyShift);
+      const bottom = placed.bottom + (alongX ? 0 : copyShift);
+      const left = placed.left + (alongX ? copyShift : 0);
+      const right = placed.right + (alongX ? copyShift : 0);
 
       if (isEach) {
         /*
@@ -2569,12 +2758,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          */
         if (!packed.items[index]?.measured)
           return index < packed.measuredPrefix + CONST.MEASURE_BATCH
-            ? scrollObjectWrapper(key, top, left, childLocal)
+            ? scrollObjectWrapper(key, top, left, childLocal, undefined, domKey)
             : null;
 
         // размер известен: дальше или обычная отрисовка, или общая виртуализация
         if (!renderLocal.mode)
-          return scrollObjectWrapper(key, top, left, childLocal);
+          return scrollObjectWrapper(key, top, left, childLocal, undefined, domKey);
       }
 
       // проверка видимости
@@ -2634,14 +2823,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * следующем рендере. В приложении тик приходил быстро и это выглядело
          * морганием, а на первом кадре список был просто пустым.
          */
-        if (!objectsKeys.current.loaded.has(key)) {
+        if (!objectsKeys.current.loaded.has(domKey)) {
           if (!visibilityRatio) return null;
 
           // откладываем первую отрисовку пока идёт прокрутка
           if (isScrollingRef.current && renderLocal.stopLoadOnScroll)
             return null;
 
-          objectsKeys.current.loaded.add(key);
+          objectsKeys.current.loaded.add(domKey);
         }
 
         return scrollObjectWrapper(
@@ -2650,12 +2839,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           left,
           childLocal,
           visibilityRatioWithoutMargin,
+          domKey,
         );
       }
 
       // - VIRTUAL -
       if (!visibilityRatio) {
-        objectsKeys.current.loaded.delete(key); // удаляем из loaded
+        objectsKeys.current.loaded.delete(domKey); // удаляем из loaded
         return null;
       }
 
@@ -2665,6 +2855,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         left,
         childLocal,
         visibilityRatioWithoutMargin,
+        domKey,
       );
     };
 
@@ -2838,9 +3029,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             ...(isDraggingRef.current && { pointerEvents: "none" }), // отключаем pointerEvents при перетаскивании что бы не было проблем с захватом thumb
           }}
         >
-          {validChildrenKeys.map((key, i) =>
-            renderChild(key, i, scrollLeft, scrollTop),
-          )}
+          {loopLocal
+            ? Array.from({ length: loopLocal.copies }, (_, copy) =>
+                validChildrenKeys.map((key, i) =>
+                  renderChild(key, i, scrollLeft, scrollTop, copy),
+                ),
+              )
+            : validChildrenKeys.map((key, i) =>
+                renderChild(key, i, scrollLeft, scrollTop),
+              )}
         </div>
       );
     };

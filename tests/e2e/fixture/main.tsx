@@ -774,6 +774,61 @@ scenarios.masonryHybrid = (
 );
 
 /*
+ * Круг: шесть объектов по 60 с зазором 10 — период 420, окно 300, значит три
+ * копии и лента в 1260. Открывается со средней копии, то есть с 420.
+ */
+scenarios.loopY = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 300]}
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* тот же круг, но тащим его пальцем: у инерции своя отметка, и её тоже несёт */
+scenarios.loopDrag = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 300]}
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ drag: true }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* тот же круг вбок: период тот же, ходит по left */
+scenarios.loopX = (
+  <MorphScroll
+    objects={{ size: [60, 180], gap: 10 }}
+    size={[300, 200]}
+    direction="x"
+    loop
+    render={{ mode: "virtual" }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={`card-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
  * Строка толщиной с самый толстый оставляет под низкими пусто, и следующие
  * поднимаются туда — порядок при этом остаётся построчным. Размеры подобраны
  * так, чтобы поднялись трое из шести, и каждый на своё.
