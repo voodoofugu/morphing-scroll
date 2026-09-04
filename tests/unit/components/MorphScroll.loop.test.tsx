@@ -99,6 +99,42 @@ describe("loop", () => {
     expect(said("the circle does not have")).toBe(true);
   });
 
+  /*
+   * Свой бегунок браузер рисует по настоящей прокрутке, а она в круге — лента
+   * из копий. Переписать его нам нечем, значит остаётся отговорить.
+   */
+  it("отговаривает от нативного бегунка: он показывает ленту, а не оборот", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        loop
+        render={{ mode: "virtual" }}
+        objects={{ size: [180, 60] }}
+        controls={{ bar: true }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(said("a fraction of a turn")).toBe(true);
+  });
+
+  it("на свой узел в баре не ругается", () => {
+    render(
+      <MorphScroll
+        size={[200, 300]}
+        loop
+        render={{ mode: "virtual" }}
+        objects={{ size: [180, 60] }}
+        controls={{ bar: <i /> }}
+      >
+        {items()}
+      </MorphScroll>,
+    );
+
+    expect(error).not.toHaveBeenCalled();
+  });
+
   it("молчит, когда всё сходится", () => {
     render(
       <MorphScroll

@@ -35,3 +35,23 @@ export const loopShift = (position: number, period: number) => {
 
   return period + inside;
 };
+
+/*
+ * Страницы в круге обязаны делить оборот нацело. Иначе за последней страницей
+ * оборот заканчивается не там, где она, — заворот приходится на середину, и
+ * сетка страниц после него начинается со сдвигом: шаг вперёд и шаг назад
+ * возвращают уже не туда, откуда пошли.
+ *
+ * Берём столько страниц, сколько нужно, что бы ни одна не оказалась длиннее
+ * окна: страницы тогда чуть перекрываются, и ничего не пропущено. Обратное —
+ * страницы длиннее окна — прятало бы полосу контента на каждом шаге.
+ */
+export const loopPages = (period: number, viewport: number, gap: number) => {
+  const want = viewport + gap;
+
+  if (period <= 0 || want <= 0) return { pages: 0, step: want };
+
+  const pages = Math.max(1, Math.ceil(period / want));
+
+  return { pages, step: period / pages };
+};

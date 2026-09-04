@@ -302,7 +302,9 @@ themselves are no longer transformed and can be positioned from CSS.
   longer would otherwise always show one; dragging its thumb moves the content
   by that same turn, so it stays under the finger; `scrollTo` takes a number
   as a place within the turn and goes the short way round; and `stickToEnd` is
-  refused, having no end to hold onto. The list itself is
+  refused, having no end to hold onto, and `controls.bar: true` is talked out
+  of — the browser draws its own bar over the strip rather than the turn, and
+  there is nothing to reshape it with. The list itself is
   repeated rather than referenced, so a few copies of every child are mounted
   at once — with `render.mode` only the ones in the window are, which is why
   a long list wants it.

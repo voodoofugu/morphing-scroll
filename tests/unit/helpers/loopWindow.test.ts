@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 
-import { loopCopies, loopShift } from "@morphing-scroll/src/helpers/loopWindow";
+import {
+  loopCopies,
+  loopShift,
+  loopPages,
+} from "@morphing-scroll/src/helpers/loopWindow";
 
 describe("loopCopies", () => {
   /*
@@ -73,5 +77,37 @@ describe("loopShift", () => {
 
   it("без периода не подменяет", () => {
     expect(loopShift(300, 0)).toBe(null);
+  });
+});
+
+describe("loopPages", () => {
+  /*
+   * То, ради чего это и считается: пройдя все страницы, возвращаешься ровно
+   * туда, откуда пошёл. Иначе заворот сдвигает сетку, и шаг назад уводит не
+   * туда, откуда шагнул вперёд.
+   */
+  it("делит оборот нацело", () => {
+    for (const period of [1400, 900, 777, 320, 1000])
+      for (const viewport of [300, 220, 480]) {
+        const { pages, step } = loopPages(period, viewport, 20);
+
+        expect(pages * step).toBeCloseTo(period, 6);
+      }
+  });
+
+  it("не делает страницу длиннее окна: пропускать контент нельзя", () => {
+    for (const period of [1400, 900, 777, 1000]) {
+      const { step } = loopPages(period, 300, 20);
+
+      expect(step).toBeLessThanOrEqual(320);
+    }
+  });
+
+  it("оборот короче окна — одна страница на весь оборот", () => {
+    expect(loopPages(200, 300, 20)).toEqual({ pages: 1, step: 200 });
+  });
+
+  it("без оборота отдаёт обычный шаг и ни одной страницы", () => {
+    expect(loopPages(0, 300, 20)).toEqual({ pages: 0, step: 320 });
   });
 });

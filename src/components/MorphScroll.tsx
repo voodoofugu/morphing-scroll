@@ -40,7 +40,7 @@ import {
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
 import createSizeStore from "../helpers/createSizeStore";
 import packObjects from "../helpers/packObjects";
-import { loopCopies, loopShift } from "../helpers/loopWindow";
+import { loopCopies, loopShift, loopPages } from "../helpers/loopWindow";
 import type { PackLayout } from "../helpers/packObjects";
 import {
   updateLoadedElementsKeys,
@@ -247,6 +247,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * концу некуда.
      */
     if (loop) {
+      /*
+       * Свой бегунок браузер рисует по настоящей прокрутке, а настоящая
+       * прокрутка в круге — это лента из копий. Показать оборот он не может, и
+       * переписать его нам нечем: бегунок выходит в треть ленты, а на каждом
+       * переносе прыгает под пальцем. Отговариваем, но не запрещаем.
+       */
+      const nativeBar =
+        !!controls &&
+        typeof controls === "object" &&
+        !Array.isArray(controls) &&
+        (controls as { bar?: unknown }).bar === true;
+
+      if (nativeBar)
+        console.error(
+          `loop and controls.bar: true pull against each other: the browser draws its own bar over the strip, and the strip is a few copies of the content — the thumb comes out a fraction of a turn and jumps under the finger every time the position moves. Pass an element instead and the bar shows the turn${errorTextEnd}`,
+        );
+
       if (stickToEnd)
         console.error(
           `loop and stickToEnd pull against each other: one keeps the window in the circle, the other drives it to an end the circle does not have${errorTextEnd}`,
@@ -1446,12 +1463,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const period = loopPeriods[axis];
 
         return period
-          ? Math.max(1, Math.ceil(period / sizeLocal[axis]))
+          ? loopPages(period, sizeLocal[axis], gapXY[axis]).pages
           : objectsPerSize(span, sizeLocal[axis]);
       };
 
       return [pages(0, barSpan.w), pages(1, barSpan.h)];
-    }, [barSpan.w, barSpan.h, sizeLocal.join(), loopPeriods.join()]);
+    }, [barSpan.w, barSpan.h, sizeLocal.join(), loopPeriods.join(), gapXY.join()]);
     const objLengthPerSizeXY = React.useMemo(() => {
       return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
     }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
@@ -1768,6 +1785,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           smoothScroll: smoothScrollLocal,
           duration: duration,
           gap: gapXY,
+          loopPeriods,
         });
 
         // упёрлись в край — никуда не поехали, и отчитываться не о чем
@@ -1780,6 +1798,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsWrapperHeightFull,
         duration,
         smoothScrollLocal,
+        loopPeriods.join(),
         gapLocal[0],
         gapLocal[1],
         emitNavigate,

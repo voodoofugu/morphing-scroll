@@ -646,8 +646,8 @@ test.describe("loop (real browser)", () => {
    * начало: без своей точки последняя часть оборота показывалась бы первой, и
    * та залипала бы на полтора окна вместо одного.
    *
-   * Здесь оборот ввысь 700 при окне 210 — это три с третью окна, значит точек
-   * четыре, и активная идёт по ним подряд.
+   * Здесь оборот ввысь 700 при окне 210 с зазором 10 — это три с небольшим
+   * страницы, значит их четыре по 175, и активная идёт по ним подряд.
    */
   test("активная точка не залипает, когда оборот не делится на окно нацело", async ({
     page,
@@ -666,7 +666,7 @@ test.describe("loop (real browser)", () => {
         };
       });
 
-    // 700 на 210 — четыре точки, а не три
+    // 700 на 220 — четыре точки, а не три
     expect((await state()).count).toBe(4);
 
     const seen: number[] = [(await state()).active];
@@ -679,15 +679,16 @@ test.describe("loop (real browser)", () => {
     }
 
     // за оборот проходим все четыре подряд и ни разу не возвращаемся раньше
-    expect(seen).toEqual([0, 0, 1, 1, 2, 2, 3]);
+    expect(seen).toEqual([0, 1, 1, 2, 2, 3, 3]);
   });
 
   /*
    * Слайдер после перетаскивания доводит до страницы. Страницы в круге
    * отсчитываются от начала оборота: лента начинается там, где пришлось, и её
    * сетка с оборотом не совпадает — считай по ленте, и снап уводил бы в
-   * середину страницы. Оборот 1400, страница 320 — нацело не делится, на этом
-   * и видно.
+   * середину страницы. Оборот 1400 при окне 300 с зазором 20 делится на пять
+   * страниц по 280: длиннее окна страница быть не может, иначе на каждом шаге
+   * пряталась бы полоса контента.
    */
   test("слайдер доводит до страницы оборота, а не до страницы ленты", async ({
     page,
@@ -696,7 +697,7 @@ test.describe("loop (real browser)", () => {
     await settle(page);
 
     const period = 1400;
-    const step = 320;
+    const step = 280;
 
     expect(await scrollTop(page)).toBe(period);
 
@@ -778,7 +779,7 @@ test.describe("loop (real browser)", () => {
     await settle(page);
 
     const period = 1400;
-    const step = 320;
+    const step = 280;
     const items = page.locator(".ms-slider-item");
     const first = (await items.first().boundingBox())!;
     const last = (await items.last().boundingBox())!;
@@ -815,5 +816,33 @@ test.describe("loop (real browser)", () => {
     // завернулись на первую страницу, а не остались на последней
     expect(after).not.toBe(atLast);
     expect(after).toBe(period);
+  });
+
+  /*
+   * Шаг стрелкой туда и обратно обязан возвращать туда, откуда пошли. Считай
+   * страницы от начала ленты — и не вернёт: её сетка с оборотом не совпадает,
+   * а после переноса и вовсе уезжает под ногами.
+   */
+  test("стрелка вперёд и назад возвращает на то же место", async ({ page }) => {
+    await page.goto("/?scenario=loopSliderArrows");
+    await settle(page);
+
+    const next = page.locator(".ms-arrow-box.ms-bottom");
+    const back = page.locator(".ms-arrow-box.ms-top");
+
+    for (let turn = 0; turn < 6; turn++) {
+      const before = await scrollTop(page);
+
+      await next.click();
+      await page.waitForTimeout(250);
+      await back.click();
+      await page.waitForTimeout(250);
+
+      expect(await scrollTop(page)).toBe(before);
+
+      // и уходим дальше по кругу, что бы проверить и после переноса
+      await next.click();
+      await page.waitForTimeout(250);
+    }
   });
 });

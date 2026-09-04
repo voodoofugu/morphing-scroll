@@ -265,6 +265,8 @@ the list is repeated, not referenced — a few copies of every child are mounted
   <li><code>edge</code> stays lit on both sides: there really is more content both ways</li>
   <li>the progress element shows the position within one turn, not within the strip, so it cycles instead of jumping — and it appears only when a turn is longer than the window, since a strip that is always longer would otherwise always show one</li>
   <li>dragging its thumb moves the content by the turn the track stands for, so it stays under the finger</li>
+  <li>pages divide the turn evenly — no page is longer than the window, so nothing is skipped, and stepping through them all comes back exactly where it started</li>
+  <li><code>controls.bar: true</code> is talked out of: the browser draws its own bar over the strip, and the strip is a few copies of the content. Pass an element instead and the bar shows the turn</li>
   <li><code>scrollTo</code> takes a number as a place within the turn and goes there the short way round, whichever side that is</li>
   <li><code>stickToEnd</code> is refused — it drives to an end the circle does not have</li>
 </ul>

@@ -257,19 +257,20 @@ const sliderCheck = (
     const at = dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
     const visibleSize =
       dir === "x" ? scrollEl.clientWidth : scrollEl.clientHeight;
-    const half = visibleSize / 2;
 
     /*
      * В круге позиция живёт в средней копии, а страница нужна та, что внутри
-     * оборота: вычитаем период. Последняя половина страницы при этом смотрит
-     * уже на первую — оборот замкнулся, — поэтому индекс берём по кольцу.
+     * оборота: вычитаем период. Шаг при этом свой — оборот поделён на страницы
+     * нацело, и мерить его окном нельзя, иначе последняя страница не сойдётся
+     * с первой. Индекс берём по кольцу: оборот замкнулся.
      */
     const period = loopPeriods[axisIndex];
     const onLoop = period > 0;
     const scrollPosition = onLoop ? at - period : at;
+    const step = onLoop ? period / cache.elements.length : visibleSize;
 
     // вычисляем индекс страницы
-    const raw = Math.floor((scrollPosition + half) / visibleSize);
+    const raw = Math.floor((scrollPosition + step / 2) / step);
     const activeIndex = onLoop
       ? ((raw % cache.elements.length) + cache.elements.length) %
         cache.elements.length

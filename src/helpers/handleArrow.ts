@@ -1,4 +1,5 @@
 import pageAt from "./pageAt";
+import { loopPages } from "./loopWindow";
 import { aimOf } from "./addFunctions";
 
 type handleArrowT = {
@@ -13,6 +14,8 @@ type handleArrowT = {
   ) => void;
   duration: number;
   gap: number[];
+  /** the circle's period per axis, zero where the axis does not loop */
+  loopPeriods?: [number, number];
 };
 
 const handleArrow = ({
@@ -23,6 +26,7 @@ const handleArrow = ({
   smoothScroll,
   duration,
   gap,
+  loopPeriods,
 }: handleArrowT) => {
   // - vars -
   const width = wrapSize[0];
@@ -38,26 +42,38 @@ const handleArrow = ({
   const left = aimOf(scrollElement, "x") ?? scrollElement.scrollLeft;
 
   // - funcs -
-  const getNewPosition = (dir: "x" | "y", delta: 1 | -1) => {
-    const isX = dir === "x";
+  /*
+   * Страницы отсчитываются от начала оборота, а не от начала ленты: лента
+   * начинается там, где пришлось, и её сетка с оборотом не совпадает. Шаг по
+   * такой сетке уводил бы каждый раз в другое место — шаг вправо и шаг влево
+   * не возвращали бы туда, откуда пошли.
+   */
+  const periodOf = (dir: "x" | "y") =>
+    loopPeriods?.[dir === "x" ? 0 : 1] ?? 0;
 
-    const position = isX ? left : top;
-    const gapPerDir = isX ? gap[0] : gap[1];
+  const stepOf = (dir: "x" | "y") => {
+    const isX = dir === "x";
     const clientSize = scrollElement[isX ? "clientWidth" : "clientHeight"];
 
-    const step = clientSize + gapPerDir;
+    return loopPages(periodOf(dir), clientSize, isX ? gap[0] : gap[1]).step;
+  };
+
+  const getNewPosition = (dir: "x" | "y", delta: 1 | -1) => {
+    const period = periodOf(dir);
+    const position = (dir === "x" ? left : top) - period;
+    const step = stepOf(dir);
 
     const page = Math.floor(Math.max(0, position) / step);
     const nextPage = page + delta;
 
-    return step * nextPage;
+    return period + step * nextPage;
   };
 
   const pageOn = (dir: "x" | "y", value: number) => {
     const isX = dir === "x";
 
     return pageAt(
-      value,
+      value - periodOf(dir),
       scrollElement[isX ? "clientWidth" : "clientHeight"],
       isX ? gap[0] : gap[1],
     );

@@ -13,6 +13,7 @@ import {
 } from "./overscrollBackAnim";
 
 import CONST from "../constants";
+import { loopPages } from "./loopWindow";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
@@ -356,7 +357,11 @@ const motionHandler = (
     ? ((reach % pages) + pages) % pages
     : clampValue(reach, 0, pages - 1);
 
-  const step = el[isX ? "clientWidth" : "clientHeight"] + args.gap[wh];
+  const step = loopPages(
+    period,
+    el[isX ? "clientWidth" : "clientHeight"],
+    args.gap[wh],
+  ).step;
   if (!(step > 0)) return;
 
   /*
@@ -573,7 +578,7 @@ function handleUp(args: HandleUpT) {
       const clientSize = el[isX ? "clientWidth" : "clientHeight"];
       const period = args.loopPeriods?.[isX ? 0 : 1] ?? 0;
 
-      const step = clientSize + gapPerDir;
+      const step = loopPages(period, clientSize, gapPerDir).step;
 
       /*
        * В круге страницы отсчитываются от начала оборота, а не от начала

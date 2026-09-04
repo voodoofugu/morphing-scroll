@@ -1105,6 +1105,28 @@ scenarios.loopSliderEach = (
   </MorphScroll>
 );
 
+/*
+ * Круг со стрелками при слайдере: оборот 1400, страница 320 — нацело не
+ * делится, и шаг по сетке ленты уводил бы каждый раз в другое место.
+ */
+scenarios.loopSliderArrows = (
+  <MorphScroll
+    objects={{ size: 260, gap: 20 }}
+    size={300}
+    mode="slider"
+    loop
+    render={{ mode: "virtual" }}
+    duration={0}
+    controls={{ arrows: <b />, bar: <div className="dot" /> }}
+  >
+    {Array.from({ length: 5 }, (_, i) => (
+      <div key={`page-${i}`} className="box">
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* круг без виртуализации: копии стоят по координатам, но смонтированы все */
 scenarios.loopPlain = (
   <MorphScroll
