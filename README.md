@@ -122,7 +122,9 @@ the default value and represents a standard scrollbar.<br />
 displays distinct elements indicating the number of full scroll steps within the list.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.</em><br />
+like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
+<br />
+Both draw one element per page, so the count follows the content: a long list makes a long strip of them, and past a point it outgrows the scroll it belongs to. There is no cap on purpose — hiding pages would make the progress lie about where you are. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.</em><br />
 <br />
 <b>Example:</b>
 

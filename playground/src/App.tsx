@@ -1405,34 +1405,31 @@ function App() {
 
   const applyScroll = React.useCallback(
     (mode: "clear" | "end" | "start" | "value") => {
-      let nextValue: ScrollCommand["value"] = null;
+      /*
+       * Считаем до, а не внутри апдейтера: React зовёт его когда сам решит, и
+       * к вызову `scrollTo` значение оттуда ещё не вернулось — уезжал `null`,
+       * то есть никуда.
+       */
+      let value: ScrollCommand["value"] = null;
 
-      setScrollCommand(() => {
-        let value: ScrollCommand["value"] = null;
+      if (mode === "start") value = settings.direction === "hybrid" ? [0, 0] : 0;
+      if (mode === "end")
+        value = settings.direction === "hybrid" ? ["end", "end"] : "end";
+      if (mode === "value")
+        value =
+          settings.direction === "hybrid"
+            ? [scrollXInput, scrollYInput]
+            : settings.direction === "x"
+              ? scrollXInput
+              : scrollYInput;
 
-        if (mode === "start")
-          value = settings.direction === "hybrid" ? [0, 0] : 0;
-        if (mode === "end")
-          value = settings.direction === "hybrid" ? ["end", "end"] : "end";
-        if (mode === "value") {
-          value =
-            settings.direction === "hybrid"
-              ? [scrollXInput, scrollYInput]
-              : settings.direction === "x"
-                ? scrollXInput
-                : scrollYInput;
-        }
-
-        nextValue = value;
-
-        return { duration: scrollDuration, value };
-      });
+      setScrollCommand({ duration: scrollDuration, value });
 
       /*
        * Единственный способ съездить куда-то по кнопке — команда: она
        * выполняется всегда, в том числе на то же самое значение.
        */
-      scrollRef.current?.scrollTo(nextValue, { duration: scrollDuration });
+      scrollRef.current?.scrollTo(value, { duration: scrollDuration });
     },
     [scrollDuration, scrollXInput, scrollYInput, settings.direction],
   );

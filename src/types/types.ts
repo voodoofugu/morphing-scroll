@@ -432,6 +432,12 @@ export type MorphScroll = {
    * ### ***mode***:
    * change how the scroll behaves and what the progress element is.
    * @default "scroll"
+   * @note *the slider modes draw one element per page, so the count follows
+   * the content: a long list makes a long strip of them, and past a point it
+   * outgrows the scroll it belongs to. There is no cap on purpose — hiding
+   * pages would make the progress lie about where you are. They are for a
+   * handful of pages; for a list that keeps going, `mode="scroll"` shows the
+   * same position in one thumb*
    * @example
    * ```tsx
    * <MorphScroll {...props}
