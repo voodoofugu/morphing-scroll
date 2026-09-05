@@ -425,7 +425,7 @@ function CommandOnNone() {
   return (
     <div style={{ width: 220, height: 80 }}>
       <MorphScroll
-        objects={{ size: [178, "none"] }}
+        objects={{ size: [178, undefined] }}
         ref={ref}
         size={[198, 68]}
         wrapper={{ margin: [10, 0] }}

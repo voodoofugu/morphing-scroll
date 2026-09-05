@@ -76,7 +76,7 @@ describe("MorphScroll — objectsSize modes", () => {
 
   it("none: leaves box dimensions unset", () => {
     const { container } = render(
-      <MorphScroll objects={{ size: "none" }} size={[100, 300]}>
+      <MorphScroll objects={{}} size={[100, 300]}>
         {items(2)}
       </MorphScroll>,
     );

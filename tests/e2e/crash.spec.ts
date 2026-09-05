@@ -153,11 +153,11 @@ const EDGES: { name: string; config: Config }[] = [
     },
   },
   {
-    name: "size none",
+    name: "размер отдан CSS",
     config: {
       count: 8,
       size: 300,
-      objects: { size: "none" },
+      objects: {},
       vary: true,
       controls: { wheel: true, drag: true, bar: "@thumb" },
     },
@@ -219,7 +219,7 @@ const EDGES: { name: string; config: Config }[] = [
     config: {
       count: 12,
       size: 300,
-      objects: { size: "none" },
+      objects: {},
       vary: true,
       render: { mode: "virtual" },
       controls: { wheel: true, bar: "@thumb" },

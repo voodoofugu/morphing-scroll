@@ -24,8 +24,7 @@ type ObjectsSizeMode =
   | "pair"
   | "full"
   | "firstChild"
-  | "auto"
-  | "none";
+  | "auto";
 type ProgressElementMode = "custom" | "native" | "off";
 type RenderMode = "off" | "lazy" | "virtual";
 type ScrollMode = "scroll" | "slider" | "sliderMenu";
@@ -70,6 +69,8 @@ type Settings = {
   wrapperAlignY: Align;
   objectsAlign: Align;
   objectsOrder: "row" | "column";
+  sectionSize: number;
+  stickyGroups: boolean;
   edge: boolean;
   edgeColor: string;
   edgeSize: number;
@@ -161,6 +162,8 @@ const defaultSettings: Settings = {
   wrapperAlignY: "start",
   objectsAlign: "start",
   objectsOrder: "row",
+  sectionSize: 10,
+  stickyGroups: true,
   edge: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
@@ -464,6 +467,29 @@ function NumberField({
   );
 }
 
+function TextField({
+  label,
+  onChange,
+  placeholder,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  value: string;
+}) {
+  return (
+    <Field label={label}>
+      <input
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        type="text"
+        value={value}
+      />
+    </Field>
+  );
+}
+
 function ToggleField({
   label,
   onChange,
@@ -648,9 +674,20 @@ function buildItems(
   const each = settings.objectsSizeMode === "auto";
   const pair = eachPair(settings) as ["auto" | number, "auto" | number];
 
+  /*
+   * Группа объекта пишется в его же ключе, в скобках на конце: по этому имени
+   * работают и «липкие» заголовки, и `scrollToObject`. Здесь секции нарезаны
+   * ровными кусками — этого хватает, чтобы увидеть, как оно себя ведёт.
+   */
+  const section = (index: number) =>
+    settings.sectionSize > 0
+      ? `s${Math.floor(index / settings.sectionSize) + 1}`
+      : null;
+
   return order.map((id) => {
     const index = id;
     const number = index + 1;
+    const group = section(index);
     const tone = index % 6;
     const isTall = settings.variableItems && index % 7 === 0;
     const isWide = settings.variableItems && index % 11 === 0;
@@ -671,7 +708,7 @@ function buildItems(
           dragging === id ? "is-dragging" : "",
         ].join(" ")}
         data-item={id}
-        key={`item-${number}`}
+        key={group ? `item-${number}[${group}]` : `item-${number}`}
         onPointerDown={onGrab ? (event) => onGrab(id, event) : undefined}
         style={eachSize}
         {...(onGrab ? { "ms-custom-drag": "" } : {})}
@@ -679,7 +716,12 @@ function buildItems(
         <header>
           <b>{number.toString().padStart(2, "0")}</b>
           <span>
-            {index % 3 === 0 ? "content" : index % 3 === 1 ? "media" : "task"}
+            {group ??
+              (index % 3 === 0
+                ? "content"
+                : index % 3 === 1
+                  ? "media"
+                  : "task")}
           </span>
         </header>
         <p>
@@ -873,6 +915,8 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     lines: numberOrUndefined(settings.lines),
     align: settings.objectsAlign,
     order: settings.objectsOrder,
+    groups:
+      settings.stickyGroups && settings.sectionSize > 0 ? "sticky" : undefined,
     empty: emptyObjects,
   };
 
@@ -1104,6 +1148,21 @@ function App() {
     settings.keys && settings.keysMode === "focus" ? "focus" : "step",
   );
 
+  /* имена секций — те же, что уходят в ключи объектов */
+  const sectionNames = React.useMemo(
+    () =>
+      settings.sectionSize > 0
+        ? Array.from(
+            { length: Math.ceil(settings.itemCount / settings.sectionSize) },
+            (_, i) => `s${i + 1}`,
+          ).slice(0, 6)
+        : [],
+    [settings.itemCount, settings.sectionSize],
+  );
+
+  const [objectTarget, setObjectTarget] = React.useState("s3");
+  const [objectAlign, setObjectAlign] = React.useState<Align>("start");
+
   const [scrollCommand, setScrollCommand] = React.useState<ScrollCommand>({
     duration: 220,
     value: null,
@@ -1332,6 +1391,10 @@ function App() {
         lines: numberOrUndefined(settings.lines),
         align: settings.objectsAlign,
         order: settings.objectsOrder,
+        groups:
+          settings.stickyGroups && settings.sectionSize > 0
+            ? "sticky"
+            : undefined,
         empty: emptyObjects,
       },
       onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
@@ -1508,6 +1571,27 @@ function App() {
               value={settings.interactiveItems}
             />
           </div>
+          <div className="two-col">
+            <NumberField
+              label="section size"
+              max={200}
+              min={0}
+              onChange={(value) => update("sectionSize", value)}
+              value={settings.sectionSize}
+            />
+            <ToggleField
+              label="sticky headings"
+              onChange={(value) => update("stickyGroups", value)}
+              value={settings.stickyGroups}
+            />
+          </div>
+          <p className="sub-note">
+            sections are cut into equal runs and written into each child&apos;s
+            own <code>key</code>, in brackets: <code>item-12[s2]</code>. That is
+            the name <code>scrollToObject</code> takes, and what{" "}
+            <code>objects.groups: &quot;sticky&quot;</code> holds in view. 0
+            turns them off.
+          </p>
           <ToggleField
             label="drag to reorder"
             onChange={(value) => update("reorder", value)}
@@ -1652,6 +1736,67 @@ function App() {
             </p>
           </SubGroup>
 
+          <SubGroup label="scrollToObject (ref)">
+            <TextField
+              label="target"
+              onChange={setObjectTarget}
+              placeholder="12, item-12 or s3"
+              value={objectTarget}
+            />
+            <SegmentedField
+              label="align"
+              onChange={setObjectAlign}
+              options={alignOptions}
+              value={objectAlign}
+            />
+            <div className="scroll-command-row">
+              <button
+                onClick={() => {
+                  /*
+                   * Целью может быть и место в списке, и ключ, и имя группы —
+                   * число отличаем от имени здесь, а не заставляем это делать
+                   * библиотеку.
+                   */
+                  const asNumber = Number(objectTarget);
+                  const target =
+                    objectTarget.trim() !== "" && !Number.isNaN(asNumber)
+                      ? asNumber
+                      : objectTarget;
+
+                  scrollRef.current?.scrollToObject(target, {
+                    align: objectAlign,
+                    duration: scrollDuration,
+                    reason: "playground",
+                  });
+                }}
+                type="button"
+              >
+                go
+              </button>
+              {sectionNames.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => {
+                    setObjectTarget(name);
+                    scrollRef.current?.scrollToObject(name, {
+                      align: objectAlign,
+                      duration: scrollDuration,
+                      reason: "playground",
+                    });
+                  }}
+                  type="button"
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <p className="sub-note">
+              a place in the list, a child&apos;s <code>key</code>, or the name
+              of a section — sections are written into the keys themselves, in
+              brackets: <code>item-12[s2]</code>
+            </p>
+          </SubGroup>
+
           <SubGroup
             control={
               <ToggleField
@@ -1721,7 +1866,6 @@ function App() {
                 "full",
                 "firstChild",
                 "auto",
-                "none",
               ] as const
             }
             value={settings.objectsSizeMode}

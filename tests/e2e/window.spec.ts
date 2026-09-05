@@ -71,15 +71,15 @@ const cases: { name: string; objects: Config; extra?: Config }[] = [
   },
   {
     name: "кладка",
-    objects: { layout: "masonry", size: 60, gap: 10, lines: 3 },
+    objects: { size: [60, "auto"], gap: 10, lines: 3 },
   },
   {
     name: "поток",
-    objects: { layout: "flow", size: 60, gap: 10, lines: 3 },
+    objects: { size: ["auto", 60], gap: 10, lines: 3 },
   },
   {
     name: "заполнение",
-    objects: { layout: "fill", gap: 10 },
+    objects: { size: "auto", gap: 10 },
   },
   {
     name: "круг",

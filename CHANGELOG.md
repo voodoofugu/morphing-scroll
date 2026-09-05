@@ -273,6 +273,9 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Added
 
+- **`dir`** — which way the content reads: `"auto"` (the default) takes it from
+  the page once on mount, `"ltr"` or `"rtl"` says it outright, which is what a
+  widget reading the other way round from the page it sits on needs.
 - `loop` — the content runs in a circle: the same children repeat forever in
   both directions, with no first object and no last, and no seam to see. The
   strip does not grow, because a scroll cannot: browsers cut it off after tens
@@ -429,6 +432,9 @@ themselves are no longer transformed and can be positioned from CSS.
   which group you are looking at; it carries `ms-sticky` while it is held.
   A group is named in the child's own `key`, in brackets at the end, which is
   the same name `scrollToObject` takes.
+- `objects.groups: "sticky"` is refused under `loop`, and says so: the content
+  repeats, so a group has as many first objects as there are copies and no one
+  of them is the heading.
 - **`objects.semantics: "list"`** — marks the wrapper as a list and every
   object as one of its items, numbered. With `render` only a window of them is
   in the document, so without a count a screen reader announces a list of a
@@ -448,6 +454,19 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Changed
 
+- `objects.layout` is gone; the sizes say it on their own, which is what they
+  did before it existed. Four names that mostly changed nothing — a grid was
+  already a grid once both sides were numbers — and the one thing naming it
+  bought, leaving out the side it measures, cost more to explain than
+  `[90, "auto"]` costs to write.
+- `objects.size: "none"` is gone too. Leaving the side out means the same
+  thing, and in a pair it can now simply be left out: `[100, undefined]`. Two
+  ways of saying one thing had to be told apart every time they were read.
+- `objects.semantics` is gone, and the list markup follows the window instead.
+  A window is what hides the length of the list from a screen reader, so a
+  window is what puts it back — asking permission to repair what the
+  optimisation broke was the wrong shape. Sliders are still never called
+  lists: their dots already say where you are.
 - `arrows.reserveSpace` is off by default, where `contentReduce` was on. The
   arrows lie over the content until you ask for the strip, so the setting
   turns something on instead of cancelling it. A 2.x scroll that relied on
@@ -552,6 +571,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- `objects.lines` was ignored when a side of `objects.size` was left to CSS.
+  The count is the one thing that can end a line when the width is not ours to
+  know, and it was exactly there that it was dropped — a list asked for three
+  columns stood in one. Unsized lines are laid as a grid now, tracks counted
+  rather than measured.
 - `loop` built the circle before the content had been measured. A period is
   the length of one copy plus the gap, and with nothing measured yet that came
   out as the gap alone — so the strip needed as many copies as gaps fit in the

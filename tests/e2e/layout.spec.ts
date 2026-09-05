@@ -294,3 +294,79 @@ test.describe("content visibility without a render mode", () => {
     expect(values[11]).toBe(1);
   });
 });
+
+/*
+ * Размер стороны можно не называть вовсе — тогда её решает CSS. Оборвать
+ * линию по ширине в этом случае нечем, и обрывает её счёт: `lines` считает
+ * штуками, а не пикселями, и это ровно тот случай, ради которого его и
+ * называют.
+ */
+test.describe("линии без заданного размера", () => {
+  const at = (page: import("@playwright/test").Page) =>
+    page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = view.getBoundingClientRect();
+
+      return [...document.querySelectorAll<HTMLElement>(".ms-object-box")].map(
+        (el) => {
+          const r = el.getBoundingClientRect();
+
+          return {
+            x: Math.round(r.left - box.left),
+            y: Math.round(r.top - box.top),
+          };
+        },
+      );
+    });
+
+  const load = async (
+    page: import("@playwright/test").Page,
+    objects: Record<string, unknown>,
+  ) => {
+    const props = { count: 6, vary: true, size: 300, objects };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+    await page.waitForTimeout(300);
+  };
+
+  test("без счёта объекты идут в одну колонку", async ({ page }) => {
+    await load(page, { gap: 10 });
+
+    const boxes = await at(page);
+
+    expect(new Set(boxes.map((one) => one.x)).size).toBe(1);
+    expect(new Set(boxes.map((one) => one.y)).size).toBe(6);
+  });
+
+  test("названный счёт разводит их по линиям", async ({ page }) => {
+    await load(page, { gap: 10, lines: 3 });
+
+    const boxes = await at(page);
+    const columns = [...new Set(boxes.map((one) => one.x))].sort(
+      (a, b) => a - b,
+    );
+    const rows = [...new Set(boxes.map((one) => one.y))].sort((a, b) => a - b);
+
+    expect(columns).toHaveLength(3);
+    expect(rows).toHaveLength(2);
+
+    // первая тройка — первая строка, вторая — вторая
+    expect(boxes.slice(0, 3).every((one) => one.y === rows[0])).toBe(true);
+    expect(boxes.slice(3).every((one) => one.y === rows[1])).toBe(true);
+  });
+
+  /* и ширина у каждой линии своя: её задаёт содержимое, а не число */
+  test("ширина колонок остаётся содержимого", async ({ page }) => {
+    await load(page, { gap: 10, lines: 3 });
+
+    const widths = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".ms-object-box")].map((el) =>
+        Math.round(el.getBoundingClientRect().width),
+      ),
+    );
+
+    expect(new Set(widths).size).toBeGreaterThan(1);
+  });
+});

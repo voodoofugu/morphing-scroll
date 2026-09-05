@@ -43,4 +43,37 @@ describe("MorphScroll — server rendering", () => {
     const messages = errors.mock.calls.map((c) => String(c[0]));
     expect(messages.filter((m) => /hydrat|did not match|mismatch/i.test(m))).toEqual([]);
   });
+
+  it("hydrates without a mismatch when the client turns out to be touch", () => {
+    // the server has no window, so it cannot know; the client does, and if
+    // anything on the tree depends on the answer the two disagree
+    const html = renderToString(<Tree />);
+
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    document.body.appendChild(host);
+
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes("coarse"),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    act(() => {
+      hydrateRoot(host, <Tree />);
+    });
+
+    const said = errors.mock.calls
+      .map((c) => c.map(String).join(" "))
+      .filter((m) => /hydrat|did not match|mismatch/i.test(m));
+
+    vi.unstubAllGlobals();
+    expect(said).toEqual([]);
+  });
 });

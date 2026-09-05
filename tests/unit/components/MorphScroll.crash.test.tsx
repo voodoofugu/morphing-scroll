@@ -209,7 +209,7 @@ const combos = (): Array<[string, Partial<MorphScrollProps>]> => {
 
 /** a combination the library is entitled to complain about */
 const EXPECTED_COMPLAINT =
-  /needs a known objects\.size|pages need one size|needs objects\.lines|pull against each other|prop "controls"|objects\.direction|two children with the same key/;
+  /needs a known objects\.size|pages need one size|needs objects\.lines|pull against each other|prop "controls"|objects\.direction|two children with the same key|groups: "sticky" and loop/;
 
 describe("MorphScroll — crash pass over the prop surface", () => {
   it("survives every prop value and awkward pair", () => {
@@ -465,20 +465,20 @@ describe("MorphScroll — findings", () => {
   it("complains about a bad combination once, not on every render", () => {
     const spy = quiet();
     const { rerender } = render(
-      <MorphScroll {...COLUMN} objects={{ size: "none" }} render="virtual" />,
+      <MorphScroll {...COLUMN} objects={{}} render="virtual" />,
     );
     for (let i = 0; i < 20; i++)
       rerender(
         <MorphScroll
           {...COLUMN}
-          objects={{ size: "none" }}
+          objects={{}}
           render="virtual"
           className={`n${i}`}
         />,
       );
 
     const complaints = errorsOf(spy).filter((m) =>
-      /needs a known objects\.size/.test(m),
+      /needs an objects\.size it can count/.test(m),
     );
     spy.mockRestore();
 
@@ -1168,7 +1168,7 @@ describe("MorphScroll — second pass", () => {
  * to the objects with `"auto"` says it in sizes; `objects.layout` says it in
  * words. Naming it has to land in exactly the same place.
  */
-describe("MorphScroll — objects.layout", () => {
+describe("MorphScroll — the arrangement follows the sizes", () => {
   const varied = (n: number) =>
     Array.from({ length: n }, (_, i) => (
       <div key={`card-${i}`} style={{ height: 40 + (i % 3) * 20 }}>
@@ -1189,56 +1189,23 @@ describe("MorphScroll — objects.layout", () => {
     return out;
   };
 
-  it("naming the layout lands where the sizes would have", () => {
+  /*
+   * Какая сторона отдана объекту — то и решает. Три расстановки, три пары
+   * размеров, и сказать это как-то ещё нельзя: отдельного слова под раскладку
+   * нет, потому что размеры его уже произносят.
+   */
+  it("along the scroll is a masonry, across it a flow, both a fill", () => {
     const spy = quiet();
 
-    const bySize = boxes({ objects: { size: [90, "auto"], gap: 10 } });
-    const byName = boxes({
-      objects: { layout: "masonry", size: [90, "auto"], gap: 10 },
-    });
+    const masonry = boxes({ objects: { size: [90, "auto"], gap: 10 } });
+    const flow = boxes({ objects: { size: ["auto", 40], gap: 10 } });
+    const fill = boxes({ objects: { size: "auto", gap: 10 } });
 
     spy.mockRestore();
-    expect(byName).toEqual(bySize);
-  });
 
-  it("takes the side it measures, so one number is enough", () => {
-    const spy = quiet();
-
-    const long = boxes({ objects: { layout: "masonry", size: [90, "auto"], gap: 10 } });
-    const short = boxes({ objects: { layout: "masonry", size: 90, gap: 10 } });
-
-    spy.mockRestore();
-    expect(short).toEqual(long);
-  });
-
-  it("flow takes the other side", () => {
-    const spy = quiet();
-
-    const long = boxes({ objects: { layout: "flow", size: ["auto", 40], gap: 10 } });
-    const short = boxes({ objects: { layout: "flow", size: 40, gap: 10 } });
-
-    spy.mockRestore();
-    expect(short).toEqual(long);
-  });
-
-  it("fill needs no size at all", () => {
-    const spy = quiet();
-
-    const bySize = boxes({ objects: { size: "auto", gap: 10 } });
-    const byName = boxes({ objects: { layout: "fill", gap: 10 } });
-
-    spy.mockRestore();
-    expect(byName).toEqual(bySize);
-  });
-
-  it("says so when a grid is asked to measure", () => {
-    const spy = quiet();
-    boxes({ objects: { layout: "grid", size: [90, "auto"] } });
-
-    const said = errorsOf(spy).some((m) => /grid/.test(m));
-    spy.mockRestore();
-
-    expect(said).toBe(true);
+    expect(masonry).not.toEqual(flow);
+    expect(flow).not.toEqual(fill);
+    expect(masonry).not.toEqual(fill);
   });
 
   it("leaves a plain grid alone", () => {
@@ -1249,7 +1216,66 @@ describe("MorphScroll — objects.layout", () => {
     spy.mockRestore();
 
     expect(complaints).toEqual([]);
-    expect(out.length).toBe(9);
+    expect(out).toHaveLength(9);
+  });
+});
+
+/*
+ * Направление можно назвать пропом, а не только унаследовать. Виджет,
+ * читающийся не так, как страница вокруг, — обычное дело, и нюхать за него
+ * окружение неправильно.
+ */
+describe("MorphScroll — dir", () => {
+  const wrapperOf = (props: Partial<MorphScrollProps>, host?: HTMLElement) => {
+    const { container, unmount } = render(
+      <MorphScroll size={[300, 300]} objects={{ size: 60 }} {...(props as MorphScrollProps)}>
+        {items(9)}
+      </MorphScroll>,
+      host ? { container: host } : undefined,
+    );
+    const style =
+      container.querySelector<HTMLElement>(".ms-objects-wrapper")!.getAttribute("style") ?? "";
+
+    unmount();
+    return style;
+  };
+
+  it("named rtl reads right to left on a plain page", () => {
+    const spy = quiet();
+    const style = wrapperOf({ dir: "rtl" });
+    spy.mockRestore();
+
+    expect(style).toMatch(/direction:\s*rtl/);
+  });
+
+  it("named ltr keeps its own direction inside an rtl page", () => {
+    const spy = quiet();
+
+    const host = document.createElement("div");
+    host.style.direction = "rtl";
+    document.body.appendChild(host);
+
+    const style = wrapperOf({ dir: "ltr" }, host);
+
+    host.remove();
+    spy.mockRestore();
+
+    expect(style).toMatch(/direction:\s*ltr/);
+  });
+
+  it("left alone, it takes the page's word for it", () => {
+    const spy = quiet();
+
+    const host = document.createElement("div");
+    host.style.direction = "rtl";
+    document.body.appendChild(host);
+
+    const inherited = wrapperOf({}, host);
+
+    host.remove();
+    spy.mockRestore();
+
+    expect(inherited).toMatch(/direction:\s*rtl/);
   });
 });
 
@@ -1426,13 +1452,12 @@ describe("MorphScroll — a gesture inside a nested scroll", () => {
  * reader announces what is there, so without a count it would report a list
  * of a dozen and give no way to tell where in the real list you are.
  */
-describe("MorphScroll — objects.semantics", () => {
+describe("MorphScroll — the list markup follows the window", () => {
   const boxes = (props: Partial<MorphScrollProps>) => {
     const { container, unmount } = render(
       <MorphScroll
         size={[100, 300]}
         objects={{ size: 100 }}
-        render="virtual"
         {...(props as MorphScrollProps)}
       >
         {items(40)}
@@ -1451,9 +1476,14 @@ describe("MorphScroll — objects.semantics", () => {
     return out;
   };
 
-  it("says how long the list really is, and where each object sits in it", () => {
+  /*
+   * Окно скрывает длину списка от скринридера — оно же обязано её и вернуть.
+   * Просить об этом отдельным пропом не за что: чинится то, что сломала сама
+   * оптимизация.
+   */
+  it("says how long the list really is once only a window of it is drawn", () => {
     const spy = quiet();
-    const out = boxes({ objects: { size: 100, semantics: "list" } });
+    const out = boxes({ render: "virtual" });
     spy.mockRestore();
 
     expect(out.wrapper).toBe("list");
@@ -1464,7 +1494,7 @@ describe("MorphScroll — objects.semantics", () => {
     expect(out.drawn).toBeLessThan(40);
   });
 
-  it("claims nothing when it was not asked to", () => {
+  it("claims nothing while every object is in the document", () => {
     const spy = quiet();
     const out = boxes({});
     spy.mockRestore();
@@ -1472,6 +1502,16 @@ describe("MorphScroll — objects.semantics", () => {
     expect(out.wrapper).toBeNull();
     expect(out.role).toBeNull();
     expect(out.size).toBeNull();
+  });
+
+  /* слайдер — не список: где ты в нём, говорят точки прогресса */
+  it("claims nothing for a slider, windowed or not", () => {
+    const spy = quiet();
+    const out = boxes({ mode: "slider", render: "virtual" });
+    spy.mockRestore();
+
+    expect(out.wrapper).toBeNull();
+    expect(out.role).toBeNull();
   });
 });
 
@@ -1571,6 +1611,74 @@ describe("MorphScroll — sticky groups", () => {
 
     expect(held?.key).toBe("a-0[a]");
     expect(held?.top).toBe(300);
+  });
+
+  it("holds the heading on the scrolling axis when both axes move", () => {
+    const spy = quiet();
+    const u = render(
+      <MorphScroll
+        size={[100, 300]}
+        direction="hybrid"
+        objects={{ size: 100, lines: 2, groups: "sticky" }}
+      >
+        {["a", "b", "c"].flatMap((name) =>
+          Array.from({ length: 4 }, (_, i) => (
+            <div key={`${name}-${i}[${name}]`}>
+              {name} {i}
+            </div>
+          )),
+        )}
+      </MorphScroll>,
+    );
+    const el = u.container.querySelector<HTMLElement>(".ms-viewport")!;
+    // the stub has to let the position reach the last group
+    stubLayout(el, {
+      clientWidth: 100,
+      clientHeight: 300,
+      scrollWidth: 200,
+      scrollHeight: 900,
+    });
+
+    act(() => {
+      fireEvent.scroll(el, { target: { scrollTop: 500 } });
+      vi.advanceTimersByTime(60);
+    });
+
+    const held = u.container
+      .querySelector(".ms-sticky")
+      ?.getAttribute("ms-wrap-id");
+    u.unmount();
+    spy.mockRestore();
+
+    // two to a row, so the last group starts five hundred down
+    expect(held).toBe("c-0[c]");
+  });
+
+  it("says so rather than doing nothing when the content runs in a circle", () => {
+    const spy = quiet();
+    const u = render(
+      <MorphScroll
+        size={[100, 300]}
+        loop
+        objects={{ size: 100, groups: "sticky" }}
+      >
+        {["a", "b", "c"].flatMap((name) =>
+          Array.from({ length: 4 }, (_, i) => (
+            <div key={`${name}-${i}[${name}]`}>
+              {name} {i}
+            </div>
+          )),
+        )}
+      </MorphScroll>,
+    );
+
+    const said = errorsOf(spy).some((m) => /sticky.*loop|loop.*sticky/i.test(m));
+    const held = u.container.querySelector(".ms-sticky");
+    u.unmount();
+    spy.mockRestore();
+
+    expect(said).toBe(true);
+    expect(held).toBeNull();
   });
 
   it("holds nothing when it was not asked to", () => {

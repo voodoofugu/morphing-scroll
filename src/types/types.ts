@@ -6,10 +6,7 @@ type Edges = [top: number, right: number, bottom: number, left: number];
 type SpacingValue = number | Vec2 | Edges;
 type Align = "start" | "center" | "end";
 type MinSize = number | "full";
-type ObjectSize = number | "full" | "firstChild" | "auto" | "none";
-
-/** how the objects are arranged once their sizes are known */
-type ObjectsLayout = "grid" | "masonry" | "flow" | "fill";
+type ObjectSize = number | "full" | "firstChild" | "auto";
 
 /** the short form of `controls` */
 export type ControlName = "wheel" | "drag" | "arrows" | "bar" | "keys";
@@ -119,43 +116,18 @@ export type NavigateEvent = {
 /** the object form of `objects` */
 export type ObjectsConfig = {
   /**
-   * how the objects are arranged. Leave it out and the sizes say it: a side
-   * handed to the objects with `"auto"` is the side the layout measures
-   */
-  layout?: ObjectsLayout;
-  /**
    * one value for both sides, or a pair. `"auto"` hands that side to the
-   * object itself. In a pair `undefined` means the same as `"none"`: there is
-   * no empty slot to leave, so a computed value has to be able to say it
+   * object itself; leaving a side out hands it to your own CSS
    */
   size?: ObjectSize | Pair<ObjectSize | undefined>;
   gap?: number | Vec2;
   /** how many lines the objects run in, across the scroll */
   lines?: number;
   /**
-   * describe the objects to assistive technology.
-   *
-   * `"list"` marks the wrapper as a list and every object as one of its
-   * items, numbered. It matters most with `render`: only a window of the
-   * objects is in the document, so a screen reader would otherwise announce
-   * a list of a dozen and give no way to tell where in the real list you are.
-   *
-   * Left out, nothing is claimed: the objects may be cards, slides or a menu,
-   * and calling those a list would describe them wrongly.
-   */
-  semantics?: "list";
-  /**
-   * what a group of objects does. A group is named in the child's own `key`,
-   * in brackets at the end: `"post-4[news]"` belongs to `news`.
-   *
-   * `"sticky"` keeps the first object of the group in view for as long as any
-   * of its group is: it stays against the leading edge and is pushed out by
-   * the group that follows. That first object is the group's heading, so it
-   * always says which group you are looking at. It carries `ms-sticky` while
-   * it is held there.
-   *
-   * The same names reach `scrollToObject`, which goes to a group's first
-   * object.
+   * a group is named in the child's own `key`, in brackets at the end:
+   * `"post-4[news]"`. `"sticky"` holds the group's first object at the
+   * leading edge until the next group pushes it out; it carries `ms-sticky`
+   * while held. The same names reach `scrollToObject`
    */
   groups?: "sticky";
   align?: Align;
@@ -342,6 +314,25 @@ export type MorphScroll = {
    */
   direction?: "x" | "y" | "hybrid";
   /**
+   * which way the content reads.
+   * @default "auto"
+   * @description
+   * `"auto"` takes it from the page, once, on mount. Naming it says it
+   * outright, for a widget that reads the other way round from the page it
+   * sits on.
+   *
+   * The scroll counts from the left whatever this says — that is where its
+   * own geometry is, and an `rtl` page would otherwise quietly invert the
+   * arithmetic. What changes is the content: the direction is handed back to
+   * it, and the horizontal axis is mirrored wherever it is not the one being
+   * scrolled, so a vertical grid lays its columns from the right and its bar
+   * stands on the left.
+   * @note *a horizontal scroll's own axis is not mirrored: its zero would
+   * have to move to the right edge, which is a different coordinate system
+   * rather than a different layout*
+   */
+  dir?: "auto" | "ltr" | "rtl";
+  /**
    * where the scroll opens.
    * @description
    * Applied once, without animation, as soon as the content can hold it — a
@@ -419,34 +410,28 @@ export type MorphScroll = {
   /**
    * everything about the objects themselves: how big they are, how they sit
    * next to each other, and what to do with the empty ones.
-   * @default { size: "none", order: "row" }
+   * @default { order: "row" }
    * @description
-   * - `layout`: *`"grid"`, `"masonry"`, `"flow"` or `"fill"`. Left out, the
-   * sizes say it: the side handed over with `"auto"` is the side the layout
-   * measures*
    * - `size`: *a number, a pair for both axes, `"full"` for the size of the
-   * scroll, `"firstChild"` to measure the first one, `"auto"` to hand a side
-   * to the object itself, or `"none"` to leave it to your own CSS*
+   * scroll, `"firstChild"` to measure the first one, or `"auto"` to hand a
+   * side to the object itself. A side left out is left to your own CSS*
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `lines`: *how many lines the objects run in, across the scroll*
    * - `align`: *where a short last line sits*
    * - `order`: *which way the list runs through the lines — `"row"` fills a
    * row and moves down, `"column"` fills a column and moves right*
-   * - `semantics`: *`"list"` marks the objects up as a list for assistive
-   * technology*
    * - `groups`: *`"sticky"` holds a group's first object in view while any of
    * its group is; groups are named in the child's own `key`, in brackets at
    * the end*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
    * replaces them with a placeholder*
-   * @note *naming the layout is enough on its own: it takes the side it
-   * measures, so one number covers the other — and a fill needs no size at
-   * all. A `"grid"` cannot measure, so it is the one layout that wants both
-   * sides given*
+   * @note *which side you hand over with `"auto"` is what arranges the
+   * objects: along the scroll is a masonry, across it a flow, both a fill*
    * @note *the sizes are what `render` counts with, and `"auto"` counts as
-   * one: the library measures it and then knows it*
+   * one: the library measures it and then knows it. A side left to CSS is the
+   * one thing it cannot count*
    * @note *pages need one size for all, so `"auto"` is for `mode="scroll"`*
-   * @see the README for how each layout arranges its objects
+   * @see the README for how each arrangement places its objects
    */
   objects?: ObjectsConfig;
   /**
@@ -463,12 +448,16 @@ export type MorphScroll = {
   /**
    * everything that can move the scroll.
    * @description
+   * @default { wheel: true, keys: true }
    * - `wheel`: *allow to scroll by mouse wheel*
    * - `drag`: *allow to scroll by dragging the content*
    * - `keys`: *arrow keys move the scroll while it has focus*
    * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*
    * @note
+   * - *`wheel` and `keys` are on unless you say otherwise: a scroll nothing
+   * can move is almost never what was meant. Switch one off by name —
+   * `{ keys: false }`*
    * - *a name, or a list of names, switches those on: `"wheel"` is the same
    * as `{ wheel: true }`*
    * - *`bar` renders as a thumb or as a slider depending on `mode`*
@@ -508,7 +497,8 @@ export type MorphScroll = {
    * dropped — every object stays mounted and simply knows how much of it
    * shows*
    * @note
-   * *`render` is not compatible with `objectsSize: "none"`*
+   * *`render` places objects by counting, so it needs an `objects.size` it can
+   * count: a side left to your own CSS leaves nothing to count with*
    */
   render?:
     | "lazy"

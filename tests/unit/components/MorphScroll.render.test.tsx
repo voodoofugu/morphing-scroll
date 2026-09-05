@@ -126,10 +126,10 @@ describe("MorphScroll — render: virtual / lazy", () => {
     expect(tagged).toContain("item-0");
   });
 
-  it("logs an error when render is combined with objects.size='none'", () => {
+  it("logs an error when render is combined with a size left to CSS", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
-      <MorphScroll objects={{ size: "none" }} size={SIZE} render="virtual">
+      <MorphScroll objects={{ gap: 10 }} size={SIZE} render="virtual">
         {items(3)}
       </MorphScroll>,
     );
@@ -441,8 +441,8 @@ describe("MorphScroll — objectsSize: firstChild with render", () => {
 
 /*
  * `render` расставляет объекты по счёту, а считать можно только известный
- * размер. Незаданный размер значит ровно то же, что `"none"`, — и молчать об
- * этом нельзя: разница только в том, что одно написано словом.
+ * размер. Сторона, отданная CSS, — единственная, которую посчитать нечем, и
+ * молчать об этом нельзя.
  */
 describe("MorphScroll — render без размера объекта", () => {
   const items = () =>
@@ -461,10 +461,6 @@ describe("MorphScroll — render без размера объекта", () => {
     return said;
   };
 
-  it('говорит про "none"', () => {
-    expect(warnsFor({ size: "none" })).toBe(true);
-  });
-
   it("говорит и про размер, которого нет вовсе", () => {
     expect(warnsFor(undefined)).toBe(true);
     expect(warnsFor({ gap: 10 })).toBe(true);
@@ -476,7 +472,7 @@ describe("MorphScroll — render без размера объекта", () => {
   });
 
   it("ловит пару, где без размера одна ось", () => {
-    expect(warnsFor({ size: [100, "none"] })).toBe(true);
+    expect(warnsFor({ size: [100, undefined] })).toBe(true);
   });
 });
 
@@ -502,12 +498,11 @@ describe("MorphScroll — пустая ось в паре размеров", () 
     return style;
   };
 
-  it("undefined на второй оси читается как none", () => {
-    expect(wrapperStyle([100, undefined])).toBe(wrapperStyle([100, "none"]));
-  });
-
-  it("и на первой", () => {
-    expect(wrapperStyle([undefined, 100])).toBe(wrapperStyle(["none", 100]));
+  it("незаданная сторона не отменяет заданную", () => {
+    // названную сторону обёртка берёт себе, оставшуюся отдаёт содержимому
+    expect(wrapperStyle([100, undefined])).toContain("width: 100px");
+    expect(wrapperStyle([100, undefined])).toContain("height: fit-content");
+    expect(wrapperStyle([undefined, 100])).toContain("width: fit-content");
   });
 
   it("заданная ось при этом не теряется", () => {

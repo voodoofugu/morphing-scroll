@@ -172,6 +172,41 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <h2></h2>
 
+<details><summary><b><code>dir</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+dir: "rtl"; // or "ltr" | "auto"
+```
+
+<b>Default:</b><br />
+"auto"<br />
+<br />
+<b>Description:</b><em><br />
+which way the content reads.<br />
+<br />
+<code>"auto"</code> takes it from the page, once, on mount. Naming it says it outright, which is what a widget reading the other way round from the page it sits on needs.<br />
+<br />
+The scroll counts from the left whatever this says — that is where its own geometry is, and an <code>rtl</code> page would otherwise quietly invert the arithmetic. What changes is the content: the direction is handed back to it, and the horizontal axis is mirrored wherever it is not the one being scrolled, so a vertical grid lays its columns from the right and its bar stands on the left.<br />
+<br />
+✦ Note:<br />
+
+<ul>
+  <li>a horizontal scroll&apos;s own axis is not mirrored: its zero would have to move to the right edge, which is a different coordinate system rather than a different layout.</li>
+</ul>
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} dir="rtl">
+  {children}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+
 <details><summary><b><code>initialPosition</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
@@ -273,6 +308,7 @@ the list is repeated, not referenced — a few copies of every child are mounted
   <li><code>controls.bar: true</code> is talked out of: the browser draws its own bar over the strip, and the strip is a few copies of the content. Pass an element instead and the bar shows the turn</li>
   <li><code>scrollTo</code> takes a number as a place within the turn and goes there the short way round, whichever side that is</li>
   <li><code>stickToEnd</code> is refused — it drives to an end the circle does not have</li>
+  <li><code>objects.groups: "sticky"</code> is refused too: the content repeats, so a group has as many first objects as there are copies and there is no one heading to hold</li>
 </ul>
 <b>Example:</b>
 
@@ -606,12 +642,12 @@ objects: { size: 100, gap: 10 }
 
 ```tsx
 objects: {
-  layout: "masonry",
   size: [150, "auto"],
   gap: [10, 20],
   lines: 3,
   align: "center",
   order: "column",
+  groups: "sticky",
   empty: "clear",
 }
 ```
@@ -620,7 +656,7 @@ objects: {
 </ul>
 
 <b>Default:</b><br />
-{ size: "none", direction: "row" }<br />
+{ order: "row" }<br />
 <br />
 <b>Description:</b><em><br />
 everything about the objects themselves: how big they are, how they sit next to each other, and what to do with the ones that render nothing.<br />
@@ -628,59 +664,15 @@ everything about the objects themselves: how big they are, how they sit next to 
 Each object is wrapped in an <code>.ms-object-box</code> of its own — this is what decides the size of that box and how the boxes are arranged.<br />
 </em><br />
 
-<details><summary><code><b>layout</b></code></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-layout: "masonry"; // or "grid" | "flow" | "fill"
-```
-
-<b>Default:</b><br />
-"grid", unless a side of <code>size</code> is <b>"auto"</b><br />
-<br />
-<b>Description:</b><em><br />
-how the objects are arranged.<br />
-<br />
-The layout and the sizes say the same thing from two ends. <b>"auto"</b> hands a side to the object itself, and which side that is settles the arrangement, so a pair of sizes has already said it: <code>[90, "auto"]</code> on a vertical scroll is a masonry. Naming the layout says it in words instead — and then it decides, which means the side it measures needs no size at all:<br />
-
-<ul>
-  <li><code><b>"grid"</b></code>: every object the same size, laid in lines. Nothing is measured, so <b>"auto"</b> has no place here and the library says so.</li><br />
-  <li><code><b>"masonry"</b></code>: the side along the scroll is the object's own, <code>size</code> gives the other. Each object goes into the shortest line at that moment, so the far edge stays even.</li><br />
-  <li><code><b>"flow"</b></code>: the side across the scroll is the object's own, <code>size</code> gives the other. Objects follow one another until the room, or <code>lines</code>, ends the line.</li><br />
-  <li><code><b>"fill"</b></code>: both sides are the objects' own, so <code>size</code> is not needed at all. Every object takes the highest place it fits into and nothing hangs under a short neighbour — order gives way to the fit.</li>
-</ul>
-
-Which is why one number is enough once the layout is named: it goes to the side the layout does not take.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-// a masonry of cards: 90 wide, as tall as each card turns out to be
-<MorphScroll {...props} objects={{ layout: "masonry", size: 90, gap: 10 }}>
-  {cards}
-</MorphScroll>
-```
-
-```tsx
-// the same thing said in sizes
-<MorphScroll {...props} objects={{ size: [90, "auto"], gap: 10 }}>
-  {cards}
-</MorphScroll>
-```
-
-</div></ul></details>
-
-<br />
-
 <details><summary><code><b>size</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-size: 100; // or [100, 70] | "full" | "firstChild" | "auto" | "none"
+size: 100; // or [100, 70] | "full" | "firstChild" | "auto"
 ```
 
 <b>Default:</b><br />
-"none"<br />
+the sizing is left to your CSS<br />
 <br />
 <b>Description:</b><em><br />
 defines the <b>[width, height]</b> of cells for each of your objects.<br />
@@ -702,13 +694,15 @@ every object gets the size it asks for, and the library measures it. Which side 
 <br />
 Measuring is done by one observer for the whole scroll, not one per object, and an object is watched for as long as it is on screen: a picture that arrives late or a text that changes moves its neighbours, instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
 <br />
-<code><b>"none"</b></code>:<br />
-cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. Leaving <code>size</code> out does exactly this, so the word earns its place in a pair, where there is no empty slot to leave: <code>[100, "none"]</code> is a fixed width with the height decided by the content. A computed <code>undefined</code> in that place means the same thing.<br />
+<b>a side left out</b>:<br />
+cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. In a pair the side is simply not named: <code>[100, undefined]</code> is a fixed width with the height decided by the content, and leaving <code>size</code> out entirely does it for both. There is no word for this on purpose — two ways of saying the same thing would have to be told apart every time.<br />
+<br />
+Lines still work here, because <code>lines</code> counts objects rather than pixels: it is the one thing that can end a line when the width is not ours to know.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
-  <li><b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out. <b>"auto"</b> is: the library measures the objects, so <code>render</code> has the numbers it needs.</li>
+  <li>a side left to your CSS is not compatible with <code>render</code>: it places objects by counting, and that side is the one it cannot count. <b>"auto"</b> is fine — the library measures it and then knows it.</li>
   <li><b>"auto"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
   <li>with <code>direction="hybrid"</code> it needs <code>lines</code> — that is the only thing left that can end a row.</li>
   <li>the layout follows the objects, so anything that changes their size while they are on screen repacks them. Reserving space for a late picture (<code>aspect-ratio</code> does it in one line) still saves that repack.</li>
@@ -855,32 +849,6 @@ Transposing needs lines to count. A masonry always has them — as many columns 
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_order.png)
-
-</div></ul></details>
-
-<br />
-
-<details><summary><code><b>semantics</b></code></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-semantics: "list";
-```
-
-<b>Description:</b><em><br />
-describe the objects to assistive technology.<br />
-<br />
-<b>"list"</b> marks the wrapper as a list and every object as one of its items, numbered. It matters most with <code>render</code>: only a window of the objects is in the document, so a screen reader would otherwise announce a list of a dozen and give no way to tell where in the real list you are. With it, each object carries its own place and the total.<br />
-<br />
-Left out, nothing is claimed. The objects may be cards, slides or a menu, and calling those a list would describe them wrongly — which is worse than describing them not at all.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} render="virtual" objects={{ size: 100, semantics: "list" }}>
-  {rows}
-</MorphScroll>
-```
 
 </div></ul></details>
 
@@ -1146,11 +1114,14 @@ what you write is <b>added to</b> the default rather than put in its place. The 
 <b>Usage:</b><br />
 
 ```tsx
-wheel: true;
+wheel: false;
 ```
 
+<b>Default:</b><br />
+true<br />
+<br />
 <b>Description:</b><em><br />
-the wheel over the content moves the scroll.<br />
+the wheel over the content moves the scroll. It is on without being asked for — a scroll nothing can move is almost never what was meant — so the value worth writing is <code>false</code>.<br />
 <br />
 Both settings below are for <code>direction="hybrid"</code>, where one wheel has to serve two axes.<br />
 <br />
@@ -1221,11 +1192,14 @@ a held key switches the axis instead. Pass an empty string to disable it. <a hre
 <b>Usage:</b><br />
 
 ```tsx
-keys: true;
+keys: false;
 ```
 
+<b>Default:</b><br />
+true<br />
+<br />
 <b>Description:</b><em><br />
-the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop.<br />
+the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop. Like <code>wheel</code>, it is on without being asked for: a native scroll obeys the arrows once it has focus, and a keyboard user reaching a list that cannot be paged is a dead end. Switch it off with <code>false</code>.<br />
 <br />
 ✦ Note:<br />
 inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll leaves them alone.<br />
@@ -1729,7 +1703,9 @@ this parameter adds a gradual rendering of the content as it enters the viewport
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.</em><br />
 
 <em>✦ Note:<br />
-<code>render</code> places objects by counting, so it needs a size it can count with: <code>objects.size: "none"</code> — and leaving the size out, which means the same thing — give it nothing to place.</em><br />
+<code>render</code> places objects by counting, so it needs a size it can count with: a side left to your own CSS is the one it cannot count. <code>objects.size: "auto"</code> is fine — the library measures it and then knows it.<br />
+<br />
+A window also hides how long the list is, so the library says it in the markup instead: with a <code>mode</code> set, the wrapper is a list and every object is one of its items, numbered against the real total. Without a window every object is in the document and a screen reader counts them itself, so nothing is claimed; a slider is never called a list either, since its dots already say where you are.</em><br />
 <br />
 
 <details><summary><code><b>mode</b></code></summary><br /><ul><div>
