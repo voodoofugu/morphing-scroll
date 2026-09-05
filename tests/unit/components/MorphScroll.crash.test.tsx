@@ -1257,26 +1257,30 @@ describe("MorphScroll — reading", () => {
     expect(flow).toBe("row");
   });
 
-  it("left alone, it takes the page's word for it", () => {
+  /*
+   * Окружение не спрашиваем: подсмотренное направление страницы верно ровно
+   * до того момента, когда виджет читается не так, как всё вокруг.
+   */
+  it("does not take the page's word for it", () => {
     const spy = quiet();
     const flow = inRtlPage({});
     spy.mockRestore();
 
-    expect(flow).toBe("row-reverse");
+    expect(flow).toBe("row");
   });
 });
 
-describe("MorphScroll — the bar on a right-to-left page", () => {
-  const barStyle = (host?: HTMLElement) => {
+describe("MorphScroll — the bar of a right-to-left list", () => {
+  const barStyle = (props?: Partial<MorphScrollProps>) => {
     const { container, unmount } = render(
       <MorphScroll
         size={[100, 300]}
         objects={{ size: 100 }}
         controls={{ wheel: true, bar: <i /> }}
+        {...(props as MorphScrollProps)}
       >
         {items(9)}
       </MorphScroll>,
-      host ? { container: host } : undefined,
     );
     const style =
       container.querySelector<HTMLElement>(".ms-bar")?.getAttribute("style") ??
@@ -1288,14 +1292,9 @@ describe("MorphScroll — the bar on a right-to-left page", () => {
   it("stands on the left, where the reading starts", () => {
     const spy = quiet();
 
-    const host = document.createElement("div");
-    host.style.direction = "rtl";
-    document.body.appendChild(host);
-
-    const rtl = barStyle(host);
+    const rtl = barStyle({ reading: "rtl" });
     const ltr = barStyle();
 
-    host.remove();
     spy.mockRestore();
 
     expect(ltr).toMatch(/right:/);

@@ -138,7 +138,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // Scroll Settings
       mode = "scroll",
       direction = "y",
-      reading = "auto",
+      reading = "ltr",
       initialPosition,
       stickToEnd = false,
       loop = false,
@@ -1893,31 +1893,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     );
 
     /*
-     * Куда читается содержимое. Названо пропом — значит названо; `"auto"`
-     * снимает это со страницы один раз при монтировании.
+     * Куда идёт список. Спрашивается пропом, а не у окружения: подсмотренное
+     * направление страницы верно ровно до того момента, когда виджет читается
+     * не так, как всё вокруг, — а это обычное дело. Да и стоит такой вопрос
+     * пересчёта стилей на каждом рендере, а рендер здесь идёт по кадру
+     * прокрутки.
      *
-     * Отсчёт прокрутки закреплён на `ltr` в любом случае, иначе арифметика от
-     * левого края ломается на арабской странице. Меняется содержимое: ему
-     * направление возвращается, а поперечная горизонталь отражается.
-     *
-     * Состояние трогаем, только когда направление и правда `rtl`: на обычной
-     * странице лишнего рендера не случается вовсе. Спрашивать окружение на
-     * каждый рендер нельзя — `getComputedStyle` заставляет браузер пересчитать
-     * стили, а рендер здесь идёт по кадру прокрутки.
+     * Отсчёт прокрутки при этом закреплён на `ltr` в любом случае: на нём
+     * стоит вся арифметика от левого края. Разворачивается раскладка.
      */
-    const [sniffed, setSniffed] = React.useState<"ltr" | "rtl">("ltr");
-
-    React.useLayoutEffect(() => {
-      if (reading !== "auto") return;
-
-      const root = customScrollRef.current;
-      if (!root || typeof getComputedStyle !== "function") return;
-
-      const parent = root.parentElement ?? root;
-      if (getComputedStyle(parent).direction === "rtl") setSniffed("rtl");
-    }, [reading]);
-
-    const pageDirection = reading === "auto" ? sniffed : reading;
+    const pageDirection = reading;
 
     /*
      * Список читается справа налево — значит и идёт справа налево: первый
@@ -3823,7 +3808,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             [CONST.CONTENT_VISIBILITY_VAR]: visibility,
           }),
           // разворот — дело раскладки; объект остаётся таким, каким его написали
-          ...(flippedByDirection && { direction: sniffed }),
+          ...(flippedByDirection && { direction: "ltr" }),
         };
 
         const content = suspending ? (
@@ -3879,7 +3864,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         // порядок объектов зависит от того, куда читают
         mirrored,
         flippedByDirection,
-        sniffed,
       ],
     );
 
@@ -4010,10 +3994,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * прокрутки у правого края, а это уже другая система координат.
        * Горизонтальный список поэтому пока идёт слева направо и на своей оси.
        */
+      /*
+       * Отражаем по всей ленте, а не по одной копии: сдвиг копии уже прибавлен
+       * выше, и мерка в одну копию уносила все копии, кроме нулевой, далеко
+       * влево — в окне не оставалось ничего. Без круга лента и есть одна
+       * копия, так что для него ничего не меняется.
+       */
       if (mirrorX) {
         const width = right - left;
 
-        left = objectsWrapperWidth - right;
+        left = loopedWidth - right;
         right = left + width;
       }
 

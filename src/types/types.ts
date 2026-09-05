@@ -306,16 +306,13 @@ export type MorphScroll = {
   direction?: "x" | "y" | "hybrid";
   /**
    * which way the list runs.
-   * @default "auto"
+   * @default "ltr"
    * @description
-   * `"auto"` takes it from the page, once, on mount; naming it says it
-   * outright, for a widget reading the other way round from the page.
-   *
    * `"rtl"` turns the list around: the first object stands at the right, the
    * rest follow leftwards, and a horizontal scroll opens there with its bar.
    * The objects themselves are left alone — how they look is yours.
    */
-  reading?: "auto" | "ltr" | "rtl";
+  reading?: "ltr" | "rtl";
   /**
    * where the scroll opens.
    * @description

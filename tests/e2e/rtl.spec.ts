@@ -1,12 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 
 /*
- * Страница, которую читают справа налево.
+ * Список, который читают справа налево, на такой же странице.
  *
- * Отсчёт прокрутки здесь закреплён на левом крае: вся арифметика считает в
- * пикселях оттуда, а `direction: rtl`, унаследованный от страницы, увёл бы
- * `scrollLeft` в минус. Направление при этом возвращается содержимому, а
- * горизонталь отражается там, где по ней не едут.
+ * Отсчёт прокрутки закреплён на левом крае: вся арифметика считает в пикселях
+ * оттуда, а `direction: rtl`, унаследованный от страницы, увёл бы `scrollLeft`
+ * в минус. Разворачивается раскладка, а не отсчёт.
  */
 
 const boxes = (page: Page) =>
@@ -225,5 +224,82 @@ test.describe("список справа налево", () => {
     await page.waitForTimeout(350);
 
     expect((await laid(page)).order.slice(0, 3)).toEqual(["2", "5", "8"]);
+  });
+});
+
+/*
+ * Разворот в круге отражается по всей ленте, а не по одной копии: сдвиг копии
+ * прибавлен до отражения, и мерка в одну копию уносила все копии, кроме
+ * нулевой, далеко влево — в окне не оставалось ничего.
+ */
+test.describe("разворот вместе с кругом", () => {
+  const RIG = {
+    count: 40,
+    size: [680, 430],
+    direction: "hybrid",
+    objects: { size: 170, gap: 12, lines: 2 },
+    render: { mode: "virtual", rootMargin: 200 },
+    loop: true,
+    controls: { wheel: true },
+  };
+
+  const inWindow = (page: Page) =>
+    page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = view.getBoundingClientRect();
+
+      const seen = [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+        .map((el) => ({ n: el.textContent ?? "", r: el.getBoundingClientRect() }))
+        .filter(
+          ({ r }) =>
+            r.right > box.left &&
+            r.left < box.right &&
+            r.bottom > box.top &&
+            r.top < box.bottom,
+        );
+
+      const top = Math.min(...seen.map(({ r }) => r.top));
+
+      return {
+        count: seen.length,
+        row: seen
+          .filter(({ r }) => Math.abs(r.top - top) < 2)
+          .sort((one, two) => one.r.left - two.r.left)
+          .map(({ n }) => n),
+      };
+    });
+
+  const open = (page: Page, props: Record<string, unknown>) =>
+    page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+
+  test("объекты остаются в окне", async ({ page }) => {
+    await open(page, { ...RIG, reading: "rtl" });
+    await page.waitForTimeout(500);
+
+    const rtl = await inWindow(page);
+
+    await open(page, RIG);
+    await page.waitForTimeout(500);
+
+    const ltr = await inWindow(page);
+
+    expect(ltr.count).toBeGreaterThan(0);
+    expect(rtl.count).toBe(ltr.count);
+  });
+
+  test("и лежат в обратном порядке", async ({ page }) => {
+    await open(page, { ...RIG, reading: "rtl" });
+    await page.waitForTimeout(500);
+
+    const rtl = await inWindow(page);
+
+    await open(page, RIG);
+    await page.waitForTimeout(500);
+
+    const ltr = await inWindow(page);
+
+    expect(rtl.row).toEqual([...ltr.row].reverse());
   });
 });

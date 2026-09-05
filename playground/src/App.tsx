@@ -42,7 +42,7 @@ type Settings = {
   enableOnRenderedKeysChange: boolean;
   mode: ScrollMode;
   direction: Direction;
-  reading: "auto" | "ltr" | "rtl";
+  reading: "ltr" | "rtl";
   sizeMode: SizeMode;
   width: number;
   height: number;
@@ -135,7 +135,7 @@ const defaultSettings: Settings = {
   enableOnRenderedKeysChange: true,
   mode: "scroll",
   direction: "y",
-  reading: "auto",
+  reading: "ltr",
   sizeMode: "fixed",
   width: 680,
   height: 430,
@@ -925,7 +925,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["direction", settings.direction, "value"],
     [
       "reading",
-      settings.reading === "auto" ? undefined : settings.reading,
+      settings.reading === "ltr" ? undefined : settings.reading,
       "value",
     ],
     ["size", size, "value"],
@@ -1378,7 +1378,7 @@ function App() {
         .join(" "),
 
       direction: settings.direction,
-      reading: settings.reading === "auto" ? undefined : settings.reading,
+      reading: settings.reading,
       autoScrollOnDrag: settings.autoScrollOnDrag,
       edge,
 
@@ -1618,15 +1618,14 @@ function App() {
           <SegmentedField
             label="reading"
             onChange={(value) => update("reading", value)}
-            options={["auto", "ltr", "rtl"] as const}
+            options={["ltr", "rtl"] as const}
             value={settings.reading}
           />
           <p className="sub-note">
-            which way the list runs. <b>auto</b> takes it from the page, once,
-            on mount; the other two say it outright. <b>rtl</b> turns the list
-            around — the first object stands at the right, the next ones follow
-            leftwards, and a horizontal scroll opens there with its bar. The
-            objects themselves are left alone: how they look is yours.
+            which way the list runs. <b>rtl</b> turns it around — the first
+            object stands at the right, the next ones follow leftwards, and a
+            horizontal scroll opens there with its bar. The objects themselves
+            are left alone: how they look is yours.
           </p>
           <ToggleField
             label="stickToEnd"

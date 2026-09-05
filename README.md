@@ -52,9 +52,8 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
 > - Write objects, arrays and elements straight into the props — `controls={{ wheel: true }}`, `gap={[10, 20]}`, `controls={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
-> - Three things happen without being asked for, because a scroll that skipped them would be wrong rather than minimal:
+> - Two things happen without being asked for, because a scroll that skipped them would be wrong rather than minimal:
 >   - content that loads **above** the reader does not push them down — the object they were looking at stays where it was, which is what a browser does for its own scrolling and what this one has to do itself;
->   - on a right-to-left page the scroll keeps counting from the left, where its own geometry is, and hands the page's direction back to your content, so an `rtl` page cannot quietly invert the arithmetic. The horizontal axis is mirrored wherever it is not the one being scrolled, so a vertical grid lays its columns from the right and its scrollbar stands on the left. A horizontal scroll's own direction is not mirrored yet: its zero would have to move to the right edge, which is a different coordinate system rather than a different layout;
 >   - when the system asks for less motion, every move the library makes on its own arrives at once instead of animating — a drag still follows the finger, since that is not animation.
 > - With DevTools open the scroll can feel slower: the customization keeps the DOM changing, and the browser spends extra work reporting every change to the panel. It is an artefact of being watched — with DevTools closed, which is how the page is actually used, none of that cost exists.
 
@@ -176,16 +175,16 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 <b>Usage:</b><br />
 
 ```tsx
-reading: "rtl"; // or "ltr" | "auto"
+reading: "rtl"; // or "ltr"
 ```
 
 <b>Default:</b><br />
-"auto"<br />
+"ltr"<br />
 <br />
 <b>Description:</b><em><br />
 which way the list runs.<br />
 <br />
-<code>"auto"</code> takes it from the page, once, on mount. Naming it says it outright, which is what a widget reading the other way round from the page it sits on needs.<br />
+It is asked for rather than taken from the page. A page&apos;s own direction is right until the widget reads the other way round from everything around it, which is common enough; and asking the environment costs a style recalculation on every render, where a render here happens once a frame while scrolling.<br />
 <br />
 <code>"rtl"</code> turns the list around: the first object stands at the right, the rest follow leftwards, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
 <br />

@@ -280,11 +280,14 @@ themselves are no longer transformed and can be positioned from CSS.
   own edge is reached, and hands over the speed with it, so a flick released
   after the handover coasts in the scroll that took it — which is what a
   native touch does in the same place.
-- **`reading`** — which way the list runs. `"auto"` (the default) takes it from
-  the page once on mount; `"rtl"` turns the list around, so the first object
-  stands at the right, the rest follow leftwards, and a horizontal scroll opens
-  there with its bar. The objects themselves are left alone: turning the list
-  around is about order, not about how a card looks inside.
+- **`reading`** — which way the list runs, `"ltr"` by default. `"rtl"` turns
+  the list around, so the first object stands at the right, the rest follow
+  leftwards, and a horizontal scroll opens there with its bar. The objects
+  themselves are left alone: turning the list around is about order, not about
+  how a card looks inside. It is asked for rather than taken from the page —
+  a page's direction is right until the widget reads the other way round from
+  everything around it, and asking costs a style recalculation on a render
+  that happens once a frame while scrolling.
 - `loop` — the content runs in a circle: the same children repeat forever in
   both directions, with no first object and no last, and no seam to see. The
   strip does not grow, because a scroll cannot: browsers cut it off after tens
@@ -584,6 +587,10 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- **a right-to-left list drew nothing at all under `loop`.** The copy's offset
+  is added before the mirroring, and the mirroring measured one copy rather
+  than the whole strip — so every copy but the first landed far off to the
+  left and the window came up empty.
 - **nothing was drawn at all when `objects.size` left a side to CSS.** Every
   feature that places objects itself — the window, visibility tracking, the
   circle, a held heading — works by counting their size, and a side left to
