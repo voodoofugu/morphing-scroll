@@ -289,6 +289,28 @@ test.describe("разворот вместе с кругом", () => {
     expect(rtl.count).toBe(ltr.count);
   });
 
+  /*
+   * Много линий — лента становится очень широкой, и окно уезжает далеко от
+   * нуля. Запрос по неотражённой позиции приходился тогда на другую сторону
+   * ленты, и виртуализация не находила вообще ничего.
+   */
+  test("широкая лента: окно спрашивает про свою сторону", async ({ page }) => {
+    const wide = { ...RIG, objects: { size: 170, gap: 12, lines: 20 } };
+
+    await open(page, { ...wide, reading: "rtl" });
+    await page.waitForTimeout(500);
+
+    const rtl = await inWindow(page);
+
+    await open(page, wide);
+    await page.waitForTimeout(500);
+
+    const ltr = await inWindow(page);
+
+    expect(ltr.count).toBeGreaterThan(0);
+    expect(rtl.count).toBe(ltr.count);
+  });
+
   test("и лежат в обратном порядке", async ({ page }) => {
     await open(page, { ...RIG, reading: "rtl" });
     await page.waitForTimeout(500);
@@ -301,5 +323,87 @@ test.describe("разворот вместе с кругом", () => {
     const ltr = await inWindow(page);
 
     expect(rtl.row).toEqual([...ltr.row].reverse());
+  });
+});
+
+/*
+ * Наружу горизонталь считается от начала списка, а не от левого края
+ * разметки: у развёрнутого списка начало справа, и `scrollTo(0)` обязан
+ * привести туда же, куда приводит у обычного, — к первому объекту.
+ */
+test.describe("позиция считается от начала списка", () => {
+  const RIG = {
+    count: 20,
+    size: [300, 120],
+    direction: "x",
+    objects: { size: 80, gap: 10 },
+    controls: { wheel: true },
+  };
+
+  const open = (page: Page, props: Record<string, unknown>) =>
+    page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+
+  const seen = (page: Page) =>
+    page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = view.getBoundingClientRect();
+
+      return {
+        raw: Math.round(view.scrollLeft),
+        told: (window as unknown as { __scroll?: { left: number } }).__scroll
+          ?.left,
+        row: [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+          .map((el) => ({ n: el.textContent ?? "", r: el.getBoundingClientRect() }))
+          .filter(({ r }) => r.right > box.left + 1 && r.left < box.right - 1)
+          .sort((one, two) => one.r.left - two.r.left)
+          .map(({ n }) => n),
+      };
+    });
+
+  const goTo = async (page: Page, to: number) => {
+    await page.evaluate(
+      (value) =>
+        (
+          window as unknown as {
+            __ms: { scrollTo: (v: number, o: object) => void };
+          }
+        ).__ms.scrollTo(value, { duration: 0 }),
+      to,
+    );
+    await page.waitForTimeout(250);
+  };
+
+  test("ноль приводит к первому объекту, а он стоит справа", async ({
+    page,
+  }) => {
+    await open(page, { ...RIG, reading: "rtl" });
+    await page.waitForTimeout(350);
+    await goTo(page, 0);
+
+    const out = await seen(page);
+
+    // объект 0 у правого края окна, разметка при этом стоит в своём конце
+    expect(out.row[out.row.length - 1]).toBe("0");
+    expect(out.raw).toBeGreaterThan(0);
+  });
+
+  test("одно и то же число приводит к тем же объектам", async ({ page }) => {
+    await open(page, { ...RIG, reading: "rtl" });
+    await page.waitForTimeout(350);
+    await goTo(page, 400);
+
+    const rtl = await seen(page);
+
+    await open(page, RIG);
+    await page.waitForTimeout(350);
+    await goTo(page, 400);
+
+    const ltr = await seen(page);
+
+    expect(rtl.row).toEqual([...ltr.row].reverse());
+    expect(rtl.told).toBe(400);
+    expect(ltr.told).toBe(400);
   });
 });

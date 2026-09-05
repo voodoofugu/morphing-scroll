@@ -192,7 +192,7 @@ It is asked for rather than taken from the page. A page&apos;s own direction is 
 
 <ul>
   <li>the objects themselves are left alone. Turning the list around is about order, not about how a card looks inside — that part is yours.</li><br />
-  <li>the count still runs from the left of the markup, which is where the geometry is. It shows up only if you read <code>scrollLeft</code> yourself: the start of an <code>rtl</code> list is its largest value, not zero.</li>
+  <li>positions are counted from the start of the list either way, so <code>scrollTo(0)</code> reaches the first object in both readings and <code>onScrollPosition</code> reports the same number for the same place. Only the markup's own <code>scrollLeft</code> still counts from its left edge, which under <code>"rtl"</code> makes the start of the list its largest value — that shows up if you read the element yourself.</li>
 </ul>
 </em><br />
 <b>Example:</b>

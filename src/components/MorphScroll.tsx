@@ -1293,6 +1293,37 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     );
 
     /*
+     * Куда идёт список. Спрашивается пропом, а не у окружения: подсмотренное
+     * направление страницы верно ровно до того момента, когда виджет читается
+     * не так, как всё вокруг, — а это обычное дело. Да и стоит такой вопрос
+     * пересчёта стилей на каждом рендере, а рендер здесь идёт по кадру
+     * прокрутки.
+     *
+     * Отсчёт прокрутки при этом закреплён на `ltr` в любом случае: на нём
+     * стоит вся арифметика от левого края. Разворачивается раскладка.
+     */
+    const pageDirection = reading;
+
+    /*
+     * Список читается справа налево — значит и идёт справа налево: первый
+     * объект стоит у правого края, следующие уходят влево. Это про порядок и
+     * только про него: как выглядят сами объекты, библиотека не решает.
+     */
+    const mirrored = pageDirection === "rtl";
+
+    /*
+     * Сетке разворот можно сказать только через `direction`, а он протекает
+     * внутрь объектов. Там, где так пришлось, объекту направление возвращаем
+     * то, что у него было бы без нас, — страницы.
+     */
+    const flippedByDirection =
+      mirrored && direction !== "y" && !!lines && lines > 1;
+
+    /* координатная кладка зеркалит числами, потоку хватает раскладки */
+    const mirrorX = mirrored && byCoords;
+
+
+    /*
      * Меняет ли позиция прокрутки то, что нарисовано.
      *
      * Здесь рендер идёт по кадру, пока идёт прокрутка, и это оправдано ровно
@@ -1328,6 +1359,27 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         Math.max(0, objectsWrapperHeightFull - sizeLocal[1]),
       ];
     }, [sizeLocal.join(), objectsWrapperHeightFull, objectsWrapperWidthFull]);
+
+    /*
+     * Наружу горизонталь считается от начала списка, а не от левого края
+     * разметки. У развёрнутого списка начало справа, и `scrollTo(0)` обязан
+     * привести туда же, куда приводит у обычного, — к первому объекту.
+     * Внутри всё остаётся от левого края: на этом стоит вся арифметика.
+     *
+     * Замена сама себе обратна, поэтому одна и та же и на вход, и на выход.
+     */
+    const flipsX = mirrored && direction !== "y";
+
+    const listX = (raw: number) => (flipsX ? maxScrollSize[0] - raw : raw);
+
+    /*
+     * Обработчик прокрутки живёт дольше рендера и держит замыкание, а замена
+     * зависит от диапазона — тот меняется вместе с контентом. Ссылка отдаёт
+     * свежую.
+     */
+    const listXRef = React.useRef(listX);
+
+    listXRef.current = listX;
 
     const scrollSpaceFromRef =
       direction === "x"
@@ -1892,32 +1944,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [maxScrollSize.join()],
     );
 
-    /*
-     * Куда идёт список. Спрашивается пропом, а не у окружения: подсмотренное
-     * направление страницы верно ровно до того момента, когда виджет читается
-     * не так, как всё вокруг, — а это обычное дело. Да и стоит такой вопрос
-     * пересчёта стилей на каждом рендере, а рендер здесь идёт по кадру
-     * прокрутки.
-     *
-     * Отсчёт прокрутки при этом закреплён на `ltr` в любом случае: на нём
-     * стоит вся арифметика от левого края. Разворачивается раскладка.
-     */
-    const pageDirection = reading;
-
-    /*
-     * Список читается справа налево — значит и идёт справа налево: первый
-     * объект стоит у правого края, следующие уходят влево. Это про порядок и
-     * только про него: как выглядят сами объекты, библиотека не решает.
-     */
-    const mirrored = pageDirection === "rtl";
-
-    /*
-     * Сетке разворот можно сказать только через `direction`, а он протекает
-     * внутрь объектов. Там, где так пришлось, объекту направление возвращаем
-     * то, что у него было бы без нас, — страницы.
-     */
-    const flippedByDirection =
-      mirrored && direction !== "y" && !!lines && lines > 1;
 
     const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
       const common: React.CSSProperties = {
@@ -2493,7 +2519,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * уже прочитаны scrollLeft и scrollTop: раскладка на этот момент
          * посчитана, лишнего пересчёта не будет.
          */
-        onScrollPosition?.(scrollEl.scrollLeft, scrollEl.scrollTop, {
+        onScrollPosition?.(listXRef.current(scrollEl.scrollLeft), scrollEl.scrollTop, {
           x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
           y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
         });
@@ -3023,7 +3049,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               if (respectUserScroll && !atEndRef.current[dir]) return;
 
               smoothScrollLocal(
-                dir === "x" ? endObjectsWrapper.w : endObjectsWrapper.h,
+                dir === "x"
+                  ? listX(endObjectsWrapper.w)
+                  : endObjectsWrapper.h,
                 dir,
                 duration,
               );
@@ -3031,9 +3059,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
             // "number"
             else if (typeof value === "number") {
-              lastScrollTargetRef.current[dir] = value;
+              const raw = dir === "x" ? listX(value) : value;
 
-              smoothScrollLocal(loopTarget(dir, value), dir, duration);
+              lastScrollTargetRef.current[dir] = raw;
+
+              smoothScrollLocal(loopTarget(dir, raw), dir, duration);
             }
           });
         });
@@ -3502,6 +3532,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * действия достаются из ссылки в момент вызова.
      */
     const commandsRef = React.useRef({
+      flipsX,
       applyScrollPosition,
       handleArrowLocal,
       moveFocusLocal,
@@ -3518,6 +3549,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     React.useLayoutEffect(() => {
       commandsRef.current = {
+        flipsX,
         applyScrollPosition,
         handleArrowLocal,
         moveFocusLocal,
@@ -3565,7 +3597,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
           if (delta.x)
             now.smoothScrollLocal(
-              scrollEl.scrollLeft + delta.x,
+              scrollEl.scrollLeft + (now.flipsX ? -delta.x : delta.x),
               "x",
               moveDuration,
             );
@@ -3884,8 +3916,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Отражать горизонталь можно, только пока по ней не едут: у вертикального
      * списка она поперечная и решает лишь порядок колонок.
      */
-    const mirrorX = mirrored && byCoords;
-
     const loopPlace = (copy: number, axis: 0 | 1) => {
       const round = axis === 0 ? loopLocal?.x : loopLocal?.y;
       if (!round) return 0;
@@ -4331,10 +4361,20 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * этот сдвиг; сам `renderChild` при этом получает настоящее положение.
        */
       const draw = (copyX = 0, copyY = 0) => {
-        const asked = visibleIndices(
-          scrollLeft - loopPlace(copyX, 0),
-          scrollTop - loopPlace(copyY, 1),
-        );
+        const shiftX = loopPlace(copyX, 0);
+
+        /*
+         * Спрашиваем в тех координатах, в каких объекты и лежат. У
+         * развёрнутого списка они отражены по всей ленте, а позиция нет:
+         * запрос по ней приходился на другую сторону ленты, и в ответ
+         * приходило пусто. Отражаем сам запрос, причём после сдвига копии —
+         * копия смещает объекты до отражения, а не после.
+         */
+        const askX = mirrorX
+          ? loopedWidth - shiftX - scrollLeft - sizeLocal[0]
+          : scrollLeft - shiftX;
+
+        const asked = visibleIndices(askX, scrollTop - loopPlace(copyY, 1));
 
         if (!asked)
           return validChildrenKeys.map((key, i) =>

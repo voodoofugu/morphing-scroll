@@ -284,7 +284,8 @@ themselves are no longer transformed and can be positioned from CSS.
   the list around, so the first object stands at the right, the rest follow
   leftwards, and a horizontal scroll opens there with its bar. The objects
   themselves are left alone: turning the list around is about order, not about
-  how a card looks inside. It is asked for rather than taken from the page —
+  how a card looks inside. Positions are counted from the start of the list
+  either way, so `scrollTo(0)` reaches the first object in both readings. It is asked for rather than taken from the page —
   a page's direction is right until the widget reads the other way round from
   everything around it, and asking costs a style recalculation on a render
   that happens once a frame while scrolling.
@@ -587,6 +588,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- **a right-to-left list drew nothing where the strip was wide.** The window
+  was asked for by the position as the markup counts it, while the objects lie
+  mirrored — so the question landed on the other side of the strip and came
+  back empty. The question is mirrored now, and per copy: a copy shifts the
+  objects before the mirroring, not after.
 - **a right-to-left list drew nothing at all under `loop`.** The copy's offset
   is added before the mirroring, and the mirroring measured one copy rather
   than the whole strip — so every copy but the first landed far off to the
