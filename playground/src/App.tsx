@@ -42,6 +42,7 @@ type Settings = {
   enableOnRenderedKeysChange: boolean;
   mode: ScrollMode;
   direction: Direction;
+  dir: "auto" | "ltr" | "rtl";
   sizeMode: SizeMode;
   width: number;
   height: number;
@@ -70,7 +71,6 @@ type Settings = {
   objectsAlign: Align;
   objectsOrder: "row" | "column";
   sectionSize: number;
-  stickyGroups: boolean;
   edge: boolean;
   edgeColor: string;
   edgeSize: number;
@@ -135,6 +135,7 @@ const defaultSettings: Settings = {
   enableOnRenderedKeysChange: true,
   mode: "scroll",
   direction: "y",
+  dir: "auto",
   sizeMode: "fixed",
   width: 680,
   height: 430,
@@ -163,7 +164,6 @@ const defaultSettings: Settings = {
   objectsAlign: "start",
   objectsOrder: "row",
   sectionSize: 10,
-  stickyGroups: true,
   edge: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
@@ -915,8 +915,6 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     lines: numberOrUndefined(settings.lines),
     align: settings.objectsAlign,
     order: settings.objectsOrder,
-    groups:
-      settings.stickyGroups && settings.sectionSize > 0 ? "sticky" : undefined,
     empty: emptyObjects,
   };
 
@@ -1374,6 +1372,7 @@ function App() {
         .join(" "),
 
       direction: settings.direction,
+      dir: settings.dir === "auto" ? undefined : settings.dir,
       autoScrollOnDrag: settings.autoScrollOnDrag,
       edge,
 
@@ -1391,10 +1390,6 @@ function App() {
         lines: numberOrUndefined(settings.lines),
         align: settings.objectsAlign,
         order: settings.objectsOrder,
-        groups:
-          settings.stickyGroups && settings.sectionSize > 0
-            ? "sticky"
-            : undefined,
         empty: emptyObjects,
       },
       onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
@@ -1571,26 +1566,17 @@ function App() {
               value={settings.interactiveItems}
             />
           </div>
-          <div className="two-col">
-            <NumberField
-              label="section size"
-              max={200}
-              min={0}
-              onChange={(value) => update("sectionSize", value)}
-              value={settings.sectionSize}
-            />
-            <ToggleField
-              label="sticky headings"
-              onChange={(value) => update("stickyGroups", value)}
-              value={settings.stickyGroups}
-            />
-          </div>
+          <NumberField
+            label="section size"
+            max={200}
+            min={0}
+            onChange={(value) => update("sectionSize", value)}
+            value={settings.sectionSize}
+          />
           <p className="sub-note">
             sections are cut into equal runs and written into each child&apos;s
             own <code>key</code>, in brackets: <code>item-12[s2]</code>. That is
-            the name <code>scrollToObject</code> takes, and what{" "}
-            <code>objects.groups: &quot;sticky&quot;</code> holds in view. 0
-            turns them off.
+            the name <code>scrollToObject</code> takes. 0 turns them off.
           </p>
           <ToggleField
             label="drag to reorder"
@@ -1623,6 +1609,20 @@ function App() {
             options={directionOptions}
             value={settings.direction}
           />
+          <SegmentedField
+            label="dir"
+            onChange={(value) => update("dir", value)}
+            options={["auto", "ltr", "rtl"] as const}
+            value={settings.dir}
+          />
+          <p className="sub-note">
+            which way the content reads. <b>auto</b> takes it from the page,
+            once, on mount; the other two say it outright. The scroll counts
+            from the left whatever this says — what changes is the content, and
+            the horizontal axis is mirrored wherever it is not the one being
+            scrolled. Try it with <code>direction=&quot;y&quot;</code>: the
+            columns lay from the right and the bar stands on the left.
+          </p>
           <ToggleField
             label="stickToEnd"
             onChange={(value) => update("stickToEnd", value)}

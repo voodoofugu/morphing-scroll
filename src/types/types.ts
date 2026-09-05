@@ -123,23 +123,6 @@ export type ObjectsConfig = {
   gap?: number | Vec2;
   /** how many lines the objects run in, across the scroll */
   lines?: number;
-  /**
-   * hold a group's heading in view.
-   *
-   * A group is named in the child's own `key`, in brackets at the end:
-   * `"post-4[news]"` belongs to `news`. There is no prop for the grouping
-   * itself — a key has to be unique anyway.
-   *
-   * `"sticky"` keeps the first object of each group against the leading edge
-   * for as long as any of its group is in view, and the group that follows
-   * pushes it out. That first object is the group's heading, so it always
-   * says which group you are looking at; it carries `ms-sticky` while it is
-   * held there.
-   *
-   * That is all it does. Going to a group by name is `scrollToObject`, and it
-   * needs nothing switched on.
-   */
-  groups?: "sticky";
   align?: Align;
   /**
    * which way the list runs through the lines — it names the order, not the
@@ -199,8 +182,8 @@ export type MorphScrollHandle = {
    * name of a group — written in the key itself, in brackets at the end: a
    * child keyed `"post-4[news]"` is reached by `"post-4"` and by `"news"`
    * alike, and a group goes to its first object. A key wins over a group of
-   * the same name. Groups are read here whether or not `objects.groups` is
-   * set — that one is about holding the heading in view, nothing else.
+   * the same name. Nothing has to be switched on for this: a key has to be
+   * unique anyway, and the name in brackets rides along in it.
    *
    * `align` says where in the window it lands: `"start"` by default,
    * `"center"`, or `"end"` — which leaves `objects.gap` showing past the
@@ -385,8 +368,12 @@ export type MorphScroll = {
    * are mounted at once. `render.mode` cuts that back to the window, so give
    * a long list virtualising*
    * @note *`stickToEnd` has no end to hold onto and is refused*
-   * @note *`objects.size: "auto"` waits for its measurements: the circle
-   * closes by itself once there is nothing left to measure*
+   * @note *a period is the exact length of the content, so the circle needs a
+   * size it can count. A side left to your own CSS cannot be counted — once
+   * the copies exist, measuring the box measures the copies — and the circle
+   * says so and stays open. `objects.size: "auto"` is the answer when you do
+   * not want to state sizes: it measures each object, waits until nothing is
+   * left to measure, and closes the circle by itself*
    * @see the README for what the progress element, `edge` and `scrollTo` do
    * inside a turn
    */
@@ -433,9 +420,6 @@ export type MorphScroll = {
    * - `align`: *where a short last line sits*
    * - `order`: *which way the list runs through the lines — `"row"` fills a
    * row and moves down, `"column"` fills a column and moves right*
-   * - `groups`: *`"sticky"` holds a group's first object in view while any of
-   * its group is; groups are named in the child's own `key`, in brackets at
-   * the end*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
    * replaces them with a placeholder*
    * @note *which side you hand over with `"auto"` is what arranges the

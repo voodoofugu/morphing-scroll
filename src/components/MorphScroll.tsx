@@ -179,7 +179,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       size: objectsSize,
       gap,
       lines,
-      groups: objectsGroups,
       align: objectsAlign,
       order: objectsOrder = "row",
       empty: emptyObjects,
@@ -748,7 +747,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderLocal.mode && "render.mode",
       renderLocal.trackVisibility && "render.trackVisibility",
       loop && "loop",
-      objectsGroups === "sticky" && "objects.groups",
     ].filter(Boolean);
 
     if (asked.length && !countable)
@@ -1267,9 +1265,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderMode ||
       isEach ||
       loopLocal ||
-      tracking ||
-      // удержать заголовок можно только там, где известно, где он лежит
-      (objectsGroups === "sticky" && countable)
+      tracking
     );
 
     /*
@@ -3272,95 +3268,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [boxOf, mainAxis],
     );
 
-    /*
-     * Группы и то, где каждая из них лежит вдоль прокрутки.
-     *
-     * Группу объект называет в собственном ключе, так что отдельного списка
-     * вести не надо. Протяжённость группы считаем по её объектам: у сетки и
-     * потока они и так идут подряд, у кладки и заполнения — как лягут, и
-     * тогда полоса группы просто шире.
-     *
-     * Первый объект группы служит ей заголовком: он и прилипает.
-     */
-    const groupBands = React.useMemo(() => {
-      if (objectsGroups !== "sticky") return null;
-
-      /*
-       * В круге у объекта не одно место, а по одному в каждой копии, и какую
-       * из них держать у края — вопрос без ответа: заголовок группы там
-       * встречается столько же раз, сколько копий. Отказываемся вслух, а не
-       * молча ничего не делаем.
-       */
-      if (loopLocal) {
-        complain(
-          `objects.groups: "sticky" and loop pull against each other: the content repeats, so a group has as many first objects as there are copies and there is no one heading to hold`,
-        );
-
-        return null;
-      }
-
-      const bands: {
-        name: string;
-        first: number;
-        start: number;
-        end: number;
-      }[] = [];
-
-      validChildrenKeys.forEach((key, index) => {
-        const name = groupKey(key);
-        if (name === null) return;
-
-        const box = boxOf(index);
-        const from = mainAxis === 0 ? box.left : box.top;
-        const to = from + (mainAxis === 0 ? box.width : box.height);
-
-        const last = bands[bands.length - 1];
-
-        if (last && last.name === name) {
-          last.start = Math.min(last.start, from);
-          last.end = Math.max(last.end, to);
-
-          return;
-        }
-
-        bands.push({ name, first: index, start: from, end: to });
-      });
-
-      return bands.length ? bands : null;
-    }, [objectsGroups, keysToken, boxOf, mainAxis, loopLocal]);
-
-    /*
-     * Какой заголовок держать у края и где именно.
-     *
-     * Держим тот, чья полоса накрыла начало окна, и не даём ему налезть на
-     * следующий: подъехав, тот выталкивает предыдущий, как и положено.
-     */
-    const stickyHead = (at: number) => {
-      if (!groupBands) return null;
-
-      let held: (typeof groupBands)[number] | null = null;
-      let next: (typeof groupBands)[number] | null = null;
-
-      for (let i = 0; i < groupBands.length; i++) {
-        const band = groupBands[i];
-
-        if (band.start <= at && at < band.end) {
-          held = band;
-          next = groupBands[i + 1] ?? null;
-          break;
-        }
-      }
-
-      if (!held) return null;
-
-      const box = boxOf(held.first);
-      const size = mainAxis === 0 ? box.width : box.height;
-
-      const pushed = next ? next.start - size : Infinity;
-
-      return { index: held.first, at: Math.max(held.start, Math.min(at, pushed)) };
-    };
-
     const anchorRef = React.useRef<{
       token: string;
       keys: string[];
@@ -3822,8 +3729,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         visibility?: number | null,
         domKey?: string,
         index?: number,
-        /** held against the leading edge as its group scrolls past */
-        pinned?: boolean,
       ) => {
         /*
          * Сторону задаём только ту, которую объект себе не выбирает: за
@@ -3848,8 +3753,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           }),
           // где коробка осталась ltr, направление читается на самом объекте
           ...(!mirrorsLayout && pageDirection === "rtl" && { direction: "rtl" }),
-          // соседи по разметке идут после него, иначе они бы его накрыли
-          ...(pinned && { zIndex: 1 }),
         };
 
         const content = suspending ? (
@@ -3867,7 +3770,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 }
               : {})}
             ref={isEach ? sizes.refFor(key) : undefined}
-            className={`ms-object-box${pinned ? " ms-sticky" : ""}`}
+            className="ms-object-box"
             /*
              * Номер и общее число читаются только внутри роли, которая их
              * поддерживает, — поэтому роль и счёт идут вместе.
@@ -3896,7 +3799,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsPerDirection[0],
         asList,
         validChildrenKeys.length,
-        objectsGroups,
         updateEmptyKeysClickLocal,
         renderMode,
         isEach,
@@ -3945,8 +3847,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       scrollTop: number,
       copyX: number = 0,
       copyY: number = 0,
-      /** where to hold this one instead of where it naturally lies */
-      pin?: number,
     ) => {
       /*
        * Копия — тот же ребёнок, сдвинутый на период. При `hybrid` копии лежат
@@ -3997,7 +3897,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           undefined,
           domKey,
           index,
-              pin !== undefined,
         );
 
       /*
@@ -4018,13 +3917,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           undefined,
           domKey,
           index,
-              pin !== undefined,
         );
 
       // обработка виртуализации
       const placed = memoizedChildrenData[index];
-      let top = placed.top + shiftY;
-      let bottom = placed.bottom + shiftY;
+      const top = placed.top + shiftY;
+      const bottom = placed.bottom + shiftY;
       let left = placed.left + shiftX;
       let right = placed.right + shiftX;
 
@@ -4045,23 +3943,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         left = objectsWrapperWidth - right;
         right = left + width;
-      }
-
-      /*
-       * Заголовок группы стоит там, где его держат, а не там, где он лежит.
-       * Видимость при этом считается по удержанному месту — он в окне ровно
-       * потому, что его туда и поставили.
-       */
-      if (pin !== undefined) {
-        if (mainAxis === 0) {
-          const width = right - left;
-          left = pin;
-          right = pin + width;
-        } else {
-          const height = bottom - top;
-          top = pin;
-          bottom = pin + height;
-        }
       }
 
       /*
@@ -4143,7 +4024,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 visibilityRatioWithoutMargin,
                 domKey,
               index,
-              pin !== undefined,
               )
             : null;
       }
@@ -4162,7 +4042,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           visibilityRatioWithoutMargin,
           domKey,
               index,
-              pin !== undefined,
         );
 
       const visibilityRatio = getVisibilityRatio();
@@ -4193,7 +4072,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           visibilityRatioWithoutMargin,
           domKey,
               index,
-              pin !== undefined,
         );
       }
 
@@ -4211,7 +4089,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         visibilityRatioWithoutMargin,
         domKey,
               index,
-              pin !== undefined,
       );
     };
 
@@ -4391,41 +4268,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * же самое, только смотрит на него окно прокрутки, отодвинутое назад на
        * этот сдвиг; сам `renderChild` при этом получает настоящее положение.
        */
-      /*
-       * Удерживаемый заголовок обязан быть нарисован, где бы он ни лежал: его
-       * место — у края окна, а не там, где он оказался бы сам, и окно про
-       * него ничего не знает.
-       */
-      const head = stickyHead(mainAxis === 0 ? scrollLeft : scrollTop);
-
       const draw = (copyX = 0, copyY = 0) => {
         const asked = visibleIndices(
           scrollLeft - loopPlace(copyX, 0),
           scrollTop - loopPlace(copyY, 1),
         );
 
-        const pinOf = (i: number) =>
-          head && head.index === i ? head.at : undefined;
-
         if (!asked)
           return validChildrenKeys.map((key, i) =>
-            renderChild(key, i, scrollLeft, scrollTop, copyX, copyY, pinOf(i)),
+            renderChild(key, i, scrollLeft, scrollTop, copyX, copyY),
           );
 
-        const list = head && !asked.includes(head.index)
-          ? [head.index, ...asked]
-          : asked;
-
-        return list.map((i) =>
-          renderChild(
-            validChildrenKeys[i],
-            i,
-            scrollLeft,
-            scrollTop,
-            copyX,
-            copyY,
-            pinOf(i),
-          ),
+        return asked.map((i) =>
+          renderChild(validChildrenKeys[i], i, scrollLeft, scrollTop, copyX, copyY),
         );
       };
 

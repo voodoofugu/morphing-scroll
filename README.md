@@ -293,7 +293,9 @@ The slider modes turn in a circle too. Pages are counted within one turn, so the
 <br />
 <code>direction="hybrid"</code> turns in both directions at once: the content repeats to the right and downward alike, the copies lie in a grid, and each axis is brought back to its own middle on its own.<br />
 <br />
-<code>objects.size: "auto"</code> turns too, only not at once. A period is the length of the content, and that keeps growing while the measurements come in — turning on a period that moves would jolt the layout on every batch. So it waits: until everything is measured this scrolls as usual, and the circle closes by itself once there is nothing left to measure. A long list pays for a full measuring pass before it turns, and if something grows later the position keeps its place within the turn rather than jumping back to the start of it.</em><br />
+A period is the exact length of the content, so the circle needs a size it can count: a side left to your own CSS cannot be counted — once the copies exist, measuring the box measures the copies — and the circle says so and stays open.<br />
+<br />
+<code>objects.size: "auto"</code> is the answer when you would rather not state sizes. It turns too, only not at once. A period is the length of the content, and that keeps growing while the measurements come in — turning on a period that moves would jolt the layout on every batch. So it waits: until everything is measured this scrolls as usual, and the circle closes by itself once there is nothing left to measure. A long list pays for a full measuring pass before it turns, and if something grows later the position keeps its place within the turn rather than jumping back to the start of it.</em><br />
 <br />
 <b>Note:</b><em><br />
 the list is repeated, not referenced — a few copies of every child are mounted at once. With <code>render.mode</code> only the ones in the window are, and the length of the list stops mattering; without it a long one is paid for several times over. For anything but a handful of objects, give the circle virtualising.</em><br />
@@ -308,7 +310,6 @@ the list is repeated, not referenced — a few copies of every child are mounted
   <li><code>controls.bar: true</code> is talked out of: the browser draws its own bar over the strip, and the strip is a few copies of the content. Pass an element instead and the bar shows the turn</li>
   <li><code>scrollTo</code> takes a number as a place within the turn and goes there the short way round, whichever side that is</li>
   <li><code>stickToEnd</code> is refused — it drives to an end the circle does not have</li>
-  <li><code>objects.groups: "sticky"</code> is refused too: the content repeats, so a group has as many first objects as there are copies and there is no one heading to hold</li>
 </ul>
 <b>Example:</b>
 
@@ -647,7 +648,6 @@ objects: {
   lines: 3,
   align: "center",
   order: "column",
-  groups: "sticky",
   empty: "clear",
 }
 ```
@@ -849,43 +849,6 @@ Transposing needs lines to count. A masonry always has them — as many columns 
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_order.png)
-
-</div></ul></details>
-
-<br />
-
-<details><summary><code><b>groups</b></code></summary><br /><ul><div>
-<b>Usage:</b><br />
-
-```tsx
-groups: "sticky";
-```
-
-<b>Description:</b><em><br />
-what a group of objects does.<br />
-<br />
-A group is named in the child's own <code>key</code>, in brackets at the end: <code>"post-4[news]"</code> belongs to <b>news</b>. There is no prop for the grouping itself — a key has to be unique anyway, and carrying the group in it is cheaper than keeping a second list beside it.<br />
-<br />
-<b>"sticky"</b> keeps the first object of each group in view for as long as any of its group is: it holds against the leading edge and is pushed out by the group that follows. That first object is the group's heading, so it always says which group you are looking at. While it is held there it carries <code>ms-sticky</code>, which is the hook for a shadow or a background.<br />
-<br />
-✦ Note:<br />
-that is all it does. Going to a group by name is <code>scrollToObject</code>, and it works whether or not this is set — the two share the names, not the behaviour.</em><br />
-<br />
-<b>Example:</b>
-
-```tsx
-<MorphScroll {...props} objects={{ size: 60, groups: "sticky" }}>
-  {contacts.map((one) => (
-    <Row key={`c-${one.id}[${one.letter}]`} {...one} />
-  ))}
-</MorphScroll>
-```
-
-```css
-.ms-object-box.ms-sticky {
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
-}
-```
 
 </div></ul></details>
 

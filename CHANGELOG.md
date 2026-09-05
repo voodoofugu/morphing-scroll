@@ -432,22 +432,12 @@ themselves are no longer transformed and can be positioned from CSS.
 - **the custom bar says what it is.** `role="scrollbar"` with its orientation
   and its position along the track, so a screen reader announces a bar rather
   than an unnamed box.
-
-- **`objects.groups: "sticky"`** — the first object of each group holds against
-  the leading edge for as long as any of its group is in view, and the group
-  that follows pushes it out. It is the group's heading, so it always says
-  which group you are looking at; it carries `ms-sticky` while it is held.
-  A group is named in the child's own `key`, in brackets at the end, which is
-  the same name `scrollToObject` takes.
-- `objects.groups: "sticky"` is refused under `loop`, and says so: the content
-  repeats, so a group has as many first objects as there are copies and no one
-  of them is the heading.
-- **`objects.semantics: "list"`** — marks the wrapper as a list and every
-  object as one of its items, numbered. With `render` only a window of them is
-  in the document, so without a count a screen reader announces a list of a
-  dozen and gives no way to tell where in the real list you are. Opt-in on
-  purpose: cards, slides and menus are not lists, and describing them as one
-  is worse than not describing them.
+- **list markup once only a window of the objects is drawn.** With `render`
+  the document holds a dozen of them, and a screen reader would announce a
+  list of a dozen with no way to tell where in the real list you are; the
+  wrapper is marked as a list and each object numbered against the real total.
+  It follows the window rather than a prop of its own — a slider is never
+  called a list, since its dots already say where you are.
 - **a right-to-left page mirrors the horizontal axis wherever it is not the
   one being scrolled.** A vertical grid lays its columns from the right and
   its scrollbar stands on the left, which is where a browser puts its own.
@@ -461,6 +451,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Changed
 
+- `objects.groups` is gone. Holding a group's heading against the edge sounded
+  useful and was not: the held object climbed over `edge` with its own
+  `z-index`, and scrolled past anyway. Marking out the first object of a group
+  is a few lines of CSS in the app that knows what a group means. The names in
+  the keys stay — `scrollToObject` reads them, and needs nothing switched on.
 - `scrollToObject` counts places in the list **from one**: the tenth object is
   `10`. Asking for the tenth and landing on the eleventh reads as a bug every
   time, whatever the documentation says.
