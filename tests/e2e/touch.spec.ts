@@ -160,3 +160,47 @@ test.describe("MorphScroll touch: nesting and taps", () => {
     expect(await scrollTop(page.locator(".ms-viewport"))).toBe(600);
   });
 });
+
+/*
+ * Владение инерцией переходит вместе с жестом: бросок докатывается у того,
+ * кто вёл в момент отпускания, а не пропадает вместе с передачей.
+ */
+test("a flick handed outward coasts in the scroll that took it", async ({
+  page,
+}) => {
+  await page.goto("/?scenario=nestedHandOff");
+  await page.waitForTimeout(300);
+
+  const outerAt = () =>
+    page.evaluate(
+      () =>
+        [...document.querySelectorAll<HTMLElement>(".ms-viewport")].find(
+          (el) => el.clientHeight !== 120,
+        )!.scrollTop,
+    );
+
+  const host = (await page.locator('[data-testid="inner-host"]').boundingBox())!;
+  const cx = Math.round(host.x + host.width / 2);
+  const cy = Math.round(host.y + host.height / 2);
+
+  const client = await page.context().newCDPSession(page);
+  const touch = (type: "touchStart" | "touchMove" | "touchEnd", y: number) =>
+    client.send("Input.dispatchTouchEvent", {
+      type,
+      touchPoints: type === "touchEnd" ? [] : [{ x: cx, y }],
+    });
+
+  await touch("touchStart", cy);
+  for (let i = 1; i <= 14; i++) {
+    await touch("touchMove", cy - i * 22);
+    await page.waitForTimeout(10);
+  }
+
+  const onRelease = await outerAt();
+
+  await touch("touchEnd", 0);
+  await page.waitForTimeout(900);
+
+  // палец отпустили на ходу — внешний обязан докатиться сам
+  expect(await outerAt()).toBeGreaterThan(onRelease + 40);
+});

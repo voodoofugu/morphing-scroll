@@ -1441,6 +1441,42 @@ scenarios.loopUnmeasured = (
 );
 
 /*
+ * Вложенная прокрутка: короткий список внутри длинного. Внутренний берёт жест
+ * себе, пока ему есть куда ехать, — а упёршись, обязан отдать наружу вместе
+ * со скоростью, как это делает нативный тач.
+ */
+scenarios.nestedHandOff = (
+  <MorphScroll
+    objects={{ size: 120, gap: 10 }}
+    size={[300, 400]}
+    controls={{ drag: true, wheel: true }}
+    onScrollPosition={onScrollPosition}
+  >
+    <div key="head" className="box" style={{ height: 120 }}>
+      head
+    </div>
+    <div key="inner" data-testid="inner-host" style={{ height: 120 }}>
+      <MorphScroll
+        objects={{ size: [280, 60], gap: 10 }}
+        size={[280, 120]}
+        controls={{ drag: true, wheel: true }}
+      >
+        {Array.from({ length: 3 }, (_, i) => (
+          <div key={`in-${i}`} className="box" data-testid={`in-${i}`}>
+            in {i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+    {Array.from({ length: 8 }, (_, i) => (
+      <div key={`out-${i}`} className="box" data-testid={`out-${i}`}>
+        out {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
  * Стенд для перебора: пропсы приходят строкой из адреса, а не пишутся здесь
  * сценарием на каждое сочетание. Сочетаний больше, чем можно выписать руками,
  * и выписанные проверяли бы только то, что кто-то заранее счёл важным — а

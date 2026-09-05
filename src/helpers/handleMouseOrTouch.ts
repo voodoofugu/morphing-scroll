@@ -51,6 +51,18 @@ type HandleMouseT = {
   maxScrollSize: Vec2;
   /** the circle's period per axis, zero where the axis does not loop */
   loopPeriods?: Vec2;
+  /**
+   * offer the gesture to whoever is outside once this axis has run out.
+   * Returns true when someone took it — this scroll then lets go.
+   */
+  handOff?: (
+    axis: "x" | "y",
+    toward: 1 | -1,
+    event: PointerEvent,
+    velocity: { x: number; y: number },
+  ) => boolean;
+  /** the speed a handed-over gesture arrives with */
+  seedVelocity?: { x: number; y: number };
   /** one page turn, reported the moment the gesture aims at a new one */
   emitNavigate: (
     reason: string,
@@ -293,6 +305,37 @@ const motionHandler = (
     // Важно: если движение из середины списка просто перелетело за край,
     // сначала только доводим scroll до границы. Резиновость начинается
     // только следующим движением, когда scroll уже стоит на start/end.
+    /*
+     * Упёрлись на ходу. Прежде отсюда начиналась резинка — палец продолжает
+     * вести, а не едет никто. Сперва предлагаем жест наружу: если там есть
+     * куда ехать, тянуть резинку неправильно, надо отдать.
+     */
+    if (
+      shouldStartOverscroll &&
+      args.clickedObject.current === "wrapp" &&
+      args.handOff?.(
+        axis,
+        isMovingAfterEnd ? 1 : -1,
+        args.event,
+        { x: rt.velocity.x, y: rt.velocity.y },
+      )
+    ) {
+      /*
+       * Отдали — значит отпускаем совсем: слушатели снимаем, иначе тот же
+       * палец продолжит вести и нас. Замок курсора и класс снимает тот, кто
+       * жест принял, — он же его и держит дальше.
+       */
+      rt.controller?.abort();
+      rt.controller = undefined;
+      rt.resetGesture();
+
+      args.clickedObject.current = null;
+      args.isDraggingRef.current = false;
+      args.triggerUpdate();
+
+      return;
+    }
+
     if (shouldStartOverscroll) {
       state.raw += rawDelta;
 
@@ -466,6 +509,18 @@ function handleMouseOrTouch(args: HandleMouseT) {
       (args.loopPeriods?.[wh] || args.maxScrollSize[wh]) / maxThumbPos;
     // защита
     if (!Number.isFinite(thumbRatio) || thumbRatio <= 0) thumbRatio = 1;
+  }
+
+  /*
+   * Жест мог прийти от внутреннего скролла уже на ходу — тогда у него есть
+   * своя скорость, и бросок обязан докатиться здесь, а не начаться с нуля.
+   */
+  if (args.seedVelocity) {
+    rt.velocity.x = args.seedVelocity.x;
+    rt.velocity.y = args.seedVelocity.y;
+    rt.velocity.t = performance.now();
+    rt.velocity.distX = CONST.MIN_DISTANCE + 1;
+    rt.velocity.distY = CONST.MIN_DISTANCE + 1;
   }
 
   // меняем курсор и класс

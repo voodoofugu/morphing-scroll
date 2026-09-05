@@ -478,7 +478,7 @@ describe("MorphScroll — findings", () => {
       );
 
     const complaints = errorsOf(spy).filter((m) =>
-      /needs an objects\.size it can count/.test(m),
+      /cannot be counted/.test(m),
     );
     spy.mockRestore();
 
@@ -794,9 +794,13 @@ describe("MorphScroll — scrollToObject", () => {
     )),
   ];
 
-  const mount = (children: React.ReactNode) => {
+  const mount = (children: React.ReactNode, extra?: { gap?: number }) => {
     const u = render(
-      <MorphScroll size={[100, 300]} objects={{ size: 100 }} ref={ref}>
+      <MorphScroll
+        size={[100, 300]}
+        objects={{ size: 100, ...extra }}
+        ref={ref}
+      >
         {children}
       </MorphScroll>,
     );
@@ -805,7 +809,7 @@ describe("MorphScroll — scrollToObject", () => {
       clientWidth: 100,
       clientHeight: 300,
       scrollWidth: 100,
-      scrollHeight: 1000,
+      scrollHeight: 1000 + (extra?.gap ?? 0) * 10,
     });
     return { ...u, el };
   };
@@ -820,12 +824,13 @@ describe("MorphScroll — scrollToObject", () => {
       vi.advanceTimersByTime(600);
     });
 
-  it("goes to an object by its place in the list", () => {
+  /* место в списке считается с единицы: седьмой объект, а не «индекс 7» */
+  it("goes to an object by its place in the list, counting from one", () => {
     const spy = quiet();
     const s = mount(items(10));
     settle();
 
-    act(() => ref.current?.scrollToObject(6));
+    act(() => ref.current?.scrollToObject(7));
     settle();
 
     const at = s.el.scrollTop;
@@ -870,7 +875,7 @@ describe("MorphScroll — scrollToObject", () => {
     const s = mount(items(10));
     settle();
 
-    act(() => ref.current?.scrollToObject(5, { align: "center" }));
+    act(() => ref.current?.scrollToObject(6, { align: "center" }));
     settle();
 
     const at = s.el.scrollTop;
@@ -879,6 +884,30 @@ describe("MorphScroll — scrollToObject", () => {
 
     // a 100px object centred in a 300px window sits 100px in
     expect(at).toBe(400);
+  });
+
+  /*
+   * У края объект встаёт не вплотную: между ним и соседом лежит зазор, и у
+   * последней стороны он такой же. Прижав объект к самому краю, мы съедали бы
+   * именно его — снизу выходило теснее, чем сверху.
+   */
+  it("leaves the gap under an object aligned to the end", () => {
+    const spy = quiet();
+    const s = mount(items(10), { gap: 20 });
+    settle();
+
+    act(() => ref.current?.scrollToObject(6, { align: "end" }));
+    settle();
+
+    const at = s.el.scrollTop;
+    s.unmount();
+    spy.mockRestore();
+
+    /*
+     * Шестой объект при шаге 120 лежит на 600, окно 300. Вплотную к низу — это
+     * 600 + 100 - 300 = 400; с зазором под ним объект поднимается на те же 20.
+     */
+    expect(at).toBe(420);
   });
 
   it("does nothing for a name that is neither a key nor a group", () => {
@@ -960,14 +989,49 @@ describe("MorphScroll — inside a right-to-left page", () => {
     const viewport = container.querySelector<HTMLElement>(".ms-viewport")!;
     const wrapper = container.querySelector<HTMLElement>(".ms-objects-wrapper")!;
 
+    const box = container.querySelector<HTMLElement>(".ms-object-box")!;
+
     const viewportDir = viewport.style.direction;
     const wrapperDir = wrapper.style.direction;
+    const boxDir = box.style.direction;
 
     unmount();
     host.remove();
     spy.mockRestore();
 
     expect(viewportDir).toBe("ltr");
+    /*
+     * По горизонтали здесь едут — значит раскладку разворачивать нельзя:
+     * первый объект уехал бы за правый край, а отсчёт остался бы слева.
+     * Направление достаётся самим объектам.
+     */
+    expect(wrapperDir).toBe("ltr");
+    expect(boxDir).toBe("rtl");
+  });
+
+  /* у вертикальной горизонталь поперечная — её разворот и есть вся задача */
+  it("mirrors the box of a vertical list, where the axis is free", () => {
+    const spy = quiet();
+
+    const host = document.createElement("div");
+    host.style.direction = "rtl";
+    document.body.appendChild(host);
+
+    const { container, unmount } = render(
+      <MorphScroll size={[300, 100]} objects={{ size: 100 }}>
+        {items(9)}
+      </MorphScroll>,
+      { container: host },
+    );
+
+    const wrapperDir =
+      container.querySelector<HTMLElement>(".ms-objects-wrapper")!.style
+        .direction;
+
+    unmount();
+    host.remove();
+    spy.mockRestore();
+
     expect(wrapperDir).toBe("rtl");
   });
 
@@ -1118,14 +1182,14 @@ describe("MorphScroll — second pass", () => {
     });
     settle(100);
 
-    act(() => ref.current?.scrollToObject(7));
+    act(() => ref.current?.scrollToObject(8));
     settle();
 
     const at = [el.scrollLeft, el.scrollTop];
     u.unmount();
     spy.mockRestore();
 
-    // seven objects into a grid three wide: second row, second column
+    // the eighth of a grid three wide: third row, second column
     expect(at).toEqual([100, 200]);
   });
 

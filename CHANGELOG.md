@@ -273,6 +273,13 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Added
 
+- **a gesture handed outward mid-move.** Passing it on was only ever done by a
+  scroll with nothing to scroll at all; one that ran out of room *during* the
+  gesture kept it and sprang back instead, so the finger kept moving and
+  nothing did. It now offers the gesture to whoever is outside the moment its
+  own edge is reached, and hands over the speed with it, so a flick released
+  after the handover coasts in the scroll that took it — which is what a
+  native touch does in the same place.
 - **`dir`** — which way the content reads: `"auto"` (the default) takes it from
   the page once on mount, `"ltr"` or `"rtl"` says it outright, which is what a
   widget reading the other way round from the page it sits on needs.
@@ -454,6 +461,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Changed
 
+- `scrollToObject` counts places in the list **from one**: the tenth object is
+  `10`. Asking for the tenth and landing on the eleventh reads as a bug every
+  time, whatever the documentation says.
+- `objects.size` takes `null` for a side left to CSS, so a pair can be written
+  `[100, null]` as well as `[100, undefined]`.
 - `objects.layout` is gone; the sizes say it on their own, which is what they
   did before it existed. Four names that mostly changed nothing — a grid was
   already a grid once both sides were numbers — and the one thing naming it
@@ -571,6 +583,20 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- **nothing was drawn at all when `objects.size` left a side to CSS.** Every
+  feature that places objects itself — the window, visibility tracking, the
+  circle, a held heading — works by counting their size, and a side left to
+  CSS is the one side that cannot be counted; they were placed by coordinates
+  that did not exist, and the result was an empty box. The trick is given up
+  now instead of the content: the objects keep their CSS layout, every one of
+  them stays mounted, and one message names exactly what was switched off.
+- **a right-to-left horizontal scroll opened on the end of its list.** The box
+  was mirrored along the very axis being scrolled, which moved the first object
+  past the right edge while the count still ran from the left — so the window
+  opened on the end and the start could not be reached. The scrolled axis is
+  left alone now, and the reading direction goes to the objects themselves.
+- `scrollToObject` with `align: "end"` pressed the object against the edge,
+  eating the gap that stands between it and its neighbour everywhere else.
 - `objects.lines` was ignored when a side of `objects.size` was left to CSS.
   The count is the one thing that can end a line when the width is not ours to
   know, and it was exactly there that it was dropped — a list asked for three

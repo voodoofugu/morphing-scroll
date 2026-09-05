@@ -370,3 +370,60 @@ test.describe("MorphScroll keys: focus (real browser)", () => {
     expect(await focused(page)).toBe("item 2");
   });
 });
+
+/*
+ * Наружу пропускает не только тот, кому прокручивать нечего вовсе. Упереться
+ * в свой край можно и на ходу — и там прежде начиналась резинка: палец
+ * продолжает вести, а не едет никто. Нативный тач в этом месте отдаёт
+ * внешнему, и отдавать надо так же.
+ */
+test.describe("MorphScroll: a gesture handed outward mid-move", () => {
+  const positions = (page: import("@playwright/test").Page) =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".ms-viewport")].map((el) => ({
+        inner: el.clientHeight === 120,
+        at: Math.round(el.scrollTop),
+        most: el.scrollHeight - el.clientHeight,
+      })),
+    );
+
+  test("the outer takes over the moment the inner runs out", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=nestedHandOff");
+    await page.waitForTimeout(300);
+
+    const start = await positions(page);
+    const inner = start.find((one) => one.inner)!;
+    const outer = start.find((one) => !one.inner)!;
+
+    // обе прокрутки живые, иначе проверять нечего
+    expect(inner.most).toBeGreaterThan(0);
+    expect(outer.most).toBeGreaterThan(0);
+    expect(outer.at).toBe(0);
+
+    const host = (await page
+      .locator('[data-testid="inner-host"]')
+      .boundingBox())!;
+    const cx = host.x + host.width / 2;
+    const cy = host.y + host.height / 2;
+
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    for (let i = 1; i <= 20; i++) {
+      await page.mouse.move(cx, cy - i * 14, { steps: 1 });
+      await page.waitForTimeout(10);
+    }
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+
+    const end = await positions(page);
+    const innerEnd = end.find((one) => one.inner)!;
+    const outerEnd = end.find((one) => !one.inner)!;
+
+    // внутренний доехал до своего конца и там остановился
+    expect(innerEnd.at).toBe(innerEnd.most);
+    // а дальше повёл внешний — и повёл заметно, а не на пару пикселей
+    expect(outerEnd.at).toBeGreaterThan(100);
+  });
+});

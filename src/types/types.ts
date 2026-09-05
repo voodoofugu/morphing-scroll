@@ -117,17 +117,27 @@ export type NavigateEvent = {
 export type ObjectsConfig = {
   /**
    * one value for both sides, or a pair. `"auto"` hands that side to the
-   * object itself; leaving a side out hands it to your own CSS
+   * object itself; `null` — or leaving it out — hands it to your own CSS
    */
-  size?: ObjectSize | Pair<ObjectSize | undefined>;
+  size?: ObjectSize | Pair<ObjectSize | null | undefined>;
   gap?: number | Vec2;
   /** how many lines the objects run in, across the scroll */
   lines?: number;
   /**
-   * a group is named in the child's own `key`, in brackets at the end:
-   * `"post-4[news]"`. `"sticky"` holds the group's first object at the
-   * leading edge until the next group pushes it out; it carries `ms-sticky`
-   * while held. The same names reach `scrollToObject`
+   * hold a group's heading in view.
+   *
+   * A group is named in the child's own `key`, in brackets at the end:
+   * `"post-4[news]"` belongs to `news`. There is no prop for the grouping
+   * itself — a key has to be unique anyway.
+   *
+   * `"sticky"` keeps the first object of each group against the leading edge
+   * for as long as any of its group is in view, and the group that follows
+   * pushes it out. That first object is the group's heading, so it always
+   * says which group you are looking at; it carries `ms-sticky` while it is
+   * held there.
+   *
+   * That is all it does. Going to a group by name is `scrollToObject`, and it
+   * needs nothing switched on.
    */
   groups?: "sticky";
   align?: Align;
@@ -185,13 +195,16 @@ export type MorphScrollHandle = {
    * document at all, and with `objects.size: "auto"` only the library knows
    * where it ended up.
    *
-   * `target` is a position in the list, a child's `key`, or the name of a
-   * group — written in the key itself, in brackets at the end: a child keyed
-   * `"post-4[news]"` is reached by `"post-4"` and by `"news"` alike, and a
-   * group goes to its first object. A key wins over a group of the same name.
+   * `target` is a place in the list counted from one, a child's `key`, or the
+   * name of a group — written in the key itself, in brackets at the end: a
+   * child keyed `"post-4[news]"` is reached by `"post-4"` and by `"news"`
+   * alike, and a group goes to its first object. A key wins over a group of
+   * the same name. Groups are read here whether or not `objects.groups` is
+   * set — that one is about holding the heading in view, nothing else.
    *
    * `align` says where in the window it lands: `"start"` by default,
-   * `"center"`, or `"end"`.
+   * `"center"`, or `"end"` — which leaves `objects.gap` showing past the
+   * object rather than pressing it against the edge.
    */
   scrollToObject: (
     target: number | string,

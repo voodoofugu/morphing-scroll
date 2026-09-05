@@ -392,11 +392,11 @@ Unlike <code>stickToEnd</code>, which follows new content only while the scroll 
 brings one object into view. A place in the list rather than a place in pixels, which is the one you can actually name: with <code>render</code> the object is not in the document, and with <code>objects.size: "auto"</code> only the library knows where it ended up.<br />
 
 <ul>
-  <li><code>target</code>: a position in the list (<b>0</b> is the first), a child's <code>key</code>, or the name of a <b>group</b>.</li><br />
-  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>.</li>
+  <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b>.</li><br />
+  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>, which leaves <code>objects.gap</code> showing past the object instead of pressing it against the edge.</li>
 </ul>
 
-<em>A group is written in the key itself, in brackets at the end. There is no prop for it: a key has to be unique anyway, and adding the group to it is cheaper than keeping a second list beside it. A child keyed <code>"post-4[news]"</code> answers to <code>"post-4"</code> and to <code>"news"</code> alike, and a group goes to its first object; a key wins over a group of the same name.</em>
+<em>A group is written in the key itself, in brackets at the end. There is no prop for it: a key has to be unique anyway, and adding the group to it is cheaper than keeping a second list beside it. A child keyed <code>"post-4[news]"</code> answers to <code>"post-4"</code> and to <code>"news"</code> alike, and a group goes to its first object; a key wins over a group of the same name. None of this needs <code>objects.groups</code> — that one holds the heading in view and does nothing else.</em>
 
 ```tsx
 <MorphScroll {...props} ref={scroll} render="virtual">
@@ -405,7 +405,7 @@ brings one object into view. A place in the list rather than a place in pixels, 
   ))}
 </MorphScroll>;
 
-scroll.current?.scrollToObject(10);
+scroll.current?.scrollToObject(10); // the tenth, counted from one
 scroll.current?.scrollToObject("post-4", { align: "center" });
 scroll.current?.scrollToObject("news"); // the first post of that section
 ```
@@ -668,7 +668,7 @@ Each object is wrapped in an <code>.ms-object-box</code> of its own — this is 
 <b>Usage:</b><br />
 
 ```tsx
-size: 100; // or [100, 70] | "full" | "firstChild" | "auto"
+size: 100; // or [100, 70] | [100, null] | "full" | "firstChild" | "auto"
 ```
 
 <b>Default:</b><br />
@@ -695,7 +695,7 @@ every object gets the size it asks for, and the library measures it. Which side 
 Measuring is done by one observer for the whole scroll, not one per object, and an object is watched for as long as it is on screen: a picture that arrives late or a text that changes moves its neighbours, instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
 <br />
 <b>a side left out</b>:<br />
-cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. In a pair the side is simply not named: <code>[100, undefined]</code> is a fixed width with the height decided by the content, and leaving <code>size</code> out entirely does it for both. There is no word for this on purpose — two ways of saying the same thing would have to be told apart every time.<br />
+cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. In a pair the side is simply not named: <code>[100, null]</code> is a fixed width with the height decided by the content, and leaving <code>size</code> out entirely does it for both. There is no word for this on purpose — two ways of saying the same thing would have to be told apart every time.<br />
 <br />
 Lines still work here, because <code>lines</code> counts objects rather than pixels: it is the one thing that can end a line when the width is not ours to know.<br />
 <br />
@@ -869,7 +869,7 @@ A group is named in the child's own <code>key</code>, in brackets at the end: <c
 <b>"sticky"</b> keeps the first object of each group in view for as long as any of its group is: it holds against the leading edge and is pushed out by the group that follows. That first object is the group's heading, so it always says which group you are looking at. While it is held there it carries <code>ms-sticky</code>, which is the hook for a shadow or a background.<br />
 <br />
 ✦ Note:<br />
-the same names reach <code>scrollToObject</code>, which goes to a group's first object.</em><br />
+that is all it does. Going to a group by name is <code>scrollToObject</code>, and it works whether or not this is set — the two share the names, not the behaviour.</em><br />
 <br />
 <b>Example:</b>
 

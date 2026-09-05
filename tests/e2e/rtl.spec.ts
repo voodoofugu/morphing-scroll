@@ -104,3 +104,57 @@ test.describe("right-to-left", () => {
     expect(row.map((b) => b.key)).toEqual(["crash-0", "crash-1", "crash-2"]);
   });
 });
+
+/*
+ * Ось, по которой едут, не разворачивается. Развернув раскладку горизонтальной
+ * прокрутки, мы уводили первый объект за правый край, а отсчёт оставался
+ * слева: в окне оказывался конец списка, и доехать до начала было некуда.
+ */
+test.describe("ось прокрутки поверх чтения", () => {
+  const open = (page: Page, props: Record<string, unknown>) =>
+    page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+
+  const firstAt = (page: Page) =>
+    page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = view.getBoundingClientRect();
+      const first = document.querySelector<HTMLElement>(".ms-object-box")!;
+
+      return Math.round(first.getBoundingClientRect().left - box.left);
+    });
+
+  test("горизонтальная прокрутка открывается первым объектом", async ({
+    page,
+  }) => {
+    await open(page, {
+      count: 9,
+      size: [300, 120],
+      direction: "x",
+      dir: "rtl",
+      objects: { size: 80, gap: 10 },
+      controls: { wheel: true },
+    });
+    await page.waitForTimeout(300);
+
+    expect(await firstAt(page)).toBe(0);
+    expect(
+      await page.locator(".ms-viewport").evaluate((el) => el.scrollLeft),
+    ).toBe(0);
+  });
+
+  /* у вертикальной горизонталь поперечная — её разворачивать можно и нужно */
+  test("вертикальная кладёт колонки справа", async ({ page }) => {
+    await open(page, {
+      count: 9,
+      size: [300, 300],
+      dir: "rtl",
+      objects: { size: 80, gap: 10 },
+      controls: { wheel: true },
+    });
+    await page.waitForTimeout(300);
+
+    expect(await firstAt(page)).toBeGreaterThan(150);
+  });
+});
