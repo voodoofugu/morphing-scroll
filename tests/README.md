@@ -27,7 +27,7 @@ from the unit tier alone — `autoScrollRegistry` and the gesture physics are
 covered by Playwright, which this number does not see.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
-`edge`, `arrows`, the `bar` scrollbar, `direction`/`crossCount`,
+`edge`, `arrows`, the `bar` scrollbar, `direction`/`objects.lines`,
 `objectsSize` modes, `gap`/`wrapper.margin`/`wrapper.minSize`/`wrapper.align`/
 `objectsAlign`, `bar.reverse`, `onRenderedKeysChange`, `onScrollPosition`,
 `onNavigate` (reason/page, one event per gesture), `controls.keys`,

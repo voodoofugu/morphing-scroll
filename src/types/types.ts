@@ -173,21 +173,16 @@ export type MorphScrollHandle = {
   /**
    * bring one object into view.
    * @description
-   * A place in the list rather than a place in pixels, which is the one a
-   * caller can actually name: with `render` the object may not be in the
-   * document at all, and with `objects.size: "auto"` only the library knows
-   * where it ended up.
+   * A place in the list rather than in pixels — the one a caller can name:
+   * with `render` the object may not be in the document, and with
+   * `objects.size: "auto"` only the library knows where it ended up.
    *
-   * `target` is a place in the list counted from one, a child's `key`, or the
-   * name of a group — written in the key itself, in brackets at the end: a
-   * child keyed `"post-4[news]"` is reached by `"post-4"` and by `"news"`
-   * alike, and a group goes to its first object. A key wins over a group of
-   * the same name. Nothing has to be switched on for this: a key has to be
-   * unique anyway, and the name in brackets rides along in it.
+   * `target` is a place counted from one, a child's `key`, or a group name,
+   * which a child gives itself: `ms-group="news"`. A group goes to its first
+   * object; a key wins over a group of the same name.
    *
-   * `align` says where in the window it lands: `"start"` by default,
-   * `"center"`, or `"end"` — which leaves `objects.gap` showing past the
-   * object rather than pressing it against the edge.
+   * `align` is `"start"` by default, `"center"`, or `"end"` — which leaves
+   * `objects.gap` showing past the object rather than pressing it to the edge.
    */
   scrollToObject: (
     target: number | string,
@@ -310,24 +305,17 @@ export type MorphScroll = {
    */
   direction?: "x" | "y" | "hybrid";
   /**
-   * which way the content reads.
+   * which way the list runs.
    * @default "auto"
    * @description
-   * `"auto"` takes it from the page, once, on mount. Naming it says it
-   * outright, for a widget that reads the other way round from the page it
-   * sits on.
+   * `"auto"` takes it from the page, once, on mount; naming it says it
+   * outright, for a widget reading the other way round from the page.
    *
-   * The scroll counts from the left whatever this says — that is where its
-   * own geometry is, and an `rtl` page would otherwise quietly invert the
-   * arithmetic. What changes is the content: the direction is handed back to
-   * it, and the horizontal axis is mirrored wherever it is not the one being
-   * scrolled, so a vertical grid lays its columns from the right and its bar
-   * stands on the left.
-   * @note *a horizontal scroll's own axis is not mirrored: its zero would
-   * have to move to the right edge, which is a different coordinate system
-   * rather than a different layout*
+   * `"rtl"` turns the list around: the first object stands at the right, the
+   * rest follow leftwards, and a horizontal scroll opens there with its bar.
+   * The objects themselves are left alone — how they look is yours.
    */
-  dir?: "auto" | "ltr" | "rtl";
+  reading?: "auto" | "ltr" | "rtl";
   /**
    * where the scroll opens.
    * @description
@@ -353,29 +341,16 @@ export type MorphScroll = {
    */
   stickToEnd?: boolean | Pair<boolean>;
   /**
-   * the content runs in a circle, with no start and no end.
+   * the content runs in a circle, with no start and no end. The strip stays a
+   * fixed length: the position moves by one period whenever the window leaves
+   * the middle copy, where the content is the same.
    * @default false
-   * @description
-   * The same children repeat forever in both directions, and the seam is not
-   * visible: the scroll keeps a fixed length and moves the position by one
-   * period whenever the window leaves the middle copy — under the window at
-   * that moment is the very same content. Nothing grows, so nothing runs into
-   * the browser's own limit on how long a scroll can be.
-   *
-   * The slider modes turn too, counting pages within one turn, and
-   * `direction="hybrid"` turns both ways at once.
-   * @note *the list is repeated, not referenced: a few copies of every child
-   * are mounted at once. `render.mode` cuts that back to the window, so give
-   * a long list virtualising*
+   * @note *the list is repeated, not referenced — a few copies of every child
+   * are mounted, so give a long one `render.mode`*
    * @note *`stickToEnd` has no end to hold onto and is refused*
-   * @note *a period is the exact length of the content, so the circle needs a
-   * size it can count. A side left to your own CSS cannot be counted — once
-   * the copies exist, measuring the box measures the copies — and the circle
-   * says so and stays open. `objects.size: "auto"` is the answer when you do
-   * not want to state sizes: it measures each object, waits until nothing is
-   * left to measure, and closes the circle by itself*
-   * @see the README for what the progress element, `edge` and `scrollTo` do
-   * inside a turn
+   * @note *a period is the exact length of the content, so a size that can be
+   * counted is needed; `objects.size: "auto"` measures it for you*
+   * @see the README for the slider modes, `edge` and `scrollTo` inside a turn
    */
   loop?: boolean;
   /**
@@ -422,11 +397,10 @@ export type MorphScroll = {
    * row and moves down, `"column"` fills a column and moves right*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
    * replaces them with a placeholder*
-   * @note *which side you hand over with `"auto"` is what arranges the
-   * objects: along the scroll is a masonry, across it a flow, both a fill*
-   * @note *the sizes are what `render` counts with, and `"auto"` counts as
-   * one: the library measures it and then knows it. A side left to CSS is the
-   * one thing it cannot count*
+   * @note *which side you hand over with `"auto"` arranges them: along the
+   * scroll is a masonry, across it a flow, both a fill*
+   * @note *`render` counts by size, and a side left to CSS is the one it
+   * cannot count; `"auto"` it can — the library measures it*
    * @note *pages need one size for all, so `"auto"` is for `mode="scroll"`*
    * @see the README for how each arrangement places its objects
    */
@@ -452,15 +426,12 @@ export type MorphScroll = {
    * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*
    * @note
-   * - *`wheel` and `keys` are on unless you say otherwise: a scroll nothing
-   * can move is almost never what was meant. Switch one off by name —
-   * `{ keys: false }`*
-   * - *a name, or a list of names, switches those on: `"wheel"` is the same
-   * as `{ wheel: true }`*
-   * - *`bar` renders as a thumb or as a slider depending on `mode`*
-   * - *`bar: true` with `mode="scroll"` hands the job to the browser's own
-   * scrollbar*
-   * - *`drag` skips text fields and anything that carries its own drag ([more...](https://www.npmjs.com/package/morphing-scroll))*
+   * - *`wheel` and `keys` are on unless you say otherwise: `{ keys: false }`*
+   * - *a name, or a list of them, switches those on: `"wheel"` is
+   * `{ wheel: true }`*
+   * - *`bar` draws a thumb or a slider depending on `mode`; `bar: true` with
+   * `mode="scroll"` hands the job to the browser's own scrollbar*
+   * - *`drag` skips text fields and anything with a drag of its own*
    */
   controls?: ControlName | ControlName[] | ControlsConfig;
   /**
@@ -470,12 +441,9 @@ export type MorphScroll = {
    * along its side and carries `--ms-edge-visibility` (`0` / `1`). What it
    * looks like is up to your CSS or the node you pass in.
    * @note *author the node once, the way it looks along the top: the library
-   * turns it onto the other three sides, swapping the sides of the narrow
-   * slots first so a gradient written across a wide strip lands correctly down
-   * a tall one*
-   * @note *`{ element, size }` names the thickness of the strip too, the way
-   * `arrows.size` does — a height at the top and bottom, a width at the sides.
-   * Without it the thickness is yours to write in CSS*
+   * turns it onto the other three sides*
+   * @note *`{ element, size }` names the thickness too, the way `arrows.size`
+   * does; without it the thickness is yours to write in CSS*
    */
   edge?: boolean | React.ReactNode | EdgeConfig;
 
@@ -527,17 +495,12 @@ export type MorphScroll = {
    * @param max how far each axis can go — the position at its very end, read
    * from the element itself, so it is a position the scroll really reaches.
    * @description
-   * The third argument is what turns this into a "load more" signal without a
-   * prop for it: how far the end is, is `max` minus the position, and nothing
-   * else has to know the length of the content. With `render` or
+   * `max` is what makes this a "load more" signal without a prop for it: how
+   * far the end is, is `max` minus the position. With `render` or
    * `objects.size: "auto"` nothing else *can* know it.
-   * @note *test it with a distance rather than with equality. `max` is a whole
-   * number and a scroll position need not be one — on a scaled display it
-   * lands on halves — so `max.y === top` can be false at the very end.
-   * `max.y - top < 1` is "at the end"; a larger number is "nearly there",
-   * which is what a prefetch actually wants*
-   * @note *in `loop` the content has no end, and `max` measures the strip of
-   * copies rather than a turn*
+   * @note *test it with a distance, not equality: a position need not be a
+   * whole number, so `max.y - top < 1` is "at the end"*
+   * @note *in `loop` there is no end, and `max` measures the whole strip*
    */
   onScrollPosition?: (
     left: number,
@@ -554,17 +517,14 @@ export type MorphScroll = {
    * @param event which page the scroll left, which one it goes to, and what
    * put it there.
    * @description
-   * this is the discrete half of scrolling — an arrow press, a slider dot, a
-   * drag that settled on the next page. Continuous movement is
-   * `onScrollPosition`; this one fires once per page turn, so it is the place
-   * to hang a sound, a haptic, or an analytics event.
-   * @note
-   * *a page turn asked for by a command — an arrow, a key, a gesture along the
-   * slider — reports the moment it is asked for, one event per press. Three
-   * quick presses share one ride and still report three times. A page reached
-   * without asking reports when the scroll settles, as `"scroll"`*
-   * @note
-   * *in `mode="scroll"` only commands page the content, so only they report*
+   * the discrete half of scrolling — an arrow, a slider dot, a drag that
+   * settled on the next page. Continuous movement is `onScrollPosition`; this
+   * fires once per page turn, so it is where a sound or an analytics event
+   * belongs.
+   * @note *a turn asked for reports the moment it is asked: three quick
+   * presses share one ride and still report three times. One reached without
+   * asking reports when the scroll settles, as `"scroll"`*
+   * @note *in `mode="scroll"` only commands page the content*
    */
   onNavigate?: (event: NavigateEvent) => void;
   /**

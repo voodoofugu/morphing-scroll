@@ -280,9 +280,11 @@ themselves are no longer transformed and can be positioned from CSS.
   own edge is reached, and hands over the speed with it, so a flick released
   after the handover coasts in the scroll that took it — which is what a
   native touch does in the same place.
-- **`dir`** — which way the content reads: `"auto"` (the default) takes it from
-  the page once on mount, `"ltr"` or `"rtl"` says it outright, which is what a
-  widget reading the other way round from the page it sits on needs.
+- **`reading`** — which way the list runs. `"auto"` (the default) takes it from
+  the page once on mount; `"rtl"` turns the list around, so the first object
+  stands at the right, the rest follow leftwards, and a horizontal scroll opens
+  there with its bar. The objects themselves are left alone: turning the list
+  around is about order, not about how a card looks inside.
 - `loop` — the content runs in a circle: the same children repeat forever in
   both directions, with no first object and no last, and no seam to see. The
   strip does not grow, because a scroll cannot: browsers cut it off after tens
@@ -438,19 +440,23 @@ themselves are no longer transformed and can be positioned from CSS.
   wrapper is marked as a list and each object numbered against the real total.
   It follows the window rather than a prop of its own — a slider is never
   called a list, since its dots already say where you are.
-- **a right-to-left page mirrors the horizontal axis wherever it is not the
-  one being scrolled.** A vertical grid lays its columns from the right and
-  its scrollbar stands on the left, which is where a browser puts its own.
-  A horizontal scroll's own direction is not mirrored: its zero would have to
-  move to the right edge, and that is a different coordinate system rather
-  than a different layout — every sum that counts from the left would have to
-  be rewritten, and jsdom cannot test any of it.
+- **a right-to-left page turns the list around.** A vertical grid lays its
+  columns from the right and its scrollbar stands on the left, which is where
+  a browser puts its own; a horizontal one starts at the right and runs
+  leftwards. The count still runs from the left of the markup, which is where
+  the geometry is — it shows only if you read `scrollLeft` yourself, where the
+  start of a right-to-left list is its largest value rather than zero.
 - **a nested scroll with nothing to scroll passes the gesture outward.** A
   short list inside a long one used to swallow the drag whole: the finger
   rested on it and nothing moved anywhere.
 
 ### Changed
 
+- a group is an attribute on the child — `ms-group="news"` — read straight off
+  the element, rather than a name packed into its `key`. The key says which
+  object this is; a second meaning in the same string breaks on every key that
+  has a bracket of its own, and the child never has to pass the attribute
+  anywhere for it to be read.
 - `objects.groups` is gone. Holding a group's heading against the edge sounded
   useful and was not: the held object climbed over `edge` with its own
   `z-index`, and scrolled past anyway. Marking out the first object of a group

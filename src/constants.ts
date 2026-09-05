@@ -6,6 +6,8 @@ const CONST = {
   // отличает копию контента в круге от оригинала; наружу не выходит
   LOOP_KEY_SEP: "\u0000loop\u0000",
   CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while render.trackVisibility is on
+  /** the group a child names on itself; `scrollToObject` takes that name */
+  GROUP_ATR: "ms-group",
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
@@ -15,7 +17,7 @@ const CONST = {
   SCROLL_READY_MAX_FRAMES: 60, // Frames to wait for the content to become scrollable
   SCROLL_READY_STILL_FRAMES: 5, // Frames of an unchanged range that end that wait
   SLIDER_AIM_DURATION: 120, // ms — перелёт к пункту, в который целится жест по бару
-  MEASURE_BATCH: 30, // objects.size: "each" — сколько неизмеренных рисуем за раз
+  MEASURE_BATCH: 30, // objects.size: "auto" — сколько неизмеренных рисуем за раз
 
   // инерция для прокрутки
   MIN_VELOCITY: 0.05, // px/ms

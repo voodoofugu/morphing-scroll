@@ -209,7 +209,7 @@ const combos = (): Array<[string, Partial<MorphScrollProps>]> => {
 
 /** a combination the library is entitled to complain about */
 const EXPECTED_COMPLAINT =
-  /needs a known objects\.size|pages need one size|needs objects\.lines|pull against each other|prop "controls"|objects\.direction|two children with the same key|groups: "sticky" and loop/;
+  /cannot be counted|pages need one size|needs objects\.lines|pull against each other|prop "controls"|objects\.order|two children with the same key/;
 
 describe("MorphScroll — crash pass over the prop surface", () => {
   it("survives every prop value and awkward pair", () => {
@@ -787,10 +787,14 @@ describe("MorphScroll — scrollToObject", () => {
 
   const grouped = () => [
     ...Array.from({ length: 5 }, (_, i) => (
-      <div key={`a-${i}[intro]`}>intro {i}</div>
+      <div key={`a-${i}`} ms-group="intro">
+        intro {i}
+      </div>
     )),
     ...Array.from({ length: 5 }, (_, i) => (
-      <div key={`b-${i}[news]`}>news {i}</div>
+      <div key={`b-${i}`} ms-group="news">
+        news {i}
+      </div>
     )),
   ];
 
@@ -970,94 +974,6 @@ describe("MorphScroll — onScrollPosition reports the end", () => {
  * here counts in pixels from the left, so the origin is pinned; the page's
  * own direction goes back onto the content.
  */
-describe("MorphScroll — inside a right-to-left page", () => {
-  it("pins the scroll origin and hands the direction to the content", () => {
-    const spy = quiet();
-
-    const host = document.createElement("div");
-    host.setAttribute("dir", "rtl");
-    host.style.direction = "rtl";
-    document.body.appendChild(host);
-
-    const { container, unmount } = render(
-      <MorphScroll size={[300, 100]} direction="x" objects={{ size: 100 }}>
-        {items(9)}
-      </MorphScroll>,
-      { container: host },
-    );
-
-    const viewport = container.querySelector<HTMLElement>(".ms-viewport")!;
-    const wrapper = container.querySelector<HTMLElement>(".ms-objects-wrapper")!;
-
-    const box = container.querySelector<HTMLElement>(".ms-object-box")!;
-
-    const viewportDir = viewport.style.direction;
-    const wrapperDir = wrapper.style.direction;
-    const boxDir = box.style.direction;
-
-    unmount();
-    host.remove();
-    spy.mockRestore();
-
-    expect(viewportDir).toBe("ltr");
-    /*
-     * По горизонтали здесь едут — значит раскладку разворачивать нельзя:
-     * первый объект уехал бы за правый край, а отсчёт остался бы слева.
-     * Направление достаётся самим объектам.
-     */
-    expect(wrapperDir).toBe("ltr");
-    expect(boxDir).toBe("rtl");
-  });
-
-  /* у вертикальной горизонталь поперечная — её разворот и есть вся задача */
-  it("mirrors the box of a vertical list, where the axis is free", () => {
-    const spy = quiet();
-
-    const host = document.createElement("div");
-    host.style.direction = "rtl";
-    document.body.appendChild(host);
-
-    const { container, unmount } = render(
-      <MorphScroll size={[300, 100]} objects={{ size: 100 }}>
-        {items(9)}
-      </MorphScroll>,
-      { container: host },
-    );
-
-    const wrapperDir =
-      container.querySelector<HTMLElement>(".ms-objects-wrapper")!.style
-        .direction;
-
-    unmount();
-    host.remove();
-    spy.mockRestore();
-
-    expect(wrapperDir).toBe("rtl");
-  });
-
-  it("leaves a left-to-right page exactly as it was", () => {
-    const spy = quiet();
-    const { container, unmount } = render(
-      <MorphScroll size={[300, 100]} direction="x" objects={{ size: 100 }}>
-        {items(9)}
-      </MorphScroll>,
-    );
-
-    const wrapper = container.querySelector<HTMLElement>(".ms-objects-wrapper")!;
-    const dir = wrapper.style.direction;
-
-    unmount();
-    spy.mockRestore();
-
-    expect(dir).toBe("ltr");
-  });
-});
-
-/**
- * Three things a reader does without thinking: tap the dot they want, scroll
- * a page that happens to have a list on it, and come back to a list that has
- * changed underneath them.
- */
 describe("MorphScroll — second pass", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
@@ -1228,9 +1144,10 @@ describe("MorphScroll — second pass", () => {
 });
 
 /**
- * The layout and the sizes say the same thing from two ends. Handing a side
- * to the objects with `"auto"` says it in sizes; `objects.layout` says it in
- * words. Naming it has to land in exactly the same place.
+ * The sizes say how the objects are arranged, and they are the only thing
+ * that says it: a side handed to the objects with `"auto"` is the side the
+ * arrangement measures — along the scroll a masonry, across it a flow, both
+ * a fill.
  */
 describe("MorphScroll — the arrangement follows the sizes", () => {
   const varied = (n: number) =>
@@ -1285,61 +1202,67 @@ describe("MorphScroll — the arrangement follows the sizes", () => {
 });
 
 /*
- * Направление можно назвать пропом, а не только унаследовать. Виджет,
- * читающийся не так, как страница вокруг, — обычное дело, и нюхать за него
- * окружение неправильно.
+ * Куда читают, можно назвать пропом, а не только унаследовать: виджет,
+ * читающийся не так, как страница вокруг, — обычное дело.
+ *
+ * Проверяем порядок, а не `direction`: разворот — дело раскладки, а отсчёт и
+ * у окна, и у коробки остаётся от левого края.
  */
-describe("MorphScroll — dir", () => {
-  const wrapperOf = (props: Partial<MorphScrollProps>, host?: HTMLElement) => {
+describe("MorphScroll — reading", () => {
+  const orderOf = (props: Partial<MorphScrollProps>, host?: HTMLElement) => {
     const { container, unmount } = render(
-      <MorphScroll size={[300, 300]} objects={{ size: 60 }} {...(props as MorphScrollProps)}>
-        {items(9)}
+      <MorphScroll
+        size={[300, 100]}
+        direction="x"
+        objects={{ size: 100 }}
+        {...(props as MorphScrollProps)}
+      >
+        {items(3)}
       </MorphScroll>,
       host ? { container: host } : undefined,
     );
-    const style =
-      container.querySelector<HTMLElement>(".ms-objects-wrapper")!.getAttribute("style") ?? "";
+
+    const wrap = container.querySelector<HTMLElement>(".ms-objects-wrapper")!;
+    const flow = wrap.style.flexDirection;
 
     unmount();
-    return style;
+    return flow;
   };
 
-  it("named rtl reads right to left on a plain page", () => {
-    const spy = quiet();
-    const style = wrapperOf({ dir: "rtl" });
-    spy.mockRestore();
-
-    expect(style).toMatch(/direction:\s*rtl/);
-  });
-
-  it("named ltr keeps its own direction inside an rtl page", () => {
-    const spy = quiet();
-
+  const inRtlPage = (props: Partial<MorphScrollProps>) => {
     const host = document.createElement("div");
+
     host.style.direction = "rtl";
     document.body.appendChild(host);
 
-    const style = wrapperOf({ dir: "ltr" }, host);
+    const out = orderOf(props, host);
 
     host.remove();
+    return out;
+  };
+
+  it("named rtl turns the row around on a plain page", () => {
+    const spy = quiet();
+    const flow = orderOf({ reading: "rtl" });
     spy.mockRestore();
 
-    expect(style).toMatch(/direction:\s*ltr/);
+    expect(flow).toBe("row-reverse");
+  });
+
+  it("named ltr keeps its own order inside an rtl page", () => {
+    const spy = quiet();
+    const flow = inRtlPage({ reading: "ltr" });
+    spy.mockRestore();
+
+    expect(flow).toBe("row");
   });
 
   it("left alone, it takes the page's word for it", () => {
     const spy = quiet();
-
-    const host = document.createElement("div");
-    host.style.direction = "rtl";
-    document.body.appendChild(host);
-
-    const inherited = wrapperOf({}, host);
-
-    host.remove();
+    const flow = inRtlPage({});
     spy.mockRestore();
 
-    expect(inherited).toMatch(/direction:\s*rtl/);
+    expect(flow).toBe("row-reverse");
   });
 });
 

@@ -43,19 +43,28 @@ test.describe("right-to-left", () => {
     expect(at.left).toBe(0); // не ушёл в минус
   });
 
-  test("направление возвращается содержимому", async ({ page }) => {
+  /*
+   * Разворот — дело раскладки, а не отсчёта: и окно, и коробка считают слева,
+   * иначе арифметика от левого края ломается. Видно это по порядку объектов,
+   * а не по `direction`.
+   */
+  test("отсчёт слева, а разворот виден по порядку", async ({ page }) => {
     await page.goto("/?scenario=rtlGrid");
     await page.waitForTimeout(300);
 
     const dirs = await page.evaluate(() => ({
-      view: getComputedStyle(document.querySelector(".ms-viewport")!).direction,
-      wrap: getComputedStyle(
-        document.querySelector(".ms-objects-wrapper")!,
-      ).direction,
+      view: document.querySelector<HTMLElement>(".ms-viewport")!.style.direction,
+      wrap: document.querySelector<HTMLElement>(".ms-objects-wrapper")!.style
+        .direction,
     }));
 
     expect(dirs.view).toBe("ltr");
-    expect(dirs.wrap).toBe("rtl");
+    expect(dirs.wrap).toBe("ltr");
+
+    // первая тройка ложится справа налево
+    const row = await boxes(page);
+
+    expect(row.slice(0, 3).map((one) => one.key)).toEqual(["r-2", "r-1", "r-0"]);
   });
 
   test("первый объект стоит справа, а ряд идёт справа налево", async ({
@@ -106,55 +115,115 @@ test.describe("right-to-left", () => {
 });
 
 /*
- * Ось, по которой едут, не разворачивается. Развернув раскладку горизонтальной
- * прокрутки, мы уводили первый объект за правый край, а отсчёт оставался
- * слева: в окне оказывался конец списка, и доехать до начала было некуда.
+ * Список, идущий справа налево, идёт справа налево целиком: первый объект
+ * стоит у правого края, следующие уходят влево, и прокрутка открывается там
+ * же — а значит и бегунок начинает справа. Отсчёт при этом остаётся от левого
+ * края разметки, на нём стоит вся арифметика.
  */
-test.describe("ось прокрутки поверх чтения", () => {
+test.describe("список справа налево", () => {
   const open = (page: Page, props: Record<string, unknown>) =>
     page.goto(
       `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
     );
 
-  const firstAt = (page: Page) =>
+  const laid = (page: Page) =>
     page.evaluate(() => {
       const view = document.querySelector<HTMLElement>(".ms-viewport")!;
       const box = view.getBoundingClientRect();
-      const first = document.querySelector<HTMLElement>(".ms-object-box")!;
 
-      return Math.round(first.getBoundingClientRect().left - box.left);
+      return {
+        order: [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+          .map((el) => ({
+            n: el.textContent ?? "",
+            x: el.getBoundingClientRect().left,
+          }))
+          .sort((one, two) => one.x - two.x)
+          .map((one) => one.n),
+        at: Math.round(view.scrollLeft),
+        most: view.scrollWidth - view.clientWidth,
+        thumb: (() => {
+          const el = document.querySelector<HTMLElement>(".ms-thumb");
+
+          return el ? Math.round(el.getBoundingClientRect().left - box.left) : null;
+        })(),
+        boxDir: document.querySelector<HTMLElement>(".ms-object-box")!.style
+          .direction,
+      };
     });
 
-  test("горизонтальная прокрутка открывается первым объектом", async ({
+  const HORIZONTAL = {
+    count: 9,
+    size: [300, 120],
+    direction: "x",
+    objects: { size: 80, gap: 10 },
+    controls: { wheel: true, bar: "@thumb" },
+  };
+
+  test("первый объект стоит справа, следующие уходят влево", async ({
     page,
   }) => {
-    await open(page, {
-      count: 9,
-      size: [300, 120],
-      direction: "x",
-      dir: "rtl",
-      objects: { size: 80, gap: 10 },
-      controls: { wheel: true },
-    });
-    await page.waitForTimeout(300);
+    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await page.waitForTimeout(350);
 
-    expect(await firstAt(page)).toBe(0);
-    expect(
-      await page.locator(".ms-viewport").evaluate((el) => el.scrollLeft),
-    ).toBe(0);
+    const out = await laid(page);
+
+    expect(out.order).toEqual(["8", "7", "6", "5", "4", "3", "2", "1", "0"]);
   });
 
-  /* у вертикальной горизонталь поперечная — её разворачивать можно и нужно */
-  test("вертикальная кладёт колонки справа", async ({ page }) => {
+  test("прокрутка открывается там же, справа", async ({ page }) => {
+    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await page.waitForTimeout(350);
+
+    const out = await laid(page);
+
+    expect(out.most).toBeGreaterThan(0);
+    expect(out.at).toBe(out.most);
+  });
+
+  /* значит и бегунок начинает справа, а уходит влево вместе с чтением */
+  test("бегунок начинает справа", async ({ page }) => {
+    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await page.waitForTimeout(350);
+
+    const rtl = await laid(page);
+
+    await open(page, HORIZONTAL);
+    await page.waitForTimeout(350);
+
+    const ltr = await laid(page);
+
+    expect(ltr.thumb).toBe(0);
+    expect(rtl.thumb!).toBeGreaterThan(100);
+  });
+
+  test("сами объекты библиотека не разворачивает", async ({ page }) => {
+    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await page.waitForTimeout(350);
+
+    expect((await laid(page)).boxDir).toBe("");
+  });
+
+  test("на обычном чтении всё как было", async ({ page }) => {
+    await open(page, HORIZONTAL);
+    await page.waitForTimeout(350);
+
+    const out = await laid(page);
+
+    expect(out.order).toEqual(["0", "1", "2", "3", "4", "5", "6", "7", "8"]);
+    expect(out.at).toBe(0);
+  });
+
+  /* у вертикального списка горизонталь поперечная — колонки ложатся справа */
+  test("вертикальный кладёт колонки справа", async ({ page }) => {
     await open(page, {
       count: 9,
       size: [300, 300],
-      dir: "rtl",
+      reading: "rtl",
       objects: { size: 80, gap: 10 },
       controls: { wheel: true },
     });
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(350);
 
-    expect(await firstAt(page)).toBeGreaterThan(150);
+    expect((await laid(page)).order.slice(0, 3)).toEqual(["2", "5", "8"]);
   });
 });

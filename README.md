@@ -172,33 +172,34 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <h2></h2>
 
-<details><summary><b><code>dir</code></b></summary><br /><ul><div>
+<details><summary><b><code>reading</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-dir: "rtl"; // or "ltr" | "auto"
+reading: "rtl"; // or "ltr" | "auto"
 ```
 
 <b>Default:</b><br />
 "auto"<br />
 <br />
 <b>Description:</b><em><br />
-which way the content reads.<br />
+which way the list runs.<br />
 <br />
 <code>"auto"</code> takes it from the page, once, on mount. Naming it says it outright, which is what a widget reading the other way round from the page it sits on needs.<br />
 <br />
-The scroll counts from the left whatever this says — that is where its own geometry is, and an <code>rtl</code> page would otherwise quietly invert the arithmetic. What changes is the content: the direction is handed back to it, and the horizontal axis is mirrored wherever it is not the one being scrolled, so a vertical grid lays its columns from the right and its bar stands on the left.<br />
+<code>"rtl"</code> turns the list around: the first object stands at the right, the rest follow leftwards, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
-  <li>a horizontal scroll&apos;s own axis is not mirrored: its zero would have to move to the right edge, which is a different coordinate system rather than a different layout.</li>
+  <li>the objects themselves are left alone. Turning the list around is about order, not about how a card looks inside — that part is yours.</li><br />
+  <li>the count still runs from the left of the markup, which is where the geometry is. It shows up only if you read <code>scrollLeft</code> yourself: the start of an <code>rtl</code> list is its largest value, not zero.</li>
 </ul>
 </em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} dir="rtl">
+<MorphScroll {...props} reading="rtl">
   {children}
 </MorphScroll>
 ```
@@ -393,16 +394,16 @@ Unlike <code>stickToEnd</code>, which follows new content only while the scroll 
 brings one object into view. A place in the list rather than a place in pixels, which is the one you can actually name: with <code>render</code> the object is not in the document, and with <code>objects.size: "auto"</code> only the library knows where it ended up.<br />
 
 <ul>
-  <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b>.</li><br />
+  <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b> — which a child names on itself, <code>ms-group="news"</code>.</li><br />
   <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>, which leaves <code>objects.gap</code> showing past the object instead of pressing it against the edge.</li>
 </ul>
 
-<em>A group is written in the key itself, in brackets at the end. There is no prop for it: a key has to be unique anyway, and adding the group to it is cheaper than keeping a second list beside it. A child keyed <code>"post-4[news]"</code> answers to <code>"post-4"</code> and to <code>"news"</code> alike, and a group goes to its first object; a key wins over a group of the same name. None of this needs <code>objects.groups</code> — that one holds the heading in view and does nothing else.</em>
+<em>A group is an attribute on the child, read straight off the element — the child never has to pass it anywhere, and nothing has to be switched on. A group goes to its first object, and a key wins over a group of the same name. The key is left alone on purpose: it says which object this is, and packing a second meaning into it would break on every key that has a bracket of its own.</em>
 
 ```tsx
 <MorphScroll {...props} ref={scroll} render="virtual">
   {posts.map((post) => (
-    <Post key={`post-${post.id}[${post.section}]`} {...post} />
+    <Post key={`post-${post.id}`} ms-group={post.section} {...post} />
   ))}
 </MorphScroll>;
 

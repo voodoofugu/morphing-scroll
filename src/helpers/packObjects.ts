@@ -7,7 +7,7 @@ import type { SizeStore } from "./createSizeStore";
  *   known: fixed columns, and every object goes into the shortest one.
  * - `flow` — the side across the scroll is measured: objects fill a line one
  *   after another, and a new line starts when the room across runs out or
- *   when `crossCount` says the line is full.
+ *   when `lines` says the line is full.
  * - `fill` — both sides are the objects' own: every object takes the highest
  *   place it fits into, so no holes are left. Order gives way to the fit.
  */
@@ -277,7 +277,7 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     const along = measured ? sideOf(known, fixed, main) : 0;
 
     /*
-     * Считанный `crossCount` важнее места: он единственное, чем можно
+     * Названный счёт линий важнее места: он единственное, чем можно
      * оборвать строку там, где места нет вовсе — при `hybrid` прокрутка идёт
      * в обе стороны, и упереться не во что.
      */

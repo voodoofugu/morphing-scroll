@@ -42,7 +42,7 @@ type Settings = {
   enableOnRenderedKeysChange: boolean;
   mode: ScrollMode;
   direction: Direction;
-  dir: "auto" | "ltr" | "rtl";
+  reading: "auto" | "ltr" | "rtl";
   sizeMode: SizeMode;
   width: number;
   height: number;
@@ -135,7 +135,7 @@ const defaultSettings: Settings = {
   enableOnRenderedKeysChange: true,
   mode: "scroll",
   direction: "y",
-  dir: "auto",
+  reading: "auto",
   sizeMode: "fixed",
   width: 680,
   height: 430,
@@ -675,9 +675,9 @@ function buildItems(
   const pair = eachPair(settings) as ["auto" | number, "auto" | number];
 
   /*
-   * Группа объекта пишется в его же ключе, в скобках на конце: по этому имени
-   * работают и «липкие» заголовки, и `scrollToObject`. Здесь секции нарезаны
-   * ровными кусками — этого хватает, чтобы увидеть, как оно себя ведёт.
+   * Группу объект называет на себе, атрибутом: по этому имени к ней ходит
+   * `scrollToObject`. Здесь секции нарезаны ровными кусками — этого хватает,
+   * чтобы увидеть, как оно себя ведёт.
    */
   const section = (index: number) =>
     settings.sectionSize > 0
@@ -708,7 +708,8 @@ function buildItems(
           dragging === id ? "is-dragging" : "",
         ].join(" ")}
         data-item={id}
-        key={group ? `item-${number}[${group}]` : `item-${number}`}
+        key={`item-${number}`}
+        {...(group ? { "ms-group": group } : {})}
         onPointerDown={onGrab ? (event) => onGrab(id, event) : undefined}
         style={eachSize}
         {...(onGrab ? { "ms-custom-drag": "" } : {})}
@@ -922,6 +923,11 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["className", settings.className || undefined, "value"],
     ["mode", settings.mode, "value"],
     ["direction", settings.direction, "value"],
+    [
+      "reading",
+      settings.reading === "auto" ? undefined : settings.reading,
+      "value",
+    ],
     ["size", size, "value"],
 
     ["objects", objectsGroup, "value"],
@@ -1372,7 +1378,7 @@ function App() {
         .join(" "),
 
       direction: settings.direction,
-      dir: settings.dir === "auto" ? undefined : settings.dir,
+      reading: settings.reading === "auto" ? undefined : settings.reading,
       autoScrollOnDrag: settings.autoScrollOnDrag,
       edge,
 
@@ -1574,8 +1580,8 @@ function App() {
             value={settings.sectionSize}
           />
           <p className="sub-note">
-            sections are cut into equal runs and written into each child&apos;s
-            own <code>key</code>, in brackets: <code>item-12[s2]</code>. That is
+            sections are cut into equal runs and named on each child itself:
+            <code>ms-group=&quot;s2&quot;</code>. That is
             the name <code>scrollToObject</code> takes. 0 turns them off.
           </p>
           <ToggleField
@@ -1610,18 +1616,17 @@ function App() {
             value={settings.direction}
           />
           <SegmentedField
-            label="dir"
-            onChange={(value) => update("dir", value)}
+            label="reading"
+            onChange={(value) => update("reading", value)}
             options={["auto", "ltr", "rtl"] as const}
-            value={settings.dir}
+            value={settings.reading}
           />
           <p className="sub-note">
-            which way the content reads. <b>auto</b> takes it from the page,
-            once, on mount; the other two say it outright. The scroll counts
-            from the left whatever this says — what changes is the content, and
-            the horizontal axis is mirrored wherever it is not the one being
-            scrolled. Try it with <code>direction=&quot;y&quot;</code>: the
-            columns lay from the right and the bar stands on the left.
+            which way the list runs. <b>auto</b> takes it from the page, once,
+            on mount; the other two say it outright. <b>rtl</b> turns the list
+            around — the first object stands at the right, the next ones follow
+            leftwards, and a horizontal scroll opens there with its bar. The
+            objects themselves are left alone: how they look is yours.
           </p>
           <ToggleField
             label="stickToEnd"

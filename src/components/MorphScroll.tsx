@@ -57,7 +57,7 @@ import { registerTaker, findTaker } from "../helpers/gestureRelay";
 
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import filterValidChildren from "../helpers/filterValidChildren";
-import childKey, { groupKey } from "../helpers/childKey";
+import childKey from "../helpers/childKey";
 import pageAt from "../helpers/pageAt";
 import stabilize from "../helpers/stabilize";
 import {
@@ -138,7 +138,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // Scroll Settings
       mode = "scroll",
       direction = "y",
-      dir = "auto",
+      reading = "auto",
       initialPosition,
       stickToEnd = false,
       loop = false,
@@ -524,6 +524,30 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         ) as React.ReactElement[],
       [children],
     );
+
+    /*
+     * Группа объекта — обычный атрибут на нём самом, а не разбор ключа.
+     *
+     * Ключ и так занят: он про личность объекта, и дописывать в него второй
+     * смысл значит ломать его на строки и спотыкаться о всякий, где скобка
+     * стоит по своему делу. Атрибут читается прямо с элемента, до того как
+     * тот вообще отрисован, так что пересылать его через себя ребёнку не
+     * нужно — достаточно написать.
+     */
+    const groupOfKey = React.useMemo(() => {
+      const map = new Map<string, string>();
+
+      childrenArray.forEach((child) => {
+        if (!React.isValidElement(child) || child.key == null) return;
+
+        const named = (child.props as Record<string, unknown>)[CONST.GROUP_ATR];
+
+        if (typeof named === "string" && named)
+          map.set(childKey(String(child.key)), named);
+      });
+
+      return map;
+    }, [childrenArray]);
 
     const validChildrenKeys = React.useMemo(() => {
       return childrenArray
@@ -1884,23 +1908,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const [sniffed, setSniffed] = React.useState<"ltr" | "rtl">("ltr");
 
     React.useLayoutEffect(() => {
-      if (dir !== "auto") return;
+      if (reading !== "auto") return;
 
       const root = customScrollRef.current;
       if (!root || typeof getComputedStyle !== "function") return;
 
       const parent = root.parentElement ?? root;
       if (getComputedStyle(parent).direction === "rtl") setSniffed("rtl");
-    }, [dir]);
+    }, [reading]);
 
-    const pageDirection = dir === "auto" ? sniffed : dir;
+    const pageDirection = reading === "auto" ? sniffed : reading;
 
     /*
-     * Разворачивать раскладку можно только там, где по горизонтали не едут:
-     * у вертикального списка она поперечная и решает лишь порядок колонок.
-     * Где по ней едут, разворот менял бы систему координат, а не раскладку.
+     * Список читается справа налево — значит и идёт справа налево: первый
+     * объект стоит у правого края, следующие уходят влево. Это про порядок и
+     * только про него: как выглядят сами объекты, библиотека не решает.
      */
-    const mirrorsLayout = direction === "y";
+    const mirrored = pageDirection === "rtl";
+
+    /*
+     * Сетке разворот можно сказать только через `direction`, а он протекает
+     * внутрь объектов. Там, где так пришлось, объекту направление возвращаем
+     * то, что у него было бы без нас, — страницы.
+     */
+    const flippedByDirection =
+      mirrored && direction !== "y" && !!lines && lines > 1;
 
     const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
       const common: React.CSSProperties = {
@@ -1923,13 +1955,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           )),
         ...((direction === "hybrid" || direction === "x") && { flexShrink: 0 }), // для горизонтального выравнивания при "hybrid"/"x"
         /*
-         * Направление возвращаем содержимому — но не той оси, по которой едут.
-         * Развернув раскладку горизонтальной прокрутки, мы уводили первый
-         * объект за правый край, а отсчёт оставался слева: в окне оказывался
-         * конец списка, и доехать до начала было некуда. Там направление
-         * достаётся самим объектам, а коробка остаётся ltr.
+         * Коробка считает слева — на этом стоит вся арифметика. Разворот
+         * списка делается раскладкой, а не отсчётом: сетке его сказать можно
+         * только через `direction`, и тогда объекту направление возвращаем
+         * обратно — как он выглядит внутри, решает не библиотека.
          */
-        direction: mirrorsLayout ? pageDirection : "ltr",
+        direction: "ltr",
       };
 
       // кладка размещает объекты абсолютно, значит обёртке нужен свой отсчёт
@@ -1955,6 +1986,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return {
           ...common,
           display: "grid",
+          // у сетки развернуть дорожки можно только направлением
+          ...(flippedByDirection && { direction: "rtl" }),
           [across]: `repeat(${lines}, auto)`,
           /*
            * Порядок обхода: `"row"` идёт вдоль строки, `"column"` — вдоль
@@ -1967,12 +2000,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         };
       }
 
-      const flexDirection =
+      const flexDirection = (
         objectsPerDirection[0] === 1
           ? direction === "y"
             ? "column"
             : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
-          : objectsOrder;
+          : objectsOrder
+      ) as "row" | "column";
+
+      /*
+       * Ряд, идущий справа налево, — это `row-reverse`, а не `direction`:
+       * он разворачивает только раскладку и не трогает то, что внутри
+       * объектов. Колонка вдоль вертикали разворота не просит.
+       */
+      const flexFlow =
+        mirrored && flexDirection === "row"
+          ? ("row-reverse" as const)
+          : flexDirection;
 
       // выравнивание элементы в линию когда размер неизвестен при direction !== "y"
       const flexWrap = unsized ? undefined : "wrap";
@@ -1980,7 +2024,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return {
         ...common,
         display: "flex",
-        flexDirection,
+        flexDirection: flexFlow,
         flexWrap,
         justifyContent: getStyleAlign(objectsAlign),
       };
@@ -2001,7 +2045,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       lines,
           isEach,
       loopLocal,
-      pageDirection,
+      mirrored,
     ]);
 
     // ♦ events
@@ -3073,6 +3117,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, []); // именно на монтирование: значение позже не читается
 
     /*
+     * Список, идущий справа налево, и открывается справа: первый объект стоит
+     * там, и начало прокрутки — там же. По разметке начало у левого края, так
+     * что открываемся в конце диапазона; бегунок из-за этого тоже стартует
+     * справа и уходит влево, как и положено.
+     *
+     * Ждём размеров: до них диапазон нулевой, и конец совпал бы с началом.
+     * Один раз за жизнь скролла — дальше позицию ведёт читающий.
+     */
+    const openedAtEnd = React.useRef(false);
+
+    React.useEffect(() => {
+      if (openedAtEnd.current) return;
+      if (!mirrored || direction === "y") return;
+      if (initialTarget) return; // названную позицию не перебиваем
+
+      const scrollEl = scrollElementRef.current;
+      const most = maxScrollSize[0];
+
+      if (!scrollEl || most <= 0) return;
+
+      openedAtEnd.current = true;
+      scrollEl.scrollLeft = most;
+    }, [mirrored, direction, maxScrollSize[0], initialTarget]);
+
+    /*
      * Круг открывается со средней копии, а не с самого начала ленты: из нуля
      * назад не уехать, там край, — и круг бы им и кончился. Ставим один раз на
      * период, а дальше позицию водит подмена в обработчике прокрутки.
@@ -3354,9 +3423,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (byKey !== -1) return byKey;
 
         // затем как название группы: едем к первому её объекту
-        return validChildrenKeys.findIndex((key) => groupKey(key) === target);
+        return validChildrenKeys.findIndex(
+          (key) => groupOfKey.get(key) === target,
+        );
       },
-      [validChildrenKeys],
+      [validChildrenKeys, groupOfKey],
     );
 
     const scrollToObjectLocal = React.useCallback(
@@ -3751,8 +3822,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ...(typeof visibility === "number" && {
             [CONST.CONTENT_VISIBILITY_VAR]: visibility,
           }),
-          // где коробка осталась ltr, направление читается на самом объекте
-          ...(!mirrorsLayout && pageDirection === "rtl" && { direction: "rtl" }),
+          // разворот — дело раскладки; объект остаётся таким, каким его написали
+          ...(flippedByDirection && { direction: sniffed }),
         };
 
         const content = suspending ? (
@@ -3805,9 +3876,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         eachFixed.join(),
         sizes,
         loopLocal,
-        // направление чтения достаётся объекту там, где коробку не развернуть
-        mirrorsLayout,
-        pageDirection,
+        // порядок объектов зависит от того, куда читают
+        mirrored,
+        flippedByDirection,
+        sniffed,
       ],
     );
 
@@ -3828,7 +3900,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Отражать горизонталь можно, только пока по ней не едут: у вертикального
      * списка она поперечная и решает лишь порядок колонок.
      */
-    const mirrorX = pageDirection === "rtl" && mirrorsLayout && byCoords;
+    const mirrorX = mirrored && byCoords;
 
     const loopPlace = (copy: number, axis: 0 | 1) => {
       const round = axis === 0 ? loopLocal?.x : loopLocal?.y;
@@ -3900,7 +3972,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
 
       /*
-       * Курица и яйцо: при `objectsSize: "firstChild"` размер ячейки берётся
+       * Курица и яйцо: при `objects.size: "firstChild"` размер ячейки берётся
        * из первого ребёнка, а он завёрнут в ResizeTracker внутри этой же
        * функции. Пока размер неизвестен, все координаты нулевые, проверка
        * видимости даёт 0, и первый ребёнок не рендерится — значит и не

@@ -396,7 +396,7 @@ describe("MorphScroll — controls shorthand", () => {
   });
 });
 
-describe("MorphScroll — objectsSize: firstChild with render", () => {
+describe('MorphScroll — objects.size: "firstChild" with render', () => {
   // every ResizeTracker in the tree reports the same box, which is what a
   // one-item-per-row layout looks like in a real browser
   const measured = (rect: Partial<DOMRectReadOnly>) =>
