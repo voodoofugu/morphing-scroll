@@ -138,7 +138,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
   });
 });
 
-describe("MorphScroll — direction & crossCount", () => {
+describe("MorphScroll — direction & lines", () => {
   it("virtualizes along the x axis for direction='x'", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }} size={[300, 100]} direction="x" render="virtual">
@@ -149,11 +149,11 @@ describe("MorphScroll — direction & crossCount", () => {
     expect(boxes(container)).toHaveLength(3);
   });
 
-  it("limits columns with crossCount, shrinking the visible virtual set", () => {
-    // width 300 fits 3 columns; crossCount=2 forces a 2-wide grid, so the
+  it("limits columns with lines, shrinking the visible virtual set", () => {
+    // width 300 fits 3 columns; lines=2 forces a 2-wide grid, so the
     // 300px-tall viewport shows 3 rows * 2 = 6 items instead of 8.
     const { container } = render(
-      <MorphScroll objects={{ size: OBJ, crossCount: 2 }} size={300} render="virtual">
+      <MorphScroll objects={{ size: OBJ, lines: 2 }} size={300} render="virtual">
         {items(8)}
       </MorphScroll>,
     );
@@ -369,10 +369,25 @@ describe("MorphScroll — controls shorthand", () => {
     expect(cursor(short)).toBe(cursor(long));
   });
 
-  it("warns when the config is empty", () => {
+  it("leaves an empty config alone — the wheel is in it by default", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
       <MorphScroll objects={{ size: OBJ }} size={SIZE} controls={[]}>
+        {boxes3()}
+      </MorphScroll>,
+    );
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("warns when nothing in the config can move the scroll", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <MorphScroll
+        objects={{ size: OBJ }}
+        size={SIZE}
+        controls={{ wheel: false, keys: false }}
+      >
         {boxes3()}
       </MorphScroll>,
     );

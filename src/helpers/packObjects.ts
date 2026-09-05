@@ -62,6 +62,16 @@ type PackResult = {
   height: number;
   /** how many objects from the start of the list are measured */
   measuredPrefix: number;
+  /**
+   * indices ordered by where they begin along the scroll, and the longest an
+   * object runs along it. Together they answer "which objects can be in the
+   * window" without walking the list: everything that begins before the far
+   * edge, minus everything that ended before the near one — and nothing that
+   * begins earlier than one object's length before the window can still reach
+   * into it.
+   */
+  order: number[];
+  extent: number;
 };
 
 /*
@@ -194,6 +204,8 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
     width: isX ? alongSize : offset + acrossSize,
     height: isX ? offset + acrossSize : alongSize,
     measuredPrefix,
+    order: [],
+    extent: 0,
   };
 };
 
@@ -343,6 +355,8 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     width: isX ? alongSize : widest,
     height: isX ? widest : alongSize,
     measuredPrefix,
+    order: [],
+    extent: 0,
   };
 };
 
@@ -651,7 +665,29 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
     width: isX ? alongSize : acrossSize,
     height: isX ? acrossSize : alongSize,
     measuredPrefix,
+    order: [],
+    extent: 0,
   };
+};
+
+/*
+ * Указатель для окна. Кладка и поток раскладывают почти по возрастанию, так
+ * что сортировка тут почти всегда идёт по уже упорядоченному, и стоит она
+ * заметно меньше самой раскладки.
+ */
+const indexed = (result: PackResult, isX: boolean): PackResult => {
+  const { items } = result;
+
+  const start = (item: Placed) => (isX ? item.left : item.top);
+  const end = (item: Placed) => (isX ? item.right : item.bottom);
+
+  const order = items.map((_, index) => index);
+  order.sort((one, two) => start(items[one]) - start(items[two]));
+
+  let extent = 0;
+  for (const item of items) extent = Math.max(extent, end(item) - start(item));
+
+  return { ...result, order, extent };
 };
 
 const packObjects = (args: PackArgs): PackResult => {
@@ -661,11 +697,14 @@ const packObjects = (args: PackArgs): PackResult => {
     measuredPrefix += 1;
   }
 
-  if (args.layout === "fill") return fill(args, measuredPrefix);
+  const packed =
+    args.layout === "fill"
+      ? fill(args, measuredPrefix)
+      : args.layout === "flow"
+        ? flow(args, measuredPrefix)
+        : masonry(args, measuredPrefix);
 
-  return args.layout === "flow"
-    ? flow(args, measuredPrefix)
-    : masonry(args, measuredPrefix);
+  return indexed(packed, args.isX);
 };
 
 export default packObjects;

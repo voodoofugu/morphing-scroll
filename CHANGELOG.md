@@ -1,7 +1,9 @@
-## [3.0.0] - 2026-09-02
+## [3.0.0] - 2026-09-05
 
-A major pass over the whole library: instance isolation, a batch of fixes,
-and an API cleanup. Everything breaking is listed below with what to change.
+A rewrite of the whole library: instance isolation, an API cleanup, new
+layout and scrolling work, and a combination pass over the entire prop
+surface behind it. Everything breaking is listed under Migration, with what
+to change.
 
 ### Migration
 
@@ -11,6 +13,7 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | ------------------------------------------------------------- | ---------------------------------------------------------- |
 | `type="slider"`                                               | `mode="slider"`                                            |
 | `render={{ type: "virtual" }}`                                | `render={{ mode: "virtual" }}`                             |
+| `render={{ stopLoadOnScroll: true }}`                         | `render={{ deferLoadOnScroll: true }}`                     |
 | `wheel: { changeDirectionKey: "KeyX" }`                       | `wheel: { changeDirectionBtn: "KeyX" }`                     |
 | `scrollPosition={{ value, updater }}`                         | `ref.current.scrollTo(value)` — see below                  |
 | `scrollPosition={10}`                                         | `initialPosition={10}`, or `scrollTo(10)` for a later move |
@@ -24,11 +27,11 @@ and an API cleanup. Everything breaking is listed below with what to change.
 | `scrollBarEdge={10}`                                          | `controls={{ bar: { trackGap: 10 } }}`              |
 | `thumbMinSize={24}`                                           | `controls={{ bar: { thumbMinSize: 24 } }}`          |
 | `elementsAlign="center"`                                      | `objects={{ align: "center" }}`                             |
-| `elementsDirection="column"`                                  | `objects={{ direction: "column" }}`                         |
+| `elementsDirection="column"`                                  | `objects={{ order: "column" }}`                             |
 | `emptyElements="clear"`                                       | `objects={{ empty: "clear" }}`                              |
 | `objectsSize={100}`                                           | `objects={{ size: 100 }}`                                  |
 | `gap={10}`                                                    | `objects={{ gap: 10 }}`                                    |
-| `crossCount={2}`                                              | `objects={{ crossCount: 2 }}`                              |
+| `crossCount={2}`                                              | `objects={{ lines: 2 }}`                                   |
 | `objectsSize="size"`                                          | `objects={{ size: "full" }}`                               |
 | `dragScroll`                                                  | `autoScrollOnDrag`                                         |
 | `wrapperMargin={10}`                                          | `wrapper={{ margin: 10 }}`                                 |
@@ -167,9 +170,9 @@ objects={{ size: 100, gap: 10 }}
 objects={{
   size: [150, 112],
   gap: [10, 20],
-  crossCount: 3,
+  lines: 3,
   align: "center",
-  direction: "column",
+  order: "column",
   empty: "clear",
 }}
 ```
@@ -178,7 +181,7 @@ Two of them are written in almost every scroll — `size` and `gap` — so the
 group is rarely a single key, and `gap` at the top level never said between
 what: `edgeGap` and `trackGap` live under `bar`. A grouped prop replaces
 rather than merges, so a spread that carries `objects` needs
-`objects={{ ...base.objects, crossCount: 2 }}` where two separate props used
+`objects={{ ...base.objects, lines: 2 }}` where two separate props used
 to just sit next to each other.
 
 #### Moving the scroll
@@ -283,7 +286,7 @@ themselves are no longer transformed and can be positioned from CSS.
   `direction="hybrid"` turns in both directions at once: the content repeats
   to the right and downward alike, the copies lie in a grid, and each axis is
   brought back to its own middle on its own.
-  `objects.size: "each"` turns too, only not at once: a period is the length
+  `objects.size: "auto"` turns too, only not at once: a period is the length
   of the content, and that keeps growing while the measurements come in.
   Until they are all in it scrolls as usual, and the circle closes by itself
   once there is nothing left to measure — so a long list pays for a full
@@ -383,6 +386,170 @@ themselves are no longer transformed and can be positioned from CSS.
 - `controls` shorthand.
 - `ms-scrolling` on the root while a scroll is running.
 
+- **`ref.scrollToObject(target, options)`** — bring one object into view.
+  A place in the list is the one a caller can name: with `render` the object
+  is not in the document, and with `objects.size: "auto"` only the library
+  knows where it landed. `target` is a position in the list, a child's `key`,
+  or the name of a **group** — written in the key itself, in brackets at the
+  end, so `"post-4[news]"` answers to both. `align` says where in the window
+  it lands.
+- **the position survives content arriving above it.** A browser anchors its
+  own scrolling; here the objects are placed by coordinate and have none, so
+  loading older messages pushed the reader down by exactly their height. The
+  object under the top edge is now kept there, whatever happens to the list
+  around it. There is no prop: the alternative is not a behaviour anybody
+  wants, and `stickToEnd` composes with it — at the end you follow the end,
+  in the middle you stay put.
+- **`onScrollPosition` also reports how far each axis can go.** A third
+  argument, `max`, which turns the callback into a "load more" signal without
+  a prop for it: the distance to the end is a subtraction, and nothing outside
+  the component has to know the length of the content — with `render` or a
+  measured size, nothing outside *can* know it.
+- **right-to-left pages no longer invert the arithmetic.** A scrolling box
+  counts `scrollLeft` from whichever side its own `direction` says, and on an
+  `rtl` page that side is the right, with the numbers running negative. Every
+  sum here counts in pixels from the left, so the origin is pinned to the
+  left and the page's own direction is handed back to the content. Mirroring
+  the visual order is a separate matter and is not done.
+- **`prefers-reduced-motion` is respected.** Every move the library makes on
+  its own — a page turn, a slider settling, the coast after a flick — arrives
+  at once instead of animating. A drag still follows the finger: that is not
+  animation.
+- **the keys work without being switched on.** The scrolling box is a tab
+  stop, and a native one answers the arrows as soon as it has focus. Here you
+  had to know to ask, so a keyboard reached the list and could not move it.
+  `controls.keys` now defaults to on beside the wheel.
+- **the custom bar says what it is.** `role="scrollbar"` with its orientation
+  and its position along the track, so a screen reader announces a bar rather
+  than an unnamed box.
+
+- **`objects.groups: "sticky"`** — the first object of each group holds against
+  the leading edge for as long as any of its group is in view, and the group
+  that follows pushes it out. It is the group's heading, so it always says
+  which group you are looking at; it carries `ms-sticky` while it is held.
+  A group is named in the child's own `key`, in brackets at the end, which is
+  the same name `scrollToObject` takes.
+- **`objects.semantics: "list"`** — marks the wrapper as a list and every
+  object as one of its items, numbered. With `render` only a window of them is
+  in the document, so without a count a screen reader announces a list of a
+  dozen and gives no way to tell where in the real list you are. Opt-in on
+  purpose: cards, slides and menus are not lists, and describing them as one
+  is worse than not describing them.
+- **a right-to-left page mirrors the horizontal axis wherever it is not the
+  one being scrolled.** A vertical grid lays its columns from the right and
+  its scrollbar stands on the left, which is where a browser puts its own.
+  A horizontal scroll's own direction is not mirrored: its zero would have to
+  move to the right edge, and that is a different coordinate system rather
+  than a different layout — every sum that counts from the left would have to
+  be rewritten, and jsdom cannot test any of it.
+- **a nested scroll with nothing to scroll passes the gesture outward.** A
+  short list inside a long one used to swallow the drag whole: the finger
+  rested on it and nothing moved anywhere.
+
+### Changed
+
+- `arrows.reserveSpace` is off by default, where `contentReduce` was on. The
+  arrows lie over the content until you ask for the strip, so the setting
+  turns something on instead of cancelling it. A 2.x scroll that relied on
+  the old default needs `reserveSpace: true` to look the same.
+- `objects.size` takes `"auto"`: objects keep the size they came with, and
+  the library measures it. Which side is handed over decides the layout —
+  along the scroll it is a masonry (`[90, "auto"]`: fixed columns, each
+  object into the shortest one, so the bottom stays even); across it a flow,
+  where objects follow one another with the same gap between them and a line
+  ends when the room across runs out — or when `lines` says it is full;
+  and on both sides a fill, where every object takes the highest place it
+  fits into, so nothing hangs under a short neighbour and order gives way to
+  the fit. `direction="hybrid"` hands over neither side, so `objects.size`
+  alone cannot say which axis a line runs along there — `lines` is the
+  only thing that can end a line, and a fill cannot stand in for it, since a
+  fill needs a boundary across and the only one on offer is the scroll
+  itself. With `lines` and a known size across it is a masonry, so
+  nothing hangs under a short neighbour; with both sides handed over, a flow
+  by that count.
+
+  `"auto"` on its own is the short way of saying it about both sides. `align`
+  lines the rows up against the widest one — that row is the width of the
+  content and has nowhere to move, while the rest close the gap beside them;
+  a fill has no rows, so each object closes its own gap instead, and
+  `"center"` stops it halfway between where the fit placed it and where
+  `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
+  nothing moves until every object has been measured.
+
+  A line is as thick as the thickest object in it, and when that thickness is
+  the objects' own too — both sides handed over, `lines` ending the line
+  — the shorter ones no longer hang under it: each rises into the room above
+  it on its own, while the order stays line by line, and stops a gap short of
+  whatever it comes near — sideways as well as head on, since keeping objects
+  of different lines apart used to be the line's job. That is the difference
+  from a fill, which closes the same gaps by giving the order up.
+
+  `objects.direction` works for `"auto"` the same way it works for a known
+  size: it chooses the order, not the layout, and the words mean what they say
+  on both axes — `"row"` fills a row and moves down, `"column"` fills a column
+  and moves right. One of the two is what the list already does (a vertical
+  scroll lays rows, a horizontal one lays columns) and the other transposes
+  it: the first line then takes the first `ceil(n / lines)` objects, and a
+  masonry stops looking for the shortest column, trading an even edge for
+  reading straight through. The count is by number and never by size, so
+  nothing jumps as the objects are measured. Transposing needs lines to count:
+  a masonry always has them, a flow has them when `lines` names them, and
+  a fill has none at all, since it gives the order up for the fit. There the
+  request is not carried out, and it is reported when you wrote the value
+  yourself. `direction="hybrid"` answers the same request with the axis:
+  `"row"` has `lines` bound the width and growth run down, `"column"`
+  bounds the height and growth runs right.
+
+  One observer per scroll, not one per object, and an object is watched while
+  it is on screen — a picture arriving late moves its neighbours instead of
+  leaving the layout wrong. Sizes are remembered by the child's `key`, so
+  they survive virtualization; not-yet-measured objects are drawn a batch at
+  a time, so five hundred cards do not arrive in one frame. `render` works on
+  top of all of it — once the sizes are known there is nothing left to guess.
+  Pages need one size for all, so `"auto"` is for `mode="scroll"`.
+- `onNavigate` reports a page turn when it is asked for, not when the ride
+  ends. Three quick presses of an arrow share one ride and used to arrive as
+  one event; now they arrive as three, and a drag along the slider reports
+  every item it passes. A page reached without asking still reports on the
+  settle, as `"scroll"`. An arrow pressed again mid-flight now counts its step
+  from where the scroll is heading, so a burst of presses turns a page each
+  instead of standing still.
+- `controls.drag` drags from buttons and links with a mouse too.
+  It stays a click below 2px of movement, and the native drag of links and
+  images is suppressed while the gesture runs. Text fields and anything
+  carrying its own drag are still left alone.
+- The bundle is compiled to ES2020 instead of ES5 — Chrome 80, Safari 14,
+  Firefox 74, Edge 80 and up. Downlevelling cost an eighth of the bundle in
+  helper functions: 16.0 kB gzipped now against 18.2 kB. An app that targets
+  older browsers still gets them: bundlers apply their own target to the
+  whole bundle.
+- The published types are generated from source, so they cannot drift from
+  the implementation.
+- `children` is optional on all three components.
+- A 2-tuple spacing value is documented as `[x, y]`, which is what it always
+  was.
+
+<h2></h2>
+
+- `objects.direction` is **`objects.order`** and `render.stopLoadOnScroll` is
+  **`render.deferLoadOnScroll`**; both are in the migration table above.
+  `direction` sat next to the top-level `direction` and meant something else
+  entirely — one picks the axis the scroll runs along, the other the order the
+  list runs through the lines. "Stop" read as "switch loading off", where the
+  loading is only put off until the scroll settles.
+
+- **`objects.layout`** names the arrangement: `"grid"`, `"masonry"`, `"flow"`
+  or `"fill"`. It was only ever implied by which side of `size` was handed to
+  the objects, which is terse but took three paragraphs to explain and turned
+  every impossible combination into a console message. Both forms work and say
+  the same thing; naming it also means the side it measures needs no size, so
+  `{ layout: "masonry", size: 90 }` is a column ninety wide with heights of
+  each card's own.
+- the keys of objects that have left the list are forgotten. `"lazy"` never
+  removes what it has shown, which is the point, but it was keeping the names
+  of objects that no longer exist, and on a long-lived list with a lot of
+  turnover that set grew without a bound.
+
 ### Fixed
 
 - `loop` built the circle before the content had been measured. A period is
@@ -390,7 +557,7 @@ themselves are no longer transformed and can be positioned from CSS.
   out as the gap alone — so the strip needed as many copies as gaps fit in the
   window, and a grid of hundreds of them was mounted for one frame and taken
   apart again. Measured sizes were already waited for under `objects.size:
-  "each"`; the wait now covers every size, since a length of zero has nothing
+  "auto"`; the wait now covers every size, since a length of zero has nothing
   to repeat whatever asked for it.
 - a handle kept from mount stopped working once sizes were measured. The
   handle was rebuilt whenever the sizes changed, and anyone holding the earlier
@@ -500,87 +667,103 @@ themselves are no longer transformed and can be positioned from CSS.
   the scroll straight away, and the flight itself was shorter than a frame —
   so the same drag looked like a scroll one time and a jump the next.
 
-### Changed
+- **the wheel measured in the wrong unit.** A wheel event reports its
+  distance in pixels, lines or pages, and which one is the browser's
+  business: Chrome and Safari send pixels, Firefox on the desktop sends
+  lines, where one notch is `deltaY: 3`. Nothing converted them, so the same
+  notch moved a hundred pixels in one browser and three in another — in
+  Firefox the scroll barely answered the wheel at all.
+- **a sideways gesture did nothing.** Only `deltaY` was read, so a two-finger
+  swipe across a trackpad — the gesture a horizontal list is made for — moved
+  nothing. A horizontal list now takes the sideways delta when there is one
+  and keeps falling back to the vertical wheel, which is the only thing a
+  mouse can give it; `direction="hybrid"` takes both at once.
+- **a slider menu jumped to the wrong place when the objects had a gap.** The
+  menu stepped by the window while every other page calculation in the
+  library steps by the window plus the gap. The two drifted apart by one gap
+  per page, so the third dot landed some fifty pixels short. Both now ask the
+  same function.
+- **a slider dot clicked in the opening frame did nothing.** Until the first
+  frame was over, a move was placed rather than animated — a rule meant for
+  the opening position, which every other move was quietly following too.
+  It now applies where it belongs: when there is genuinely nowhere to scroll
+  yet.
+- **`loop` and `stickToEnd` fought instead of one giving way.** The pair was
+  documented as refused and complained about in the console, and then ran
+  anyway, driving the window to the end of the strip of copies. The refusal
+  is now carried out.
+- **naming a bar turned the wheel off.** `controls` replaced the default
+  instead of adding to it, so `{ bar: <Thumb /> }` — the first thing anyone
+  writes — produced a scroll that only its own thumb could move. What you
+  write is now added to the default; `{ wheel: false }` still takes it away.
+- **`controls={{ bar: true }}` could not scroll.** The browser's own bar needs
+  overflow to exist at all, and the overflow was switched on only for the
+  wheel and the drag, so asking for the native bar alone produced a box that
+  showed nothing and moved nowhere.
+- **diagnostics repeated on every render.** Rendering runs per frame while
+  scrolling, so a mismatched pair of props filled the console at sixty
+  messages a second and buried the message it was trying to deliver. Each one
+  is now said once per scroll.
+- **a two-axis flick only travelled on one axis.** Both axes handed their
+  frame job to the same scheduler under one key, and a scheduler keeps one job
+  per key, so the second axis erased the first. In `direction="hybrid"` a
+  diagonal flick lost its horizontal half.
+- **an object less than a twentieth visible was not drawn.** The share of an
+  object in view was rounded to a tenth for the CSS variable, and the same
+  rounded number decided whether to draw it at all — so a sliver at the edge
+  of the window rounded to nothing and left a blank strip. The decision now
+  uses the true share; the rounding stayed with the variable.
+- **the trackers rebuilt their observer on every render.** `ResizeTracker` and
+  `IntersectionTracker` kept the callback and the threshold in the dependency
+  list, so a callback written straight into the props — which is how they are
+  written — tore down the observer and built a new one every time the parent
+  rendered. Both now hold the callback through a ref and compare values by
+  content, the way `MorphScroll` already did.
+- `EdgeConfig` was missing from the package exports, and a pair like
+  `[100, undefined]` was documented as meaning `"none"` but did not compile.
 
-- `arrows.reserveSpace` is off by default, where `contentReduce` was on. The
-  arrows lie over the content until you ask for the strip, so the setting
-  turns something on instead of cancelling it. A 2.x scroll that relied on
-  the old default needs `reserveSpace: true` to look the same.
-- `objects.size` takes `"each"`: objects keep the size they came with, and
-  the library measures it. Which side is handed over decides the layout —
-  along the scroll it is a masonry (`[90, "each"]`: fixed columns, each
-  object into the shortest one, so the bottom stays even); across it a flow,
-  where objects follow one another with the same gap between them and a line
-  ends when the room across runs out — or when `crossCount` says it is full;
-  and on both sides a fill, where every object takes the highest place it
-  fits into, so nothing hangs under a short neighbour and order gives way to
-  the fit. `direction="hybrid"` hands over neither side, so `objects.size`
-  alone cannot say which axis a line runs along there — `crossCount` is the
-  only thing that can end a line, and a fill cannot stand in for it, since a
-  fill needs a boundary across and the only one on offer is the scroll
-  itself. With `crossCount` and a known size across it is a masonry, so
-  nothing hangs under a short neighbour; with both sides handed over, a flow
-  by that count.
+- **a list inside a page was a trap.** Once it reached its end the wheel went
+  nowhere: the inner list would not move and neither would the page under it,
+  because the event was stopped whether or not it had been used. It is now
+  stopped only when the scroll actually took the movement — at the edge it
+  hands the wheel outward, the way a native one does.
+- **a drag inside a nested list moved both.** The gesture bubbled, so the outer
+  scroll started one of its own and the two travelled together. The innermost
+  list under the pointer now claims it. Elements with a drag of their own are
+  untouched, which is what keeps `autoScrollOnDrag` working.
+- **a slider dot did nothing in `mode="slider"`.** Dots look like buttons in
+  both modes and answered in only one; in the other the bar had to be dragged
+  and a plain tap snapped back where it started. A tap now turns to that page
+  in both, and a drag along the bar still pages as it goes.
+- **`onScrollPosition` reported a maximum the scroll could not reach.** It came
+  from the props, and the props and the element disagree on fractional sizes or
+  when CSS has squeezed the content — so a comparison against the end never
+  came true. It is read from the element now.
 
-  `"each"` on its own is the short way of saying it about both sides. `align`
-  lines the rows up against the widest one — that row is the width of the
-  content and has nowhere to move, while the rest close the gap beside them;
-  a fill has no rows, so each object closes its own gap instead, and
-  `"center"` stops it halfway between where the fit placed it and where
-  `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
-  nothing moves until every object has been measured.
+### Faster
 
-  A line is as thick as the thickest object in it, and when that thickness is
-  the objects' own too — both sides handed over, `crossCount` ending the line
-  — the shorter ones no longer hang under it: each rises into the room above
-  it on its own, while the order stays line by line, and stops a gap short of
-  whatever it comes near — sideways as well as head on, since keeping objects
-  of different lines apart used to be the line's job. That is the difference
-  from a fill, which closes the same gaps by giving the order up.
+Measured over thirty scroll frames in jsdom, so the absolute numbers are
+inflated and the scaling is the point.
 
-  `objects.direction` works for `"each"` the same way it works for a known
-  size: it chooses the order, not the layout, and the words mean what they say
-  on both axes — `"row"` fills a row and moves down, `"column"` fills a column
-  and moves right. One of the two is what the list already does (a vertical
-  scroll lays rows, a horizontal one lays columns) and the other transposes
-  it: the first line then takes the first `ceil(n / lines)` objects, and a
-  masonry stops looking for the shortest column, trading an even edge for
-  reading straight through. The count is by number and never by size, so
-  nothing jumps as the objects are measured. Transposing needs lines to count:
-  a masonry always has them, a flow has them when `crossCount` names them, and
-  a fill has none at all, since it gives the order up for the fit. There the
-  request is not carried out, and it is reported when you wrote the value
-  yourself. `direction="hybrid"` answers the same request with the axis:
-  `"row"` has `crossCount` bound the width and growth run down, `"column"`
-  bounds the height and growth runs right.
+| what                                    | before   | after    |
+| --------------------------------------- | -------- | -------- |
+| `render="virtual"`, 10 000 objects      | 1.25 ms  | 0.38 ms  |
+| `render="virtual"`, 50 000 objects      | ~6 ms    | 0.23 ms  |
+| a list with nothing derived from scroll | 60.3 ms  | 0.03 ms  |
 
-  One observer per scroll, not one per object, and an object is watched while
-  it is on screen — a picture arriving late moves its neighbours instead of
-  leaving the layout wrong. Sizes are remembered by the child's `key`, so
-  they survive virtualization; not-yet-measured objects are drawn a batch at
-  a time, so five hundred cards do not arrive in one frame. `render` works on
-  top of all of it — once the sizes are known there is nothing left to guess.
-  Pages need one size for all, so `"each"` is for `mode="scroll"`.
-- `onNavigate` reports a page turn when it is asked for, not when the ride
-  ends. Three quick presses of an arrow share one ride and used to arrive as
-  one event; now they arrive as three, and a drag along the slider reports
-  every item it passes. A page reached without asking still reports on the
-  settle, as `"scroll"`. An arrow pressed again mid-flight now counts its step
-  from where the scroll is heading, so a burst of presses turns a page each
-  instead of standing still.
-- `controls.drag` drags from buttons and links with a mouse too.
-  It stays a click below 2px of movement, and the native drag of links and
-  images is suppressed while the gesture runs. Text fields and anything
-  carrying its own drag are still left alone.
-- The bundle is compiled to ES2020 instead of ES5 — Chrome 80, Safari 14,
-  Firefox 74, Edge 80 and up. Downlevelling cost an eighth of the bundle in
-  helper functions: 16.0 kB gzipped now against 18.2 kB. An app that targets
-  older browsers still gets them: bundlers apply their own target to the
-  whole bundle.
-- The published types are generated from source, so they cannot drift from
-  the implementation.
-- `children` is optional on all three components.
-- A 2-tuple spacing value is documented as `[x, y]`, which is what it always
-  was.
-
-<h2></h2>
+- **a scroll frame that changes nothing no longer renders.** Rendering per
+  frame is worth it because the bar, the edges, the arrows and virtualising
+  all follow the position — but a list with none of them was walking every
+  child to produce the same tree it already had.
+- **virtual rendering asks only the objects that can be in view.** It asked
+  all of them, one visibility check each, of which a couple of dozen mattered.
+  For a uniform grid the position of an object is arithmetic on its number, so
+  the window is worked out directly; for a measured layout the packer hands
+  back its objects ordered by where they begin, and a binary search finds the
+  first that can reach the window. A transposed order strides instead of
+  running, `direction="hybrid"` windows both axes, and a circle asks the same
+  question once per copy. It is a pre-filter and nothing more — the exact check
+  still decides — and `"lazy"` keeps the full pass, since it has to hold
+  everything it has ever shown. A browser test compares the two, layout by
+  layout: what the window draws is what a full pass would have drawn.
+- **the key list is joined once per change instead of four times per frame.**

@@ -27,6 +27,7 @@ export type {
   ControlsConfig,
   BarConfig,
   ArrowsConfig,
+  EdgeConfig,
   KeysConfig,
   WheelConfig,
   EmptyObjectsConfig,

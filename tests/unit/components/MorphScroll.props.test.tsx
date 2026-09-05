@@ -50,14 +50,14 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["size", {}, { size: [200, 150] }],
   ["objects.size", {}, { objects: { size: 60 } }],
   ["objects.size: full", {}, { objects: { size: "full" } }],
-  ["objects.crossCount", {}, { objects: { size: 100, crossCount: 2 } }],
+  ["objects.lines", {}, { objects: { size: 100, lines: 2 } }],
   ["objects.gap", {}, { objects: { size: 100, gap: 20 } }],
   ["objects.gap pair", { objects: { size: 100, gap: 20 } }, { objects: { size: 100, gap: [20, 5] } }],
   ["wrapper.margin", {}, { wrapper: { margin: 15 } }],
   ["wrapper.minSize", {}, { wrapper: { minSize: 900 } }],
   ["wrapper.align", { size: [900, 900] }, { size: [900, 900], wrapper: { align: "center" } }],
   ["objects.align", {}, { objects: { size: 100, align: "center" } }],
-  ["objects.direction", { objects: { size: 100, crossCount: 2 } }, { objects: { size: 100, crossCount: 2, direction: "column" } }],
+  ["objects.order", { objects: { size: 100, lines: 2 } }, { objects: { size: 100, lines: 2, order: "column" } }],
   ["edge", {}, { edge: true }],
   ["edge node", { edge: true }, { edge: <u /> }],
   ["render", {}, { render: "virtual" }],
@@ -68,7 +68,6 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
     { suspending: true, fallback: <b className="mine" />, children: <Suspends key="a" /> }],
 
   // — controls —
-  ["controls.wheel", { controls: { bar: true } }, { controls: { wheel: true, bar: true } }],
   ["controls.content", {}, { controls: { drag: true } }],
   ["controls.arrows", {}, { controls: { arrows: true } }],
   ["arrows.element", { controls: { arrows: true } }, { controls: { arrows: { element: <b /> } } }],
@@ -102,7 +101,7 @@ describe("MorphScroll — the x-axis bar settings need an x-axis bar", () => {
   const hybrid = (bar: Record<string, unknown>) =>
     markup({
       direction: "hybrid",
-      objects: { size: 100, crossCount: 4 },
+      objects: { size: 100, lines: 4 },
       controls: { bar: { element: <i />, ...bar } as never },
     });
 
@@ -123,6 +122,38 @@ describe("MorphScroll — the x-axis bar settings need an x-axis bar", () => {
 });
 
 describe("MorphScroll — props with no visible markup", () => {
+  it("controls.wheel decides whether the wheel is listened to", () => {
+    vi.useFakeTimers();
+
+    const moved = (wheel: boolean) => {
+      const { container, unmount } = render(
+        <MorphScroll
+          {...BASE}
+          size={[100, 300]}
+          objects={{ size: 100 }}
+          controls={{ wheel }}
+        />,
+      );
+      const el = container.querySelector<HTMLElement>(".ms-viewport")!;
+      Object.defineProperty(el, "clientHeight", { value: 300 });
+      Object.defineProperty(el, "scrollHeight", { value: 1200 });
+
+      fireEvent.wheel(el, { deltaY: 200 });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      const top = el.scrollTop;
+      unmount();
+      return top;
+    };
+
+    expect(moved(true)).toBeGreaterThan(0);
+    expect(moved(false)).toBe(0);
+
+    vi.useRealTimers();
+  });
+
   it("autoScrollOnDrag registers the container", () => {
     const before = getContainers().size;
     const { unmount } = render(<MorphScroll {...BASE} autoScrollOnDrag />);
@@ -136,7 +167,7 @@ describe("MorphScroll — props with no visible markup", () => {
     const { container } = render(
       <MorphScroll
         {...BASE}
-        objects={{ ...BASE.objects, crossCount: 1 }}
+        objects={{ ...BASE.objects, lines: 1 }}
         initialPosition={200}
       />,
     );
@@ -227,11 +258,11 @@ describe("MorphScroll — props with no visible markup", () => {
     vi.useRealTimers();
   });
 
-  it("render.stopLoadOnScroll holds the content back while scrolling", async () => {
+  it("render.deferLoadOnScroll holds the content back while scrolling", async () => {
     const { container } = render(
-      <MorphScroll objects={{ size: 100, crossCount: 1 }}
+      <MorphScroll objects={{ size: 100, lines: 1 }}
         size={[300, 300]}
-        render={{ mode: "virtual", stopLoadOnScroll: true }}
+        render={{ mode: "virtual", deferLoadOnScroll: true }}
         fallback={<b className="held" />}
       >
         {items(20)}
@@ -269,7 +300,7 @@ describe("MorphScroll — size auto before anything is measured", () => {
   it("renders a slider that does not know its viewport yet", () => {
     expect(() =>
       render(
-        <MorphScroll objects={{ size: [155, 112], crossCount: 3 }}
+        <MorphScroll objects={{ size: [155, 112], lines: 3 }}
           size="auto"
           mode="slider"
           direction="hybrid"

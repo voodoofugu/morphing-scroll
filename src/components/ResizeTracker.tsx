@@ -1,5 +1,7 @@
 import React from "react";
 import type { ResizeTracker as ResizeTrackerProps } from "../types/types";
+import useEvent from "../hooks/useEvent";
+import stabilize from "../helpers/stabilize";
 
 /**---
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
@@ -25,15 +27,20 @@ const ResizeTracker: React.FC<ResizeTrackerProps> = ({
 }) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
+  /*
+   * Наблюдатель переживает рендер. Раньше `onResize` стоял в зависимостях, и
+   * колбэк, написанный прямо в пропсах, снимал наблюдение и заводил новое на
+   * каждый рендер родителя — то есть ровно тогда, когда его пишут чаще всего.
+   * Ссылка развязывает это: наблюдатель один, а зовёт он всегда свежий колбэк.
+   */
+  const resize = useEvent(onResize);
+
   React.useEffect(() => {
     const element = containerRef.current;
-
     if (!element) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        onResize && onResize(entry.contentRect);
-      }
+      for (const entry of entries) resize(entry.contentRect);
     });
 
     resizeObserver.observe(element);
@@ -42,35 +49,34 @@ const ResizeTracker: React.FC<ResizeTrackerProps> = ({
       resizeObserver.unobserve(element);
       resizeObserver.disconnect();
     };
-  }, [measure, onResize]);
+  }, [resize]);
 
   // Styles
-  const outer = {
-    width: "100%",
-    height: "100%",
-  };
+  const [styleST] = stabilize(style);
 
-  const inner = {
-    width: "max-content",
-    height: "max-content",
-  };
+  const boxStyle = React.useMemo<React.CSSProperties>(() => {
+    const outer = { width: "100%", height: "100%" };
+    const inner = { width: "max-content", height: "max-content" };
 
-  const measureStyles = {
-    inner: { ...inner },
-    outer: { ...outer },
-    all: { minWidth: "100%", minHeight: "100%", ...inner },
-  };
+    const measureStyles = {
+      inner,
+      outer,
+      all: { minWidth: "100%", minHeight: "100%", ...inner },
+    };
+
+    return {
+      willChange: "width, height",
+      ...measureStyles[measure],
+      ...style,
+    };
+  }, [measure, styleST]);
 
   return (
     <div
       resize-tracker=""
       className={className}
       ref={containerRef}
-      style={{
-        willChange: "width, height",
-        ...measureStyles[measure],
-        ...style,
-      }}
+      style={boxStyle}
     >
       {children}
     </div>

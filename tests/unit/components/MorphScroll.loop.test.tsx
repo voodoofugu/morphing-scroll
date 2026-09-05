@@ -28,7 +28,7 @@ describe("loop", () => {
         size={[200, 300]}
         loop
         render={{ mode: "virtual" }}
-        objects={{ size: "each" }}
+        objects={{ size: "auto" }}
       >
         {items()}
       </MorphScroll>,
@@ -161,7 +161,7 @@ describe("loop", () => {
         direction="hybrid"
         loop
         render={{ mode: "virtual" }}
-        objects={{ size: [90, 60], gap: 10, crossCount: 2 }}
+        objects={{ size: [90, 60], gap: 10, lines: 2 }}
       >
         {items()}
       </MorphScroll>,

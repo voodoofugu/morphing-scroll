@@ -18,7 +18,7 @@ const items = (n: number) =>
 const mount = (props: Record<string, unknown> = {}, count = 12) => {
   const ref = React.createRef<MorphScrollHandle>();
   const utils = render(
-    <MorphScroll objects={{ size: 300, crossCount: 1 }}
+    <MorphScroll objects={{ size: 300, lines: 1 }}
       ref={ref}
       size={[300, 300]}
       {...props}

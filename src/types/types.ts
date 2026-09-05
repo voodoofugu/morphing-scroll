@@ -6,15 +6,13 @@ type Edges = [top: number, right: number, bottom: number, left: number];
 type SpacingValue = number | Vec2 | Edges;
 type Align = "start" | "center" | "end";
 type MinSize = number | "full";
-type ObjectSize = number | "full" | "firstChild" | "each" | "none";
+type ObjectSize = number | "full" | "firstChild" | "auto" | "none";
+
+/** how the objects are arranged once their sizes are known */
+type ObjectsLayout = "grid" | "masonry" | "flow" | "fill";
 
 /** the short form of `controls` */
-export type ControlName =
-  | "wheel"
-  | "drag"
-  | "arrows"
-  | "bar"
-  | "keys";
+export type ControlName = "wheel" | "drag" | "arrows" | "bar" | "keys";
 
 /** the object form of `controls.bar` */
 export type BarConfig = {
@@ -67,7 +65,9 @@ export type KeysConfig = {
 
 /** the object form of `edge` */
 export type EdgeConfig = {
-  /** the node; author it as it looks on top, the library turns it for the rest */
+  /**
+   * the node; author it as it looks on top, the library turns it for the rest
+   */
   element?: React.ReactNode;
   /** thickness of the `.ms-edge` strip; without it your CSS decides */
   size?: number;
@@ -92,7 +92,6 @@ export type ControlsConfig = {
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
-/** what brought the scroll to a new page */
 /**
  * What brought the scroll to a new page. Names of your own fit here too: a
  * command through the `ref` takes any string, and it reaches `onNavigate`
@@ -108,7 +107,9 @@ export type NavigateReason =
 
 /** the argument of `onNavigate` */
 export type NavigateEvent = {
-  /** `"scroll"` — the content got there on its own: a drag, the wheel, inertia */
+  /**
+   * `"scroll"` — the content got there on its own: a drag, the wheel, inertia
+   */
   reason: NavigateReason;
   axis: "x" | "y";
   from: number;
@@ -117,11 +118,53 @@ export type NavigateEvent = {
 
 /** the object form of `objects` */
 export type ObjectsConfig = {
-  size?: ObjectSize | Pair<ObjectSize>;
+  /**
+   * how the objects are arranged. Leave it out and the sizes say it: a side
+   * handed to the objects with `"auto"` is the side the layout measures
+   */
+  layout?: ObjectsLayout;
+  /**
+   * one value for both sides, or a pair. `"auto"` hands that side to the
+   * object itself. In a pair `undefined` means the same as `"none"`: there is
+   * no empty slot to leave, so a computed value has to be able to say it
+   */
+  size?: ObjectSize | Pair<ObjectSize | undefined>;
   gap?: number | Vec2;
-  crossCount?: number;
+  /** how many lines the objects run in, across the scroll */
+  lines?: number;
+  /**
+   * describe the objects to assistive technology.
+   *
+   * `"list"` marks the wrapper as a list and every object as one of its
+   * items, numbered. It matters most with `render`: only a window of the
+   * objects is in the document, so a screen reader would otherwise announce
+   * a list of a dozen and give no way to tell where in the real list you are.
+   *
+   * Left out, nothing is claimed: the objects may be cards, slides or a menu,
+   * and calling those a list would describe them wrongly.
+   */
+  semantics?: "list";
+  /**
+   * what a group of objects does. A group is named in the child's own `key`,
+   * in brackets at the end: `"post-4[news]"` belongs to `news`.
+   *
+   * `"sticky"` keeps the first object of the group in view for as long as any
+   * of its group is: it stays against the leading edge and is pushed out by
+   * the group that follows. That first object is the group's heading, so it
+   * always says which group you are looking at. It carries `ms-sticky` while
+   * it is held there.
+   *
+   * The same names reach `scrollToObject`, which goes to a group's first
+   * object.
+   */
+  groups?: "sticky";
   align?: Align;
-  direction?: "row" | "column";
+  /**
+   * which way the list runs through the lines — it names the order, not the
+   * layout: `"row"` fills a row and moves down, `"column"` fills a column and
+   * moves right
+   */
+  order?: "row" | "column";
   empty?: "clear" | "fallback" | EmptyObjectsConfig;
 };
 
@@ -145,15 +188,9 @@ export type EmptyObjectsConfig = {
 };
 
 /** a value understood by both `initialPosition` and `scrollTo` */
-export type ScrollTarget =
-  | null
-  | number
-  | "end"
-  | Pair<null | number | "end">;
+export type ScrollTarget = null | number | "end" | Pair<null | number | "end">;
 
-/**---
- * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
- * ### ***MorphScrollHandle***:
+/**
  * imperative commands, reachable through a `ref`.
  * @description
  * `initialPosition` says where the scroll opens and is never applied again.
@@ -164,29 +201,34 @@ export type ScrollTarget =
  * nothing about. A gamepad, a remote, a MIDI pedal: your code decides what a
  * button means, calls `step` or `pan`, and passes a `reason` that comes back
  * out of `onNavigate` unchanged.
- * @example
- * ```tsx
- * const scroll = React.useRef<MorphScrollHandle>(null);
- *
- * <MorphScroll ref={scroll} size={300}>{children}</MorphScroll>
- *
- * scroll.current?.scrollTo(0);
- * scroll.current?.scrollTo("end", { duration: 0 });
- * ```
- * @example
- * ```tsx
- * // the gamepad: the polling is yours, the move is the library's
- * const pad = navigator.getGamepads()[0];
- *
- * if (pad?.buttons[13].pressed)
- *   scroll.current?.step("bottom", { reason: "gamepad" });
- *
- * scroll.current?.pan({ y: pad.axes[3] * 12 }, { reason: "gamepad" });
- * ```
  */
 export type MorphScrollHandle = {
   /** run a scroll now; `duration: 0` jumps without animating */
   scrollTo: (target: ScrollTarget, options?: { duration?: number }) => void;
+  /**
+   * bring one object into view.
+   * @description
+   * A place in the list rather than a place in pixels, which is the one a
+   * caller can actually name: with `render` the object may not be in the
+   * document at all, and with `objects.size: "auto"` only the library knows
+   * where it ended up.
+   *
+   * `target` is a position in the list, a child's `key`, or the name of a
+   * group — written in the key itself, in brackets at the end: a child keyed
+   * `"post-4[news]"` is reached by `"post-4"` and by `"news"` alike, and a
+   * group goes to its first object. A key wins over a group of the same name.
+   *
+   * `align` says where in the window it lands: `"start"` by default,
+   * `"center"`, or `"end"`.
+   */
+  scrollToObject: (
+    target: number | string,
+    options?: {
+      duration?: number;
+      align?: "start" | "center" | "end";
+      reason?: NavigateReason;
+    },
+  ) => void;
   /**
    * turn one page toward that side — the move the arrow buttons make.
    * Does nothing at the end of the run, unless `loop` has made it endless.
@@ -220,185 +262,55 @@ export type MorphScrollHandle = {
 };
 
 export type ResizeTracker = {
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***className***:
-   * set a custom class name.
-   * @example
-   * ```tsx
-   * <ResizeTracker
-   *   className="custom-class"
-   * >
-   *   {children}
-   * </ResizeTracker>
-   * ```
-   */
+  /** set a custom class name. */
   className?: string;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***children***:
-   * add custom user content.
-   * @example
-   * ```tsx
-   * <ResizeTracker>
-   *   {children}
-   * </ResizeTracker>
-   * ```
-   * */
+  /** add custom user content. */
   children?: React.ReactNode;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***style***:
-   * set custom inline styles.
-   * @example
-   * ```tsx
-   * <ResizeTracker
-   *   style={{ backgroundColor: "yellow" }}
-   * >
-   *   {children}
-   * </ResizeTracker>
-   * ```
-   */
+  /** set custom inline styles. */
   style?: React.CSSProperties;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***measure***:
+  /**
    * defines size measurement behavior.
    * @description
    * - `inner`: *Fits content*
    * - `outer`: *Fills parent*
    * - `all`: *Combines both*
    * @default "inner"
-   * @example
-   * ```tsx
-   * <ResizeTracker
-   *   measure="outer"
-   * >
-   *   {children}
-   * </ResizeTracker>
-   * ```
    */
   measure?: "inner" | "outer" | "all";
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onResize***:
+  /**
    * callback on dimension change.
    * @param rect is the dimensions of the container.
-   * @example
-   * ```tsx
-   * <ResizeTracker
-   *  onResize={(rect) => console.log("Resized:", rect)}
-   * >
-   *   {children}
-   * </ResizeTracker>
-   * ```
    */
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
 };
 
 export type IntersectionTracker = {
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***className***:
-   * set a custom class name.
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *   className="custom-class"
-   * >
-   *   {children}
-   * </IntersectionTracker>
-   * ```
-   */
+  /** set a custom class name. */
   className?: string;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***children***:
-   * add custom user content.
-   * @example
-   * ```tsx
-   * <IntersectionTracker>
-   *   {children}
-   * </IntersectionTracker>
-   * ```
-   * */
+  /** add custom user content. */
   children?: React.ReactNode;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***style***:
-   * set custom inline styles.
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *  style={{ backgroundColor: "yellow" }}
-   * >
-   *  {children}
-   * </IntersectionTracker>
-   * ```
-   */
+  /** set custom inline styles. */
   style?: React.CSSProperties;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***root***:
+  /**
    * root element.
    * @default document viewport
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *   root={document.getElementById("observer-container")}
-   * >
-   *   {children}
-   * </IntersectionTracker>
-   * ```
    */
   root?: Element | null;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***rootMargin***:
+  /**
    * margin for the root element.
    * @note
    * *It can be a number or an array of 2 or 4 numbers*
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *   rootMargin={10}
-   * >
-   *   {children}
-   * </IntersectionTracker>
-   * ```
    */
   rootMargin?: SpacingValue;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***threshold***:
+  /**
    * visibility threshold for triggering intersection events.
    * @note
    * *a value between `0` (out of view) and `1` (fully visible) can be single or an array*
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *   threshold={0.5}
-   * >
-   *   {children}
-   * </IntersectionTracker>
-   * ```
    */
   threshold?: number | number[];
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onIntersection***:
+  /**
    * callback triggered when `threshold` is met.
    * @param entry is the IntersectionObserverEntry object.
-   * @example
-   * ```tsx
-   * <IntersectionTracker
-   *   onIntersection={(entry) => {
-   *     if (entry.isIntersecting) loadMoreItems();
-   *   }}
-   * >
-   *   {children}
-   * </IntersectionTracker>
-   * ```
    *
    * @link https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserverEntry
    */
@@ -407,37 +319,13 @@ export type IntersectionTracker = {
 
 export type MorphScroll = {
   // — GENERAL —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***className***:
-   * set a custom class name.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   className="custom-class"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   * */
+  /** set a custom class name. */
   className?: string;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***children***:
-   * add custom user content.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props} >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   * */
+  /** add custom user content. */
   children?: React.ReactNode;
 
   // — SCROLL —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***mode***:
+  /**
    * change how the scroll behaves and what the progress element is.
    * @default "scroll"
    * @note *the slider modes draw one element per page, so the count follows
@@ -446,34 +334,14 @@ export type MorphScroll = {
    * pages would make the progress lie about where you are. They are for a
    * handful of pages; for a list that keeps going, `mode="scroll"` shows the
    * same position in one thumb*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   mode="slider"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   mode?: "scroll" | "slider" | "sliderMenu";
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***direction***:
+  /**
    * change the scrolling direction.
    * @default "y"
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   direction="x"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   direction?: "x" | "y" | "hybrid";
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***initialPosition***:
+  /**
    * where the scroll opens.
    * @description
    * Applied once, without animation, as soon as the content can hold it — a
@@ -484,19 +352,9 @@ export type MorphScroll = {
    * @note
    * every later move is a command on the component `ref` — `scrollTo`, `step`,
    * `pan`, `moveFocus`. To follow growing content, see `stickToEnd`.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   initialPosition={100}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   initialPosition?: ScrollTarget;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***stickToEnd***:
+  /**
    * keeps the scroll at the end of its content.
    * @description
    * A standing rule rather than a move: every time the content grows the
@@ -505,17 +363,9 @@ export type MorphScroll = {
    * back — a chat that does not fight the person reading its history.
    * @note a pair sets the axes apart: `[true, false]` in `direction="hybrid"`
    * follows the right edge and leaves the bottom alone
-   * @example
-   * ```tsx
-   * <MorphScroll {...props} stickToEnd>
-   *   {messages}
-   * </MorphScroll>
-   * ```
    */
   stickToEnd?: boolean | Pair<boolean>;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***loop***:
+  /**
    * the content runs in a circle, with no start and no end.
    * @default false
    * @description
@@ -525,57 +375,28 @@ export type MorphScroll = {
    * that moment is the very same content. Nothing grows, so nothing runs into
    * the browser's own limit on how long a scroll can be.
    *
-   * Objects are still mounted a window at a time when `render.mode` says so —
-   * the two are separate, and a short loop does not need virtualising.
-   *
-   * The slider modes turn in a circle too: pages are counted within one turn,
-   * so the progress element shows as many as there really are and its dots
-   * come back round to the first.
+   * The slider modes turn too, counting pages within one turn, and
+   * `direction="hybrid"` turns both ways at once.
    * @note *the list is repeated, not referenced: a few copies of every child
-   * are mounted at once. With `render.mode` only the ones in the window are,
-   * and the count stops mattering — without it a long list is paid for several
-   * times over, so give a long one virtualising*
-   * @note *`edge` stays lit on both sides — there really is more content both
-   * ways. The progress element shows the position within one turn rather than
-   * within the whole strip, appears only when a turn is longer than the
-   * window, and its thumb moves the content by that same turn. `scrollTo`
-   * takes a number as a place within the turn and goes the short way round.
-   * `stickToEnd` has no end to hold onto and is refused*
-   * @note *`direction="hybrid"` turns in both directions at once: the content
-   * repeats to the right and downward, and the copies lie in a grid*
-   * @note *`objects.size: "each"` waits: a period is the length of the
-   * content, and that keeps growing while the measurements come in. Until
-   * they are all in it scrolls as usual, and the circle closes by itself once
-   * there is nothing left to measure — so a long list pays for a full
-   * measuring pass before it turns*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props} loop render={{ mode: "virtual" }}>
-   *   {slides}
-   * </MorphScroll>
-   * ```
+   * are mounted at once. `render.mode` cuts that back to the window, so give
+   * a long list virtualising*
+   * @note *`stickToEnd` has no end to hold onto and is refused*
+   * @note *`objects.size: "auto"` waits for its measurements: the circle
+   * closes by itself once there is nothing left to measure*
+   * @see the README for what the progress element, `edge` and `scrollTo` do
+   * inside a turn
    */
   loop?: boolean;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***duration***:
+  /**
    * how long a move takes, in ms.
    * @default 200
    * @description
    * The animation length of every move the scroll makes on its own: an arrow,
    * a key, a focus step, a slider settling after a drag. Commands on the `ref`
    * take it as their default and can override it per call. `0` jumps.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props} duration={400}>
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   duration?: number;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***autoScrollOnDrag***:
+  /**
    * enables automatic scrolling when dragging elements near the edges of the container.
    * @note
    * *Supports attributes:*
@@ -583,162 +404,63 @@ export type MorphScroll = {
    * - *`ms-custom-drag`*
    *
    * *Set attribute: `ms-under-drag`*
-   *
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   autoScrollOnDrag
-   * >
-   *   {children}
-   * </MorphScroll>
-   *  ```
    */
   autoScrollOnDrag?: boolean;
 
   // — SIZE —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***size***:
+  /**
    * width and height dimension of scroll area. ( **REQUIRED** )
    * @description
    * - `number` *sets the width and height*
    * - `Size` *width and height as an array*
    * - `"auto"` *for automatic resizing based on the parent element*
-   *
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   size={[200, 100]}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   size: number | "auto" | Vec2;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***objects***:
+  /**
    * everything about the objects themselves: how big they are, how they sit
    * next to each other, and what to do with the empty ones.
-   * @default { size: "none", direction: "row" }
+   * @default { size: "none", order: "row" }
    * @description
-   * - `size`: *the size of one object — a number, a pair for both axes,
-   *   `"full"` for the size of the scroll, `"firstChild"` to measure the first
-   *   one, `"each"` to measure every one of them, or `"none"` to leave it to
-   *   your own CSS. Leaving it out means `"none"` on both axes, so the word
-   *   earns its place in a pair, where there is no empty slot to leave:
-   *   `[100, "none"]` — and a computed `undefined` there means the same*
+   * - `layout`: *`"grid"`, `"masonry"`, `"flow"` or `"fill"`. Left out, the
+   * sizes say it: the side handed over with `"auto"` is the side the layout
+   * measures*
+   * - `size`: *a number, a pair for both axes, `"full"` for the size of the
+   * scroll, `"firstChild"` to measure the first one, `"auto"` to hand a side
+   * to the object itself, or `"none"` to leave it to your own CSS*
    * - `gap`: *space between the objects, one number or `[x, y]`*
-   * - `crossCount`: *how many of them fit across the scrolling axis*
+   * - `lines`: *how many lines the objects run in, across the scroll*
    * - `align`: *where a short last line sits*
-   * - `direction`: *which way the order runs — `"row"` across the scroll,
-   *   `"column"` along it*
+   * - `order`: *which way the list runs through the lines — `"row"` fills a
+   * row and moves down, `"column"` fills a column and moves right*
+   * - `semantics`: *`"list"` marks the objects up as a list for assistive
+   * technology*
+   * - `groups`: *`"sticky"` holds a group's first object in view while any of
+   * its group is; groups are named in the child's own `key`, in brackets at
+   * the end*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
-   *   replaces them with a placeholder; the object form adds `fallback` and
-   *   `clickTrigger`*
-   * @note the sizes are what the virtual and lazy rendering count with, so
-   * `render` needs a `size` it can rely on — `"each"` counts as one, because
-   * the library measures it and then knows it
-   * @note *which side is `"each"` decides how the objects are laid out:*
-   * - *along the scroll — **masonry**: the other side is the column, and each
-   *   object goes into the shortest column at that moment, so the bottom
-   *   stays even. `[90, "each"]` for a vertical scroll*
-   * - *across it — **flow**: objects follow one another with the same gap
-   *   between them, and a new line starts when the room across runs out, or
-   *   when `crossCount` says the line is full. Each line is as thick as the
-   *   thickest object in it*
-   * - *a line is as thick as the thickest object in it, and when that
-   *   thickness is the objects' own too — both sides handed over, `crossCount`
-   *   ending the line — the shorter ones do not hang under it: each rises into
-   *   the room above it, and the order stays line by line. It stops a gap
-   *   short of whatever it comes near, sideways as well as head on*
-   * - *both sides — **fill**: every object takes the highest place it fits
-   *   into, so nothing is left hanging under a short neighbour. Order gives
-   *   way to the fit — an object further down the list can end up higher on
-   *   the screen. Naming `crossCount` asks for lines instead, and lines is
-   *   what you get*
-   * - *`direction="hybrid"` — both ways scroll, so which side is `"each"`
-   *   says nothing about which axis a line runs along: `crossCount` is the
-   *   only thing left that can end one. A fill cannot stand in for it — it
-   *   needs a boundary across, and the only one on offer is the scroll
-   *   itself. With `crossCount` and a known size across it is masonry; with
-   *   both sides handed over, flow by that count*
-   * @note *`"each"` on its own is the short way of saying it about both
-   * sides — the same as `["each", "each"]`*
-   * @note *`align` lines the rows up against the widest one — widest across
-   * the scroll, the vertical spread on a horizontal scroll same as the
-   * horizontal one on a vertical scroll. That row is as much room as the
-   * content needs and has nowhere to move; the rest close the gap that
-   * separates them from it. A fill has no rows, so each object closes
-   * its own gap instead — the one between it and whatever sits past it, or
-   * the edge of the room if nothing does. `"center"` stops halfway between
-   * where the fit first placed it and where `"end"` would push it. Nothing
-   * moves until every object has been measured*
-   * @note *`direction` does not choose the layout — the sizes do. It chooses
-   * the order, and the words mean what they say on both axes: `"row"` fills a
-   * row and moves down, `"column"` fills a column and moves right. One of the
-   * two is what the list already does — a vertical scroll lays rows, a
-   * horizontal one lays columns — and the other transposes it, so the first
-   * line takes the first `ceil(n / lines)` objects and a masonry stops looking
-   * for the shortest column. The count is by number, never by size.
-   * Transposing needs lines to count: a masonry always has them, a flow has
-   * them when `crossCount` names them, and a fill has none at all — it gives
-   * the order up for the fit. There the request is not carried out, and it is
-   * reported when you wrote the value yourself. `direction="hybrid"` answers
-   * the same request with the axis: `"row"` has `crossCount` bound the width
-   * and growth run down, `"column"` bounds the height and growth runs right*
-   * @note *pages need one size for all, so `"each"` is for `mode="scroll"`*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   objects={{ size: 100, gap: 10 }}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   objects={{
-   *     size: [150, 112],
-   *     gap: [10, 20],
-   *     crossCount: 3,
-   *     align: "center",
-   *     direction: "column",
-   *     empty: "clear",
-   *   }}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
+   * replaces them with a placeholder*
+   * @note *naming the layout is enough on its own: it takes the side it
+   * measures, so one number covers the other — and a fill needs no size at
+   * all. A `"grid"` cannot measure, so it is the one layout that wants both
+   * sides given*
+   * @note *the sizes are what `render` counts with, and `"auto"` counts as
+   * one: the library measures it and then knows it*
+   * @note *pages need one size for all, so `"auto"` is for `mode="scroll"`*
+   * @see the README for how each layout arranges its objects
    */
   objects?: ObjectsConfig;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***wrapper***:
+  /**
    * everything about the `.ms-objects-wrapper` box that holds your objects.
    * @description
    * - `margin`: *space around the box; 1, 2 or 4 numbers*
    * - `minSize`: *the box never gets smaller than this; `"full"` means the
-   *   `size` prop*
+   * `size` prop*
    * - `align`: *where the box sits when it is smaller than `size`*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   wrapper={{ margin: 10, minSize: "full", align: "center" }}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   wrapper?: WrapperConfig;
 
-  // — LAYOUT —
-
   // — CONTROLS —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***controls***:
+  /**
    * everything that can move the scroll.
    * @description
    * - `wheel`: *allow to scroll by mouse wheel*
@@ -748,35 +470,14 @@ export type MorphScroll = {
    * - `arrows`: *add custom arrows*
    * @note
    * - *a name, or a list of names, switches those on: `"wheel"` is the same
-   *   as `{ wheel: true }`*
+   * as `{ wheel: true }`*
    * - *`bar` renders as a thumb or as a slider depending on `mode`*
    * - *`bar: true` with `mode="scroll"` hands the job to the browser's own
-   *   scrollbar*
+   * scrollbar*
    * - *`drag` skips text fields and anything that carries its own drag ([more...](https://www.npmjs.com/package/morphing-scroll))*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   controls={{ wheel: true, bar: <ScrollThumb /> }}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
-   * @example
-   * ```tsx
-   * // with settings
-   * controls={{
-   *   wheel: true,
-   *   bar: { element: <ScrollThumb />, edgeGap: 8, showOnHover: true },
-   * }}
-   * ```
    */
-  controls?:
-    | ControlName
-    | ControlName[]
-    | ControlsConfig;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***edge***:
+  controls?: ControlName | ControlName[] | ControlsConfig;
+  /**
    * marks the edges where the content is cut off.
    * @description
    * a place and a signal, not a ready-made gradient: `.ms-edge` is stretched
@@ -789,42 +490,25 @@ export type MorphScroll = {
    * @note *`{ element, size }` names the thickness of the strip too, the way
    * `arrows.size` does — a height at the top and bottom, a width at the sides.
    * Without it the thickness is yours to write in CSS*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   edge={{ element: <div className="my-fade" />, size: 40 }}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   edge?: boolean | React.ReactNode | EdgeConfig;
 
   // — OPTIMIZATION —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***render***:
+  /**
    * rendering strategy for performance optimization.
    * @descriptions
    * - `mode` — determines the render strategy:
-   *   - `"lazy"`: *render once when visible*
-   *   - `"virtual"`: *render only when visible*
+   * - `"lazy"`: *render once when visible*
+   * - `"virtual"`: *render only when visible*
    * - `rootMargin`: *distance for loading from the root element*
-   * - `stopLoadOnScroll`: *stops loading content when scrolling*
+   * - `deferLoadOnScroll`: *holds new content back while the scroll moves,
+   * and lets it in once the scroll settles*
    * - `trackVisibility`: *sets the `--ms-content-visibility` variable on every
-   *   object box; it needs no `mode` of its own, and without one nothing is
-   *   dropped — every object stays mounted and simply knows how much of it
-   *   shows*
+   * object box; it needs no `mode` of its own, and without one nothing is
+   * dropped — every object stays mounted and simply knows how much of it
+   * shows*
    * @note
    * *`render` is not compatible with `objectsSize: "none"`*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   render="lazy"
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   render?:
     | "lazy"
@@ -833,79 +517,52 @@ export type MorphScroll = {
         /** leave it out to keep every object mounted and only watch them */
         mode?: "lazy" | "virtual";
         rootMargin?: SpacingValue;
-        stopLoadOnScroll?: boolean;
+        deferLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***suspending***:
-   * enables React Suspense for children.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   suspending
-   * >
-   *   {children}
-   * </MorphScroll>
-   *  ```
-   */
+  /** enables React Suspense for children. */
   suspending?: boolean;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***fallback***:
+  /**
    * element to display during loading or placeholder.
    * @note
    * *Used when:*
    * - *`suspending === true`*
-   * - *`render.stopLoadOnScroll === true`*
+   * - *`render.deferLoadOnScroll === true`*
    * - *`emptyObjects.mode === "fallback"`*
-   *
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   fallback={<div>Loading...</div>}
-   * >
-   *   {children}
-   * </MorphScroll>
-   *  ```
    */
   fallback?: React.ReactNode;
 
   // — EVENTS —
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onScrollPosition***:
+  /**
    * callback for scroll value.
    * @param left current scroll position on the x-axis.
    * @param top current scroll position on the y-axis.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   onScrollPosition={(left, top) => console.log("Scroll position:", left, top)}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
+   * @param max how far each axis can go — the position at its very end, read
+   * from the element itself, so it is a position the scroll really reaches.
+   * @description
+   * The third argument is what turns this into a "load more" signal without a
+   * prop for it: how far the end is, is `max` minus the position, and nothing
+   * else has to know the length of the content. With `render` or
+   * `objects.size: "auto"` nothing else *can* know it.
+   * @note *test it with a distance rather than with equality. `max` is a whole
+   * number and a scroll position need not be one — on a scaled display it
+   * lands on halves — so `max.y === top` can be false at the very end.
+   * `max.y - top < 1` is "at the end"; a larger number is "nearly there",
+   * which is what a prefetch actually wants*
+   * @note *in `loop` the content has no end, and `max` measures the strip of
+   * copies rather than a turn*
    */
-  onScrollPosition?: (left: number, top: number) => void;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onScrollingChange***:
+  onScrollPosition?: (
+    left: number,
+    top: number,
+    max: { x: number; y: number },
+  ) => void;
+  /**
    * callback for scroll status.
    * @param motion boolean indicating if scrolling is in progress.
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   onScrollingChange={(motion) => console.log("Is scrolling:", motion)}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   onScrollingChange?: (motion: boolean) => void;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onNavigate***:
+  /**
    * callback for a move from one page to another.
    * @param event which page the scroll left, which one it goes to, and what
    * put it there.
@@ -921,35 +578,13 @@ export type MorphScroll = {
    * without asking reports when the scroll settles, as `"scroll"`*
    * @note
    * *in `mode="scroll"` only commands page the content, so only they report*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   onNavigate={({ reason, from, to }) => {
-   *     if (reason !== "scroll") playClick();
-   *     console.log(`${from} -> ${to}`);
-   *   }}
-   * >
-   *   {children}
-   * </MorphScroll>
-   * ```
    */
   onNavigate?: (event: NavigateEvent) => void;
-  /**---
-   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
-   * ### ***onRenderedKeysChange***:
+  /**
    * callback for keys that are currently rendered inside `MorphScroll`.
    * @param keys array of rendered child keys.
    * @note
    * *Use explicit React keys to receive meaningful names.*
-   * @example
-   * ```tsx
-   * <MorphScroll {...props}
-   *   onRenderedKeysChange={(keys) => console.log("Rendered:", keys)}
-   * >
-   *   <Card key="profile" />
-   *   <Card key="settings" />
-   * </MorphScroll>
-   * ```
    */
   onRenderedKeysChange?: (keys: string[]) => void;
 };

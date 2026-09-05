@@ -23,3 +23,18 @@ const childKey = (key: string) => {
 };
 
 export default childKey;
+
+/*
+ * Группа объекта, если она названа в его ключе.
+ *
+ * Отдельного пропа под группы нет: ключ и так обязан быть уникальным, и
+ * дописать к нему название группы в скобках дешевле, чем вести рядом второй
+ * список. `"news-3[news]"` — объект `news-3` из группы `news`.
+ */
+const groupKey = (key: string) => {
+  const named = /\[([^[\]]+)\]$/.exec(key);
+
+  return named ? named[1] : null;
+};
+
+export { groupKey };

@@ -25,7 +25,9 @@ import Arrow from "./Arrow";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import focusStep from "../helpers/focusStep";
-import handleMouseOrTouch from "../helpers/handleMouseOrTouch";
+import handleMouseOrTouch, {
+  hasOwnDrag,
+} from "../helpers/handleMouseOrTouch";
 import {
   objectsPerSize,
   smoothScroll,
@@ -54,7 +56,7 @@ import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
 
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import filterValidChildren from "../helpers/filterValidChildren";
-import childKey from "../helpers/childKey";
+import childKey, { groupKey } from "../helpers/childKey";
 import pageAt from "../helpers/pageAt";
 import stabilize from "../helpers/stabilize";
 import {
@@ -172,11 +174,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * это по-прежнему отдельные значения.
      */
     const {
+      layout: objectsLayout,
       size: objectsSize,
       gap,
-      crossCount,
+      lines,
+      semantics: objectsSemantics,
+      groups: objectsGroups,
       align: objectsAlign,
-      direction: objectsDirection = "row",
+      order: objectsOrder = "row",
       empty: emptyObjects,
     } = objects ?? {};
 
@@ -206,41 +211,21 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     if (!size) throw new Error(errorText("size"));
 
     /*
-     * Виртуальная и ленивая отрисовка расставляют объекты по счёту, а считать
-     * можно только известный размер. `"none"` говорит «размер решает CSS», а
-     * не переданный размер значит ровно то же самое — просто молча, и раньше
-     * предупреждение ловило только первый случай.
+     * Жалуемся один раз на сообщение, а не один раз на рендер.
+     *
+     * Рендер здесь идёт по кадру во время прокрутки, так что неверная пара
+     * пропсов заливала консоль со скоростью шестьдесят сообщений в секунду —
+     * и то самое сообщение, ради которого всё это, тонуло в собственных
+     * копиях. Ключом служит текст: он и описывает случай.
      */
-    const sizeUnknown = (value: typeof objectsSize) =>
-      value == null ||
-      value === "none" ||
-      (Array.isArray(value) && (value[0] === "none" || value[1] === "none"));
+    const complained = React.useRef<Set<string>>(new Set());
 
-    if (render && sizeUnknown(objectsSize))
-      console.error(
-        `"render" needs a known objects.size: "none" and no size at all leave nothing to place${errorTextEnd}`,
-      );
+    const complain = (message: string) => {
+      if (complained.current.has(message)) return;
 
-    const hasEach = Array.isArray(objectsSize)
-      ? objectsSize.some((axis) => axis === "each")
-      : objectsSize === "each";
-
-    if (hasEach) {
-      if (mode !== "scroll")
-        console.error(
-          `objects.size: "each" gives objects their own size, and pages need one size for all — "${mode}" cannot turn them${errorTextEnd}`,
-        );
-
-      /*
-       * Линию надо обо что-то оборвать, а при `hybrid` едут обе стороны:
-       * упереться не во что, кроме `crossCount`. Без него линия не кончается
-       * никогда — все объекты уходят в одну.
-       */
-      if (direction === "hybrid" && !crossCount)
-        console.error(
-          `objects.size: "each" with direction="hybrid" needs objects.crossCount: both ways scroll, so nothing else says where a line ends${errorTextEnd}`,
-        );
-    }
+      complained.current.add(message);
+      console.error(`${message}${errorTextEnd}`);
+    };
 
     /*
      * Круг водит окно подменой позиции, а конца у него нет — значит и ехать к
@@ -260,13 +245,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         (controls as { bar?: unknown }).bar === true;
 
       if (nativeBar)
-        console.error(
-          `loop and controls.bar: true pull against each other: the browser draws its own bar over the strip, and the strip is a few copies of the content — the thumb comes out a fraction of a turn and jumps under the finger every time the position moves. Pass an element instead and the bar shows the turn${errorTextEnd}`,
+        complain(
+          `loop and controls.bar: true pull against each other: the browser draws its own bar over the strip, and the strip is a few copies of the content — the thumb comes out a fraction of a turn and jumps under the finger every time the position moves. Pass an element instead and the bar shows the turn`,
         );
 
       if (stickToEnd)
-        console.error(
-          `loop and stickToEnd pull against each other: one keeps the window in the circle, the other drives it to an end the circle does not have${errorTextEnd}`,
+        complain(
+          `loop and stickToEnd pull against each other: one keeps the window in the circle, the other drives it to an end the circle does not have — stickToEnd is ignored here`,
         );
     }
 
@@ -361,31 +346,58 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     /*
      * Короткая форма приводится к объектной один раз: дальше по компоненту
      * `controlsLocal` всегда объект, и ветвлений на строку/массив нет.
+     *
+     * Колесо включено, пока его не выключили. `controls` перечисляет, чем
+     * скролл двигают, и раньше названный бегунок молча забирал колесо: группа
+     * заменяла умолчание целиком, так что `{ bar: <Thumb /> }` — первое, что
+     * пишут, — давало скролл, который нечем прокрутить. Отказаться от колеса
+     * можно словом: `{ wheel: false }`.
      */
     const controlsLocal = React.useMemo(() => {
-      if (typeof controls === "string")
-        return { [controls]: true };
+      const named =
+        typeof controls === "string"
+          ? { [controls]: true }
+          : Array.isArray(controls)
+            ? Object.fromEntries(controls.map((name) => [name, true]))
+            : controls;
 
-      if (Array.isArray(controls))
-        return Object.fromEntries(controls.map((name) => [name, true]));
-
-      return controls;
+      /*
+       * Клавиши включены наравне с колесом. Окно прокрутки — это остановка
+       * табуляции, и нативный скролл, получив фокус, слушается стрелок сам;
+       * здесь же до них надо было додуматься, и клавиатурный пользователь
+       * доходил до списка, который нечем листать. Отказ по-прежнему словом:
+       * `{ keys: false }`.
+       */
+      return { wheel: true, keys: true, ...named };
     }, [controlsST]) as ControlsConfig;
 
-    if (Object.keys(controlsLocal).length === 0)
-      console.error(errorText("controls"));
+    /*
+     * Пустой объект теперь законен: колесо в нём и так есть. А вот набор, в
+     * котором ничем двигать нельзя, — почти наверняка описка.
+     */
+    if (
+      !controlsLocal.wheel &&
+      !controlsLocal.drag &&
+      !controlsLocal.keys &&
+      !controlsLocal.bar &&
+      !controlsLocal.arrows
+    )
+      complain(
+        `prop "controls" leaves nothing that can move the scroll: name at least one of wheel, drag, keys, bar, arrows`,
+      );
 
     /*
      * Прилипание задаётся на обе оси разом или на каждую отдельно: при
      * `hybrid` бывает нужно держаться низа, но не правого края.
      */
-    const stickLocal = React.useMemo<Pair<boolean>>(
-      () =>
-        Array.isArray(stickToEnd)
-          ? [!!stickToEnd[0], !!stickToEnd[1]]
-          : [!!stickToEnd, !!stickToEnd],
-      [stickToEndST],
-    );
+    const stickLocal = React.useMemo<Pair<boolean>>(() => {
+      // у круга конца нет, держаться нечего — сказано выше, здесь исполняем
+      if (loop) return [false, false];
+
+      return Array.isArray(stickToEnd)
+        ? [!!stickToEnd[0], !!stickToEnd[1]]
+        : [!!stickToEnd, !!stickToEnd];
+    }, [stickToEndST, loop]);
 
     // ♦ default
     const initialTarget = React.useMemo(
@@ -528,6 +540,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         );
     }, [children, emptyObjectsST, objectsKeysEmptyST]);
 
+    /*
+     * Ключи в списке зависимостей: сравнивать надо по содержимому, иначе
+     * рендер родителя пересобирал бы раскладку на том же самом списке. Но
+     * склейка десяти тысяч ключей стоит около десятой доли миллисекунды, а
+     * стояла она в четырёх местах и считалась заново на каждый рендер — то
+     * есть по четыре раза на каждый кадр прокрутки. Считаем один раз и там,
+     * где список действительно поменялся.
+     */
+    const keysToken = React.useMemo(
+      () => validChildrenKeys.join("|"),
+      [validChildrenKeys],
+    );
+
     const [mT, mR, mB, mL] = wrapper?.margin
       ? argsFormatter(wrapper.margin)
       : [0, 0, 0, 0];
@@ -559,7 +584,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const base = {
         mode: undefined as "lazy" | "virtual" | undefined,
         rootMargin: 0 as number | number[],
-        stopLoadOnScroll: false,
+        deferLoadOnScroll: false,
         trackVisibility: false,
       };
 
@@ -571,10 +596,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const {
           mode,
           rootMargin = base.rootMargin,
-          stopLoadOnScroll = base.stopLoadOnScroll,
+          deferLoadOnScroll = base.deferLoadOnScroll,
           trackVisibility = base.trackVisibility,
         } = render;
-        return { mode, rootMargin, stopLoadOnScroll, trackVisibility };
+        return { mode, rootMargin, deferLoadOnScroll, trackVisibility };
       }
 
       return base;
@@ -639,46 +664,67 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * места, — так что `[100, undefined]` из вычисленного значения обязан
      * значить то же, что `[100, "none"]`. Без этого он терял и заданную ось.
      */
-    const objectsSizing = React.useMemo(
-      () =>
+    const isHybrid = direction === "hybrid";
+    const hybridColumn = isHybrid && objectsOrder === "column";
+    const mainAxis = hybridColumn || direction === "x" ? 0 : 1;
+    const crossAxis = mainAxis === 0 ? 1 : 0;
+
+    /*
+     * Раскладка и размеры — про разное, и говорят они об одном и том же с
+     * двух концов.
+     *
+     * `"auto"` значит «эту сторону знает сам объект», и по тому, какая
+     * сторона отдана, раскладка выводится сама: вдоль прокрутки — кладка,
+     * поперёк — поток, обе — заполнение. Так короче всего и написать: пара
+     * размеров уже всё сказала.
+     *
+     * `objects.layout` называет то же самое прямо. Тогда решает он, а сторону,
+     * которую он берёт себе, размерам задавать незачем — она становится
+     * `"auto"` сама. Отсюда и короткая форма: `{ layout: "masonry", size: 90 }`
+     * это колонка в 90 и высота по объекту.
+     *
+     * `hybrid` объектам ось выбрать не даёт — прокручиваются обе. Там линию
+     * обрывает только `objects.lines`, а заполнению нужна граница поперёк, и
+     * взять её неоткуда, кроме окна: упереть объекты в окно значило бы, что
+     * вторая сторона больше никуда не едет.
+     */
+    const objectsSizing = React.useMemo(() => {
+      const written: (number | "full" | "firstChild" | "auto" | "none" | null)[] =
         objectsSize
           ? !Array.isArray(objectsSize)
             ? argsFormatter(objectsSize, true, 2)
             : objectsSize.map((axis) => axis ?? "none")
-          : [null, null],
+          : [null, null];
 
-      [objectsSizeST],
-    );
+      if (!objectsLayout) return written;
 
-    /*
-     * `"each"` — размер знает только сам объект, и от того, какая сторона ему
-     * отдана, зависит правило укладки:
-     *
-     * — вдоль прокрутки: колонок известное число, каждый уходит в самую
-     *   короткую — кладка;
-     * — поперёк: объекты идут друг за другом, пока линия не кончится — поток;
-     * — обе стороны за объектом: каждый встаёт в самое высокое место, куда
-     *   влезает — заполнение. Дырок не остаётся, но и порядок построчным быть
-     *   перестаёт: это и есть смысл `["each", "each"]`.
-     *
-     * Названный `crossCount` заполнение отменяет: «по столько-то в строке» и
-     * «куда влезет» — разные просьбы, и explicit важнее.
-     *
-     * `hybrid` не даёт объектам самим выбрать ось — обе прокручиваются, и
-     * «какая сторона отдана» здесь не отвечает на вопрос. Отвечает
-     * `objects.direction`: «row» (по умолчанию) — линии идут строками, счёт
-     * ограничивает ширину; «column» — линии идут столбцами, счёт ограничивает
-     * высоту. Заполнением `hybrid` не подменяем: заполнению нужна граница
-     * поперёк, а взять её там неоткуда, кроме окна, — и упереть объекты в
-     * окно значило бы, что вторая сторона больше никуда не едет.
-     */
-    const isHybrid = direction === "hybrid";
-    const hybridColumn = isHybrid && objectsDirection === "column";
-    const mainAxis = hybridColumn || direction === "x" ? 0 : 1;
-    const crossAxis = mainAxis === 0 ? 1 : 0;
+      const measures =
+        objectsLayout === "fill"
+          ? [mainAxis, crossAxis]
+          : objectsLayout === "masonry"
+            ? [mainAxis]
+            : objectsLayout === "flow"
+              ? [crossAxis]
+              : [];
 
-    const eachOnMain = objectsSizing[mainAxis] === "each";
-    const eachOnCross = objectsSizing[crossAxis] === "each";
+      for (const axis of measures) written[axis] = "auto";
+
+      // сетке нечего мерить: у неё все объекты одного размера
+      if (objectsLayout === "grid")
+        written.forEach((value, axis) => {
+          if (value !== "auto") return;
+
+          complain(
+            `objects.layout: "grid" gives every object the same size, so there is nothing to measure — objects.size: "auto" belongs to "masonry", "flow" or "fill"`,
+          );
+          written[axis] = "none";
+        });
+
+      return written;
+    }, [objectsSizeST, objectsLayout, mainAxis, crossAxis]);
+
+    const eachOnMain = objectsSizing[mainAxis] === "auto";
+    const eachOnCross = objectsSizing[crossAxis] === "auto";
     const isEach = eachOnMain || eachOnCross;
 
     /*
@@ -686,18 +732,55 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * колонок ровно столько, сколько сказали, и дырок под низкими соседями
      * они не оставляют, чего поток по тому же счёту не умеет.
      */
-    const eachLayout: PackLayout = isHybrid
-      ? eachOnMain && !eachOnCross && crossCount
+    const inferredLayout: PackLayout = isHybrid
+      ? eachOnMain && !eachOnCross && lines
         ? "masonry"
         : "flow"
-      : eachOnMain && eachOnCross && !crossCount
+      : eachOnMain && eachOnCross && !lines
         ? "fill"
         : eachOnMain && !eachOnCross
           ? "masonry"
           : "flow";
 
+    const eachLayout: PackLayout =
+      objectsLayout && objectsLayout !== "grid" ? objectsLayout : inferredLayout;
+
     /*
-     * `objects.direction` не выбирает раскладку — раскладку выбирают размеры.
+     * Виртуальная и ленивая отрисовка расставляют объекты по счёту, а считать
+     * можно только известный размер. `"none"` говорит «размер решает CSS», а
+     * не переданный размер значит ровно то же самое — просто молча.
+     *
+     * Спрашиваем у разобранных размеров, а не у написанного: `"auto"` размер
+     * не отменяет, а поручает — библиотека его меряет и дальше знает. Раньше
+     * проверка смотрела на проп, и названная раскладка, которой размеры не
+     * нужны вовсе, получала выговор ни за что.
+     */
+    const sizeUnknown = (value: unknown) => value == null || value === "none";
+
+    if (render && objectsSizing.some(sizeUnknown))
+      complain(
+        `"render" needs a known objects.size: "none" and no size at all leave nothing to place`,
+      );
+
+    if (isEach) {
+      if (mode !== "scroll")
+        complain(
+          `objects.size: "auto" gives objects their own size, and pages need one size for all — "${mode}" cannot turn them`,
+        );
+
+      /*
+       * Линию надо обо что-то оборвать, а при `hybrid` едут обе стороны:
+       * упереться не во что, кроме `lines`. Без него линия не кончается
+       * никогда — все объекты уходят в одну.
+       */
+      if (isHybrid && !lines)
+        complain(
+          `objects.size: "auto" with direction="hybrid" needs objects.lines: both ways scroll, so nothing else says where a line ends`,
+        );
+    }
+
+    /*
+     * `objects.order` не выбирает раскладку — раскладку выбирают размеры.
      * Он выбирает порядок, и слова означают ровно то, что говорят: `"row"`
      * заполняет строку и переходит ниже, `"column"` — столбец и переходит
      * правее. Одно из двух список делает и так, и какое именно — решает ось
@@ -707,7 +790,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      *
      * Для перестановки надо знать, сколько будет линий. Кладка знает всегда:
      * колонок столько, сколько влезло или сколько назвали. Поток знает по
-     * `crossCount`, а без него линию обрывает место, и заранее их не
+     * `lines`, а без него линию обрывает место, и заранее их не
      * сосчитать. У заполнения линий нет вовсе — оно отдаёт порядок ради
      * посадки, это его смысл.
      *
@@ -715,10 +798,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * ровно то, что делает перестановка осей выше, второй раз не надо.
      */
     const naturalOrder = mainAxis === 0 ? "column" : "row";
-    const wantsSplit = !isHybrid && objectsDirection !== naturalOrder;
+    const wantsSplit = !isHybrid && objectsOrder !== naturalOrder;
     const eachOrderable =
-      eachLayout === "masonry" || (eachLayout === "flow" && !!crossCount);
-    const eachOrder = wantsSplit && eachOrderable ? objectsDirection : naturalOrder;
+      eachLayout === "masonry" || (eachLayout === "flow" && !!lines);
+    const eachOrder = wantsSplit && eachOrderable ? objectsOrder : naturalOrder;
 
     /*
      * Линия в потоке толщиной с самый толстый в ней, и под низкими остаётся
@@ -726,34 +809,27 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * каждый поднимается до того, что стоит над ним, а строка остаётся
      * строкой. Заданная числом сторона дыр и не оставляет, закрывать нечего.
      */
-    const eachCompact =
-      eachLayout === "flow" && !!crossCount && eachOnMain;
+    const eachCompact = eachLayout === "flow" && !!lines && eachOnMain;
 
     /*
      * Ругаемся только на написанное: `"row"` стоит умолчанием и при
      * горизонтальной прокрутке просит как раз перестановку — жаловаться на
      * значение, которого никто не писал, значит шуметь на пустом месте.
      */
-    if (
-      isEach &&
-      wantsSplit &&
-      !eachOrderable &&
-      objects &&
-      "direction" in objects
-    )
-      console.error(
-        `objects.direction: "${objectsDirection}" fills the first line to its end before the next one starts, and ${
+    if (isEach && wantsSplit && !eachOrderable && objects && "order" in objects)
+      complain(
+        `objects.order: "${objectsOrder}" fills the first line to its end before the next one starts, and ${
           eachLayout === "fill"
-            ? `objects.size: "each" on both sides gives the order up for the fit`
+            ? `objects.layout: "fill" gives the order up for the fit`
             : `nothing here says how many lines there will be`
-        } — name objects.crossCount${errorTextEnd}`,
+        } — name objects.lines`,
       );
 
     const objectsSizeLocal = React.useMemo(() => {
       const { height, width } = receivedChildSizeRef.current;
 
       const getSize = (
-        val: number | "none" | "firstChild" | "full" | "each" | null,
+        val: number | "none" | "firstChild" | "full" | "auto" | null,
         receivedSize: number,
         sizeLocal: number,
       ) =>
@@ -799,7 +875,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return [1, validChildrenKeys.length];
 
       const isX = direction === "x" ? 1 : 0;
-      const isRow = objectsDirection === "row";
+      const isRow = objectsOrder === "row";
 
       const localObjSize = sizeLocal[isX];
       const objectSize = objectsSizeLocal[isX]
@@ -815,12 +891,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         ? Math.floor(neededMaxSize / objectSize)
         : 1;
 
-      // устанавливаем crossCount если он есть и если он меньше objects
+      // устанавливаем lines если он есть и если он меньше objects
       let rowObjects =
-        crossCount && crossCount <= objectsPerLine
+        lines && lines <= objectsPerLine
           ? direction === "hybrid"
-            ? Math.ceil(objectsPerLine / crossCount)
-            : crossCount
+            ? Math.ceil(objectsPerLine / lines)
+            : lines
           : objectsPerLine;
 
       const columnObjects =
@@ -834,7 +910,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (!isRow)
         rowObjects = Math.ceil(validChildrenKeys.length / columnObjects);
 
-      const useCrossCount = crossCount && crossCount < validChildrenKeys.length;
+      const useCrossCount = lines && lines < validChildrenKeys.length;
 
       const validated = (val: number): number =>
         Number.isFinite(val) && val > 0 ? val : 1;
@@ -842,7 +918,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (direction === "hybrid") {
         const row = useCrossCount
           ? isRow
-            ? crossCount
+            ? lines
             : rowObjects
           : isRow
             ? validChildrenKeys.length
@@ -850,7 +926,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         const column = useCrossCount
           ? !isRow
-            ? crossCount
+            ? lines
             : rowObjects
           : !isRow
             ? validChildrenKeys.length
@@ -861,7 +937,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       return [validated(rowObjects), validated(columnObjects)];
     }, [
-      objectsDirection,
+      objectsOrder,
       gapLocal[0],
       gapLocal[1],
       objectsSizeLocal[0],
@@ -869,12 +945,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       validChildrenKeys.length,
       direction,
       sizeLocal.join(),
-      crossCount,
+      lines,
     ]);
 
     /*
      * Кладка. Колонок столько, сколько влезает по известной поперечной
-     * стороне; если и она отдана объектам, число колонок задаёт `crossCount`,
+     * стороне; если и она отдана объектам, число колонок задаёт `lines`,
      * а ширина колонки делится из окна.
      */
     const sizes = useConst(() => createSizeStore(() => triggerRAF()));
@@ -896,26 +972,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * Поток считает сам, если счёт не назвали: ноль для него — «сколько
        * влезет». Для `hybrid` влезет сколько угодно, поэтому там счёт нужен.
        */
-      if (eachLayout === "flow") return crossCount ?? (isHybrid ? 1 : 0);
+      if (eachLayout === "flow") return lines ?? (isHybrid ? 1 : 0);
 
       const cell = objectsSizeLocal[crossAxis];
       const gapCross = gapLocal[crossAxis === 0 ? 1 : 0];
 
-      if (!cell) return Math.max(1, crossCount ?? 1);
+      if (!cell) return Math.max(1, lines ?? 1);
 
       /*
        * Кладке при `hybrid` колонок ровно столько, сколько назвали: по этой
        * стороне тоже прокрутка, и «сколько влезет в окно» там ничего не
        * ограничивает.
        */
-      if (isHybrid) return Math.max(1, crossCount ?? 1);
+      if (isHybrid) return Math.max(1, lines ?? 1);
 
       const fit = Math.max(
         1,
         Math.floor((crossRoom + gapCross) / (cell + gapCross)),
       );
 
-      return crossCount ? Math.min(crossCount, fit) : fit;
+      return lines ? Math.min(lines, fit) : fit;
     }, [
       isEach,
       eachLayout,
@@ -923,7 +999,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsSizeLocal[crossAxis],
       gapLocal.join(),
       crossRoom,
-      crossCount,
+      lines,
       crossAxis,
     ]);
 
@@ -956,7 +1032,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const eachFixed = React.useMemo<Vec2>(() => {
       const px = (axis: 0 | 1) =>
-        objectsSizing[axis] === "each" ? 0 : objectsSizeLocal[axis];
+        objectsSizing[axis] === "auto" ? 0 : objectsSizeLocal[axis];
 
       const fixed: Vec2 = [px(0), px(1)];
       if (eachLayout === "masonry") fixed[crossAxis] = eachCell;
@@ -992,10 +1068,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // ушедшие из списка уносят с собой и свой размер
     React.useEffect(() => {
       if (isEach) sizes.keep(new Set(validChildrenKeys));
-    }, [isEach, validChildrenKeys.join(), sizes]);
+    }, [isEach, keysToken, sizes]);
 
     const packed = React.useMemo(() => {
-      if (!isEach) return { items: [], width: 0, height: 0, measuredPrefix: 0 };
+      if (!isEach)
+        return {
+          items: [],
+          width: 0,
+          height: 0,
+          measuredPrefix: 0,
+          order: [],
+          extent: 0,
+        };
 
       return packObjects({
         keys: validChildrenKeys,
@@ -1013,7 +1097,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [
       isEach,
       eachLayout,
-      validChildrenKeys.join(),
+      keysToken,
       eachColumns,
       eachFixed.join(),
       gapXY.join(),
@@ -1033,7 +1117,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         objectsPerDirection[0] < 1
           ? 1
           : objectsPerDirection[0] * gapLocal[1] - gapLocal[1];
-      // если детей меньше чем neededObj, то считаем по ним так как crossCount в этом случае не имеет смысла
+      // если детей меньше чем neededObj, то считаем по ним так как lines в этом случае не имеет смысла
       const neededObj = objectsPerDirection[direction === "x" ? 1 : 0];
       const neededObjWithChildCount =
         validChildrenKeys.length < neededObj
@@ -1120,7 +1204,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * нельзя: период выродится в один зазор, а копий на окно понадобится
          * столько, сколько зазоров в него влезет — целая решётка повторов на
          * один кадр, до первого замера. Круг подождёт размера так же, как
-         * ждёт его при «each».
+         * ждёт его при «auto».
          */
         if (!(extent > 0)) return null;
 
@@ -1165,8 +1249,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderLocal.mode ||
       isEach ||
       loopLocal ||
-      renderLocal.trackVisibility
+      renderLocal.trackVisibility ||
+      // удержать заголовок можно только там, где известно, где он лежит
+      objectsGroups === "sticky"
     );
+
+    /*
+     * Меняет ли позиция прокрутки то, что нарисовано.
+     *
+     * Здесь рендер идёт по кадру, пока идёт прокрутка, и это оправдано ровно
+     * тем, что от позиции зависит бегунок, край, доступность стрелок и то,
+     * какие объекты вообще нужны. Списку без всего этого перерисовка даёт
+     * буква в букву тот же результат — а стоит она обходом всех детей.
+     */
+    const showsScrollPosition =
+      byCoords ||
+      (barLocal.present && !barLocal.native) ||
+      !!edge ||
+      !!controlsLocal.arrows;
 
     /*
      * Наружу обёртка отдаёт длину всего круга, а не одной копии: по ней
@@ -1355,7 +1455,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       let alignSpace: number = 0;
 
       const isX = direction === "x";
-      const isRow = objectsDirection === "row";
+      const isRow = objectsOrder === "row";
       const isRowInDir = (isX && !isRow) || (!isX && isRow);
 
       const stepX = objectsSizeLocal[0] + gapLocal[1];
@@ -1434,11 +1534,227 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsPerDirection[0],
       objectsPerDirection[1],
       byCoords,
-      objectsDirection,
+      objectsOrder,
       direction,
           isEach,
       packed,
     ]);
+
+    /*
+     * Окно списка: у каких объектов вообще имеет смысл спрашивать, видны ли
+     * они.
+     *
+     * Виртуализация отбрасывает невидимое, но спрашивала об этом каждого:
+     * десять тысяч проверок на кадр, из которых полезны два десятка. Окно
+     * отвечает на тот же вопрос заранее и всегда с запасом: это
+     * предварительный отсев, а настоящую видимость по-прежнему считает
+     * `renderChild`. Лишний объект в окне ничего не портит, недостающего быть
+     * не может.
+     *
+     * Считается оно двумя способами, по тому, откуда берутся координаты.
+     *
+     * У равномерной сетки место объекта — арифметика от его номера, и линии
+     * получаются прямо. Номера внутри линий идут подряд при обычном порядке и
+     * с шагом при переставленном, поэтому наружу отдаём список номеров, а не
+     * отрезок. При `hybrid` то же самое дважды, по линии на каждую ось.
+     *
+     * У кладки, потока и заполнения номер о месте не говорит ничего, зато
+     * `packObjects` отдаёт номера, упорядоченные по началу вдоль прокрутки, и
+     * длину самого длинного объекта. Двоичным поиском находим первого, кто
+     * может дотянуться до окна, и идём вперёд, пока начала не ушли за него.
+     *
+     * `"lazy"` окна не получает: он обязан держать всё, что однажды показал,
+     * и список ему нужен целиком. Отрисовка там и так растёт вместе с
+     * показанным, так что обход по ней погоды не делает.
+     */
+    const gridPlan = React.useMemo(() => {
+      if (isEach || renderLocal.mode !== "virtual") return null;
+      if (objectsAlign && objectsAlign !== "start") return null;
+
+      const isX = direction === "x";
+      const isRow = objectsOrder === "row";
+      const isRowInDir = (isX && !isRow) || (!isX && isRow);
+
+      const perRow = objectsPerDirection[0];
+      const perColumn = objectsPerDirection[1];
+      if (!(perRow > 0) || !(perColumn > 0)) return null;
+
+      const stepX = objectsSizeLocal[0] + gapLocal[1];
+      const stepY = objectsSizeLocal[1] + gapLocal[0];
+      if (!(stepX > 0) || !(stepY > 0)) return null;
+
+      return {
+        isRowInDir,
+        perRow,
+        perColumn,
+        step: [stepX, stepY] as Vec2,
+        size: [objectsSizeLocal[0], objectsSizeLocal[1]] as Vec2,
+        // rootMargin лежит в порядке CSS, а стороны считаются крест-накрест
+        margin: [
+          [mRootLocal[3], mRootLocal[1]],
+          [mRootLocal[0], mRootLocal[2]],
+        ] as [Vec2, Vec2],
+      };
+    }, [
+      isEach,
+      renderLocal.mode,
+      direction,
+      objectsOrder,
+      objectsAlign,
+      objectsPerDirection[0],
+      objectsPerDirection[1],
+      objectsSizeLocal[0],
+      objectsSizeLocal[1],
+      gapLocal[0],
+      gapLocal[1],
+      mRootLocal.join(),
+    ]);
+
+    const packPlan = React.useMemo(() => {
+      if (!isEach || renderLocal.mode !== "virtual") return null;
+      if (!packed.order.length) return null;
+
+      const axis: 0 | 1 = mainAxis;
+      const [before, after] =
+        axis === 0
+          ? [mRootLocal[3], mRootLocal[1]]
+          : [mRootLocal[0], mRootLocal[2]];
+
+      return { axis, before, after };
+    }, [isEach, renderLocal.mode, packed, mainAxis, mRootLocal.join()]);
+
+    /** the lines of a uniform grid that reach into [from, to] on one axis */
+    const linesIn = (axis: 0 | 1, from: number, to: number) => {
+      const plan = gridPlan!;
+      const step = plan.step[axis];
+      const [before, after] = plan.margin[axis];
+
+      // по линии запаса с каждой стороны: округления дешевле, чем пропуск
+      const first = Math.floor((from - before - plan.size[axis]) / step) - 1;
+      const last = Math.ceil((to + after) / step) + 1;
+
+      return [first, last] as const;
+    };
+
+    const visibleIndices = (
+      scrollLeft: number,
+      scrollTop: number,
+    ): number[] | null => {
+      const total = validChildrenKeys.length;
+      const view = (axis: 0 | 1) => {
+        const at = axis === 0 ? scrollLeft : scrollTop;
+
+        return [at, at + sizeLocal[axis]] as const;
+      };
+
+      if (packPlan) {
+        const { axis, before, after } = packPlan;
+        const [from, to] = view(axis);
+
+        const reach = from - before - packed.extent;
+        const { order, items } = packed;
+        const startOfItem = (index: number) =>
+          axis === 0 ? items[index].left : items[index].top;
+
+        // первый, кто ещё может дотянуться до окна
+        let low = 0;
+        let high = order.length;
+        while (low < high) {
+          const mid = (low + high) >> 1;
+
+          if (startOfItem(order[mid]) < reach) low = mid + 1;
+          else high = mid;
+        }
+
+        const out: number[] = [];
+        for (let i = low; i < order.length; i++) {
+          const index = order[i];
+          if (startOfItem(index) > to + after) break;
+
+          // неизмеренный лежит в нуле, а не там, где будет: он идёт отдельно
+          if (items[index]?.measured) out.push(index);
+        }
+
+        /*
+         * Неизмеренных рисуем пачкой с конца измеренного: пока размера нет,
+         * места у них тоже нет, а померить их можно только нарисовав.
+         */
+        for (
+          let i = packed.measuredPrefix;
+          i < Math.min(total, packed.measuredPrefix + CONST.MEASURE_BATCH);
+          i++
+        )
+          if (!items[i]?.measured) out.push(i);
+
+        return out;
+      }
+
+      if (!gridPlan) return null;
+
+      const { isRowInDir, perRow, perColumn } = gridPlan;
+
+      /*
+       * Линия вдоль прокрутки и номера в ней. При обычном порядке номера идут
+       * подряд, при переставленном — с шагом в число линий.
+       */
+      const push = (out: number[], line: number) => {
+        if (line < 0) return;
+
+        if (isRowInDir) {
+          const from = line * perRow;
+          for (let i = from; i < Math.min(total, from + perRow); i++)
+            out.push(i);
+
+          return;
+        }
+
+        /*
+         * В переставленном порядке номера в линии идут с шагом, и номер линии
+         * это остаток от деления на их число. Линия за пределами счёта — та же
+         * самая линия по кругу, и её объекты попали бы в список второй раз:
+         * один и тот же ребёнок рисовался дважды и налезал сам на себя.
+         */
+        if (line >= perColumn) return;
+
+        for (let i = line; i < total; i += perColumn) out.push(i);
+      };
+
+      if (direction !== "hybrid") {
+        const axis: 0 | 1 = direction === "x" ? 0 : 1;
+        const [from, to] = view(axis);
+        const [first, last] = linesIn(axis, from, to);
+
+        const out: number[] = [];
+        for (let line = Math.max(0, first); line <= last; line++)
+          push(out, line);
+
+        return out;
+      }
+
+      /*
+       * Обе оси едут — окно становится прямоугольником. Номер объекта в сетке
+       * складывается из его строки и столбца, поэтому и перебираем их парами.
+       */
+      const [fromX, toX] = view(0);
+      const [fromY, toY] = view(1);
+      const [firstX, lastX] = linesIn(0, fromX, toX);
+      const [firstY, lastY] = linesIn(1, fromY, toY);
+
+      const out: number[] = [];
+      const lastColumn = Math.min(lastX, perRow - 1);
+      const lastRow = Math.min(lastY, perColumn - 1);
+
+      for (let column = Math.max(0, firstX); column <= lastColumn; column++)
+        for (let row = Math.max(0, firstY); row <= lastRow; row++) {
+          const index = isRowInDir
+            ? row * perRow + column
+            : column * perColumn + row;
+
+          if (index < total) out.push(index);
+        }
+
+      return out;
+    };
 
     const wrapperAlignLocal = React.useMemo(() => {
       if (!sizeLocal?.length || !wrapper?.align) return {};
@@ -1502,10 +1818,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const scrollEl = scrollElementRef.current;
         if (!scrollEl || targetScroll === null) return null;
 
+        /*
+         * `null` значит «поставь, дождавшись, пока будет куда»: до первого
+         * измерения диапазон нулевой, и любая цель обрезалась бы в ноль.
+         *
+         * Раньше это правило висело на одном лишь «первом рендере», а он
+         * держится до конца первого кадра — и любое действие, случившееся
+         * внутри этого кадра, уходило в ту же ветку. Клик по пункту меню,
+         * сделанный сразу после монтирования, не доезжал никуда: ждать было
+         * нечего, диапазон давно посчитан. Ждём теперь по условию, а не по
+         * моменту: только когда ехать действительно некуда.
+         */
+        const room = maxScrollSize[direction === "x" ? 0 : 1];
+        const nowhereToGo = firstRender.current && room <= 0;
+
         return smoothScroll(
           direction,
           scrollEl,
-          firstRender.current ? null : duration,
+          nowhereToGo ? null : duration,
           targetScroll,
           rafScrollAnim.schedule,
           maxScrollSize,
@@ -1514,6 +1844,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       },
       [maxScrollSize.join()],
     );
+
+    /*
+     * Направление страницы, снятое один раз при монтировании.
+     *
+     * Отсчёт прокрутки мы закрепили на `ltr`, иначе арифметика от левого края
+     * ломается на арабской странице. Но текст внутри должен читаться так, как
+     * читается страница, — возвращаем направление обёртке.
+     *
+     * Состояние обновляем только когда направление действительно `rtl`: на
+     * обычной странице лишнего рендера не случается вовсе. Спрашивать
+     * окружение на каждый рендер нельзя — `getComputedStyle` заставляет
+     * браузер пересчитать стили, а рендер здесь идёт по кадру прокрутки.
+     */
+    const [pageDirection, setPageDirection] = React.useState<"ltr" | "rtl">(
+      "ltr",
+    );
+
+    React.useLayoutEffect(() => {
+      const root = customScrollRef.current;
+      if (!root || typeof getComputedStyle !== "function") return;
+
+      const parent = root.parentElement ?? root;
+      if (getComputedStyle(parent).direction === "rtl")
+        setPageDirection("rtl");
+    }, []);
 
     const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
       const common: React.CSSProperties = {
@@ -1539,6 +1894,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             mLocalY,
           )),
         ...((direction === "hybrid" || direction === "x") && { flexShrink: 0 }), // для горизонтального выравнивания при "hybrid"/"x"
+        // окно прокрутки закреплено на ltr — содержимому направление возвращаем
+        direction: pageDirection,
       };
 
       // кладка размещает объекты абсолютно, значит обёртке нужен свой отсчёт
@@ -1554,7 +1911,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? direction === "y"
             ? "column"
             : "row" // так как при objectsPerDirection[0] === 1, x/hybrid это row
-          : objectsDirection;
+          : objectsOrder;
 
       // выравнивание элементы в линию когда размер неизвестен при direction !== "y"
       const flexWrap =
@@ -1584,10 +1941,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderLocal.mode,
       direction,
       objectsPerDirection[0],
-      objectsDirection,
+      objectsOrder,
       objectsAlign,
           isEach,
       loopLocal,
+      pageDirection,
     ]);
 
     // ♦ events
@@ -1967,8 +2325,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           });
         }
 
-        // уведомляем о прокрутке пропс
-        onScrollPosition?.(scrollEl.scrollLeft, scrollEl.scrollTop);
+        /*
+         * Кроме позиции отдаём и предел: «докуда ещё можно». Без него
+         * подгрузка по приближению к концу требовала считать длину контента
+         * самому, а при виртуализации и измеряемом размере её знает только
+         * библиотека.
+         *
+         * Предел берём у самого элемента, а не из посчитанного по пропсам:
+         * посчитанное и настоящее расходятся на дробных размерах и когда CSS
+         * ужал контент, и тогда позиция до предела просто не доезжает —
+         * сравнение с концом не срабатывало бы никогда. Читаем здесь же, где
+         * уже прочитаны scrollLeft и scrollTop: раскладка на этот момент
+         * посчитана, лишнего пересчёта не будет.
+         */
+        onScrollPosition?.(scrollEl.scrollLeft, scrollEl.scrollTop, {
+          x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
+          y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
+        });
 
         const scrollOrSlider = el.querySelectorAll<HTMLElement>(
           mode === "scroll" ? ".ms-bar" : ".ms-slider",
@@ -2037,7 +2410,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         // по-кадровое обновление
         raf.schedule("sliderCheckLocal", () => {
           if (mode !== "scroll") sliderCheckLocal();
-          triggerUpdate(); // main updater
+          if (showsScrollPosition) triggerUpdate(); // main updater
         });
       },
       [
@@ -2052,6 +2425,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         stickLocal.join(), // читается внутри для трекера конца
         loopLocal,
         direction,
+        showsScrollPosition,
       ],
     );
 
@@ -2213,7 +2587,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // логика получения массива ключей
       // (кейсы: первый рендер и при удалении с emptyObjects)
       onRenderedKeysChangeUpdate(onRenderedKeysChangeRef.current);
-    }, [validChildrenKeys.join("|"), sizeLocal.join()]);
+    }, [keysToken, sizeLocal.join()]);
 
     React.useEffect(() => {
       // эффект для нажатия клавиш
@@ -2252,10 +2626,36 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeST,
       objectsSizeST,
       // при изменении количества детей
-      validChildrenKeys.join(),
+      keysToken,
       mLocalX,
       mLocalY,
     ]);
+
+    /*
+     * Запомненные ключи живут не дольше списка.
+     *
+     * `"lazy"` тем и живёт, что однажды показанное больше не прячет, — и
+     * потому не удаляет ключ никогда. Но список меняется: лента дочитана,
+     * фильтр переключён, страница другая. Ключи ушедших объектов оставались
+     * в наборе навсегда, и на долгоживущем списке с большой текучестью он рос
+     * без предела, храня строки, которым уже ничего не соответствует.
+     *
+     * Ключ копии в круге несёт хвост с её номером — сравниваем по корню.
+     */
+    React.useEffect(() => {
+      const alive = new Set(validChildrenKeys);
+      const rootOf = (key: string) => key.split(CONST.LOOP_KEY_SEP)[0];
+
+      const prune = (set: Set<string> | null) => {
+        if (!set) return;
+
+        for (const key of [...set])
+          if (!alive.has(rootOf(key))) set.delete(key);
+      };
+
+      prune(objectsKeys.current.loaded);
+      prune(objectsKeys.current.empty);
+    }, [keysToken]);
 
     React.useEffect(() => {
       if (!emptyObjectsLocal || !renderLocal.mode) return; // ранний выход
@@ -2296,7 +2696,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       /*
        * Приоритет остаётся приоритетом, но только пока по выбранной оси есть
        * что прокручивать. Иначе `changeDirection` уводил колесо на ось, где
-       * контент никуда не выходит — например при hybrid и таком `crossCount`,
+       * контент никуда не выходит — например при hybrid и таком `lines`,
        * при котором ряд помещается целиком, — и скролл замирал совсем.
        */
       const roomOn = (axis: "x" | "y") =>
@@ -2328,15 +2728,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         )
           return;
 
-        e.stopPropagation();
-        e.preventDefault();
-        handleWheel(
+        /*
+         * Останавливаем событие только если сами его отработали. Упёршись в
+         * край, скролл движение не берёт — и тогда оно уходит наружу, к
+         * родительскому скроллу или к странице, как у нативной прокрутки.
+         */
+        const consumed = handleWheel(
           e,
           scrollEl,
           maxScrollSize,
           scrollStateRef.current,
           directionForWheel,
         );
+
+        if (!consumed) return;
+
+        e.stopPropagation();
+        e.preventDefault();
       };
 
       controlsLocal.wheel &&
@@ -2383,6 +2791,57 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return at + (ahead <= period / 2 ? ahead : ahead - period);
       },
       [loopPeriods.join()],
+    );
+
+    /*
+     * Шаг страницы — один на всю библиотеку: по нему считает стрелка, по нему
+     * же отчитывается `onNavigate`, и по нему должно ехать меню слайдера.
+     *
+     * Раньше меню прыгало на `окно * номер`, забыв про зазор между объектами,
+     * — а всё остальное шагает на `окно + зазор`. Промах копился по зазору на
+     * страницу: к третьей точке это уже полсотни пикселей мимо.
+     */
+    const goToPage = React.useCallback(
+      (index: number, axis: "x" | "y") => {
+        const scrollEl = scrollElementRef.current;
+        if (!scrollEl) return;
+
+        const isX = axis === "x";
+        const wh = isX ? 0 : 1;
+        const period = loopPeriods[wh];
+
+        const clientSize = isX ? scrollEl.clientWidth : scrollEl.clientHeight;
+        const { step } = loopPages(
+          period,
+          clientSize || sizeLocal[wh],
+          gapXY[wh],
+        );
+        if (!(step > 0)) return;
+
+        markNavigate("bar");
+
+        let target = period + Math.round(index * step);
+
+        // в круге едем к ближайшему из повторов, а не через весь оборот
+        if (period) {
+          const at = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
+          const ahead = (((target - at) % period) + period) % period;
+
+          target = at + (ahead <= period / 2 ? ahead : ahead - period);
+        }
+
+        smoothScrollLocal(target, axis, duration);
+        raf.schedule("sliderCheckLocal", sliderCheckLocal);
+      },
+      [
+        loopPeriods.join(),
+        gapXY.join(),
+        sizeLocal.join(),
+        markNavigate,
+        smoothScrollLocal,
+        duration,
+        sliderCheckLocal,
+      ],
     );
 
     const applyScrollPosition = React.useCallback(
@@ -2581,7 +3040,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       applyScrollPositionRef.current(
         [stickLocal[0] ? "end" : null, stickLocal[1] ? "end" : null],
-        duration,
+        // открываемся уже внизу, а не приезжаем туда на глазах у читателя
+        firstRender.current ? 0 : duration,
         true,
       );
     }, [
@@ -2590,6 +3050,314 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       endObjectsWrapper.h,
       duration,
     ]);
+
+    /*
+     * Якорь: содержимое выросло сверху — читатель остаётся на месте.
+     *
+     * Браузер делает это сам, но здесь объекты разложены по координатам, и
+     * своей прокрутки, которую можно было бы заякорить, у них нет. Так что
+     * подгруженная история сдвигала контент вниз прямо под читающим: он
+     * смотрел в десятое сообщение, а после подгрузки в том же месте окна
+     * оказывалось двадцатое.
+     *
+     * Держим не позицию, а объект: запоминаем верхний из видимых и то, на
+     * сколько он утоплен за край окна, а после смены списка возвращаем его
+     * туда же. Прибавилось сверху, убавилось, переставили — неважно, вопрос
+     * всегда один: где теперь тот объект, на который человек смотрел.
+     *
+     * Отдельного пропа для этого нет намеренно. Правило «не уезжать из-под
+     * читателя» не имеет разумной альтернативы, а `stickToEnd` рядом
+     * описывает другое — следовать за концом, — и они складываются: стоя в
+     * конце, едешь за концом, стоя в середине, стоишь на месте.
+     */
+    /** where an object sits and how big it is, by its place in the list */
+    const boxOf = React.useCallback(
+      (index: number) => {
+        if (isEach) {
+          const item = packed.items[index];
+          if (!item)
+            return { left: 0, top: 0, width: 0, height: 0 };
+
+          return {
+            left: item.left,
+            top: item.top,
+            width: item.right - item.left,
+            height: item.bottom - item.top,
+          };
+        }
+
+        const isX = direction === "x";
+        const isRow = objectsOrder === "row";
+        const isRowInDir = (isX && !isRow) || (!isX && isRow);
+
+        const perRow = Math.max(1, objectsPerDirection[0]);
+        const perColumn = Math.max(1, objectsPerDirection[1]);
+
+        const groupIndex = isRowInDir
+          ? index % perRow
+          : Math.floor(index / perColumn);
+        const subIndex = isRowInDir
+          ? Math.floor(index / perRow)
+          : index % perColumn;
+
+        const [leftIndex, topIndex] = isX
+          ? [subIndex, groupIndex]
+          : [groupIndex, subIndex];
+
+        return {
+          left: (objectsSizeLocal[0] + gapLocal[1]) * leftIndex,
+          top: (objectsSizeLocal[1] + gapLocal[0]) * topIndex,
+          width: objectsSizeLocal[0],
+          height: objectsSizeLocal[1],
+        };
+      },
+      [
+        isEach,
+        packed,
+        mainAxis,
+        direction,
+        objectsOrder,
+        objectsPerDirection[0],
+        objectsPerDirection[1],
+        objectsSizeLocal[0],
+        objectsSizeLocal[1],
+        gapLocal[0],
+        gapLocal[1],
+      ],
+    );
+
+    const startOf = React.useCallback(
+      (index: number) => {
+        const box = boxOf(index);
+
+        return mainAxis === 0 ? box.left : box.top;
+      },
+      [boxOf, mainAxis],
+    );
+
+    /*
+     * Группы и то, где каждая из них лежит вдоль прокрутки.
+     *
+     * Группу объект называет в собственном ключе, так что отдельного списка
+     * вести не надо. Протяжённость группы считаем по её объектам: у сетки и
+     * потока они и так идут подряд, у кладки и заполнения — как лягут, и
+     * тогда полоса группы просто шире.
+     *
+     * Первый объект группы служит ей заголовком: он и прилипает.
+     */
+    const groupBands = React.useMemo(() => {
+      if (objectsGroups !== "sticky") return null;
+
+      const bands: {
+        name: string;
+        first: number;
+        start: number;
+        end: number;
+      }[] = [];
+
+      validChildrenKeys.forEach((key, index) => {
+        const name = groupKey(key);
+        if (name === null) return;
+
+        const box = boxOf(index);
+        const from = mainAxis === 0 ? box.left : box.top;
+        const to = from + (mainAxis === 0 ? box.width : box.height);
+
+        const last = bands[bands.length - 1];
+
+        if (last && last.name === name) {
+          last.start = Math.min(last.start, from);
+          last.end = Math.max(last.end, to);
+
+          return;
+        }
+
+        bands.push({ name, first: index, start: from, end: to });
+      });
+
+      return bands.length ? bands : null;
+    }, [objectsGroups, keysToken, boxOf, mainAxis]);
+
+    /*
+     * Какой заголовок держать у края и где именно.
+     *
+     * Держим тот, чья полоса накрыла начало окна, и не даём ему налезть на
+     * следующий: подъехав, тот выталкивает предыдущий, как и положено.
+     */
+    const stickyHead = (at: number) => {
+      if (!groupBands) return null;
+
+      let held: (typeof groupBands)[number] | null = null;
+      let next: (typeof groupBands)[number] | null = null;
+
+      for (let i = 0; i < groupBands.length; i++) {
+        const band = groupBands[i];
+
+        if (band.start <= at && at < band.end) {
+          held = band;
+          next = groupBands[i + 1] ?? null;
+          break;
+        }
+      }
+
+      if (!held) return null;
+
+      const box = boxOf(held.first);
+      const size = mainAxis === 0 ? box.width : box.height;
+
+      const pushed = next ? next.start - size : Infinity;
+
+      return { index: held.first, at: Math.max(held.start, Math.min(at, pushed)) };
+    };
+
+    const anchorRef = React.useRef<{
+      token: string;
+      keys: string[];
+      startOf: (index: number) => number;
+    } | null>(null);
+
+    React.useLayoutEffect(() => {
+      const previous = anchorRef.current;
+      const remember = () => {
+        anchorRef.current = { token: keysToken, keys: validChildrenKeys, startOf };
+      };
+
+      // первый список якорить не от чего, круг водит окно сам
+      if (!previous || previous.token === keysToken || loopLocal)
+        return remember();
+
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl || firstRender.current) return remember();
+
+      const isX = mainAxis === 0;
+      const at = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
+      if (at <= 0) return remember(); // стоим в начале — начало никуда не делось
+
+      /*
+       * Верхний из видимых в прежнем списке. Перебор здесь не жалко: он
+       * случается на смену списка, а не на кадр прокрутки.
+       */
+      const size = objectsSizeLocal[isX ? 0 : 1];
+      let anchor = -1;
+
+      for (let i = 0; i < previous.keys.length; i++)
+        if (previous.startOf(i) + size > at) {
+          anchor = i;
+          break;
+        }
+
+      if (anchor === -1) return remember();
+
+      const key = previous.keys[anchor];
+      const moved = validChildrenKeys.indexOf(key);
+      if (moved === -1) return remember(); // якорь унесли вместе с объектом
+
+      const shift = startOf(moved) - previous.startOf(anchor);
+      remember();
+
+      if (!shift) return;
+
+      if (isX) scrollEl.scrollLeft = at + shift;
+      else scrollEl.scrollTop = at + shift;
+
+      /*
+       * Колесо и плавная прокрутка едут к своим отметкам, а не к живой
+       * позиции: не сдвинув отметку, мы бы тут же уехали обратно.
+       */
+      if (isX) scrollStateRef.current.targetScrollX += shift;
+      else scrollStateRef.current.targetScrollY += shift;
+
+      shiftAim(scrollEl, isX ? "x" : "y", shift);
+    });
+
+    /*
+     * Прокрутка к объекту, а не к пикселю.
+     *
+     * Пиксель пользователь посчитать не может: при виртуализации объектов в
+     * разметке нет, а при измеряемом размере их координаты знает только
+     * библиотека. Поэтому спрашивают номером, ключом или названием группы, а
+     * место ищем мы.
+     */
+    const objectIndex = React.useCallback(
+      (target: number | string) => {
+        const total = validChildrenKeys.length;
+        if (!total) return -1;
+
+        if (typeof target === "number")
+          return target >= 0 && target < total ? target : -1;
+
+        // сперва как ключ: он уникален, и совпадение тут однозначное
+        const byKey = validChildrenKeys.indexOf(target);
+        if (byKey !== -1) return byKey;
+
+        // затем как название группы: едем к первому её объекту
+        return validChildrenKeys.findIndex((key) => groupKey(key) === target);
+      },
+      [validChildrenKeys],
+    );
+
+    const scrollToObjectLocal = React.useCallback(
+      (
+        target: number | string,
+        options?: {
+          duration?: number;
+          align?: "start" | "center" | "end";
+          reason?: NavigateReason;
+        },
+      ) => {
+        const scrollEl = scrollElementRef.current;
+        if (!scrollEl) return;
+
+        const index = objectIndex(target);
+        if (index === -1) return;
+
+        const box = boxOf(index);
+        const align = options?.align ?? "start";
+        const moveDuration = options?.duration ?? duration;
+
+        if (options?.reason) markNavigate(options.reason);
+
+        const axes: ("x" | "y")[] =
+          direction === "hybrid" ? ["x", "y"] : [direction];
+
+        axes.forEach((axis) => {
+          const isX = axis === "x";
+          const wh = isX ? 0 : 1;
+
+          const start = isX ? box.left : box.top;
+          const size = isX ? box.width : box.height;
+          const view = sizeLocal[wh];
+
+          const room = Math.max(0, view - size);
+          const place =
+            align === "center" ? room / 2 : align === "end" ? room : 0;
+
+          const period = loopPeriods[wh];
+          let to = start - place;
+
+          // в круге место названо внутри оборота, и едем к ближнему повтору
+          if (period) {
+            const at = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
+            const inside = ((to % period) + period) % period;
+            const ahead = (((inside - at) % period) + period) % period;
+
+            to = at + (ahead <= period / 2 ? ahead : ahead - period);
+          }
+
+          smoothScrollLocal(Math.round(to), axis, moveDuration);
+        });
+      },
+      [
+        objectIndex,
+        boxOf,
+        direction,
+        sizeLocal.join(),
+        loopPeriods.join(),
+        duration,
+        markNavigate,
+        smoothScrollLocal,
+      ],
+    );
 
     /*
      * Команды держим в ссылке, а наружу отдаём один и тот же объект на всю
@@ -2608,6 +3376,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       handleArrowLocal,
       moveFocusLocal,
       smoothScrollLocal,
+      scrollToObjectLocal,
       markNavigate,
       duration,
     });
@@ -2623,6 +3392,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         handleArrowLocal,
         moveFocusLocal,
         smoothScrollLocal,
+        scrollToObjectLocal,
         markNavigate,
         duration,
       };
@@ -2644,6 +3414,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * свои горячие клавиши — не её дело: устройство знает приложение, а
          * `reason` довозит это знание до `onNavigate` нетронутым.
          */
+        scrollToObject: (target, options) =>
+          commandsRef.current.scrollToObjectLocal(target, options),
+
         step: (side, options) =>
           commandsRef.current.handleArrowLocal(
             side,
@@ -2756,6 +3529,32 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const handler = (event: PointerEvent) => {
         if (isOnNativeBar(event)) return;
 
+        /*
+         * Жест забирает себе самый внутренний скролл — но только тот, которому
+         * есть что прокручивать.
+         *
+         * Событие всплывает, и вложенный список вместе с внешним получали один
+         * и тот же перенос: палец двигал оба сразу, каждый на своё. Колесо
+         * решает это тем, что не отдаёт событие дальше, — жест решает так же.
+         *
+         * Но забирать его нечем, когда ехать некуда: короткий список внутри
+         * длинного глотал перенос целиком, и палец на нём не двигал ничего.
+         * Такой пропускает жест наружу, к тому, кто им распорядится.
+         *
+         * Элементы со своим переносом сюда не относятся: на них жест не
+         * начинается вовсе, и глушить событие нельзя — по нему работает
+         * автопрокрутка у края.
+         */
+        if (hasOwnDrag(event.target as Element | null)) return;
+
+        const room =
+          direction === "hybrid"
+            ? maxScrollSize[0] > 0 || maxScrollSize[1] > 0
+            : maxScrollSize[direction === "x" ? 0 : 1] > 0;
+
+        if (!room) return;
+
+        event.stopPropagation();
         onMouseOrTouchDown("wrapp", event);
       };
 
@@ -2771,7 +3570,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return () => {
         scrollEl.removeEventListener("pointerdown", handler);
       };
-    }, [controlsST, onMouseOrTouchDown]);
+    }, [controlsST, onMouseOrTouchDown, direction, maxScrollSize.join()]);
 
     // установка слушателя нажатия на scrollContentRef
     React.useEffect(() => {
@@ -2855,6 +3654,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         children?: React.ReactNode,
         visibility?: number | null,
         domKey?: string,
+        index?: number,
+        /** held against the leading edge as its group scrolls past */
+        pinned?: boolean,
       ) => {
         /*
          * Сторону задаём только ту, которую объект себе не выбирает: за
@@ -2877,6 +3679,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ...(typeof visibility === "number" && {
             [CONST.CONTENT_VISIBILITY_VAR]: visibility,
           }),
+          // соседи по разметке идут после него, иначе они бы его накрыли
+          ...(pinned && { zIndex: 1 }),
         };
 
         const content = suspending ? (
@@ -2894,7 +3698,21 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 }
               : {})}
             ref={isEach ? sizes.refFor(key) : undefined}
-            className="ms-object-box"
+            className={`ms-object-box${pinned ? " ms-sticky" : ""}`}
+            /*
+             * С виртуализацией в разметке лежит окно из десятка объектов, и
+             * без счёта скринридер объявил бы список из десятка. Номер и
+             * общее число читаются только внутри роли, которая их
+             * поддерживает, — поэтому роль и счёт идут вместе, и только по
+             * просьбе: карточки, слайды и меню списком называть неверно.
+             */
+            {...(objectsSemantics === "list" && index !== undefined
+              ? {
+                  role: "listitem",
+                  "aria-setsize": validChildrenKeys.length,
+                  "aria-posinset": index + 1,
+                }
+              : {})}
             style={wrapStyle}
             onClick={emptyObjectsLocal ? updateEmptyKeysClickLocal : undefined}
           >
@@ -2910,6 +3728,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         renderST,
         emptyObjectsST,
         objectsPerDirection[0],
+        objectsSemantics,
+        validChildrenKeys.length,
+        objectsGroups,
         updateEmptyKeysClickLocal,
         renderLocal.mode,
         isEach,
@@ -2928,6 +3749,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return m;
     }, [childrenArray]);
 
+    /*
+     * Номер копии — это ключ, а место ей выбирает сдвиг: одна и та же копия
+     * переезжает по ленте, а не заменяется соседней.
+     */
+    /*
+     * Отражать горизонталь можно, только пока по ней не едут: у вертикального
+     * списка она поперечная и решает лишь порядок колонок.
+     */
+    const mirrorX = pageDirection === "rtl" && direction === "y" && byCoords;
+
+    const loopPlace = (copy: number, axis: 0 | 1) => {
+      const round = axis === 0 ? loopLocal?.x : loopLocal?.y;
+      if (!round) return 0;
+
+      const slid = copy + loopSlideRef.current[axis];
+      const slot = ((slid % round.copies) + round.copies) % round.copies;
+
+      return slot * round.period;
+    };
+
     const renderChild = (
       key: string,
       index: number,
@@ -2935,6 +3776,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       scrollTop: number,
       copyX: number = 0,
       copyY: number = 0,
+      /** where to hold this one instead of where it naturally lies */
+      pin?: number,
     ) => {
       /*
        * Копия — тот же ребёнок, сдвинутый на период. При `hybrid` копии лежат
@@ -2947,28 +3790,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         copyX || copyY
           ? `${key}${CONST.LOOP_KEY_SEP}${copyX}-${copyY}`
           : key;
-      /*
-       * Номер копии — это ключ, а место ей выбирает сдвиг: одна и та же копия
-       * переезжает по ленте, а не заменяется соседней.
-       */
-      const placeOf = (copy: number, axis: 0 | 1) => {
-        const round = axis === 0 ? loopLocal?.x : loopLocal?.y;
-        if (!round) return 0;
-
-        const slid = copy + loopSlideRef.current[axis];
-        const slot = ((slid % round.copies) + round.copies) % round.copies;
-
-        return slot * round.period;
-      };
-
-      const shiftX = placeOf(copyX, 0);
-      const shiftY = placeOf(copyY, 1);
+      const shiftX = loopPlace(copyX, 0);
+      const shiftY = loopPlace(copyY, 1);
       // ищем реальный child по ключу
       const child = childrenMap.get(key);
 
       // обработка детей когда их лучше не показывать
       const childRenderOnScroll =
-        renderLocal.stopLoadOnScroll &&
+        renderLocal.deferLoadOnScroll &&
         isScrollingRef.current &&
         !objectsKeys.current.loaded.has(domKey)
           ? fallbackLocal
@@ -2991,7 +3820,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // ===== NO VIRTUAL =====
       if (!byCoords)
-        return scrollObjectWrapper(key, 0, 0, childLocal, undefined, domKey);
+        return scrollObjectWrapper(
+          key,
+          0,
+          0,
+          childLocal,
+          undefined,
+          domKey,
+          index,
+              pin !== undefined,
+        );
 
       /*
        * Курица и яйцо: при `objectsSize: "firstChild"` размер ячейки берётся
@@ -3003,17 +3841,75 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * Поэтому первого ребёнка показываем безусловно, пока мерять нечего.
        */
       if (needsFirstChildMeasure && index === 0)
-        return scrollObjectWrapper(key, 0, 0, childLocal, undefined, domKey);
+        return scrollObjectWrapper(
+          key,
+          0,
+          0,
+          childLocal,
+          undefined,
+          domKey,
+          index,
+              pin !== undefined,
+        );
 
       // обработка виртуализации
       const placed = memoizedChildrenData[index];
-      const top = placed.top + shiftY;
-      const bottom = placed.bottom + shiftY;
-      const left = placed.left + shiftX;
-      const right = placed.right + shiftX;
+      let top = placed.top + shiftY;
+      let bottom = placed.bottom + shiftY;
+      let left = placed.left + shiftX;
+      let right = placed.right + shiftX;
 
-      // проверка видимости
-      const getVisibilityRatio = (withRootMargin: boolean = true): number => {
+      /*
+       * Зеркалим горизонталь там, где она не ось прокрутки.
+       *
+       * На странице, которую читают справа налево, ряд карточек обязан идти
+       * оттуда же. Координаты здесь считаются в пикселях от левого края, и
+       * пока горизонталь поперечная, отражение — чистая раскладка: ни отсчёт
+       * прокрутки, ни страницы, ни бегунок её не касаются.
+       *
+       * Ось прокрутки так не отразить: «начало справа» означает, что ноль
+       * прокрутки у правого края, а это уже другая система координат.
+       * Горизонтальный список поэтому пока идёт слева направо и на своей оси.
+       */
+      if (mirrorX) {
+        const width = right - left;
+
+        left = objectsWrapperWidth - right;
+        right = left + width;
+      }
+
+      /*
+       * Заголовок группы стоит там, где его держат, а не там, где он лежит.
+       * Видимость при этом считается по удержанному месту — он в окне ровно
+       * потому, что его туда и поставили.
+       */
+      if (pin !== undefined) {
+        if (mainAxis === 0) {
+          const width = right - left;
+          left = pin;
+          right = pin + width;
+        } else {
+          const height = bottom - top;
+          top = pin;
+          bottom = pin + height;
+        }
+      }
+
+      /*
+       * Доля видимости объекта.
+       *
+       * Округление здесь нужно переменной `--ms-content-visibility`: без него
+       * она меняется на каждый пиксель и заставляет браузер пересчитывать
+       * стиль по кадру. Но по этому же округлённому числу решалось, рисовать
+       * ли объект вообще, и объект, видимый меньше чем на пять процентов,
+       * округлялся в ноль и не рисовался — у края окна оставалась пустая
+       * полоса в те самые проценты. Решение теперь по настоящей доле,
+       * округление осталось переменной.
+       */
+      const getVisibilityRatio = (
+        withRootMargin: boolean = true,
+        round: boolean = false,
+      ): number => {
         const rootMarginLocal = withRootMargin ? mRootLocal : [0, 0, 0, 0];
 
         const checkAxis = (dir: "x" | "y") => {
@@ -3044,8 +3940,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
           if (visible <= 0) return 0;
 
-          // округляем
-          return Math.round(Math.min(1, visible / elementSize) * 10) / 10;
+          const ratio = Math.min(1, visible / elementSize);
+
+          return round ? Math.round(ratio * 10) / 10 : ratio;
         };
 
         if (direction === "hybrid") {
@@ -3057,7 +3954,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         return direction === "x" ? checkAxis("x") : checkAxis("y");
       };
       const visibilityRatioWithoutMargin = renderLocal.trackVisibility
-        ? getVisibilityRatio(false)
+        ? getVisibilityRatio(false, true)
         : null;
 
       if (isEach) {
@@ -3076,6 +3973,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 childLocal,
                 visibilityRatioWithoutMargin,
                 domKey,
+              index,
+              pin !== undefined,
               )
             : null;
       }
@@ -3093,6 +3992,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           childLocal,
           visibilityRatioWithoutMargin,
           domKey,
+              index,
+              pin !== undefined,
         );
 
       const visibilityRatio = getVisibilityRatio();
@@ -3109,7 +4010,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           if (!visibilityRatio) return null;
 
           // откладываем первую отрисовку пока идёт прокрутка
-          if (isScrollingRef.current && renderLocal.stopLoadOnScroll)
+          if (isScrollingRef.current && renderLocal.deferLoadOnScroll)
             return null;
 
           objectsKeys.current.loaded.add(domKey);
@@ -3122,6 +4023,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           childLocal,
           visibilityRatioWithoutMargin,
           domKey,
+              index,
+              pin !== undefined,
         );
       }
 
@@ -3138,6 +4041,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         childLocal,
         visibilityRatioWithoutMargin,
         domKey,
+              index,
+              pin !== undefined,
       );
     };
 
@@ -3181,8 +4086,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         } ${objectsWrapperHeightFull > sizeLocal[1] ? "scroll" : "hidden"}`,
         hide: "hidden",
       };
+      /*
+       * Ветка эта работает только при нативном бегунке, а нативный бегунок
+       * без переполнения браузер не рисует вовсе: `controls={{ bar: true }}`
+       * давал коробку, в которой ничего не двигается и ничего не видно.
+       */
       return (
         map[
+          barLocal.native ||
           controlsLocal.wheel ||
           (controlsLocal.drag && mode === "scroll")
             ? direction
@@ -3195,6 +4106,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeLocal,
       controlsST,
       direction,
+      barLocal.native,
     ]);
 
     const edgesJSX = React.useMemo(() => {
@@ -3273,15 +4185,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             key={args.direction}
             mode={mode}
             direction={args.direction}
+            pageDirection={pageDirection}
             element={barLocal.element}
             reverse={barLocal.reverse[axis]}
             edgeGap={barLocal.edgeGap[axis]}
             showOnHover={barLocal.showOnHover}
             size={sizeMinusEdge}
             controls={[controlsLocal, controlsST]}
-            scrollBarEvent={
-              mode === "sliderMenu" ? smoothScrollLocal : onMoveScrollThumb
-            }
+            scrollBarEvent={onMoveScrollThumb}
+            goToPage={goToPage}
             thumbSize={args.thumbSize}
             thumbSpace={args.thumbSpace}
             objLengthPerSize={args.objLengthPerSize}
@@ -3305,10 +4217,54 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const scrollLeft = scrollElementRef.current?.scrollLeft || 0;
       const scrollTop = scrollElementRef.current?.scrollTop || 0;
 
+      /*
+       * Копия — тот же список, сдвинутый на своё место в ленте. Окно у неё то
+       * же самое, только смотрит на него окно прокрутки, отодвинутое назад на
+       * этот сдвиг; сам `renderChild` при этом получает настоящее положение.
+       */
+      /*
+       * Удерживаемый заголовок обязан быть нарисован, где бы он ни лежал: его
+       * место — у края окна, а не там, где он оказался бы сам, и окно про
+       * него ничего не знает.
+       */
+      const head = stickyHead(mainAxis === 0 ? scrollLeft : scrollTop);
+
+      const draw = (copyX = 0, copyY = 0) => {
+        const asked = visibleIndices(
+          scrollLeft - loopPlace(copyX, 0),
+          scrollTop - loopPlace(copyY, 1),
+        );
+
+        const pinOf = (i: number) =>
+          head && head.index === i ? head.at : undefined;
+
+        if (!asked)
+          return validChildrenKeys.map((key, i) =>
+            renderChild(key, i, scrollLeft, scrollTop, copyX, copyY, pinOf(i)),
+          );
+
+        const list = head && !asked.includes(head.index)
+          ? [head.index, ...asked]
+          : asked;
+
+        return list.map((i) =>
+          renderChild(
+            validChildrenKeys[i],
+            i,
+            scrollLeft,
+            scrollTop,
+            copyX,
+            copyY,
+            pinOf(i),
+          ),
+        );
+      };
+
       return (
         <div
           className="ms-objects-wrapper"
           ref={objectsWrapperRef}
+          {...(objectsSemantics === "list" ? { role: "list" } : {})}
           style={{
             ...wrapperStyle,
             ...((overscrollRef.current.x || overscrollRef.current.y) && {
@@ -3320,14 +4276,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           {loopLocal
             ? Array.from({ length: loopLocal.x?.copies ?? 1 }, (_, copyX) =>
                 Array.from({ length: loopLocal.y?.copies ?? 1 }, (_, copyY) =>
-                  validChildrenKeys.map((key, i) =>
-                    renderChild(key, i, scrollLeft, scrollTop, copyX, copyY),
-                  ),
+                  draw(copyX, copyY),
                 ),
               )
-            : validChildrenKeys.map((key, i) =>
-                renderChild(key, i, scrollLeft, scrollTop),
-              )}
+            : draw()}
         </div>
       );
     };
@@ -3389,6 +4341,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               width: "100%",
               height: "100%",
               outline: "none",
+              /*
+               * Сторону отсчёта `scrollLeft` задаёт направление самого
+               * прокручиваемого элемента. На арабской или ивритской странице
+               * оно наследуется как `rtl`, и тогда ноль оказывается у правого
+               * края, а влево прокрутка уходит в минус — вся арифметика,
+               * которая считает от нуля вправо, ломается молча.
+               *
+               * Здесь координаты объектов считаются в пикселях от левого края,
+               * поэтому и отсчёт прокрутки закрепляем таким же. Направление
+               * страницы при этом не теряется: обёртка ниже возвращает его
+               * содержимому, а вместе с ним и порядок в потоке.
+               */
+              direction: "ltr",
               ...wrapperAlignLocal,
               ...(!barLocal.native
                 ? {

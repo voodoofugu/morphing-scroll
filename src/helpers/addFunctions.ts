@@ -98,6 +98,9 @@ async function smoothScroll(
 ) {
   const isY = direction === "y";
 
+  // «поставь сейчас» вместо «довези»: анимации просили не делать
+  if (duration !== null && prefersReducedMotion()) duration = 0;
+
   const topOrLeft = isY ? "scrollTop" : "scrollLeft";
   const maxScroll = isY ? maxScrollSize[1] : maxScrollSize[0];
 
@@ -386,6 +389,20 @@ function createResizeHandler(
   };
 }
 
+/*
+ * Просьба системы не анимировать. Спрашиваем при каждом движении, а не один
+ * раз при монтировании: настройку меняют на ходу, и скролл, живущий всё время
+ * жизни страницы, обязан это услышать.
+ *
+ * Касается движения, которое библиотека затевает сама, — перелёт к странице,
+ * доводка слайдера, инерция после броска. Перетаскивание пальцем остаётся: оно
+ * не анимация, а прямое следование за рукой.
+ */
+const prefersReducedMotion = () =>
+  typeof window !== "undefined"
+    ? (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false)
+    : false;
+
 const isTouchDevice = () => {
   return typeof window !== "undefined"
     ? (window.matchMedia?.("(pointer: coarse)").matches ?? false)
@@ -403,4 +420,5 @@ export {
   createResizeHandler,
   getStyleAlign,
   isTouchDevice,
+  prefersReducedMotion,
 };

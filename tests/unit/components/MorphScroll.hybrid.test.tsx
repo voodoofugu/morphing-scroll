@@ -5,7 +5,7 @@ import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
 
 /*
  * `changeDirection` отдаёт колесо горизонтали. Но приоритет имеет смысл, пока
- * по этой оси есть что прокручивать: при неудачном `crossCount` ряд помещается
+ * по этой оси есть что прокручивать: при неудачном `lines` ряд помещается
  * целиком, горизонтали нет, и скролл замирал полностью — колесо уходило на
  * ось, где двигаться некуда.
  */
@@ -22,9 +22,9 @@ const wheel = (el: HTMLElement, deltaY: number) => {
   });
 };
 
-const mount = (crossCount: number) => {
+const mount = (lines: number) => {
   const utils = render(
-    <MorphScroll objects={{ size: 100, crossCount: crossCount }}
+    <MorphScroll objects={{ size: 100, lines: lines }}
       size={[300, 300]}
       direction="hybrid"
       controls={{ wheel: { changeDirection: true } }}

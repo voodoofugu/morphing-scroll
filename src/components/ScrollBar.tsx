@@ -9,13 +9,6 @@ import type {
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
 
-type OnCustomScrollFn = (
-  targetScrollTop: number,
-  direction: "y" | "x",
-  duration: number,
-  callback?: () => void,
-) => void;
-
 type ModifiedProps = Pick<MorphScroll, "mode"> & {
   /** the bar configuration, already parsed, for one axis */
   element: React.ReactNode | React.ReactNode[];
@@ -23,7 +16,9 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
   edgeGap: number;
   showOnHover: boolean;
   size: number[];
-  scrollBarEvent: ((event: PointerEvent) => void) | OnCustomScrollFn;
+  scrollBarEvent: (event: PointerEvent) => void;
+  /** turn to that page of the bar — the step everything else counts with */
+  goToPage: (index: number, axis: "x" | "y") => void;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
@@ -41,6 +36,8 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
     y: number;
   }>;
   direction: "x" | "y" | "hybrid";
+  /** the page's own reading direction — a vertical bar sits on its start side */
+  pageDirection: "ltr" | "rtl";
   controls: [ControlsConfig, number];
   maxScrollSize: Vec2;
 };
@@ -48,13 +45,15 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
 const ScrollBar = ({
   mode,
   direction,
+  pageDirection,
   element: progressElement,
-  reverse: progressReverse,
+  reverse,
   edgeGap,
   showOnHover: scrollBarOnHover,
   size,
   controls,
   scrollBarEvent,
+  goToPage,
   thumbSize,
   thumbSpace,
   objLengthPerSize,
@@ -75,6 +74,15 @@ const ScrollBar = ({
 
   // - vars -
   const axis = ["hybrid", "y"].includes(direction!) ? "y" : "x";
+
+  /*
+   * Вертикальный бегунок стоит там же, где у страницы начало строки: справа
+   * при обычном чтении, слева при чтении справа налево. Это то же место, куда
+   * его ставит браузер для своей прокрутки. `reverse` по-прежнему переносит
+   * его на другую сторону — от той, на которой он оказался.
+   */
+  const progressReverse =
+    axis === "y" && pageDirection === "rtl" ? !reverse : reverse;
   const dampeningOverscroll =
     Math.abs(overscroll.current[axis]) * (thumbSize / 200);
   const thumbSizeLocal = thumbSize - dampeningOverscroll;
@@ -87,30 +95,22 @@ const ScrollBar = ({
   const sliderContent = React.useMemo(() => {
     if (mode === "scroll") return;
 
-    const neededSize = size[axis === "x" ? 0 : 1];
-
     return Array.from({ length: objLengthPerSize }, (_, index) => (
       <div
         key={index}
         className="ms-slider-item"
-        style={{
-          ...(mode === "sliderMenu" && {
-            cursor: "pointer",
-          }),
-        }}
-        onClick={
-          mode === "sliderMenu"
-            ? () => {
-                markNavigate("bar");
-                (scrollBarEvent as OnCustomScrollFn)(
-                  neededSize * index,
-                  axis,
-                  duration,
-                  sliderCheckLocal,
-                );
-              }
-            : undefined
-        }
+        /*
+         * Нажатие на точку ведёт к её странице в обоих режимах слайдера.
+         * Точки выглядят нажимаемыми и в `"slider"` — так выглядит всякая
+         * карусель, — а отвечали только в `"sliderMenu"`; в первом жест
+         * доводился протаскиванием, и клик просто возвращал на место.
+         *
+         * Протаскиванию это не мешает: браузер шлёт `click` общему предку
+         * точек начала и конца, так что пронос по нескольким точкам сюда не
+         * попадает, а жест, оставшийся в пределах одной, — это и есть нажатие.
+         */
+        style={{ cursor: "pointer" }}
+        onClick={() => goToPage(index, axis)}
       >
         {Array.isArray(progressElement)
           ? progressElement[index]
@@ -121,12 +121,8 @@ const ScrollBar = ({
     objLengthPerSize,
     mode,
     controls[1], // только для memo
-    duration,
-    sliderCheckLocal,
-    markNavigate,
-    size[0],
-    size[1],
-    scrollBarEvent,
+    axis,
+    goToPage,
   ]);
 
   const dataDirection = React.useMemo(() => {
@@ -225,6 +221,28 @@ const ScrollBar = ({
           className={`ms-bar ms-${dataDirection}`}
           ref={scrollBarRef}
           {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
+          /*
+           * Своей роли у `div` нет, и для скринридера кастомный бегунок был
+           * просто безымянной коробкой. Долю пути считаем по ходу бегунка, а
+           * не по позиции: дорожка короче содержимого ровно на его величину.
+           *
+           * `aria-controls` сюда не ставим: он требует идентификатора на окне
+           * прокрутки, а тот пришлось бы либо печатать в разметке — и ловить
+           * несовпадение при гидрации, счётчик инстансов на сервере свой, —
+           * либо занимать пользовательский `id`. Ориентация и доля пути
+           * читаются и без него.
+           */
+          role="scrollbar"
+          aria-orientation={
+            dataDirection === "x" ? "horizontal" : "vertical"
+          }
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={
+            axisSize > thumbSize
+              ? Math.round((thumbSpace / (axisSize - thumbSize)) * 100)
+              : 0
+          }
           style={{
             ...commonStyles,
             width: "fit-content",

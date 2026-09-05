@@ -21,7 +21,7 @@ const url = (config: Config) =>
 
 const DIRECTIONS = ["y", "x", "hybrid"] as const;
 const MODES = [undefined, "slider", "sliderMenu"] as const;
-const SIZES: unknown[] = [60, "each", "full", "firstChild", [60, "each"]];
+const SIZES: unknown[] = [60, "auto", "full", "firstChild", [60, "auto"]];
 
 /*
  * Набор строится обходом, а не случайностью: каждое измерение прокручивается
@@ -37,12 +37,12 @@ const build = () => {
     const size = SIZES[Math.floor(i / 2) % SIZES.length];
     const loop = i % 4 === 1 || i % 4 === 2;
     const virtual = i % 5 === 0 ? "virtual" : i % 5 === 3 ? "lazy" : undefined;
-    const crossCount = i % 6 === 0 ? 2 : i % 6 === 4 ? 3 : undefined;
+    const lines = i % 6 === 0 ? 2 : i % 6 === 4 ? 3 : undefined;
     const align = (["start", "center", "end"] as const)[Math.floor(i / 5) % 3];
 
     const config: Config = {
       count: i % 7 === 3 ? 5 : 12,
-      vary: size === "each" || (Array.isArray(size) && size.includes("each")),
+      vary: size === "auto" || (Array.isArray(size) && size.includes("auto")),
       size: direction === "y" ? 300 : [300, 220],
       direction,
       ...(mode && { mode }),
@@ -54,14 +54,14 @@ const build = () => {
       objects: {
         size,
         gap: i % 3 === 0 ? 10 : [8, 12],
-        ...(crossCount && { crossCount }),
+        ...(lines && { lines }),
         ...(i % 4 !== 2 && { align }),
         ...(i % 9 === 7 && { direction: "column" }),
       },
       render: {
         ...(virtual && { mode: virtual }),
         ...(i % 4 === 0 && { trackVisibility: true }),
-        ...(i % 8 === 2 && { rootMargin: 40, stopLoadOnScroll: true }),
+        ...(i % 8 === 2 && { rootMargin: 40, deferLoadOnScroll: true }),
       },
       controls: {
         wheel: i % 7 === 5 ? { changeDirection: true } : true,
@@ -97,7 +97,7 @@ const build = () => {
     out.push({
       name: `${direction}/${mode ?? "scroll"}/${JSON.stringify(size)}${
         loop ? "/loop" : ""
-      }${virtual ? `/${virtual}` : ""}${crossCount ? `/cross${crossCount}` : ""}#${i}`,
+      }${virtual ? `/${virtual}` : ""}${lines ? `/cross${lines}` : ""}#${i}`,
       config,
     });
   }
@@ -147,7 +147,7 @@ const EDGES: { name: string; config: Config }[] = [
       count: 3,
       size: [300, 220],
       direction: "hybrid",
-      objects: { size: "each", crossCount: 8, gap: 10 },
+      objects: { size: "auto", lines: 8, gap: 10 },
       vary: true,
       controls: { wheel: true, bar: "@thumb" },
     },
@@ -209,7 +209,7 @@ const EDGES: { name: string; config: Config }[] = [
       count: 12,
       size: [300, 220],
       direction: "hybrid",
-      objects: { size: 60, gap: 10, crossCount: 3 },
+      objects: { size: 60, gap: 10, lines: 3 },
       wrapper: { margin: [10, 20, 30, 40], minSize: "full", align: "center" },
       controls: { wheel: true, bar: "@thumb" },
     },
@@ -231,7 +231,7 @@ const EDGES: { name: string; config: Config }[] = [
       count: 200,
       size: 300,
       loop: true,
-      objects: { size: 60, crossCount: 1, gap: 10 },
+      objects: { size: 60, lines: 1, gap: 10 },
       render: { mode: "virtual" },
       controls: { wheel: true, bar: "@thumb", arrows: { element: "@arrow", size: 30 } },
     },
@@ -242,7 +242,7 @@ const EDGES: { name: string; config: Config }[] = [
       count: 12,
       size: [300, 220],
       direction: "hybrid",
-      objects: { size: 60, crossCount: 1, gap: 10, direction: "column" },
+      objects: { size: 60, lines: 1, gap: 10, order: "column" },
       controls: { wheel: true, drag: true, bar: "@thumb" },
     },
   },
@@ -254,7 +254,7 @@ const EDGES: { name: string; config: Config }[] = [
       direction: "hybrid",
       loop: true,
       vary: true,
-      objects: { size: "each", crossCount: 3, gap: 10 },
+      objects: { size: "auto", lines: 3, gap: 10 },
       controls: { wheel: true, drag: true, bar: "@thumb" },
       render: { trackVisibility: true },
     },
@@ -722,7 +722,7 @@ const MOVING: { name: string; config: Config }[] = [
       size: [300, 220],
       direction: "hybrid",
       loop: true,
-      objects: { size: 60, gap: 10, crossCount: 3 },
+      objects: { size: 60, gap: 10, lines: 3 },
       controls: { wheel: true, bar: "@thumb", arrows: { element: "@arrow", size: 30 } },
       duration: 300,
     },
@@ -735,7 +735,7 @@ const MOVING: { name: string; config: Config }[] = [
       direction: "hybrid",
       loop: true,
       vary: true,
-      objects: { size: "each", gap: 10, crossCount: 3 },
+      objects: { size: "auto", gap: 10, lines: 3 },
       controls: { wheel: true, bar: "@thumb", arrows: { element: "@arrow", size: 30 } },
       render: { trackVisibility: true },
       duration: 300,
@@ -924,7 +924,7 @@ const STEPS: Config[] = [
     size: [300, 220],
     direction: "hybrid",
     mode: "slider",
-    objects: { size: 60, gap: 10, crossCount: 3 },
+    objects: { size: 60, gap: 10, lines: 3 },
     controls: { bar: "@dot" },
   },
   {
@@ -932,7 +932,7 @@ const STEPS: Config[] = [
     size: [300, 220],
     direction: "hybrid",
     vary: true,
-    objects: { size: "each", gap: 10, crossCount: 3 },
+    objects: { size: "auto", gap: 10, lines: 3 },
     render: { mode: "virtual" },
   },
   {
@@ -940,7 +940,7 @@ const STEPS: Config[] = [
     size: [300, 220],
     direction: "hybrid",
     vary: true,
-    objects: { size: "each", gap: 10, crossCount: 3 },
+    objects: { size: "auto", gap: 10, lines: 3 },
     loop: true,
   },
   { count: 0, size: 300, objects: { size: 60, gap: 10 } },

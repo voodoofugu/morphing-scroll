@@ -183,11 +183,11 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * При hybrid линию обрывает `crossCount`, а не место — упереться там не во
+   * При hybrid линию обрывает `lines`, а не место — упереться там не во
    * что. Колонки при этом не выравниваются: рядом с узким объектом иначе
    * остаётся дыра, и отступы перестают быть одинаковыми.
    */
-  test("hybrid: строку обрывает crossCount, отступы одинаковые", async ({
+  test("hybrid: строку обрывает lines, отступы одинаковые", async ({
     page,
   }) => {
     await page.goto("/?scenario=gridHybrid");
@@ -277,7 +277,7 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * objects.direction: "column" — порядок вдоль прокрутки. Первая колонка
+   * objects.order: "column" — порядок вдоль прокрутки. Первая колонка
    * забирает первые три из шести, вторая остальные; самую короткую кладка при
    * этом больше не ищет — 1 остаётся под 0, а не уезжает вправо.
    */
@@ -337,10 +337,10 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * objects.direction: "column" для hybrid должно менять местами, что
-   * ограничивает crossCount — числа те же, что у "row", только оси зеркалом.
+   * objects.order: "column" для hybrid должно менять местами, что
+   * ограничивает lines — числа те же, что у "row", только оси зеркалом.
    */
-  test("objects.direction для hybrid меняет местами, что ограничивает crossCount", async ({
+  test("objects.order для hybrid меняет местами, что ограничивает lines", async ({
     page,
   }) => {
     await page.goto("/?scenario=columnHybrid");
@@ -416,7 +416,7 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * Без `crossCount` строк нет — есть заполнение, и равнять его можно только
+   * Без `lines` строк нет — есть заполнение, и равнять его можно только
    * по самой области.
    */
   test("align в заполнении двигает блок к краю области", async ({ page }) => {
@@ -461,7 +461,7 @@ test.describe("objects.size: each (real browser)", () => {
   /*
    * Тот же случай при direction="x" — оси зеркально поменяны местами. Кладка
    * и поток для горизонтальной прокрутки уже проверялись; заполнение с обеими
-   * сторонами "each" при isX=true — нет. Числа посчитаны вручную зеркалом
+   * сторонами "auto" при isX=true — нет. Числа посчитаны вручную зеркалом
    * от прошлого теста: cross-координата (там — left, здесь — top) и
    * main-координата (там — top, здесь — left) меняются местами.
    */

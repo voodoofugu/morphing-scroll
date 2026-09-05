@@ -231,7 +231,7 @@ describe("ScrollBar — edgeGap", () => {
 
   it("takes the axis pair for a hybrid scroll", () => {
     const { container } = render(
-      <MorphScroll objects={{ size: 100, crossCount: 4 }}
+      <MorphScroll objects={{ size: 100, lines: 4 }}
         size={[300, 300]}
         direction="hybrid"
         controls={{

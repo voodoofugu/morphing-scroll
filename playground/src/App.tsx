@@ -24,7 +24,7 @@ type ObjectsSizeMode =
   | "pair"
   | "full"
   | "firstChild"
-  | "each"
+  | "auto"
   | "none";
 type ProgressElementMode = "custom" | "native" | "off";
 type RenderMode = "off" | "lazy" | "virtual";
@@ -56,7 +56,7 @@ type Settings = {
   eachSeed: number;
   objectWidth: number;
   objectHeight: number;
-  crossCount: number;
+  lines: number;
   gapX: number;
   gapY: number;
   wrapperMarginTop: number;
@@ -69,7 +69,7 @@ type Settings = {
   wrapperAlignX: Align;
   wrapperAlignY: Align;
   objectsAlign: Align;
-  objectsDirection: "row" | "column";
+  objectsOrder: "row" | "column";
   edge: boolean;
   edgeColor: string;
   edgeSize: number;
@@ -95,7 +95,7 @@ type Settings = {
   barThumbMinSize: number;
   renderMode: RenderMode;
   rootMargin: number;
-  stopLoadOnScroll: boolean;
+  deferLoadOnScroll: boolean;
   trackVisibility: boolean;
   emptyMode: EmptyMode;
   suspending: boolean;
@@ -147,7 +147,7 @@ const defaultSettings: Settings = {
   eachMax: 240,
   eachStep: 20,
   eachSeed: 1,
-  crossCount: 2,
+  lines: 2,
   gapX: 12,
   gapY: 12,
   wrapperMarginTop: 0,
@@ -160,7 +160,7 @@ const defaultSettings: Settings = {
   wrapperAlignX: "start",
   wrapperAlignY: "start",
   objectsAlign: "start",
-  objectsDirection: "row",
+  objectsOrder: "row",
   edge: true,
   edgeColor: "#12a3a8",
   edgeSize: 42,
@@ -186,7 +186,7 @@ const defaultSettings: Settings = {
   barThumbMinSize: 30,
   renderMode: "off",
   rootMargin: 120,
-  stopLoadOnScroll: false,
+  deferLoadOnScroll: false,
   trackVisibility: false,
   emptyMode: "off",
   suspending: false,
@@ -207,7 +207,7 @@ const presets: Record<string, Partial<Settings>> = {
     objectsSizeMode: "pair",
     objectWidth: 170,
     objectHeight: 118,
-    crossCount: 2,
+    lines: 2,
     renderMode: "off",
     progressElementMode: "custom",
     contentDrag: false,
@@ -220,14 +220,14 @@ const presets: Record<string, Partial<Settings>> = {
     sizeMode: "fixed",
     width: 680,
     height: 430,
-    objectsSizeMode: "each",
+    objectsSizeMode: "auto",
     reorder: false,
   eachSide: "main",
     objectWidth: 170,
     eachMin: 60,
     eachMax: 240,
     eachStep: 20,
-    crossCount: 3,
+    lines: 3,
     gapX: 12,
     gapY: 12,
     renderMode: "virtual",
@@ -243,12 +243,12 @@ const presets: Record<string, Partial<Settings>> = {
     sizeMode: "fixed",
     width: 680,
     height: 430,
-    objectsSizeMode: "each",
+    objectsSizeMode: "auto",
     eachSide: "both",
     eachMin: 80,
     eachMax: 220,
     eachStep: 20,
-    crossCount: 0, // перенос по месту, а не по счёту
+    lines: 0, // перенос по месту, а не по счёту
     gapX: 12,
     gapY: 12,
     renderMode: "off",
@@ -266,7 +266,7 @@ const presets: Record<string, Partial<Settings>> = {
     objectsSizeMode: "pair",
     objectWidth: 150,
     objectHeight: 112,
-    crossCount: 0,
+    lines: 0,
     renderMode: "virtual",
     rootMargin: 160,
     progressElementMode: "custom",
@@ -283,7 +283,7 @@ const presets: Record<string, Partial<Settings>> = {
     objectsSizeMode: "pair",
     objectWidth: 240,
     objectHeight: 220,
-    crossCount: 1,
+    lines: 1,
     renderMode: "off",
     progressElementMode: "custom",
     arrows: true,
@@ -297,7 +297,7 @@ const presets: Record<string, Partial<Settings>> = {
     objectsSizeMode: "pair",
     objectWidth: 155,
     objectHeight: 112,
-    crossCount: 3,
+    lines: 3,
     renderMode: "lazy",
     rootMargin: 100,
     progressElementMode: "custom",
@@ -549,44 +549,44 @@ function SegmentedField<T extends string>({
  */
 /*
  * Какая сторона достаётся объектам. Вдоль прокрутки — кладка, поперёк —
- * поток, обе — поток по обеим (а при hybrid — сетка по crossCount).
+ * поток, обе — поток по обеим (а при hybrid — сетка по lines).
  */
 function eachPair(
   settings: Settings,
   short = false,
-): "each" | ["each" | number, "each" | number] {
+): "auto" | ["auto" | number, "auto" | number] {
   const { eachSide, objectWidth, objectHeight } = settings;
 
-  // обе стороны — это просто "each"; в сниппете так и пишем
-  if (eachSide === "both") return short ? "each" : ["each", "each"];
+  // обе стороны — это просто "auto"; в сниппете так и пишем
+  if (eachSide === "both") return short ? "auto" : ["auto", "auto"];
 
-  // при hybrid главную ось выбирает objects.direction — как и в библиотеке
+  // при hybrid главную ось выбирает objects.order — как и в библиотеке
   const mainIsX =
     settings.direction === "hybrid"
-      ? settings.objectsDirection === "column"
+      ? settings.objectsOrder === "column"
       : settings.direction === "x";
   const eachOnX = eachSide === "main" ? mainIsX : !mainIsX;
 
-  return eachOnX ? ["each", objectHeight] : [objectWidth, "each"];
+  return eachOnX ? ["auto", objectHeight] : [objectWidth, "auto"];
 }
 
 /** какое правило укладки выйдет из выбранных сторон и в каком порядке */
 function eachHint(settings: Settings) {
-  const { direction, objectsDirection, crossCount } = settings;
+  const { direction, objectsOrder, lines } = settings;
   const isHybrid = direction === "hybrid";
-  const mainIsX = isHybrid ? objectsDirection === "column" : direction === "x";
-  const byColumn = objectsDirection === "column";
+  const mainIsX = isHybrid ? objectsOrder === "column" : direction === "x";
+  const byColumn = objectsOrder === "column";
 
-  const pair = eachPair(settings) as ["each" | number, "each" | number];
-  const mainEach = pair[mainIsX ? 0 : 1] === "each";
-  const crossEach = pair[mainIsX ? 1 : 0] === "each";
+  const pair = eachPair(settings) as ["auto" | number, "auto" | number];
+  const mainEach = pair[mainIsX ? 0 : 1] === "auto";
+  const crossEach = pair[mainIsX ? 1 : 0] === "auto";
 
   if (isHybrid) {
-    if (!crossCount) return "needs crossCount · nothing else ends a line";
+    if (!lines) return "needs lines · nothing else ends a line";
 
     return mainEach && !crossEach
-      ? `masonry · ${crossCount} columns (crossCount)`
-      : `flow · ${crossCount} per line (crossCount)`;
+      ? `masonry · ${lines} columns (lines)`
+      : `flow · ${lines} per line (lines)`;
   }
 
   /*
@@ -601,8 +601,8 @@ function eachHint(settings: Settings) {
       ? "masonry · the first line takes the first objects"
       : "masonry · shortest line wins";
 
-  if (crossCount)
-    return `flow · ${crossCount} per line (crossCount)${
+  if (lines)
+    return `flow · ${lines} per line (lines)${
       split ? " · order transposed" : ""
     }${mainEach ? " · rises into the room above" : ""}`;
 
@@ -611,7 +611,7 @@ function eachHint(settings: Settings) {
       ? "fill · every object takes the highest place it fits"
       : "flow · a line fills, then the next one starts";
 
-  return split ? `${layout} · transposing needs crossCount` : layout;
+  return split ? `${layout} · transposing needs lines` : layout;
 }
 
 function sizeFor(index: number, settings: Settings) {
@@ -645,8 +645,8 @@ function buildItems(
   onGrab?: (id: number, event: React.PointerEvent) => void,
   dragging?: number | null,
 ) {
-  const each = settings.objectsSizeMode === "each";
-  const pair = eachPair(settings) as ["each" | number, "each" | number];
+  const each = settings.objectsSizeMode === "auto";
+  const pair = eachPair(settings) as ["auto" | number, "auto" | number];
 
   return order.map((id) => {
     const index = id;
@@ -656,8 +656,8 @@ function buildItems(
     const isWide = settings.variableItems && index % 11 === 0;
     const eachSize = each
       ? {
-          ...(pair[0] === "each" && { width: sizeFor(index, settings) }),
-          ...(pair[1] === "each" && { height: sizeFor(index * 31 + 7, settings) }),
+          ...(pair[0] === "auto" && { width: sizeFor(index, settings) }),
+          ...(pair[1] === "auto" && { height: sizeFor(index * 31 + 7, settings) }),
         }
       : undefined;
 
@@ -762,7 +762,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
         ? settings.objectWidth
         : settings.objectsSizeMode === "pair"
           ? [settings.objectWidth, settings.objectHeight]
-          : settings.objectsSizeMode === "each"
+          : settings.objectsSizeMode === "auto"
             ? eachPair(settings, true)
             : settings.objectsSizeMode;
 
@@ -847,7 +847,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     : {
         ...(settings.renderMode !== "off" && { mode: settings.renderMode }),
         rootMargin: settings.rootMargin,
-        stopLoadOnScroll: settings.stopLoadOnScroll,
+        deferLoadOnScroll: settings.deferLoadOnScroll,
         trackVisibility: settings.trackVisibility,
       };
 
@@ -870,9 +870,9 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       settings.gapX === settings.gapY
         ? settings.gapX
         : [settings.gapX, settings.gapY],
-    crossCount: numberOrUndefined(settings.crossCount),
+    lines: numberOrUndefined(settings.lines),
     align: settings.objectsAlign,
-    direction: settings.objectsDirection,
+    order: settings.objectsOrder,
     empty: emptyObjects,
   };
 
@@ -1144,7 +1144,7 @@ function App() {
     const move = (moveEvent: PointerEvent) => {
       /*
        * Куда встать, спрашиваем у того, кто под указателем: считать по
-       * координатам нельзя — при `"each"` объекты разного размера и сетки,
+       * координатам нельзя — при `"auto"` объекты разного размера и сетки,
        * по которой считать, просто нет.
        */
       from.style.pointerEvents = "none";
@@ -1211,7 +1211,7 @@ function App() {
     if (settings.objectsSizeMode === "pair")
       return [settings.objectWidth, settings.objectHeight];
 
-    if (settings.objectsSizeMode === "each") return eachPair(settings);
+    if (settings.objectsSizeMode === "auto") return eachPair(settings);
 
     return settings.objectsSizeMode;
   }, [settings]);
@@ -1280,14 +1280,14 @@ function App() {
 
     return {
       rootMargin: settings.rootMargin,
-      stopLoadOnScroll: settings.stopLoadOnScroll,
+      deferLoadOnScroll: settings.deferLoadOnScroll,
       trackVisibility: settings.trackVisibility,
       ...(settings.renderMode !== "off" && { mode: settings.renderMode }),
     };
   }, [
     settings.renderMode,
     settings.rootMargin,
-    settings.stopLoadOnScroll,
+    settings.deferLoadOnScroll,
     settings.trackVisibility,
   ]);
 
@@ -1329,9 +1329,9 @@ function App() {
           settings.gapX === settings.gapY
             ? settings.gapX
             : [settings.gapX, settings.gapY],
-        crossCount: numberOrUndefined(settings.crossCount),
+        lines: numberOrUndefined(settings.lines),
         align: settings.objectsAlign,
-        direction: settings.objectsDirection,
+        order: settings.objectsOrder,
         empty: emptyObjects,
       },
       onNavigate: settings.enableOnNavigate ? setLastNavigate : undefined,
@@ -1720,7 +1720,7 @@ function App() {
                 "pair",
                 "full",
                 "firstChild",
-                "each",
+                "auto",
                 "none",
               ] as const
             }
@@ -1744,7 +1744,7 @@ function App() {
               />
             </div>
           )}
-          {settings.objectsSizeMode === "each" && (
+          {settings.objectsSizeMode === "auto" && (
             <>
               <SegmentedField
                 label="each side"
@@ -1755,19 +1755,19 @@ function App() {
               <div className="hint-line">{eachHint(settings)}</div>
               {settings.eachSide !== "both" && (
                 <NumberField
-                  label={eachPair(settings)[0] === "each" ? "fixed h" : "fixed w"}
+                  label={eachPair(settings)[0] === "auto" ? "fixed h" : "fixed w"}
                   max={600}
                   min={20}
                   onChange={(value) =>
                     update(
-                      eachPair(settings)[0] === "each"
+                      eachPair(settings)[0] === "auto"
                         ? "objectHeight"
                         : "objectWidth",
                       value,
                     )
                   }
                   value={
-                    eachPair(settings)[0] === "each"
+                    eachPair(settings)[0] === "auto"
                       ? settings.objectHeight
                       : settings.objectWidth
                   }
@@ -1810,10 +1810,10 @@ function App() {
             </>
           )}
           <NumberField
-            label="crossCount"
+            label="lines"
             max={20}
-            onChange={(value) => update("crossCount", value)}
-            value={settings.crossCount}
+            onChange={(value) => update("lines", value)}
+            value={settings.lines}
           />
           <div className="two-col">
             <NumberField
@@ -1889,7 +1889,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="wrapper.align · objectsAlign · objectsDirection"
+          hint="wrapper.align · objects.align · objects.order"
           title="layout"
         >
           <div className="two-col">
@@ -1914,10 +1914,10 @@ function App() {
               value={settings.objectsAlign}
             />
             <SelectField
-              label="objectsDirection"
-              onChange={(value) => update("objectsDirection", value)}
+              label="objects.order"
+              onChange={(value) => update("objectsOrder", value)}
               options={["row", "column"] as const}
-              value={settings.objectsDirection}
+              value={settings.objectsOrder}
             />
           </div>
         </ControlGroup>
@@ -2160,9 +2160,9 @@ function App() {
             />
             <div className="two-col">
               <ToggleField
-                label="stopLoadOnScroll"
-                onChange={(value) => update("stopLoadOnScroll", value)}
-                value={settings.stopLoadOnScroll}
+                label="deferLoadOnScroll"
+                onChange={(value) => update("deferLoadOnScroll", value)}
+                value={settings.deferLoadOnScroll}
               />
               <ToggleField
                 label="trackVisibility"

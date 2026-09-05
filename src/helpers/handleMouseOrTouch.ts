@@ -5,6 +5,7 @@ import { MorphScroll, Vec2 } from "../types/types";
 import { ScrollStateRefT } from "./handleWheel";
 
 import { mouseOnEl } from "./mouseOn";
+import { prefersReducedMotion } from "./addFunctions";
 import startInertiaScroll from "./startInertiaScroll";
 import clampValue from "./clampValue";
 import {
@@ -408,6 +409,16 @@ const motionHandler = (
   );
 };
 
+/**
+ * Whether the element under the pointer carries a drag or a caret of its own.
+ * A scroll never takes the gesture from those, on any device.
+ */
+const hasOwnDrag = (target: Element | null) =>
+  !!target?.closest(
+    `[ms-custom-drag], [draggable="true"], [contenteditable],
+     input, textarea, select`,
+  );
+
 function handleMouseOrTouch(args: HandleMouseT) {
   const rt = args.runtime;
 
@@ -619,7 +630,9 @@ function handleUp(args: HandleUpT) {
   if (
     args.isTouched &&
     args.mode === "scroll" &&
-    args.clickedObject.current !== "slider"
+    args.clickedObject.current !== "slider" &&
+    // бросок докатывается сам — это ровно то движение, которое просили убрать
+    !prefersReducedMotion()
   ) {
     const inertLogic = (axis: "x" | "y") => {
       // умножаем velocity на thumbRatio для правильного передвижение по thumb
@@ -674,3 +687,4 @@ function handleUp(args: HandleUpT) {
 }
 
 export default handleMouseOrTouch;
+export { hasOwnDrag };

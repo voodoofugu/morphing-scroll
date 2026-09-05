@@ -66,7 +66,7 @@ const scenarios: Record<string, React.ReactElement> = {
    * содержимое кончается на второй странице, и считать было бы нечего.
    */
   arrowsBurst: (
-    <MorphScroll objects={{ size: OBJ, crossCount: 1 }}
+    <MorphScroll objects={{ size: OBJ, lines: 1 }}
       size={300}
       controls={{
         arrows: { element: <div className="arrow" />, size: 40 },
@@ -93,7 +93,6 @@ const scenarios: Record<string, React.ReactElement> = {
         arrows: {
           element: <div className="arrow" />,
           reserveSpace: true,
-          loop: true,
         },
       }}
       onScrollPosition={onScrollPosition}
@@ -210,7 +209,7 @@ const hybridItems = () =>
   ));
 
 scenarios.hybridWheel = (
-  <MorphScroll objects={{ size: OBJ, crossCount: 4 }}
+  <MorphScroll objects={{ size: OBJ, lines: 4 }}
     size={300}
     direction="hybrid"
     controls={{ wheel: true, bar: thumb }}
@@ -221,7 +220,7 @@ scenarios.hybridWheel = (
 );
 
 scenarios.hybridChangeDir = (
-  <MorphScroll objects={{ size: OBJ, crossCount: 4 }}
+  <MorphScroll objects={{ size: OBJ, lines: 4 }}
     size={300}
     direction="hybrid"
     controls={{
@@ -354,7 +353,7 @@ scenarios.barWheel = (
  * два столбца: шаг вбок должен работать и в вертикальном списке.
  */
 scenarios.keysFocus = (
-  <MorphScroll objects={{ size: 100, crossCount: 2 }}
+  <MorphScroll objects={{ size: 100, lines: 2 }}
     size={300}
     controls={{ keys: { mode: "focus" } }}
     onScrollPosition={onScrollPosition}
@@ -368,7 +367,7 @@ scenarios.keysFocus = (
  * встать с отступом, а последний — открыть поле целиком.
  */
 scenarios.keysFocusSpaced = (
-  <MorphScroll objects={{ size: OBJ, gap: [0, 20], crossCount: 1 }}
+  <MorphScroll objects={{ size: OBJ, gap: [0, 20], lines: 1 }}
     size={300}
     wrapper={{ margin: 40 }}
     controls={{ keys: { mode: "focus" } }}
@@ -397,7 +396,7 @@ function CommandOnMount({ measured }: { measured?: boolean }) {
   }, []);
 
   const scroll = (
-    <MorphScroll objects={{ size: measured ? "firstChild" : OBJ, crossCount: 1 }}
+    <MorphScroll objects={{ size: measured ? "firstChild" : OBJ, lines: 1 }}
       ref={ref}
       size={measured ? "auto" : 300}
       onScrollPosition={onScrollPosition}
@@ -462,7 +461,7 @@ const MASONRY = [40, 90, 60, 120, 30, 70, 50, 110, 80, 100];
 
 scenarios.masonry = (
   <MorphScroll
-    objects={{ size: [90, "each"], gap: 10 }}
+    objects={{ size: [90, "auto"], gap: 10 }}
     size={[200, 300]}
     controls={{ wheel: true }}
     onScrollPosition={onScrollPosition}
@@ -486,7 +485,7 @@ scenarios.masonry = (
  */
 scenarios.flowRow = (
   <MorphScroll
-    objects={{ size: ["each", 40], gap: 10 }}
+    objects={{ size: ["auto", 40], gap: 10 }}
     size={[200, 300]}
     controls={{ wheel: true }}
   >
@@ -505,7 +504,7 @@ scenarios.flowRow = (
 /* Обе стороны за объектом: строка становится толщиной с самый толстый в ней */
 scenarios.flowFree = (
   <MorphScroll
-    objects={{ size: "each", gap: 10 }}
+    objects={{ size: "auto", gap: 10 }}
     size={[200, 300]}
     controls={{ wheel: true }}
   >
@@ -527,7 +526,7 @@ scenarios.flowFree = (
 /* Поток по горизонтали: колонка набирается вниз, потом начинается следующая */
 scenarios.flowColumn = (
   <MorphScroll
-    objects={{ size: [70, "each"], gap: 10 }}
+    objects={{ size: [70, "auto"], gap: 10 }}
     size={[300, 200]}
     direction="x"
     controls={{ wheel: true }}
@@ -554,7 +553,7 @@ function Reordered() {
 
   return (
     <div style={{ width: 220, height: 300 }}>
-      <MorphScroll objects={{ size: [90, "each"], gap: 10 }} size={[200, 300]}>
+      <MorphScroll objects={{ size: [90, "auto"], gap: 10 }} size={[200, 300]}>
         {order.map((id) => (
           <div
             key={`card-${id}`}
@@ -581,7 +580,7 @@ scenarios.eachReorder = <Reordered />;
 
 /* Заполнение: обе стороны за объектом, дырок под низкими быть не должно */
 scenarios.fillFree = (
-  <MorphScroll objects={{ size: "each", gap: 10 }} size={[200, 300]}>
+  <MorphScroll objects={{ size: "auto", gap: 10 }} size={[200, 300]}>
     {[
       [90, 40],
       [90, 120],
@@ -604,7 +603,7 @@ scenarios.fillFree = (
 /* Заполнение с выравниванием: блок целиком уходит к дальнему краю области */
 scenarios.fillAlign = (
   <MorphScroll
-    objects={{ size: "each", gap: 10, align: "end" }}
+    objects={{ size: "auto", gap: 10, align: "end" }}
     size={[300, 300]}
   >
     {[
@@ -623,11 +622,11 @@ scenarios.fillAlign = (
  * Тот же случай заполнения, что и fillAlignRows, но с горизонтальной
  * прокруткой — оси зеркально поменяны местами (высота/ширина), числа те же.
  * Кладка и поток для direction="x" уже проверены; заполнение с обеими
- * сторонами "each" при isX=true до сих пор не гонялось живьём ни разу.
+ * сторонами "auto" при isX=true до сих пор не гонялось живьём ни разу.
  */
 scenarios.fillAlignRowsX = (
   <MorphScroll
-    objects={{ size: "each", gap: 10, align: "end" }}
+    objects={{ size: "auto", gap: 10, align: "end" }}
     size={[300, 200]}
     direction="x"
   >
@@ -650,7 +649,7 @@ scenarios.fillAlignRowsX = (
  */
 scenarios.fillAlignRows = (
   <MorphScroll
-    objects={{ size: "each", gap: 10, align: "end" }}
+    objects={{ size: "auto", gap: 10, align: "end" }}
     size={[200, 300]}
   >
     {[
@@ -668,7 +667,7 @@ scenarios.fillAlignRows = (
 /* Поля обёртки: перенос должен считать место за их вычетом, а не всё окно */
 scenarios.flowMargin = (
   <MorphScroll
-    objects={{ size: ["each", 40], gap: 10 }}
+    objects={{ size: ["auto", 40], gap: 10 }}
     wrapper={{ margin: [30, 0] }} // [x, y] — по 30 слева и справа
     size={[200, 300]}
   >
@@ -687,7 +686,7 @@ scenarios.flowMargin = (
 /* Выравнивание строки, когда она не заняла всё место поперёк */
 scenarios.flowAlign = (
   <MorphScroll
-    objects={{ size: ["each", 40], gap: 10, align: "end" }}
+    objects={{ size: ["auto", 40], gap: 10, align: "end" }}
     size={[200, 300]}
   >
     {Array.from({ length: 4 }, (_, i) => (
@@ -708,7 +707,7 @@ function Growing() {
 
   return (
     <div style={{ width: 220, height: 300 }}>
-      <MorphScroll objects={{ size: [90, "each"], gap: 10 }} size={[200, 300]}>
+      <MorphScroll objects={{ size: [90, "auto"], gap: 10 }} size={[200, 300]}>
         {Array.from({ length: 6 }, (_, i) => (
           <div
             key={`card-${i}`}
@@ -729,10 +728,10 @@ function Growing() {
 
 scenarios.eachGrows = <Growing />;
 
-/* Поток: в обе стороны едет, границу строки задаёт crossCount */
+/* Поток: в обе стороны едет, границу строки задаёт lines */
 scenarios.gridHybrid = (
   <MorphScroll
-    objects={{ size: "each", crossCount: 3, gap: 10 }}
+    objects={{ size: "auto", lines: 3, gap: 10 }}
     size={[240, 200]}
     direction="hybrid"
     controls={{ wheel: true }}
@@ -760,7 +759,7 @@ scenarios.gridHybrid = (
  */
 scenarios.masonryHybrid = (
   <MorphScroll
-    objects={{ size: [90, "each"], crossCount: 2, gap: 10 }}
+    objects={{ size: [90, "auto"], lines: 2, gap: 10 }}
     size={[200, 300]}
     direction="hybrid"
     controls={{ wheel: true }}
@@ -842,7 +841,7 @@ scenarios.loopSliderGap = (
  */
 scenarios.loopHybrid = (
   <MorphScroll
-    objects={{ size: [90, 60], gap: 10, crossCount: 2 }}
+    objects={{ size: [90, 60], gap: 10, lines: 2 }}
     size={[150, 160]}
     direction="hybrid"
     loop
@@ -864,7 +863,7 @@ scenarios.loopHybrid = (
  */
 scenarios.loopEach = (
   <MorphScroll
-    objects={{ size: ["each", "each"], gap: 10, crossCount: 1 }}
+    objects={{ size: ["auto", "auto"], gap: 10, lines: 1 }}
     size={[200, 150]}
     loop
     render={{ mode: "virtual" }}
@@ -886,7 +885,7 @@ scenarios.loopEach = (
  */
 scenarios.loopEachPlain = (
   <MorphScroll
-    objects={{ size: ["each", "each"], gap: 10, crossCount: 1 }}
+    objects={{ size: ["auto", "auto"], gap: 10, lines: 1 }}
     size={[200, 150]}
     loop
     controls={{ wheel: true }}
@@ -1003,7 +1002,7 @@ scenarios.loopTight = (
  */
 scenarios.loopSliderHybrid = (
   <MorphScroll
-    objects={{ size: [180, 60], gap: 10, crossCount: 4 }}
+    objects={{ size: [180, 60], gap: 10, lines: 4 }}
     size={[200, 210]}
     direction="hybrid"
     mode="slider"
@@ -1082,7 +1081,7 @@ scenarios.visibilityPlain = (
 /* твой случай целиком: слайдер по кругу, обе оси, свои размеры, lazy */
 scenarios.loopSliderEach = (
   <MorphScroll
-    objects={{ size: "each", gap: 12, crossCount: 2, direction: "column" }}
+    objects={{ size: "auto", gap: 12, lines: 2, order: "column" }}
     size={[680, 430]}
     direction="hybrid"
     mode="slider"
@@ -1186,7 +1185,7 @@ scenarios.loopX = (
  */
 scenarios.compactRows = (
   <MorphScroll
-    objects={{ size: "each", crossCount: 2, gap: 10 }}
+    objects={{ size: "auto", lines: 2, gap: 10 }}
     size={[300, 400]}
     controls={{ wheel: true }}
   >
@@ -1206,13 +1205,13 @@ scenarios.compactRows = (
 );
 
 /*
- * objects.direction: "column" — порядок идёт вдоль прокрутки. Кладка при этом
+ * objects.order: "column" — порядок идёт вдоль прокрутки. Кладка при этом
  * перестаёт искать самую короткую колонку: первая забирает первые ceil(6 / 2)
  * объектов, вторая остальные. Числа посчитаны вручную.
  */
 scenarios.columnOrder = (
   <MorphScroll
-    objects={{ size: [170, "each"], crossCount: 2, gap: 10, direction: "column" }}
+    objects={{ size: [170, "auto"], lines: 2, gap: 10, order: "column" }}
     size={[360, 300]}
     controls={{ wheel: true }}
   >
@@ -1230,7 +1229,7 @@ scenarios.columnOrder = (
  */
 scenarios.rowOrderX = (
   <MorphScroll
-    objects={{ size: ["each", 170], crossCount: 2, gap: 10, direction: "row" }}
+    objects={{ size: ["auto", 170], lines: 2, gap: 10, order: "row" }}
     size={[300, 360]}
     direction="x"
     controls={{ wheel: true }}
@@ -1249,7 +1248,7 @@ scenarios.rowOrderX = (
  */
 scenarios.columnOrderFlow = (
   <MorphScroll
-    objects={{ size: ["each", 60], crossCount: 2, gap: 10, direction: "column" }}
+    objects={{ size: ["auto", 60], lines: 2, gap: 10, order: "column" }}
     size={[300, 300]}
     controls={{ wheel: true }}
   >
@@ -1262,13 +1261,13 @@ scenarios.columnOrderFlow = (
 );
 
 /*
- * objects.direction для hybrid: "column" меняет местами, что ограничивает
- * crossCount — вместо ширины строки высоту столбца, рост уходит вправо.
+ * objects.order для hybrid: "column" меняет местами, что ограничивает
+ * lines — вместо ширины строки высоту столбца, рост уходит вправо.
  * Числа те же, что у gridHybrid, только оси зеркалом.
  */
 scenarios.columnHybrid = (
   <MorphScroll
-    objects={{ size: "each", crossCount: 3, gap: 10, direction: "column" }}
+    objects={{ size: "auto", lines: 3, gap: 10, order: "column" }}
     size={[240, 200]}
     direction="hybrid"
     controls={{ wheel: true }}
@@ -1291,7 +1290,7 @@ scenarios.columnHybrid = (
 /* много карточек: проверяем, что первый кадр не монтирует их все разом */
 scenarios.masonryMany = (
   <MorphScroll
-    objects={{ size: [90, "each"], gap: 10 }}
+    objects={{ size: [90, "auto"], gap: 10 }}
     size={[200, 300]}
     controls={{ wheel: true }}
   >
@@ -1309,7 +1308,7 @@ scenarios.masonryMany = (
 
 scenarios.masonryVirtual = (
   <MorphScroll
-    objects={{ size: [90, "each"], gap: 10 }}
+    objects={{ size: [90, "auto"], gap: 10 }}
     size={[200, 300]}
     render="virtual"
     controls={{ wheel: true }}
@@ -1331,7 +1330,7 @@ scenarios.masonryVirtual = (
 /** то же самое, но декларативно — для сравнения */
 scenarios.positionOnMountMeasured = (
   <div style={{ width: 280, height: 300 }}>
-    <MorphScroll objects={{ size: "firstChild", crossCount: 1 }}
+    <MorphScroll objects={{ size: "firstChild", lines: 1 }}
       size="auto"
       initialPosition={600}
       onScrollPosition={onScrollPosition}
@@ -1367,7 +1366,7 @@ function FocusRig() {
   }, []);
 
   return (
-    <MorphScroll objects={{ size: 100, crossCount: 2 }}
+    <MorphScroll objects={{ size: 100, lines: 2 }}
       ref={ref}
       size={300}
       onScrollPosition={onScrollPosition}
@@ -1395,7 +1394,7 @@ function KeptRig() {
 
   return (
     <MorphScroll
-      objects={{ size: "each", crossCount: 3, gap: 10 }}
+      objects={{ size: "auto", lines: 3, gap: 10 }}
       size={[300, 220]}
       direction="hybrid"
       ref={ref}
@@ -1471,7 +1470,7 @@ const revive = (value: unknown): unknown => {
   return value;
 };
 
-/* Разнобой по сторонам нужен для "each": на одинаковых укладка не ошибётся. */
+/* Разнобой по сторонам нужен для "auto": на одинаковых укладка не ошибётся. */
 const CRASH_SIZES = [40, 70, 55, 90, 60, 110, 45, 80];
 
 function CrashRig() {
@@ -1520,6 +1519,77 @@ function CrashRig() {
     </MorphScroll>
   );
 }
+
+/*
+ * Список внутри списка. Палец должен двигать тот, на котором лежит, и только
+ * его: событие всплывает, и раньше внешний ехал вместе с внутренним.
+ */
+scenarios.nestedTouch = (
+  <MorphScroll
+    size={[300, 400]}
+    objects={{ size: 200 }}
+    controls={{ drag: true }}
+  >
+    <div key="head" className="box" data-testid="head">
+      head
+    </div>
+    <div key="nested" data-testid="nested-host">
+      <MorphScroll
+        size={[260, 200]}
+        objects={{ size: 100 }}
+        controls={{ drag: true }}
+      >
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={`in-${i}`} className="box" data-testid={`in-${i}`}>
+            inner {i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+    <div key="tail" className="box" data-testid="tail">
+      tail
+    </div>
+  </MorphScroll>
+);
+
+/* Точка слайдера должна отзываться и на палец, а не только на мышь. */
+scenarios.sliderTapTouch = (
+  <MorphScroll
+    size={300}
+    mode="slider"
+    objects={{ size: 300 }}
+    controls={{ wheel: true, bar: <div className="dot" /> }}
+    onScrollPosition={onScrollPosition}
+  >
+    {makeItems()}
+  </MorphScroll>
+);
+
+/* Сетка на странице, которую читают справа налево. */
+function RtlRig() {
+  const raw = new URLSearchParams(window.location.search).get("props") ?? "{}";
+  const config = JSON.parse(raw) as Record<string, unknown>;
+
+  return (
+    <div dir="rtl" style={{ direction: "rtl" }} data-testid="rtl-host">
+      <MorphScroll
+        size={[300, 300]}
+        objects={{ size: 90, gap: 10, lines: 3 }}
+        render="virtual"
+        controls={{ wheel: true, bar: thumb }}
+        {...(config as never)}
+      >
+        {Array.from({ length: 24 }, (_, i) => (
+          <div key={`r-${i}`} className="box" data-testid={`r-${i}`}>
+            {i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+  );
+}
+
+scenarios.rtlGrid = <RtlRig />;
 
 scenarios.crash = <CrashRig />;
 

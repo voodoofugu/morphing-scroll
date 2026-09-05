@@ -401,7 +401,7 @@ describe("packObjects: fill", () => {
 });
 
 describe("packObjects: flow по счёту", () => {
-  it("crossCount обрывает линию вместо места", () => {
+  it("lines обрывает линию вместо места", () => {
     const r = pack({
       layout: "flow",
       keys: ["a", "b", "c", "d"],

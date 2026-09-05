@@ -121,3 +121,42 @@ test.describe("MorphScroll touch (real device emulation)", () => {
     ).toBe(0);
   });
 });
+
+/*
+ * Два места, где поведение поменялось и где палец — основной способ работы.
+ */
+test.describe("MorphScroll touch: nesting and taps", () => {
+  test("палец двигает тот список, на котором лежит", async ({ page }) => {
+    await page.goto("/?scenario=nestedTouch");
+
+    const views = page.locator(".ms-viewport");
+    const outer = views.nth(0);
+    const inner = views.nth(1);
+    await expect(inner).toBeVisible();
+
+    const box = (await inner.boundingBox())!;
+
+    await swipe(
+      page,
+      { x: box.x + box.width / 2, y: box.y + box.height - 20 },
+      { x: box.x + box.width / 2, y: box.y + 20 },
+      { stepDelay: 40 },
+    );
+    await page.waitForTimeout(400);
+
+    expect(await scrollTop(inner)).toBeGreaterThan(0);
+    expect(await scrollTop(outer)).toBe(0);
+  });
+
+  test("точка слайдера отзывается на нажатие пальцем", async ({ page }) => {
+    await page.goto("/?scenario=sliderTapTouch");
+
+    const dots = page.locator(".ms-slider-item");
+    await expect(dots.first()).toBeVisible();
+
+    await dots.nth(2).tap();
+    await page.waitForTimeout(400);
+
+    expect(await scrollTop(page.locator(".ms-viewport"))).toBe(600);
+  });
+});

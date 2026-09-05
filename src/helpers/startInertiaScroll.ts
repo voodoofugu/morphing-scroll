@@ -29,6 +29,12 @@ function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
       ? el.scrollHeight - el.clientHeight
       : el.scrollWidth - el.clientWidth;
 
+  /*
+   * Ключ по оси: очередь кадров держит по одной работе на ключ, и при общем
+   * ключе диагональный бросок терял горизонталь — вторая ось затирала первую.
+   */
+  const key = `inertia-${axis}`;
+
   let lastTime = performance.now();
 
   const step = () => {
@@ -54,10 +60,10 @@ function startInertiaScroll({ el, axis, velocity, rafSchedule }: InertiaArgs) {
 
     el[prop] = next;
 
-    rafSchedule("step", step);
+    rafSchedule(key, step);
   };
 
-  rafSchedule("step", step);
+  rafSchedule(key, step);
 }
 
 export default startInertiaScroll;

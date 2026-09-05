@@ -81,7 +81,7 @@ describe("MorphScroll — пропсы применяются сразу", () =>
   reacts("direction", {}, { direction: "x" });
   reacts("size", { size: [300, 300] }, { size: [300, 500] });
   reacts("objects.size", {}, { objects: { size: 40 } });
-  reacts("objects.crossCount", { objects: { size: 100, crossCount: 1 } }, { objects: { size: 100, crossCount: 3 } });
+  reacts("objects.lines", { objects: { size: 100, lines: 1 } }, { objects: { size: 100, lines: 3 } });
   reacts("objects.gap числом", { objects: { size: 100, gap: 10 } }, { objects: { size: 100, gap: 80 } });
   reacts("objects.gap парой", { objects: { size: 100, gap: [10, 20] } }, { objects: { size: 100, gap: [10, 60] } });
   reacts("wrapper.margin", { wrapper: { margin: 10 } }, { wrapper: { margin: 50 } });
@@ -93,8 +93,8 @@ describe("MorphScroll — пропсы применяются сразу", () =>
     items(2),
   );
   reacts("wrapper.minSize", {}, { wrapper: { minSize: "full" } });
-  reacts("objects.align", { objects: { size: 100, crossCount: 3 } }, { objects: { size: 100, crossCount: 3, align: "center" } });
-  reacts("objects.direction", { objects: { size: 100, crossCount: 3 } }, { objects: { size: 100, crossCount: 3, direction: "column" } });
+  reacts("objects.align", { objects: { size: 100, lines: 3 } }, { objects: { size: 100, lines: 3, align: "center" } });
+  reacts("objects.order", { objects: { size: 100, lines: 3 } }, { objects: { size: 100, lines: 3, order: "column" } });
   reacts("controls.bar", {}, { controls: { bar: <i className="thumb" /> } });
   reacts(
     "controls.arrows",

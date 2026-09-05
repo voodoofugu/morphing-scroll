@@ -86,9 +86,9 @@ describe("MorphScroll — onScrollPosition", () => {
     onScrollPosition.mockClear();
 
     fireEvent.scroll(el, { target: { scrollTop: 120 } });
-    expect(onScrollPosition).toHaveBeenLastCalledWith(0, 120);
+    expect(onScrollPosition).toHaveBeenLastCalledWith(0, 120, expect.any(Object));
 
     fireEvent.scroll(el, { target: { scrollLeft: 45, scrollTop: 120 } });
-    expect(onScrollPosition).toHaveBeenLastCalledWith(45, 120);
+    expect(onScrollPosition).toHaveBeenLastCalledWith(45, 120, expect.any(Object));
   });
 });

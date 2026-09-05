@@ -15,13 +15,13 @@ import Morph, {
 } from "../../src";
 import type { MorphScrollHandle } from "../../src";
 
-/* `"each"` понимается и одной строкой на обе стороны, и в паре */
+/* `"auto"` понимается и одной строкой на обе стороны, и в паре */
 export const eachShorthand = (
   <>
-    <MorphScroll size={200} objects={{ size: "each" }} />
-    <MorphScroll size={200} objects={{ size: ["each", "each"] }} />
-    <MorphScroll size={200} objects={{ size: [100, "each"] }} />
-    <MorphScroll size={200} objects={{ size: ["each", 100] }} />
+    <MorphScroll size={200} objects={{ size: "auto" }} />
+    <MorphScroll size={200} objects={{ size: ["auto", "auto"] }} />
+    <MorphScroll size={200} objects={{ size: [100, "auto"] }} />
+    <MorphScroll size={200} objects={{ size: ["auto", 100] }} />
   </>
 );
 
@@ -39,9 +39,9 @@ export const everyProp = (
     objects={{
       size: [100, "full"],
       gap: [10, 20],
-      crossCount: 3,
+      lines: 3,
       align: "center",
-      direction: "column",
+      order: "column",
       empty: { mode: "clear", clickTrigger: { selector: ".x", delay: 100 } },
     }}
     wrapper={{ margin: [5, 5], minSize: "full", align: ["center", "end"] }}

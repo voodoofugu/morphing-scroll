@@ -23,10 +23,10 @@ afterEach(() => {
 const said = (part: string) =>
   error.mock.calls.some(([msg]) => String(msg).includes(part));
 
-describe('objects.size: "each"', () => {
+describe('objects.size: "auto"', () => {
   it("ругается на слайдер: у страниц нет общего шага", () => {
     render(
-      <MorphScroll size={[200, 300]} mode="slider" objects={{ size: [90, "each"] }}>
+      <MorphScroll size={[200, 300]} mode="slider" objects={{ size: [90, "auto"] }}>
         {items()}
       </MorphScroll>,
     );
@@ -39,22 +39,22 @@ describe('objects.size: "each"', () => {
    * это не подменить — ему нужна граница поперёк, а взять её можно только из
    * окна, и тогда вторая сторона перестанет ехать.
    */
-  it("ругается на hybrid без crossCount: линию нечем оборвать", () => {
+  it("ругается на hybrid без lines: линию нечем оборвать", () => {
     render(
-      <MorphScroll size={[200, 300]} direction="hybrid" objects={{ size: "each" }}>
+      <MorphScroll size={[200, 300]} direction="hybrid" objects={{ size: "auto" }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(said("needs objects.crossCount")).toBe(true);
+    expect(said("needs objects.lines")).toBe(true);
   });
 
-  it("с crossCount hybrid молчит", () => {
+  it("с lines hybrid молчит", () => {
     render(
       <MorphScroll
         size={[200, 300]}
         direction="hybrid"
-        objects={{ size: "each", crossCount: 3 }}
+        objects={{ size: "auto", lines: 3 }}
       >
         {items()}
       </MorphScroll>,
@@ -65,15 +65,15 @@ describe('objects.size: "each"', () => {
 
   /*
    * У hybrid нет стороны, которую можно "отдать" объектам, — обе и так
-   * прокручиваются. objects.direction здесь остаётся единственным способом
+   * прокручиваются. objects.order здесь остаётся единственным способом
    * сказать, что чем ограничено, поэтому "column" не ругается, а работает.
    */
-  it("objects.direction для hybrid не ругается — там это единственный выбор оси", () => {
+  it("objects.order для hybrid не ругается — там это единственный выбор оси", () => {
     render(
       <MorphScroll
         size={[200, 300]}
         direction="hybrid"
-        objects={{ size: "each", crossCount: 3, direction: "column" }}
+        objects={{ size: "auto", lines: 3, order: "column" }}
       >
         {items()}
       </MorphScroll>,
@@ -84,7 +84,7 @@ describe('objects.size: "each"', () => {
 
   it("молчит, когда each стоит поперёк прокрутки: это поток", () => {
     render(
-      <MorphScroll size={[200, 300]} objects={{ size: ["each", 90] }}>
+      <MorphScroll size={[200, 300]} objects={{ size: ["auto", 90] }}>
         {items()}
       </MorphScroll>,
     );
@@ -100,7 +100,7 @@ describe('objects.size: "each"', () => {
     render(
       <MorphScroll
         size={[200, 300]}
-        objects={{ size: [90, "each"], direction: "column" }}
+        objects={{ size: [90, "auto"], order: "column" }}
       >
         {items()}
       </MorphScroll>,
@@ -113,7 +113,7 @@ describe('objects.size: "each"', () => {
     render(
       <MorphScroll
         size={[200, 300]}
-        objects={{ size: ["each", 90], crossCount: 2, direction: "column" }}
+        objects={{ size: ["auto", 90], lines: 2, order: "column" }}
       >
         {items()}
       </MorphScroll>,
@@ -130,7 +130,7 @@ describe('objects.size: "each"', () => {
     render(
       <MorphScroll
         size={[200, 300]}
-        objects={{ size: ["each", 90], direction: "column" }}
+        objects={{ size: ["auto", 90], order: "column" }}
       >
         {items()}
       </MorphScroll>,
@@ -145,7 +145,7 @@ describe('objects.size: "each"', () => {
    */
   it("ругается на column в заполнении: порядок там отдан за посадку", () => {
     render(
-      <MorphScroll size={[200, 300]} objects={{ size: "each", direction: "column" }}>
+      <MorphScroll size={[200, 300]} objects={{ size: "auto", order: "column" }}>
         {items()}
       </MorphScroll>,
     );
@@ -155,7 +155,7 @@ describe('objects.size: "each"', () => {
 
   it("молчит на row: это порядок по умолчанию, и он выполним всегда", () => {
     render(
-      <MorphScroll size={[200, 300]} objects={{ size: "each", direction: "row" }}>
+      <MorphScroll size={[200, 300]} objects={{ size: "auto", order: "row" }}>
         {items()}
       </MorphScroll>,
     );
@@ -165,7 +165,7 @@ describe('objects.size: "each"', () => {
 
   it("молчит на обычной кладке и не требует render", () => {
     render(
-      <MorphScroll size={[200, 300]} objects={{ size: [90, "each"] }}>
+      <MorphScroll size={[200, 300]} objects={{ size: [90, "auto"] }}>
         {items()}
       </MorphScroll>,
     );
@@ -175,7 +175,7 @@ describe('objects.size: "each"', () => {
 
   it("не мешает render: размеры для него теперь есть", () => {
     render(
-      <MorphScroll size={[200, 300]} render="virtual" objects={{ size: [90, "each"] }}>
+      <MorphScroll size={[200, 300]} render="virtual" objects={{ size: [90, "auto"] }}>
         {items()}
       </MorphScroll>,
     );
@@ -185,7 +185,7 @@ describe('objects.size: "each"', () => {
 
   it("раскладывает объекты абсолютно и задаёт только заданную сторону", () => {
     const { container } = render(
-      <MorphScroll size={[200, 300]} objects={{ size: [90, "each"] }}>
+      <MorphScroll size={[200, 300]} objects={{ size: [90, "auto"] }}>
         {items(3)}
       </MorphScroll>,
     );
@@ -198,7 +198,7 @@ describe('objects.size: "each"', () => {
 
   it("в потоке объект выбирает обе стороны сам", () => {
     const { container } = render(
-      <MorphScroll size={[200, 300]} objects={{ size: "each" }}>
+      <MorphScroll size={[200, 300]} objects={{ size: "auto" }}>
         {items(3)}
       </MorphScroll>,
     );
@@ -211,7 +211,7 @@ describe('objects.size: "each"', () => {
 
   it("вдоль прокрутки сторону задаёт проп, поперёк — сам объект", () => {
     const { container } = render(
-      <MorphScroll size={[200, 300]} objects={{ size: ["each", 60] }}>
+      <MorphScroll size={[200, 300]} objects={{ size: ["auto", 60] }}>
         {items(3)}
       </MorphScroll>,
     );
@@ -223,7 +223,7 @@ describe('objects.size: "each"', () => {
 
   it("рисует первую пачку, а не весь список", () => {
     const { container } = render(
-      <MorphScroll size={[200, 300]} objects={{ size: [90, "each"] }}>
+      <MorphScroll size={[200, 300]} objects={{ size: [90, "auto"] }}>
         {items(200)}
       </MorphScroll>,
     );

@@ -52,6 +52,10 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
 > - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
 > - Write objects, arrays and elements straight into the props — `controls={{ wheel: true }}`, `gap={[10, 20]}`, `controls={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
+> - Three things happen without being asked for, because a scroll that skipped them would be wrong rather than minimal:
+>   - content that loads **above** the reader does not push them down — the object they were looking at stays where it was, which is what a browser does for its own scrolling and what this one has to do itself;
+>   - on a right-to-left page the scroll keeps counting from the left, where its own geometry is, and hands the page's direction back to your content, so an `rtl` page cannot quietly invert the arithmetic. The horizontal axis is mirrored wherever it is not the one being scrolled, so a vertical grid lays its columns from the right and its scrollbar stands on the left. A horizontal scroll's own direction is not mirrored yet: its zero would have to move to the right edge, which is a different coordinate system rather than a different layout;
+>   - when the system asks for less motion, every move the library makes on its own arrives at once instead of animating — a drag still follows the finger, since that is not animation.
 > - With DevTools open the scroll can feel slower: the customization keeps the DOM changing, and the browser spends extra work reporting every change to the panel. It is an artefact of being watched — with DevTools closed, which is how the page is actually used, none of that cost exists.
 
 <h2></h2>
@@ -254,7 +258,7 @@ The slider modes turn in a circle too. Pages are counted within one turn, so the
 <br />
 <code>direction="hybrid"</code> turns in both directions at once: the content repeats to the right and downward alike, the copies lie in a grid, and each axis is brought back to its own middle on its own.<br />
 <br />
-<code>objects.size: "each"</code> turns too, only not at once. A period is the length of the content, and that keeps growing while the measurements come in — turning on a period that moves would jolt the layout on every batch. So it waits: until everything is measured this scrolls as usual, and the circle closes by itself once there is nothing left to measure. A long list pays for a full measuring pass before it turns, and if something grows later the position keeps its place within the turn rather than jumping back to the start of it.</em><br />
+<code>objects.size: "auto"</code> turns too, only not at once. A period is the length of the content, and that keeps growing while the measurements come in — turning on a period that moves would jolt the layout on every batch. So it waits: until everything is measured this scrolls as usual, and the circle closes by itself once there is nothing left to measure. A long list pays for a full measuring pass before it turns, and if something grows later the position keeps its place within the turn rather than jumping back to the start of it.</em><br />
 <br />
 <b>Note:</b><em><br />
 the list is repeated, not referenced — a few copies of every child are mounted at once. With <code>render.mode</code> only the ones in the window are, and the length of the list stops mattering; without it a long one is paid for several times over. For anything but a handful of objects, give the circle virtualising.</em><br />
@@ -348,6 +352,28 @@ props describe state, methods do something now. <code>initialPosition</code> and
 <br />
 Unlike <code>stickToEnd</code>, which follows new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
 <br />
+<code><b>scrollToObject(target, options?)</b></code>:<br />
+brings one object into view. A place in the list rather than a place in pixels, which is the one you can actually name: with <code>render</code> the object is not in the document, and with <code>objects.size: "auto"</code> only the library knows where it ended up.<br />
+
+<ul>
+  <li><code>target</code>: a position in the list (<b>0</b> is the first), a child's <code>key</code>, or the name of a <b>group</b>.</li><br />
+  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>.</li>
+</ul>
+
+<em>A group is written in the key itself, in brackets at the end. There is no prop for it: a key has to be unique anyway, and adding the group to it is cheaper than keeping a second list beside it. A child keyed <code>"post-4[news]"</code> answers to <code>"post-4"</code> and to <code>"news"</code> alike, and a group goes to its first object; a key wins over a group of the same name.</em>
+
+```tsx
+<MorphScroll {...props} ref={scroll} render="virtual">
+  {posts.map((post) => (
+    <Post key={`post-${post.id}[${post.section}]`} {...post} />
+  ))}
+</MorphScroll>;
+
+scroll.current?.scrollToObject(10);
+scroll.current?.scrollToObject("post-4", { align: "center" });
+scroll.current?.scrollToObject("news"); // the first post of that section
+```
+
 <code><b>step(side, options?)</b></code>:<br />
 turns one page toward <b>"top"</b>, <b>"right"</b>, <b>"bottom"</b> or <b>"left"</b> — the same move the arrow buttons make, and it does nothing at the end of the run, unless <code>loop</code> has made it endless.<br />
 <br />
@@ -580,11 +606,12 @@ objects: { size: 100, gap: 10 }
 
 ```tsx
 objects: {
-  size: [150, 112],
+  layout: "masonry",
+  size: [150, "auto"],
   gap: [10, 20],
-  crossCount: 3,
+  lines: 3,
   align: "center",
-  direction: "column",
+  order: "column",
   empty: "clear",
 }
 ```
@@ -601,11 +628,55 @@ everything about the objects themselves: how big they are, how they sit next to 
 Each object is wrapped in an <code>.ms-object-box</code> of its own — this is what decides the size of that box and how the boxes are arranged.<br />
 </em><br />
 
+<details><summary><code><b>layout</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+layout: "masonry"; // or "grid" | "flow" | "fill"
+```
+
+<b>Default:</b><br />
+"grid", unless a side of <code>size</code> is <b>"auto"</b><br />
+<br />
+<b>Description:</b><em><br />
+how the objects are arranged.<br />
+<br />
+The layout and the sizes say the same thing from two ends. <b>"auto"</b> hands a side to the object itself, and which side that is settles the arrangement, so a pair of sizes has already said it: <code>[90, "auto"]</code> on a vertical scroll is a masonry. Naming the layout says it in words instead — and then it decides, which means the side it measures needs no size at all:<br />
+
+<ul>
+  <li><code><b>"grid"</b></code>: every object the same size, laid in lines. Nothing is measured, so <b>"auto"</b> has no place here and the library says so.</li><br />
+  <li><code><b>"masonry"</b></code>: the side along the scroll is the object's own, <code>size</code> gives the other. Each object goes into the shortest line at that moment, so the far edge stays even.</li><br />
+  <li><code><b>"flow"</b></code>: the side across the scroll is the object's own, <code>size</code> gives the other. Objects follow one another until the room, or <code>lines</code>, ends the line.</li><br />
+  <li><code><b>"fill"</b></code>: both sides are the objects' own, so <code>size</code> is not needed at all. Every object takes the highest place it fits into and nothing hangs under a short neighbour — order gives way to the fit.</li>
+</ul>
+
+Which is why one number is enough once the layout is named: it goes to the side the layout does not take.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+// a masonry of cards: 90 wide, as tall as each card turns out to be
+<MorphScroll {...props} objects={{ layout: "masonry", size: 90, gap: 10 }}>
+  {cards}
+</MorphScroll>
+```
+
+```tsx
+// the same thing said in sizes
+<MorphScroll {...props} objects={{ size: [90, "auto"], gap: 10 }}>
+  {cards}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+
 <details><summary><code><b>size</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-size: 100; // or [100, 70] | "full" | "firstChild" | "each" | "none"
+size: 100; // or [100, 70] | "full" | "firstChild" | "auto" | "none"
 ```
 
 <b>Default:</b><br />
@@ -624,29 +695,11 @@ the dimensions will be taken from <code>size</code>.<br />
 creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
-<code><b>"each"</b></code>:<br />
-every object gets the size it asks for, and the library measures it. Which side you hand over decides how the objects are then laid out:<br />
-
-<ul>
-  <li><b>along the scroll</b> — <b>masonry</b>. <code>[90, "each"]</code> on a vertical scroll: 90 is the column, the height comes from the object, and each object goes into the shortest column at that moment, so the bottom stays even.</li>
-  <li><b>across it</b> — <b>flow</b>. <code>["each", 90]</code> on a vertical scroll: rows are 90 tall, widths are the objects' own. Objects follow one another with the same gap between them, and a row ends when the next object no longer fits — or when <code>crossCount</code> says the row is full. Every line is as thick as the thickest object in it, and when that thickness is the objects' own too — both sides handed over, with <code>crossCount</code> ending the line — the shorter ones do not hang under it: each rises into the room above it, on its own, while the order stays line by line. It stops a gap short of whatever it comes near, sideways as well as head on — before the rise, keeping objects of different lines apart was the line's job, and now it is the rise's.</li>
-  <li><b>both sides</b> — <b>fill</b>. Every object takes the highest place it fits into, so nothing is left hanging under a short neighbour. Order gives way to the fit: an object further down the list can end up higher on the screen — that is what handing over both sides asks for. Naming <code>crossCount</code> asks for lines instead, and lines is what you get.</li>
-  <li><code>direction="hybrid"</code> — both ways scroll, so which side is <code>"each"</code> says nothing about which axis a line runs along: <code>crossCount</code> is the only thing left that can end one. Fill cannot stand in for it — a fill needs a boundary across, and the only one on offer is the scroll itself, which would mean that side stops scrolling. With a <code>crossCount</code> and a known size across it is masonry, so nothing hangs under a short neighbour; with both sides handed over, flow by that count.</li>
-</ul>
-
-<code>"each"</code> on its own says it about both sides at once — the same as <code>["each", "each"]</code>.<br />
+<code><b>"auto"</b></code>:<br />
+every object gets the size it asks for, and the library measures it. Which side you hand over settles how the objects are then arranged — that is what <code>layout</code> names in words, and either way of saying it works.<br />
 <br />
-<code>align</code> lines the rows up against the widest one — widest across the scroll, which is the vertical spread on a horizontal scroll just as much as the horizontal one on a vertical scroll. That row is as much room as the content actually needs and has nowhere to move; a row of two small objects leaves a gap beside it, and closing that gap is exactly what <code>align</code> is for. A fill has no rows at all, so each object closes its own gap instead — the one between it and whatever sits past it in that direction, or the edge of the room if nothing does; two objects side by side with room past both of them both move, each by as much as it individually has. <code>"center"</code> stops an object halfway between where the fit first placed it and where <code>"end"</code> would have pushed it. That room, in every case, is the scroll minus <code>wrapper.margin</code>, and nothing moves until every object has been measured, so the layout does not walk back as the sizes arrive.<br />
+<code>"auto"</code> on its own says it about both sides at once — the same as <code>["auto", "auto"]</code>.<br />
 <br />
-<code>direction</code> does not choose the layout — the sizes do. It chooses the <b>order</b>, and it means the same thing here as it does for a known size, on both axes: <code>"row"</code> fills a row and moves down, <code>"column"</code> fills a column and moves right. One of the two is what the list already does, and which one depends on where the scroll runs — a vertical scroll lays rows one after another, a horizontal one lays columns. The other asks for the order to be transposed: the first line then takes the first <code>ceil(n / lines)</code> objects, and a masonry asked for it stops looking for the shortest column, trading an even edge for reading straight through. The count is by number and never by size, so nothing jumps as the objects are measured.<br />
-<br />
-Transposing needs lines to count. A masonry always has them — as many columns as fit, or as many as <code>crossCount</code> names. A flow has them when <code>crossCount</code> names them; without it a line ends where the room does, and how many there will be is not knowable in advance. A fill has none at all: it gives the order up for the fit, which is the whole point of handing over both sides. In those two cases the request is not carried out, and the library says so — when you wrote the value yourself, that is: on a horizontal scroll the default <code>"row"</code> is the transposed one, and complaining about a word nobody typed would only be noise.<br />
-<br />
-<code>direction="hybrid"</code> answers the same request with the axis instead: <code>"row"</code> has <code>crossCount</code> bound the width and growth run down, <code>"column"</code> bounds the height and growth runs right — which is "the first column first", written as an axis rather than as an order.<br />
-
-<ul>
-</ul>
-
 Measuring is done by one observer for the whole scroll, not one per object, and an object is watched for as long as it is on screen: a picture that arrives late or a text that changes moves its neighbours, instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
 <br />
 <code><b>"none"</b></code>:<br />
@@ -655,9 +708,9 @@ cells are still created, but <code>MorphScroll</code> does not measure them — 
 ✦ Note:<br />
 
 <ul>
-  <li><b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out. <b>"each"</b> is: the library measures the objects, so <code>render</code> has the numbers it needs.</li>
-  <li><b>"each"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
-  <li>with <code>direction="hybrid"</code> it needs <code>crossCount</code> — that is the only thing left that can end a row.</li>
+  <li><b>"none"</b> is not compatible with <code>render</code> — and neither is leaving the size out. <b>"auto"</b> is: the library measures the objects, so <code>render</code> has the numbers it needs.</li>
+  <li><b>"auto"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
+  <li>with <code>direction="hybrid"</code> it needs <code>lines</code> — that is the only thing left that can end a row.</li>
   <li>the layout follows the objects, so anything that changes their size while they are on screen repacks them. Reserving space for a late picture (<code>aspect-ratio</code> does it in one line) still saves that repack.</li>
 </ul>
 </em><br />
@@ -671,14 +724,14 @@ cells are still created, but <code>MorphScroll</code> does not measure them — 
 
 ```tsx
 // a masonry of cards: 90 wide, as tall as each card turns out to be
-<MorphScroll {...props} objects={{ size: [90, "each"], gap: 10 }}>
+<MorphScroll {...props} objects={{ size: [90, "auto"], gap: 10 }}>
   {cards}
 </MorphScroll>
 ```
 
 ```tsx
 // a flow of tags: 28 tall, each as wide as its own word
-<MorphScroll {...props} objects={{ size: ["each", 28], gap: 8 }}>
+<MorphScroll {...props} objects={{ size: ["auto", 28], gap: 8 }}>
   {tags}
 </MorphScroll>
 ```
@@ -689,33 +742,33 @@ cells are still created, but <code>MorphScroll</code> does not measure them — 
 
 <br />
 
-<details><summary><code><b>crossCount</b></code></summary><br /><ul><div>
+<details><summary><code><b>lines</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-crossCount: 2;
+lines: 2;
 ```
 
 <b>Description:</b><em><br />
-defines the number of <b>columns</b> or <b>rows</b>.<br />
+how many lines the objects run in, across the scroll — columns on a vertical scroll, rows on a horizontal one.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
-  <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>crossCount</code> only limits the <b>maximum</b> number of columns or rows.</li>
-  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>crossCount</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
+  <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>lines</code> only limits the <b>maximum</b> number of columns or rows.</li>
+  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>lines</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
 </ul>
 </em><br />
 
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} objects={{ crossCount: 2 }}>
+<MorphScroll {...props} objects={{ lines: 2 }}>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_crossCount.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_lines.png)
 
 </div></ul></details>
 
@@ -756,7 +809,9 @@ align: "center"; // or "start" | "end"
 "start"<br />
 <br />
 <b>Description:</b><em><br />
-where a line that did not fill up sits — the last row of a grid, or the only row of a short list.</em><br />
+where a line that did not fill up sits — the last row of a grid, or the only row of a short list.<br />
+<br />
+<code>align</code> lines the rows up against the widest one — widest across the scroll, which is the vertical spread on a horizontal scroll just as much as the horizontal one on a vertical scroll. That row is as much room as the content actually needs and has nowhere to move; a row of two small objects leaves a gap beside it, and closing that gap is exactly what <code>align</code> is for. A fill has no rows at all, so each object closes its own gap instead — the one between it and whatever sits past it in that direction, or the edge of the room if nothing does; two objects side by side with room past both of them both move, each by as much as it individually has. <code>"center"</code> stops an object halfway between where the fit first placed it and where <code>"end"</code> would have pushed it. That room, in every case, is the scroll minus <code>wrapper.margin</code>, and nothing moves until every object has been measured, so the layout does not walk back as the sizes arrive.</em><br />
 <br />
 <b>Example:</b>
 
@@ -772,11 +827,11 @@ where a line that did not fill up sits — the last row of a grid, or the only r
 
 <br />
 
-<details><summary><code><b>direction</b></code></summary><br /><ul><div>
+<details><summary><code><b>order</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-direction: "row"; // or "column"
+order: "row"; // or "column"
 ```
 
 <b>Default:</b><br />
@@ -785,17 +840,84 @@ direction: "row"; // or "column"
 <b>Description:</b><em><br />
 changes the order of the provided elements based on the provided value.<br />
 <br />
-<code>"row"</code> runs the order across the scroll, <code>"column"</code> along it — the first line then takes the first <code>ceil(n / lines)</code> objects and the next line the ones after them. It means the same thing for <code>size: "each"</code>, where a masonry ordered by columns stops looking for the shortest one; see <code>size</code> for the two cases that have no lines to count.</em><br />
+<code>"row"</code> fills a row and moves down, <code>"column"</code> fills a column and moves right. One of the two is what the list already does, and which one depends on where the scroll runs — a vertical scroll lays rows one after another, a horizontal one lays columns. The other asks for the order to be transposed: the first line then takes the first <code>ceil(n / lines)</code> objects, and a masonry asked for it stops looking for the shortest column, trading an even edge for reading straight through. The count is by number and never by size, so nothing jumps as the objects are measured.<br />
+<br />
+Transposing needs lines to count. A masonry always has them — as many columns as fit, or as many as <code>lines</code> names. A flow has them when <code>lines</code> names them; without it a line ends where the room does, and how many there will be is not knowable in advance. A fill has none at all: it gives the order up for the fit, which is the whole point of handing over both sides. In those two cases the request is not carried out, and the library says so — when you wrote the value yourself, that is: on a horizontal scroll the default <code>"row"</code> is the transposed one, and complaining about a word nobody typed would only be noise.<br />
+<br />
+<code>direction="hybrid"</code> answers the same request with the axis instead: <code>"row"</code> has <code>lines</code> bound the width and growth run down, <code>"column"</code> bounds the height and growth runs right — which is "the first column first", written as an axis rather than as an order.</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} objects={{ direction: "column" }}>
+<MorphScroll {...props} objects={{ order: "column" }}>
   {children}
 </MorphScroll>
 ```
 
-![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_direction.png)
+![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-objects_order.png)
+
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>semantics</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+semantics: "list";
+```
+
+<b>Description:</b><em><br />
+describe the objects to assistive technology.<br />
+<br />
+<b>"list"</b> marks the wrapper as a list and every object as one of its items, numbered. It matters most with <code>render</code>: only a window of the objects is in the document, so a screen reader would otherwise announce a list of a dozen and give no way to tell where in the real list you are. With it, each object carries its own place and the total.<br />
+<br />
+Left out, nothing is claimed. The objects may be cards, slides or a menu, and calling those a list would describe them wrongly — which is worse than describing them not at all.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} render="virtual" objects={{ size: 100, semantics: "list" }}>
+  {rows}
+</MorphScroll>
+```
+
+</div></ul></details>
+
+<br />
+
+<details><summary><code><b>groups</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+groups: "sticky";
+```
+
+<b>Description:</b><em><br />
+what a group of objects does.<br />
+<br />
+A group is named in the child's own <code>key</code>, in brackets at the end: <code>"post-4[news]"</code> belongs to <b>news</b>. There is no prop for the grouping itself — a key has to be unique anyway, and carrying the group in it is cheaper than keeping a second list beside it.<br />
+<br />
+<b>"sticky"</b> keeps the first object of each group in view for as long as any of its group is: it holds against the leading edge and is pushed out by the group that follows. That first object is the group's heading, so it always says which group you are looking at. While it is held there it carries <code>ms-sticky</code>, which is the hook for a shadow or a background.<br />
+<br />
+✦ Note:<br />
+the same names reach <code>scrollToObject</code>, which goes to a group's first object.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll {...props} objects={{ size: 60, groups: "sticky" }}>
+  {contacts.map((one) => (
+    <Row key={`c-${one.id}[${one.letter}]`} {...one} />
+  ))}
+</MorphScroll>
+```
+
+```css
+.ms-object-box.ms-sticky {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+```
 
 </div></ul></details>
 
@@ -999,8 +1121,7 @@ controls: {
   arrows: {
     element: <ArrowComponent />,
     size: 60, // default 40px
-    reserveSpace: true;
-    loop: true,
+    reserveSpace: true,
   }
 }
 ```
@@ -1009,12 +1130,15 @@ controls: {
 </ul>
 
 <b>Default:</b><br />
-{ wheel: true }<br />
+{ wheel: true, keys: true }<br />
 <br />
 <b>Description:</b><em><br />
 everything that can move the scroll lives here: the wheel, the keys and a drag, which are only switched on or off, and the bar and the arrows, which the library also draws for you.<br />
 <br />
-A name, or an array of names, is shorthand for switching those on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "keys"]</code> the same as <code>{ wheel: true, keys: true }</code>. Reach for the object form when one needs settings, or to pass an element.<br /></em>
+A name, or an array of names, is shorthand for switching those on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "drag"]</code> the same as <code>{ wheel: true, drag: true }</code>. Reach for the object form when one needs settings, or to pass an element.<br />
+<br />
+✦ Note:<br />
+what you write is <b>added to</b> the default rather than put in its place. The wheel and the keys are how a scroll is worked by default, and naming a bar is not a request to take them away — <code>{ bar: &lt;Thumb /&gt; }</code> gives you a bar on a scroll that still answers the wheel. To take one away, say so: <code>{ wheel: false, bar: &lt;Thumb /&gt; }</code>.<br /></em>
 
 <br />
 
@@ -1031,7 +1155,13 @@ the wheel over the content moves the scroll.<br />
 Both settings below are for <code>direction="hybrid"</code>, where one wheel has to serve two axes.<br />
 <br />
 ✦ Note:<br />
-the wheel takes focus for the keys to work on, but never from a field being typed in — over an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> it scrolls and leaves the caret where it is.<br />
+
+<ul>
+  <li>a wheel notch is reported in pixels, lines or pages depending on the browser, and all three are converted, so one notch travels the same distance everywhere. A sideways gesture on a trackpad drives a horizontal list directly, and a mouse, which has no sideways to give, still drives it with the vertical wheel.</li><br />
+  <li>a list that has nowhere left to go hands the wheel outward, to whatever scrolls around it — the same way a native one does, so a list inside a page is not a trap.</li><br />
+  <li>the wheel takes focus for the keys to work on, but never from a field being typed in — over an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> it scrolls and leaves the caret where it is.</li>
+</ul>
+
 </em><br />
 
 <details><summary><code><b>changeDirection</b></code></summary><br /><ul><div>
@@ -1177,6 +1307,8 @@ Anything can be dragged from — a menu of buttons, a row of links, a card with 
 <br />
 While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code> — that is the hook for a grabbing cursor.<br />
 <br />
+A list inside a list takes its own gesture: the drag belongs to the innermost one under the pointer, and the outer stays where it is.<br />
+<br />
 The drag does not start only where the element has a drag or a caret of its own:<br />
 
 <ul>
@@ -1211,7 +1343,7 @@ determines how the scroll progress is managed<br />
 
 <ul>
   <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-item</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position.</li><br />
+  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-item</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position. A dot answers a tap and turns to its own page; dragging along the bar still pages as you go.</li><br />
   <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>bar</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
 </ul>
 <br />
@@ -1584,7 +1716,7 @@ render: "lazy"; // or "virtual"
 render: {
   mode: "lazy", // or "virtual" (required)
   rootMargin: 100, // or [x, y] | [t, r, b, l]
-  stopLoadOnScroll: true,
+  deferLoadOnScroll: true,
   trackVisibility: true
 }
 ```
@@ -1648,11 +1780,11 @@ how far beyond the viewport an object still counts as visible, in px. Widen it t
 
 <br />
 
-<details><summary><code><b>stopLoadOnScroll</b></code></summary><br /><ul><div>
+<details><summary><code><b>deferLoadOnScroll</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-stopLoadOnScroll: true;
+deferLoadOnScroll: true;
 ```
 
 <b>Description:</b><em><br />
@@ -1661,7 +1793,7 @@ holds new objects back while the scroll is moving and lets them in once it stops
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} render={{ mode: "lazy", stopLoadOnScroll: true }}>
+<MorphScroll {...props} render={{ mode: "lazy", deferLoadOnScroll: true }}>
   {children}
 </MorphScroll>
 ```
@@ -1738,7 +1870,7 @@ It will be used when:
 
 <ul>
   <li><code>suspending</code> is set to <b>true</b>.</li>
-  <li><code>render.stopLoadOnScroll</code> is set to <b>true</b>.</li>
+  <li><code>render.deferLoadOnScroll</code> is set to <b>true</b>.</li>
   <li><code>objects.empty.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
 </ul>
 </em><br />
@@ -1758,16 +1890,27 @@ It will be used when:
 ###### **— EVENTS —**
 
 <details><summary><b><code>onScrollPosition</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+onScrollPosition: (left, top, max) => {};
+```
+
 <b>Description:</b><em><br />
-accepts a callback function that is triggered on every scroll event. The callback receives the current scroll top and left position as a <b>number</b>. The return value of the callback can be used to determine custom behavior based on the scroll value.</em><br />
+runs on every scroll event with the current offsets, and with how far each axis can go.<br />
+<br />
+That third argument is what makes a "load more" out of this without a prop for it: how far the end is, is <code>max</code> minus the position, and nothing outside the component has to know the length of the content. With <code>render</code> or <code>objects.size: "auto"</code> nothing outside <b>can</b> know it — the objects are not in the document, or their sizes were measured here.<br />
+<br />
+✦ Note:<br />
+in <code>loop</code> the content has no end, and <code>max</code> measures the strip of copies rather than one turn.</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
 <MorphScroll {...props}
-  onScrollPosition={
-    (left, top) => console.log("Scroll position:", left, top),
-  }
+  onScrollPosition={(left, top, max) => {
+    if (max.y - top < 300) loadMore();
+  }}
 >
   {children}
 </MorphScroll>

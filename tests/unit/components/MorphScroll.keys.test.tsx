@@ -15,7 +15,7 @@ const items = (n: number) =>
 
 const mount = (props: Record<string, unknown>, count = 12) => {
   const utils = render(
-    <MorphScroll objects={{ size: 300, crossCount: 1 }} size={[300, 300]} {...props}>
+    <MorphScroll objects={{ size: 300, lines: 1 }} size={[300, 300]} {...props}>
       {items(count)}
     </MorphScroll>,
   );
@@ -96,7 +96,7 @@ describe("MorphScroll — controls.keys", () => {
 
   it("leaves the arrows to a text field inside the scroll", async () => {
     const { container } = render(
-      <MorphScroll objects={{ size: 300, crossCount: 1 }}
+      <MorphScroll objects={{ size: 300, lines: 1 }}
         size={[300, 300]}
         controls={{ keys: { mode: "pan" } }}
       >

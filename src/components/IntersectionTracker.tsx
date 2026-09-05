@@ -1,6 +1,8 @@
 import React from "react";
 import type { IntersectionTracker as IntersectionTrackerProps } from "../types/types";
-import numOrArrFormat from "../helpers/argsFormatter";
+import argsFormatter from "../helpers/argsFormatter";
+import useEvent from "../hooks/useEvent";
+import stabilize from "../helpers/stabilize";
 
 /**---
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
@@ -36,16 +38,33 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
 }) => {
   const observableElement = React.useRef<HTMLDivElement | null>(null);
 
+  /*
+   * Значения сравниваем по содержимому, а не по ссылке: `threshold={[0, 1]}`
+   * написанный прямо в пропсах — новый массив на каждый рендер, и наблюдатель
+   * пересоздавался бы, хотя просят у него ровно то же самое.
+   */
+  const [thresholdST, styleST] = stabilize(threshold, style);
+
   const rootMarginStr = React.useMemo(() => {
     if (!rootMargin) return "";
-    const margin = numOrArrFormat(rootMargin);
+
+    const margin = argsFormatter(rootMargin);
     return `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`;
   }, [rootMargin]);
 
-  const callback = React.useCallback(
-    ([entry]: IntersectionObserverEntry[]) => {
-      if (onIntersection) {
-        onIntersection({
+  // колбэк живёт в ссылке — наблюдателю незачем знать, что он поменялся
+  const report = useEvent(onIntersection);
+
+  const thresholdRef = React.useRef(threshold);
+  thresholdRef.current = threshold;
+
+  React.useEffect(() => {
+    const element = observableElement.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        report({
           time: entry.time,
           rootBounds: entry.rootBounds,
           boundingClientRect: entry.boundingClientRect,
@@ -53,34 +72,24 @@ const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
           isIntersecting: entry.isIntersecting,
           intersectionRatio: entry.intersectionRatio,
           target: entry.target,
-        });
-      }
-    },
-    [onIntersection],
-  );
+        } as IntersectionObserverEntry);
+      },
+      { root, threshold: thresholdRef.current, rootMargin: rootMarginStr },
+    );
 
-  React.useEffect(() => {
-    const observer = new IntersectionObserver(callback, {
-      root,
-      threshold,
-      rootMargin: rootMarginStr,
-    });
+    observer.observe(element);
 
-    if (observableElement.current) {
-      observer.observe(observableElement.current);
-    }
+    return () => observer.disconnect();
+  }, [report, root, thresholdST, rootMarginStr]);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [callback, root, threshold, rootMarginStr]);
+  const boxStyle = React.useMemo(() => style, [styleST]);
 
   return (
     <div
       intersection-tracker=""
       className={className}
       ref={observableElement}
-      style={style}
+      style={boxStyle}
     >
       {children}
     </div>
