@@ -13,7 +13,7 @@ const said = (part: string) =>
   error.mock.calls.some((call) => String(call[0]).includes(part));
 
 beforeEach(() => {
-  error = vi.spyOn(console, "error").mockImplementation(() => {});
+  error = vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 afterEach(() => error.mockRestore());
 
@@ -96,7 +96,7 @@ describe("loop", () => {
       </MorphScroll>,
     );
 
-    expect(said("the circle does not have")).toBe(true);
+    expect(said("does not work with stickToEnd")).toBe(true);
   });
 
   /*
@@ -116,7 +116,7 @@ describe("loop", () => {
       </MorphScroll>,
     );
 
-    expect(said("a fraction of a turn")).toBe(true);
+    expect(said("does not work with controls.bar")).toBe(true);
   });
 
   it("на свой узел в баре не ругается", () => {

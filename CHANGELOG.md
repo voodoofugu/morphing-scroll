@@ -456,6 +456,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Changed
 
+- messages about a combination that cannot work are **warnings**, not errors,
+  and they are short: what does not go with what, and what to do instead. Each
+  is prefixed `[MS n]` so it stands out in a busy console, `n` telling one
+  scroll on the page from another. A missing `size` is still an error — there
+  is nothing to build without it.
 - a group is an attribute on the child — `ms-group="news"` — read straight off
   the element, rather than a name packed into its `key`. The key says which
   object this is; a second meaning in the same string breaks on every key that
@@ -588,6 +593,11 @@ themselves are no longer transformed and can be positioned from CSS.
 
 ### Fixed
 
+- **an arrow could jump two pages back.** Where the content does not divide
+  into whole windows the position rests against the end rather than on a page,
+  and the page under it was counted downwards — so a step back skipped the
+  page it was standing past. The count now rounds toward the step: forward
+  goes to the station ahead, back to the one behind, and neither skips.
 - **a right-to-left list drew nothing where the strip was wide.** The window
   was asked for by the position as the markup counts it, while the objects lie
   mirrored — so the question landed on the other side of the strip and came

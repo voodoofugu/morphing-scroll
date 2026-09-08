@@ -103,7 +103,7 @@ const items = (n: number, prefix = "item") =>
     </div>
   ));
 
-const quiet = () => vi.spyOn(console, "error").mockImplementation(() => {});
+const quiet = () => vi.spyOn(console, "warn").mockImplementation(() => {});
 
 const errorsOf = (spy: ReturnType<typeof quiet>) =>
   spy.mock.calls.map((c) => String(c[0]));
@@ -478,7 +478,7 @@ describe("MorphScroll — findings", () => {
       );
 
     const complaints = errorsOf(spy).filter((m) =>
-      /cannot be counted/.test(m),
+      /countable objects\.size/.test(m),
     );
     spy.mockRestore();
 

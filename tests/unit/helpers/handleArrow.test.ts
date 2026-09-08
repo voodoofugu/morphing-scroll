@@ -36,10 +36,22 @@ describe("handleArrow", () => {
     expect(smoothScroll).toHaveBeenCalledWith(300, "y", 200);
   });
 
-  it("top: pages one viewport up from a scrolled position", () => {
+  /*
+   * Стрелка ведёт на соседнюю станцию, а не на страницу от текущего места.
+   * Стоя между станциями, назад мы идём на ту, что позади: округляем в
+   * сторону шага. Округляя всегда вниз, эту станцию перепрыгивали — а у
+   * зажатого конца, где позиция всегда между, это было видно каждый раз.
+   */
+  it("top: goes back to the station just behind", () => {
     const { smoothScroll, base } = setup({ scrollTop: 350 });
     handleArrow({ ...base, arrowType: "top" });
-    // page = floor(350/300)=1 -> next 0 -> 0
+    // между 300 и 600: позади — 300
+    expect(smoothScroll).toHaveBeenCalledWith(300, "y", 200);
+  });
+
+  it("top: from a station goes a whole page back", () => {
+    const { smoothScroll, base } = setup({ scrollTop: 300 });
+    handleArrow({ ...base, arrowType: "top" });
     expect(smoothScroll).toHaveBeenCalledWith(0, "y", 200);
   });
 

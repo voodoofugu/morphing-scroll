@@ -297,6 +297,10 @@ export type MorphScroll = {
    * pages would make the progress lie about where you are. They are for a
    * handful of pages; for a list that keeps going, `mode="scroll"` shows the
    * same position in one thumb*
+   * @note *a page is one window, so content that does not divide into whole
+   * windows ends on a short one: the last turn stops against the end rather
+   * than on a page of its own. Sizing the objects so a whole number of them
+   * fills the window — or `objects.size: "full"` — keeps every page equal*
    */
   mode?: "scroll" | "slider" | "sliderMenu";
   /**

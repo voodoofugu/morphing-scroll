@@ -75,7 +75,12 @@ const handleArrow = ({
     const position = (dir === "x" ? left : top) - period;
     const step = stepOf(dir);
 
-    const page = loopPageAt(Math.max(0, position), step, 1);
+    /*
+     * Округляем в сторону шага. Всегда вниз было неверно у зажатого конца:
+     * там позиция стоит за последней целой страницей, а вниз её считали
+     * предпоследней — и шаг назад перепрыгивал через страницу.
+     */
+    const page = loopPageAt(Math.max(0, position), step, delta);
     const nextPage = page + delta;
 
     // целим в целое: иначе следующий шаг снова окажется под границей

@@ -14,7 +14,7 @@ const items = (n = 5) =>
 let error: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
-  error = vi.spyOn(console, "error").mockImplementation(() => {});
+  error = vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 afterEach(() => {
   error.mockRestore();
@@ -31,7 +31,7 @@ describe('objects.size: "auto"', () => {
       </MorphScroll>,
     );
 
-    expect(said("pages need one size for all")).toBe(true);
+    expect(said('does not work with mode: "slider"')).toBe(true);
   });
 
   /*
@@ -136,7 +136,7 @@ describe('objects.size: "auto"', () => {
       </MorphScroll>,
     );
 
-    expect(said("how many lines there will be")).toBe(true);
+    expect(said("needs a known number of lines")).toBe(true);
   });
 
   /*
@@ -150,7 +150,7 @@ describe('objects.size: "auto"', () => {
       </MorphScroll>,
     );
 
-    expect(said("gives the order up for the fit")).toBe(true);
+    expect(said("a fill has none")).toBe(true);
   });
 
   it("молчит на row: это порядок по умолчанию, и он выполним всегда", () => {
@@ -180,7 +180,7 @@ describe('objects.size: "auto"', () => {
       </MorphScroll>,
     );
 
-    expect(said("needs a known objects.size")).toBe(false);
+    expect(said("countable objects.size")).toBe(false);
   });
 
   it("раскладывает объекты абсолютно и задаёт только заданную сторону", () => {

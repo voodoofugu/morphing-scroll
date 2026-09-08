@@ -559,7 +559,7 @@ for (const { name, config } of cases)
        */
       const text = msg.text();
 
-      if (msg.type() === "error" && !text.includes("morph-scroll"))
+      if (msg.type() === "error" && !text.includes("[MS "))
         noise.push(`console.error: ${text}`);
     });
 

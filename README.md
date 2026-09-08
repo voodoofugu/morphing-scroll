@@ -55,6 +55,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Two things happen without being asked for, because a scroll that skipped them would be wrong rather than minimal:
 >   - content that loads **above** the reader does not push them down — the object they were looking at stays where it was, which is what a browser does for its own scrolling and what this one has to do itself;
 >   - when the system asks for less motion, every move the library makes on its own arrives at once instead of animating — a drag still follows the finger, since that is not animation.
+> - When a combination cannot work, the library says so once — as a warning, prefixed `[MS n]`, where `n` tells one scroll on the page from another. It says what does not go with what and keeps running, in whatever way is left; the only thing it refuses outright is a missing `size`, without which there is nothing to build.
 > - With DevTools open the scroll can feel slower: the customization keeps the DOM changing, and the browser spends extra work reporting every change to the panel. It is an artefact of being watched — with DevTools closed, which is how the page is actually used, none of that cost exists.
 
 <h2></h2>
@@ -127,7 +128,9 @@ displays distinct elements indicating the number of full scroll steps within the
 <code><b>sliderMenu</b></code>:<br />
 like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
 <br />
-Both draw one element per page, so the count follows the content: a long list makes a long strip of them, and past a point it outgrows the scroll it belongs to. There is no cap on purpose — hiding pages would make the progress lie about where you are. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.</em><br />
+Both draw one element per page, so the count follows the content: a long list makes a long strip of them, and past a point it outgrows the scroll it belongs to. There is no cap on purpose — hiding pages would make the progress lie about where you are. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
+<br />
+A page is one window. Content that does not divide into whole windows ends on a short one: the last turn stops against the end rather than on a page of its own, and the page before it is a window away rather than a page away. Nothing breaks — the turns stay reversible — but the spacing of the last two is uneven. Sizing the objects so a whole number of them fills the window, or handing them the window with <code>objects.size: "full"</code>, keeps every page equal.</em><br />
 <br />
 <b>Example:</b>
 

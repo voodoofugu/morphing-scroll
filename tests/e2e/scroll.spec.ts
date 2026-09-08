@@ -427,3 +427,65 @@ test.describe("MorphScroll: a gesture handed outward mid-move", () => {
     expect(outerEnd.at).toBeGreaterThan(100);
   });
 });
+
+/*
+ * Содержимое редко делится на окно нацело: последняя страница выходит короче
+ * прочих, и позиция там прижата к концу, а не стоит на целой странице.
+ * Отсчитывать от неё вниз нельзя — шаг назад перепрыгивал через страницу.
+ */
+test.describe("MorphScroll: a last page shorter than the rest", () => {
+  const at = (page: import("@playwright/test").Page) =>
+    page.locator(".ms-viewport").evaluate((el) => Math.round(el.scrollLeft));
+
+  const step = async (
+    page: import("@playwright/test").Page,
+    side: "left" | "right",
+  ) => {
+    await page.evaluate(
+      (to) =>
+        (
+          window as unknown as { __ms: { step: (s: string) => void } }
+        ).__ms.step(to),
+      side,
+    );
+    await page.waitForTimeout(350);
+  };
+
+  test("stepping back from the end goes one page, not two", async ({
+    page,
+  }) => {
+    const props = {
+      count: 12,
+      size: [680, 200],
+      direction: "x",
+      mode: "slider",
+      objects: { size: 170, gap: 12 },
+      controls: { wheel: true, bar: "@dot" },
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+    await page.waitForTimeout(350);
+
+    const forward: number[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      await step(page, "right");
+      forward.push(await at(page));
+    }
+
+    const back: number[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      await step(page, "left");
+      back.push(await at(page));
+    }
+
+    // последний шаг вперёд упирается в конец, он короче страницы
+    expect(forward[2]).toBeGreaterThan(forward[1]);
+
+    // а назад идём теми же станциями, ни одной не пропустив
+    expect(back).toEqual([forward[1], forward[0], 0]);
+  });
+});

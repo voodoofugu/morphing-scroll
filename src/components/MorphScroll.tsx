@@ -201,11 +201,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const triggerRAF = () => raf.schedule("triggerUpdate", triggerUpdate); // по-кадрово оптимизированный triggerUpdate
 
     // ♦ errors
-    const errorTextEnd = `\n  morph-scroll ${id}`;
-    const errorText = (propName: string) =>
-      `prop "${propName}" is not provided${errorTextEnd}`;
+    /*
+     * Подпись у всех сообщений одна и стоит впереди: в общей консоли их надо
+     * узнавать с первого взгляда, а не вычитывать хвост. Номер экземпляра
+     * остаётся — по нему видно, который из нескольких скроллов на странице.
+     */
+    const mark = `[MS ${id}]`;
 
-    if (!size) throw new Error(errorText("size"));
+    if (!size) throw new Error(`${mark} size is required`);
 
     /*
      * Жалуемся один раз на сообщение, а не один раз на рендер.
@@ -217,11 +220,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const complained = React.useRef<Set<string>>(new Set());
 
+    /*
+     * Предупреждение, а не ошибка: сочетание негодное, но библиотека работает
+     * дальше — просто не так, как просили. Ошибкой здесь остаётся только
+     * отсутствие `size`, без которого строить нечего.
+     */
     const complain = (message: string) => {
       if (complained.current.has(message)) return;
 
       complained.current.add(message);
-      console.error(`${message}${errorTextEnd}`);
+      console.warn(`${mark} ${message}`);
     };
 
     /*
@@ -243,13 +251,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       if (nativeBar)
         complain(
-          `loop and controls.bar: true pull against each other: the browser draws its own bar over the strip, and the strip is a few copies of the content — the thumb comes out a fraction of a turn and jumps under the finger every time the position moves. Pass an element instead and the bar shows the turn`,
+          `loop does not work with controls.bar: true — pass a bar element instead`,
         );
 
       if (stickToEnd)
-        complain(
-          `loop and stickToEnd pull against each other: one keeps the window in the circle, the other drives it to an end the circle does not have — stickToEnd is ignored here`,
-        );
+        complain(`loop does not work with stickToEnd — it is ignored`);
     }
 
     // ♦ refs
@@ -382,7 +388,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       !controlsLocal.arrows
     )
       complain(
-        `prop "controls" leaves nothing that can move the scroll: name at least one of wheel, drag, keys, bar, arrows`,
+        `controls leaves nothing that can move the scroll — name one of wheel, drag, keys, bar, arrows`,
       );
 
     /*
@@ -778,14 +784,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     if (asked.length && !countable)
       complain(
-        `${asked.join(", ")} ${asked.length > 1 ? "place" : "places"} objects by counting their size, and a side left to your own CSS is the one side that cannot be counted — so ${asked.length > 1 ? "they are" : "it is"} off and the objects keep their CSS layout. Give objects.size a number, or "auto" to have them measured`,
+        `${asked.join(", ")} ${
+          asked.length > 1 ? "do" : "does"
+        } not work without a countable objects.size — give it a number or "auto"`,
       );
 
     if (isEach) {
       if (mode !== "scroll")
-        complain(
-          `objects.size: "auto" gives objects their own size, and pages need one size for all — "${mode}" cannot turn them`,
-        );
+        complain(`objects.size: "auto" does not work with mode: "${mode}"`);
 
       /*
        * Линию надо обо что-то оборвать, а при `hybrid` едут обе стороны:
@@ -794,7 +800,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        */
       if (isHybrid && !lines)
         complain(
-          `objects.size: "auto" with direction="hybrid" needs objects.lines: both ways scroll, so nothing else says where a line ends`,
+          `objects.size: "auto" with direction: "hybrid" needs objects.lines`,
         );
     }
 
@@ -837,11 +843,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     if (isEach && wantsSplit && !eachOrderable && objects && "order" in objects)
       complain(
-        `objects.order: "${objectsOrder}" fills the first line to its end before the next one starts, and ${
+        `objects.order: "${objectsOrder}" needs a known number of lines — ${
           eachLayout === "fill"
-            ? `handing both sides to the objects gives the order up for the fit`
-            : `nothing here says how many lines there will be`
-        } — name objects.lines`,
+            ? `a fill has none, it gives the order up for the fit`
+            : `name objects.lines`
+        }`,
       );
 
     const objectsSizeLocal = React.useMemo(() => {

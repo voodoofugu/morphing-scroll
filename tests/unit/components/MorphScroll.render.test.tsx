@@ -31,7 +31,7 @@ const boxes = (container: HTMLElement) =>
 
 describe("MorphScroll — mounting & children", () => {
   it("throws when the required size prop is missing", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     // size={0} is falsy -> the guard throws
     expect(() =>
       render(<MorphScroll size={0 as unknown as number}>{items(3)}</MorphScroll>),
@@ -127,7 +127,7 @@ describe("MorphScroll — render: virtual / lazy", () => {
   });
 
   it("logs an error when render is combined with a size left to CSS", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
       <MorphScroll objects={{ gap: 10 }} size={SIZE} render="virtual">
         {items(3)}
@@ -370,7 +370,7 @@ describe("MorphScroll — controls shorthand", () => {
   });
 
   it("leaves an empty config alone — the wheel is in it by default", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
       <MorphScroll objects={{ size: OBJ }} size={SIZE} controls={[]}>
         {boxes3()}
@@ -381,7 +381,7 @@ describe("MorphScroll — controls shorthand", () => {
   });
 
   it("warns when nothing in the config can move the scroll", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
       <MorphScroll
         objects={{ size: OBJ }}
@@ -449,7 +449,7 @@ describe("MorphScroll — render без размера объекта", () => {
     Array.from({ length: 6 }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
   const warnsFor = (objects?: Record<string, unknown>) => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { unmount } = render(
       <MorphScroll size={[300, 300]} objects={objects} render="virtual">
         {items()}
