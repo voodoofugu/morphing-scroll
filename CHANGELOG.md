@@ -604,6 +604,13 @@ themselves are no longer transformed and can be positioned from CSS.
   that did not exist, and the result was an empty box. The trick is given up
   now instead of the content: the objects keep their CSS layout, every one of
   them stays mounted, and one message names exactly what was switched off.
+- **turning the reading around on a live scroll left the reader at the other
+  end.** The position in the markup stayed where it was while its meaning
+  flipped, so someone reading the start of the list ended up at its end, and
+  the progress mark jumped along with it. The place in the list is kept now,
+  which is the thing being read; the mark follows, because the page it shows
+  is computed with the reading side that is current rather than the one that
+  was captured.
 - **a slider's page strip ran the opposite way to its list.** The dots were
   laid left to right whatever the list did, so the first page's dot sat at the
   far end from the first card and the mark looked wrong the moment the scroll

@@ -62,20 +62,39 @@ const look = (page: Page) =>
  */
 const settle = async (page: Page) => {
   let was = "";
+  let still = 0;
 
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 30; i++) {
     await page.waitForTimeout(80);
 
     const now = await page.evaluate(() => {
       const view = document.querySelector<HTMLElement>(".ms-viewport");
       const wrap = document.querySelector<HTMLElement>(".ms-objects-wrapper");
 
-      return `${document.querySelectorAll(".ms-object-box").length}:${Math.round(
-        view?.scrollLeft ?? 0,
-      )}:${Math.round(wrap?.getBoundingClientRect().width ?? 0)}`;
+      const bar = document.querySelector(".ms-slider");
+      const items = bar ? [...bar.querySelectorAll(".ms-slider-item")] : [];
+
+      return [
+        document.querySelectorAll(".ms-object-box").length,
+        Math.round(view?.scrollLeft ?? 0),
+        Math.round(wrap?.getBoundingClientRect().width ?? 0),
+        // пометка приезжает позже позиции — без неё «устоялось» приходит рано
+        items.findIndex((el) => el.classList.contains("ms-active")),
+        // и место первого объекта: при измеряемом размере оно едет дольше всех
+        Math.round(
+          document
+            .querySelector<HTMLElement>(".ms-object-box")
+            ?.getBoundingClientRect().left ?? 0,
+        ),
+      ].join(":");
     });
 
-    if (now === was && i > 1) return;
+    /*
+     * Трёх одинаковых замеров подряд: раскладку рисуют пачками, и между двумя
+     * пачками она стоит неподвижно, ещё не доехав.
+     */
+    still = now === was ? still + 1 : 0;
+    if (still >= 2 && i > 2) return;
 
     was = now;
   }
@@ -365,6 +384,97 @@ test.describe("бегунок", () => {
     expect(Number(after[after.length - 1])).toBeGreaterThan(
       Number(before[before.length - 1]),
     );
+  });
+});
+
+/*
+ * Сторону чтения меняют и на живом скролле. Позиция в разметке при этом
+ * остаётся прежней, а значить начинает противоположное: читавший начало
+ * списка оказывался в его конце, а точка прогресса загоралась чужая.
+ */
+test.describe("переключение на живом скролле", () => {
+  const RIG: Config = {
+    count: 40,
+    size: [680, 430],
+    direction: "hybrid",
+    mode: "slider",
+    objects: { size: 170, gap: 12, lines: 20 },
+    wrapper: { margin: [12, 12, 12, 12] },
+    controls: { wheel: true, bar: "@dot" },
+    render: { mode: "virtual", rootMargin: 200 },
+    loop: true,
+  };
+
+  const look = (page: Page) =>
+    page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = view.getBoundingClientRect();
+      const bar = document.querySelector<HTMLElement>(".ms-slider")!;
+      const items = [...bar.querySelectorAll(".ms-slider-item")];
+
+      return {
+        at: Math.round(view.scrollLeft),
+        active: items.findIndex((el) => el.classList.contains("ms-active")),
+        row: [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+          .map((el) => ({ n: el.textContent ?? "", r: el.getBoundingClientRect() }))
+          .filter(
+            ({ r }) =>
+              r.right > box.left + 1 &&
+              r.left < box.right - 1 &&
+              r.bottom > box.top + 1 &&
+              r.top < box.bottom - 1,
+          )
+          .sort((one, two) => one.r.left - two.r.left)
+          .map(({ n }) => n),
+      };
+    });
+
+  const set = async (page: Page, props: Config) => {
+    await page.evaluate(
+      (next) =>
+        (window as unknown as { __set: (v: string) => void }).__set(next),
+      JSON.stringify(props),
+    );
+    await settle(page);
+  };
+
+  const switched = (config: Config) =>
+    `/?scenario=crashSwitch&props=${encodeURIComponent(JSON.stringify(config))}`;
+
+  test("включение приводит туда же, куда приводит загрузка", async ({
+    page,
+  }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+
+    const fresh = await look(page);
+
+    await page.goto(switched(RIG));
+    await settle(page);
+    await set(page, { ...RIG, fromRight: true });
+
+    const toggled = await look(page);
+
+    expect(toggled.at).toBe(fresh.at);
+    expect(toggled.active).toBe(fresh.active);
+    expect(toggled.row).toEqual(fresh.row);
+  });
+
+  /* и обратно: читавший начало списка остаётся на его начале */
+  test("выключение возвращает к тому же месту списка", async ({ page }) => {
+    await page.goto(switched(RIG));
+    await settle(page);
+
+    const before = await look(page);
+
+    await set(page, { ...RIG, fromRight: true });
+    await set(page, RIG);
+
+    const after = await look(page);
+
+    expect(after.at).toBe(before.at);
+    expect(after.active).toBe(before.active);
+    expect(after.row).toEqual(before.row);
   });
 });
 

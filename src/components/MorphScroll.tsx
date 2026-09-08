@@ -2414,6 +2414,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       mode,
       objLengthPerSize.join(),
       loopPeriods.join(),
+      // сторона чтения и диапазон входят в перевод позиции в страницу
+      flipsX,
+      maxScrollSize[0],
     ]);
 
     const onRenderedKeysChangeUpdate = React.useCallback(
@@ -3203,6 +3206,44 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        */
       scrollElementRef.current.scrollLeft = maxScrollSize[0];
     }, [flipsX, maxScrollSize[0], initialTarget]);
+
+    /*
+     * Сторону чтения меняют и на живом скролле. Позиция в разметке при этом
+     * остаётся прежней, а значить начинает противоположное: читавший начало
+     * списка оказывался в его конце, и точка прогресса перещёлкивалась туда
+     * же. Держим место в списке, а не в разметке, — оно и есть то, что читают.
+     *
+     * Отражение само себе обратно, поэтому одно и то же движение годится в
+     * обе стороны.
+     */
+    const wasFlipped = React.useRef(flipsX);
+
+    React.useLayoutEffect(() => {
+      const before = wasFlipped.current;
+
+      if (before === flipsX) return;
+
+      wasFlipped.current = flipsX;
+
+      const scrollEl = scrollElementRef.current;
+      const most = maxScrollSize[0];
+
+      if (!scrollEl || most <= 0) return;
+
+      /*
+       * Куда встать, называем местом в списке и отдаём той же команде, что и
+       * `scrollTo`. Отразить позицию на месте нельзя: в круге она вдобавок
+       * свёрнута по периоду, и простое `max - позиция` промахивается на
+       * остаток — точка прогресса после переключения загоралась чужая.
+       */
+      const at = scrollEl.scrollLeft;
+
+      applyScrollPositionRef.current(
+        [before ? most - at : at, null],
+        0,
+        false,
+      );
+    }, [flipsX, maxScrollSize[0]]);
 
     /*
      * Круг открывается со средней копии, а не с самого начала ленты: из нуля
