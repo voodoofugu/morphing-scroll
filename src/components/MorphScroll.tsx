@@ -858,7 +858,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         receivedSize: number,
         sizeLocal: number,
       ) =>
-        receivedSize
+        /*
+         * Измеренное берём только там, где его и просили: измеряет первого
+         * ребёнка `"firstChild"`, и лишь он. Иначе однажды снятая мерка
+         * держалась и после того, как размер назвали числом, — и сторона,
+         * названная числом рядом с `"firstChild"`, тоже вставала по мерке.
+         */
+        val === "firstChild" && receivedSize
           ? receivedSize
           : typeof val === "number"
             ? val
@@ -1382,6 +1388,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     listXRef.current = listX;
 
+    /*
+     * Где мы в списке — не в разметке. Начало развёрнутого списка стоит у
+     * правого края содержимого, и стоит содержимому вырасти или ужаться, как
+     * прежняя позиция в разметке начинает означать другое место списка. К
+     * тому же ужавшееся содержимое браузер тут же обрезает по новому пределу,
+     * и восстанавливать потом уже нечего. Держим место здесь.
+     */
+    const listPlaceRef = React.useRef(0);
+
     const scrollSpaceFromRef =
       direction === "x"
         ? scrollElementRef.current?.scrollLeft || 0
@@ -1457,10 +1472,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Направление стирается через SCROLL_END_DELAY, и при медленной прокрутке
      * пауза успевала стереть его раньше, чем дорастал контент: человека, уже
      * читающего историю, выбрасывало обратно вниз.
+     *
+     * Считаем всегда, а не только пока правило включено. Выключенное правило
+     * ничего не спрашивало — и отметка оставалась той, с которой скролл
+     * родился: «у конца». Включённое посреди чтения оно по ней и срабатывало,
+     * унося вниз того, кто давно ушёл вверх.
      */
     const updateAtEnd = (allow: (dir: "x" | "y") => boolean = () => true) => {
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl || !(stickLocal[0] || stickLocal[1])) return;
+      if (!scrollEl) return;
 
       const near = (pos: number, end: number) =>
         pos >= end - CONST.END_STICK_THRESHOLD;
@@ -1510,6 +1530,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       loopLocal?.x?.period ?? 0,
       loopLocal?.y?.period ?? 0,
     ];
+
+    /*
+     * Место внутри оборота, считанное по списку. Круг ведь можно и выключить:
+     * лента тогда сворачивается в одну копию, и позицию браузер обрезает по
+     * новому пределу — к тому моменту, когда об этом узнает эффект, от места,
+     * которое читали, в разметке не остаётся ничего. Держим его здесь.
+     */
+    const loopPlaceRef = React.useRef<[number, number]>([0, 0]);
 
     const barAt = (axis: 0 | 1) => {
       const at =
@@ -2076,8 +2104,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsSizing[1],
       loopedHeight,
       loopedWidth,
-      gapST,
       renderMode,
+      // по координатам объекты кладутся абсолютно, и обёртке нужен свой отсчёт
+      byCoords,
       direction,
       objectsPerDirection[0],
       objectsOrder,
@@ -2247,6 +2276,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         gapLocal.join(),
         objLengthPerSize,
         maxScrollSize.join(),
+        // сторона чтения входит в перевод позиции — без неё жест считает по старой
+        flipsX,
       ],
     );
 
@@ -2392,6 +2423,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         gapLocal[0],
         gapLocal[1],
         emitNavigate,
+        flipsX,
+        maxScrollSize[0],
       ],
     );
 
@@ -2549,6 +2582,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 (box as HTMLElement).style.transition = "none";
             }
           });
+
+          /*
+           * И запоминаем, где мы внутри оборота: пригодится, если круг
+           * выключат — по разметке этого потом уже не восстановить.
+           */
+          rounds.forEach((round, axis) => {
+            if (!round) return;
+
+            const at =
+              axis === 0
+                ? listXRef.current(scrollEl.scrollLeft)
+                : scrollEl.scrollTop;
+
+            loopPlaceRef.current[axis] =
+              ((at % round.period) + round.period) % round.period;
+          });
         }
 
         /*
@@ -2564,8 +2613,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * уже прочитаны scrollLeft и scrollTop: раскладка на этот момент
          * посчитана, лишнего пересчёта не будет.
          */
+        listPlaceRef.current = listXRef.current(scrollEl.scrollLeft);
+
         onScrollPosition?.(
-          listXRef.current(scrollEl.scrollLeft),
+          listPlaceRef.current,
           scrollEl.scrollTop,
           {
             x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
@@ -3127,6 +3178,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         endObjectsWrapper.h,
         smoothScrollLocal,
         loopTarget,
+        flipsX,
+        maxScrollSize[0],
       ],
     );
 
@@ -3252,6 +3305,32 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [flipsX, maxScrollSize[0]]);
 
     /*
+     * Содержимое развёрнутого списка растёт и ужимается от чего угодно: рядов
+     * стало меньше, появились поля, пришли новые дети. Диапазон при этом
+     * меняется, а вместе с ним и то, какое место списка стоит под окном, —
+     * читающего уносило, хотя он ничего не делал. Возвращаем его на то же
+     * место списка: в разметке это другое число.
+     *
+     * Кругу этого не нужно: там ту же работу делает счёт по обороту.
+     */
+    const lastMost = React.useRef(maxScrollSize[0]);
+
+    React.useLayoutEffect(() => {
+      const was = lastMost.current;
+      const most = maxScrollSize[0];
+
+      lastMost.current = most;
+
+      if (!flipsX || loopLocal) return;
+      if (was === most || was <= 0 || most <= 0) return;
+
+      const scrollEl = scrollElementRef.current;
+      if (!scrollEl) return;
+
+      scrollEl.scrollLeft = Math.max(0, most - listPlaceRef.current);
+    }, [flipsX, maxScrollSize[0], loopLocal]);
+
+    /*
      * Круг открывается со средней копии, а не с самого начала ленты: из нуля
      * назад не уехать, там край, — и круг бы им и кончился. Ставим один раз на
      * период, а дальше позицию водит подмена в обработчике прокрутки.
@@ -3310,9 +3389,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const loopStartRef = React.useRef("");
     React.useEffect(() => {
       const scrollEl = scrollElementRef.current;
-      if (!loopLocal || !scrollEl) return;
+      if (!scrollEl) return;
 
-      const mark = loopPeriods.join();
+      const mark = loopLocal ? loopPeriods.join() : "";
       if (loopStartRef.current === mark) return;
 
       const was = loopStartRef.current
@@ -3320,6 +3399,25 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         : null;
 
       loopStartRef.current = mark;
+
+      /*
+       * Круг кончился. Читавшего оставляли там, куда пришлась обрезка ленты, —
+       * а это её конец, а не то место, которое он читал. Ставим по
+       * запомненному месту внутри оборота: оно и есть место в списке.
+       */
+      if (!loopLocal) {
+        if (!was) return;
+
+        const [placeX, placeY] = loopPlaceRef.current;
+
+        applyScrollPositionRef.current(
+          [was[0] ? placeX : null, was[1] ? placeY : null],
+          0,
+          false,
+        );
+
+        return;
+      }
 
       /*
        * Период может смениться под ногами: при измеряемом размере что-то
@@ -3336,21 +3434,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? Math.min(Math.max(at - before, 0), period - 1)
           : 0;
 
-        /*
-         * У развёрнутого списка «начало оборота» лежит не в периоде: место
-         * внутри оборота считается там от правого края, и ставить по левому
-         * значило открывать список с середины. Просим то же, что просит
-         * `scrollTo`, — место в списке; оно посчитается по живым размерам, а
-         * здесь их может ещё не быть.
-         */
+        loopPlaceRef.current[axis] = inside;
+
         /*
          * У развёрнутого списка место внутри оборота считается от правого
-         * края, и ставить по левому значило открывать список с середины.
-         * Первое открытие делает эффект, дожидающийся размеров, а смену
-         * периода досчитываем командой — размеры к тому времени есть.
+         * края, и ставить его по левому значило открывать список с середины.
+         * Просим то же, что просит `scrollTo`, — место в списке; оно
+         * посчитается по живым размерам.
+         *
+         * Первое открытие с уже готовым кругом делает эффект, дожидающийся
+         * размеров, — там их ещё может не быть. Круг, включённый позже, тот
+         * эффект уже не застанет: такой ставим отсюда, иначе лента вырастет, а
+         * позиция останется стоять по разметке и уедет от начала списка.
          */
         if (axis === 0 && flipsX) {
-          if (was) applyScrollPositionRef.current([inside, null], 0, false);
+          if (was || openedAtEnd.current)
+            applyScrollPositionRef.current([inside, null], 0, false);
 
           return;
         }
