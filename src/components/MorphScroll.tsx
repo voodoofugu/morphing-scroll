@@ -40,7 +40,12 @@ import {
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
 import createSizeStore from "../helpers/createSizeStore";
 import packObjects from "../helpers/packObjects";
-import { loopCopies, loopShift, loopPages } from "../helpers/loopWindow";
+import {
+  loopCopies,
+  loopShift,
+  loopPages,
+  loopPageAt,
+} from "../helpers/loopWindow";
 import type { PackLayout } from "../helpers/packObjects";
 import {
   updateLoadedElementsKeys,
@@ -2313,16 +2318,43 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       y: null,
     });
 
+    /*
+     * Страница, на которой стоим. Счёт один на всю библиотеку — им отчитывается
+     * `onNavigate`, по нему же горит точка слайдера: у списка справа налево
+     * страницы считаются от начала списка, а в круге — внутри оборота и по
+     * кольцу. Считая по разметке, отчёт называл номер из ленты, точка горела
+     * своим, и остановка после стрелки видела «страница другая» — на одно
+     * нажатие приходили два события.
+     */
+    const pageOf = React.useCallback(
+      (axis: "x" | "y", raw: number) => {
+        const el = scrollElementRef.current;
+        if (!el) return 0;
+
+        const isX = axis === "x";
+        const wh = isX ? 0 : 1;
+        const at = isX ? listXRef.current(raw) : raw;
+        const client = isX ? el.clientWidth : el.clientHeight;
+        const period = loopPeriods[wh];
+
+        if (!period) return pageAt(at, client, gapXY[wh]);
+
+        const { pages, step } = loopPages(period, client, gapXY[wh]);
+        const page = loopPageAt(at - period, step);
+
+        return pages > 0 ? ((page % pages) + pages) % pages : 0;
+      },
+      [gapLocal[0], gapLocal[1], loopPeriods.join()],
+    );
+
     const pageNow = React.useCallback(
       (axis: "x" | "y") => {
         const el = scrollElementRef.current;
         if (!el) return null;
 
-        return axis === "x"
-          ? pageAt(el.scrollLeft, el.clientWidth, gapXY[0])
-          : pageAt(el.scrollTop, el.clientHeight, gapXY[1]);
+        return pageOf(axis, axis === "x" ? el.scrollLeft : el.scrollTop);
       },
-      [gapLocal[0], gapLocal[1]],
+      [pageOf],
     );
 
     /*
@@ -3109,11 +3141,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const asList = (value: number) =>
           isX && flipsX ? listX(value) : value;
 
+        const at = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
+
         let target = asList(period + Math.round(index * step));
 
         // в круге едем к ближайшему из повторов, а не через весь оборот
         if (period) {
-          const at = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
           const ahead = (((target - at) % period) + period) % period;
 
           target = at + (ahead <= period / 2 ? ahead : ahead - period);
@@ -3121,12 +3154,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         smoothScrollLocal(target, axis, duration);
         raf.schedule("sliderCheckLocal", sliderCheckLocal);
+
+        /*
+         * Про нажатую точку известно всё и сразу — и откуда, и куда, — так что
+         * отчитываемся тут же, как отчитывается стрелка. Раньше ждали
+         * остановки заодно с протаскиванием бара, у которого место назначения
+         * и правда решается только при отпускании; нажатие же его знает, и
+         * ожидание было слышно: звук на смену страницы приходил после того,
+         * как страница уже сменилась.
+         *
+         * Цель округляем так же, как её округлит сама прокрутка: иначе
+         * записанная вперёд страница разойдётся с настоящей, и остановка
+         * отчиталась бы вторым, лишним событием.
+         */
+        const landed = Math.min(Math.max(target, 0), maxScrollSize[wh]);
+
+        emitNavigate("bar", axis, pageOf(axis, at), pageOf(axis, landed));
       },
       [
         loopPeriods.join(),
         gapXY.join(),
         sizeLocal.join(),
         markNavigate,
+        emitNavigate,
+        pageOf,
+        maxScrollSize.join(),
         smoothScrollLocal,
         duration,
         sliderCheckLocal,

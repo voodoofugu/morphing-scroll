@@ -70,6 +70,45 @@ test.describe("MorphScroll sliderMenu (real browser)", () => {
     expect(await navigateLog(page)).toHaveLength(1);
   });
 
+  /*
+   * И отчитывается нажатие сразу, а не по приезде. Звук на смену страницы
+   * вешают на это событие, и опоздав, он звучал уже после того, как страница
+   * сменилась: стрелка щёлкала под палец, а точка — вдогонку.
+   */
+  test("нажатие на точку отчитывается до конца переезда", async ({ page }) => {
+    const config = {
+      count: 6,
+      size: 300,
+      mode: "slider",
+      objects: { size: "full" },
+      controls: { bar: "@dot" },
+      duration: 1500, // длинный переезд: успеть спросить в дороге
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+    await expect(page.locator(".ms-slider-item.ms-active")).toHaveCount(1);
+
+    await page.locator(".ms-slider-item").nth(3).click();
+
+    // один заход в браузер: между двумя вопросами скролл успеет доехать
+    const inFlight = await page.evaluate(() => ({
+      log: ((window as unknown as { __navigate?: unknown[] }).__navigate ?? [])
+        .length,
+      top: document.querySelector<HTMLElement>(".ms-viewport")!.scrollTop,
+    }));
+
+    expect(inFlight.top, "скролл уже доехал — проверять нечего").toBeLessThan(
+      600,
+    );
+    expect(inFlight.log, "о переходе ещё не отчитались").toBe(1);
+
+    // и по приезде второго события не появляется
+    await expect.poll(() => scrollTopOf(page)).toBeGreaterThan(890);
+    expect(await navigateLog(page)).toHaveLength(1);
+  });
+
   test("onNavigate calls a wheel page turn a plain scroll", async ({ page }) => {
     await page.goto("/?scenario=sliderMenu");
     await expect(page.locator(".ms-slider-item.ms-active")).toHaveCount(1);

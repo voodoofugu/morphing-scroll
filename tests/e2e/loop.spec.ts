@@ -350,6 +350,132 @@ test.describe("loop (real browser)", () => {
     ).toBe(0);
   });
 
+  /*
+   * Страница в круге — та, что внутри оборота: её показывает точка, её же
+   * обязан называть отчёт. Считая по ленте, отчёт называл номер копии, а
+   * остановка после стрелки видела «страница другая» и отчитывалась второй
+   * раз — одно нажатие звучало дважды.
+   */
+  test("страницы круга считаются по кольцу, и одно нажатие — одно событие", async ({
+    page,
+  }) => {
+    const config = {
+      count: 5,
+      size: [300, 220],
+      direction: "x",
+      mode: "slider",
+      loop: true,
+      objects: { size: "full" },
+      controls: {
+        bar: "@dot",
+        arrows: { element: "@arrow", size: 30, reserveSpace: true },
+      },
+      duration: 40,
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+    await page.waitForTimeout(500);
+
+    const log = () =>
+      page.evaluate(
+        () =>
+          ((window as unknown as { __navigate?: unknown[] }).__navigate ??
+            []) as { reason: string; from: number; to: number }[],
+      );
+
+    const dot = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll(".ms-slider-item")].findIndex((el) =>
+          el.classList.contains("ms-active"),
+        ),
+      );
+
+    const forward = page.locator(".ms-arrow-box.ms-right");
+
+    // пять шагов — полный оборот: последний обязан завернуть с четвёртой на нулевую
+    for (let turn = 0; turn < 5; turn++) {
+      await forward.click();
+      await page.waitForTimeout(300);
+
+      const events = await log();
+
+      expect(events, `шаг ${turn}: одно нажатие — одно событие`).toHaveLength(
+        turn + 1,
+      );
+      expect(events.at(-1), `шаг ${turn}: страница по кольцу`).toMatchObject({
+        reason: "arrows",
+        from: turn,
+        to: (turn + 1) % 5,
+      });
+      expect(await dot(), `шаг ${turn}: отчёт разошёлся с точкой`).toBe(
+        (turn + 1) % 5,
+      );
+    }
+  });
+
+  /*
+   * Тот же счёт и у прицела по полосе страниц. Ближайший повтор нужной
+   * страницы может лежать до начала средней копии — позиция тогда стоит
+   * «на минус первой», и прицел сравнивал свёрнутый номер с развёрнутым:
+   * выходило событие с несуществующей страницей.
+   */
+  test("прицел по полосе страниц называет страницу оборота", async ({
+    page,
+  }) => {
+    const config = {
+      count: 5,
+      size: [300, 220],
+      direction: "x",
+      mode: "slider",
+      loop: true,
+      objects: { size: "full" },
+      controls: { bar: "@dot", drag: true },
+      duration: 40,
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+    await page.waitForTimeout(500);
+
+    // назад через край оборота: до средней копии ближе, чем вперёд через весь
+    await page.locator(".ms-slider-item").nth(4).click();
+    await page.waitForTimeout(400);
+
+    await page.evaluate(
+      () => ((window as unknown as { __navigate: unknown[] }).__navigate = []),
+    );
+
+    const bar = (await page.locator(".ms-slider").boundingBox())!;
+    const y = bar.y + bar.height / 2;
+
+    await page.mouse.move(bar.x + bar.width * 0.1, y);
+    await page.mouse.down();
+
+    for (const part of [0.3, 0.5, 0.7, 0.9])
+      await page.mouse.move(bar.x + bar.width * part, y);
+
+    await page.mouse.up();
+    await page.waitForTimeout(400);
+
+    const events = await page.evaluate(
+      () =>
+        (window as unknown as { __navigate: { from: number; to: number }[] })
+          .__navigate,
+    );
+
+    expect(events.length, "прицел ничего не сказал").toBeGreaterThan(0);
+
+    for (const event of events) {
+      expect(event.from, `страница ${event.from} вне оборота`).toBeGreaterThanOrEqual(0);
+      expect(event.from, `страница ${event.from} вне оборота`).toBeLessThan(5);
+      expect(event.to, `страница ${event.to} вне оборота`).toBeGreaterThanOrEqual(0);
+      expect(event.to, `страница ${event.to} вне оборота`).toBeLessThan(5);
+    }
+  });
+
   test("стрелка листает страницы и не упирается в край", async ({ page }) => {
     await page.goto("/?scenario=loopSlider");
     await settle(page);

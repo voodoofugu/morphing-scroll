@@ -437,7 +437,9 @@ const motionHandler = (
     isX && args.flipX ? args.flipX(value) : value;
 
   const seen = rt.sliderAim[axis];
-  const current = seen ?? loopPageAt(asList(el[topOrLeft]) - period, step);
+  /* и здесь страница по кольцу: прицел свёрнут, а «где мы» было развёрнуто */
+  const at = loopPageAt(asList(el[topOrLeft]) - period, step);
+  const current = seen ?? (period ? ((at % pages) + pages) % pages : at);
   rt.sliderAim[axis] = aimed;
   if (aimed === current) return;
 

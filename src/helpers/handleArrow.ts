@@ -89,14 +89,23 @@ const handleArrow = ({
     return dir === "x" ? asList(aim) : aim;
   };
 
+  /*
+   * Тот же счёт страниц, что и у точки слайдера: в круге — внутри оборота и по
+   * кольцу. Считая по ленте, шаг за конец оборота называл страницу, которой в
+   * списке нет.
+   */
   const pageOn = (dir: "x" | "y", value: number) => {
     const isX = dir === "x";
+    const clientSize = scrollElement[isX ? "clientWidth" : "clientHeight"];
+    const gapDir = isX ? gap[0] : gap[1];
+    const period = periodOf(dir);
 
-    return pageAt(
-      value - periodOf(dir),
-      scrollElement[isX ? "clientWidth" : "clientHeight"],
-      isX ? gap[0] : gap[1],
-    );
+    if (!period) return pageAt(value, clientSize, gapDir);
+
+    const { pages, step } = loopPages(period, clientSize, gapDir);
+    const page = loopPageAt(value - period, step);
+
+    return pages > 0 ? ((page % pages) + pages) % pages : 0;
   };
 
   const scrollTo = (dir: "x" | "y", delta: 1 | -1) => {
