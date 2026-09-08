@@ -56,7 +56,30 @@ const look = (page: Page) =>
     };
   });
 
-const settle = (page: Page) => page.waitForTimeout(450);
+/*
+ * Ждём, пока раскладка перестанет меняться, а не отмеряем время: под полным
+ * прогоном страница успевает меньше, и проверка ловила бы середину работы.
+ */
+const settle = async (page: Page) => {
+  let was = "";
+
+  for (let i = 0; i < 25; i++) {
+    await page.waitForTimeout(80);
+
+    const now = await page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport");
+      const wrap = document.querySelector<HTMLElement>(".ms-objects-wrapper");
+
+      return `${document.querySelectorAll(".ms-object-box").length}:${Math.round(
+        view?.scrollLeft ?? 0,
+      )}:${Math.round(wrap?.getBoundingClientRect().width ?? 0)}`;
+    });
+
+    if (now === was && i > 1) return;
+
+    was = now;
+  }
+};
 
 /* — набор — */
 
@@ -489,6 +512,35 @@ test.describe("слайдер", () => {
     expect((await state(page)).active).toBe(0);
   });
 
+  /*
+   * И стоит она у своего края: полоса страниц идёт туда же, куда список, так
+   * что первая страница развёрнутого — правая точка, а не левая.
+   */
+  test("первая точка стоит у того же края, где начинается список", async ({
+    page,
+  }) => {
+    const side = (page: Page) =>
+      page.evaluate(() => {
+        const bar = document.querySelector<HTMLElement>(".ms-slider")!;
+        const items = [...bar.querySelectorAll<HTMLElement>(".ms-slider-item")];
+        const at = items.findIndex((el) => el.classList.contains("ms-active"));
+        const box = bar.getBoundingClientRect();
+        const on = items[at].getBoundingClientRect();
+
+        return on.left - box.left < box.width / 2 ? "left" : "right";
+      });
+
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+
+    expect(await side(page)).toBe("right");
+
+    await page.goto(url(RIG));
+    await settle(page);
+
+    expect(await side(page)).toBe("left");
+  });
+
   test("точка ведёт на ту же страницу, что и в обычном списке", async ({
     page,
   }) => {
@@ -537,9 +589,14 @@ test.describe("слайдер", () => {
       await p.waitForTimeout(600);
     };
 
+    /*
+     * Полоса развёрнута вместе со списком, поэтому одну и ту же страницу
+     * спрашивают с зеркальных концов дорожки: у обычного списка это пятая
+     * часть слева, у развёрнутого — та же пятая часть справа.
+     */
     await page.goto(url({ ...RIG, fromRight: true }));
     await settle(page);
-    await dragBar(page, 0.8);
+    await dragBar(page, 0.2);
     const right = await state(page);
 
     await page.goto(url(RIG));
@@ -547,7 +604,6 @@ test.describe("слайдер", () => {
     await dragBar(page, 0.8);
     const left = await state(page);
 
-    // одна и та же точка бара — одна и та же страница списка и та же пометка
     expect(left.active).toBeGreaterThan(0);
     expect(right.active).toBe(left.active);
     expect(right.row).toEqual([...left.row].reverse());
@@ -563,8 +619,9 @@ test.describe("слайдер", () => {
     const before = await state(page);
     const bar = (await page.locator(".ms-slider").boundingBox())!;
 
-    const dragTo = async (to: number) => {
-      await page.mouse.move(bar.x + bar.width * 0.05, bar.y + bar.height / 2);
+    // у развёрнутого списка начало дорожки — её правый конец
+    const dragTo = async (from: number, to: number) => {
+      await page.mouse.move(bar.x + bar.width * from, bar.y + bar.height / 2);
       await page.mouse.down();
       await page.mouse.move(bar.x + bar.width * to, bar.y + bar.height / 2, {
         steps: 10,
@@ -573,8 +630,8 @@ test.describe("слайдер", () => {
       await page.waitForTimeout(600);
     };
 
-    await dragTo(0.5);
-    await dragTo(0.01);
+    await dragTo(0.95, 0.5);
+    await dragTo(0.5, 0.99);
 
     const after = await state(page);
 

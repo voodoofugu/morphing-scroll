@@ -184,7 +184,7 @@ false<br />
 <b>Description:</b><em><br />
 the list begins at the right and runs leftwards.<br />
 <br />
-The first object stands at the right, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
+The first object stands at the right, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A slider's pages run the same way: the first page's dot is the right one, and the strip reads from there. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
 <br />
 It is asked for rather than taken from the page. A page&apos;s own direction is right until the widget reads the other way round from everything around it, which is common enough; and asking the environment costs a style recalculation on every render, where a render here happens once a frame while scrolling.<br />
 <br />

@@ -311,6 +311,7 @@ export type MorphScroll = {
    * The first object stands at the right, the rest follow to the left, and a
    * horizontal scroll opens there — so its bar starts at the right and travels
    * left as you read on, and dragging it that way carries the list forward.
+   * A slider's pages run the same way: the first page's dot is the right one.
    * The objects themselves are left alone — how they look is yours.
    * @note *positions are counted from the start of the list either way, so
    * `scrollTo(0)` reaches the first object whichever way it runs, and

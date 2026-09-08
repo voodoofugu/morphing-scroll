@@ -25,9 +25,7 @@ import Arrow from "./Arrow";
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import focusStep from "../helpers/focusStep";
-import handleMouseOrTouch, {
-  hasOwnDrag,
-} from "../helpers/handleMouseOrTouch";
+import handleMouseOrTouch, { hasOwnDrag } from "../helpers/handleMouseOrTouch";
 import {
   objectsPerSize,
   smoothScroll,
@@ -402,7 +400,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // ♦ default
     const initialTarget = React.useMemo(
-      () => (initialPosition == null ? null : resolveScrollTarget(initialPosition)),
+      () =>
+        initialPosition == null ? null : resolveScrollTarget(initialPosition),
       [initialPositionST],
     );
 
@@ -416,7 +415,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (!emptyObjects) return null;
 
       if (typeof emptyObjects === "string")
-        return { mode: emptyObjects, fallback: undefined, clickTrigger: undefined };
+        return {
+          mode: emptyObjects,
+          fallback: undefined,
+          clickTrigger: undefined,
+        };
 
       return {
         mode: emptyObjects.mode,
@@ -980,7 +983,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const sizes = useConst(() => createSizeStore(() => triggerRAF()));
     React.useEffect(() => () => sizes.destroy(), [sizes]);
 
-
     /*
      * Место поперёк — окно за вычетом полей обёртки: объекты живут внутри
      * них, и мерить перенос по всему окну значит выпускать их за край.
@@ -1164,7 +1166,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       receivedChildSizeRef.current.width,
       renderMode,
       validChildrenKeys.length,
-          isEach,
+      isEach,
       packed,
     ]);
 
@@ -1194,7 +1196,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       receivedWrapSizeRef.current.height,
       receivedChildSizeRef.current.height,
       renderMode,
-          isEach,
+      isEach,
       packed,
     ]);
 
@@ -1285,12 +1287,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const asList = !!renderMode && mode === "scroll";
 
-    const byCoords = !!(
-      renderMode ||
-      isEach ||
-      loopLocal ||
-      tracking
-    );
+    const byCoords = !!(renderMode || isEach || loopLocal || tracking);
 
     /*
      * Куда идёт список. Спрашивается пропом, а не у окружения: подсмотренное
@@ -1320,7 +1317,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     /* координатная кладка зеркалит числами, потоку хватает раскладки */
     const mirrorX = mirrored && byCoords;
-
 
     /*
      * Меняет ли позиция прокрутки то, что нарисовано.
@@ -1530,8 +1526,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return loopPeriods[axis] ? at - loopPeriods[axis] : at;
     };
 
-    const barEnd = (axis: 0 | 1, whole: number) =>
-      loopPeriods[axis] || whole;
+    const barEnd = (axis: 0 | 1, whole: number) => loopPeriods[axis] || whole;
 
     // высчитываем сдвиг scroll и ограничиваем его
     /*
@@ -1655,7 +1650,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       byCoords,
       objectsOrder,
       direction,
-          isEach,
+      isEach,
       packed,
     ]);
 
@@ -1913,7 +1908,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
 
       return [pages(0, barSpan.w), pages(1, barSpan.h)];
-    }, [barSpan.w, barSpan.h, sizeLocal.join(), loopPeriods.join(), gapXY.join()]);
+    }, [
+      barSpan.w,
+      barSpan.h,
+      sizeLocal.join(),
+      loopPeriods.join(),
+      gapXY.join(),
+    ]);
     const objLengthPerSizeXY = React.useMemo(() => {
       return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
     }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
@@ -1964,14 +1965,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       [maxScrollSize.join()],
     );
 
-
     const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
       const common: React.CSSProperties = {
         margin: wrapper?.margin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
-        height:
-          objectsSizing[1] != null ? `${loopedHeight}px` : "fit-content",
-        width:
-          objectsSizing[0] != null ? `${loopedWidth}px` : "fit-content",
+        height: objectsSizing[1] != null ? `${loopedHeight}px` : "fit-content",
+        width: objectsSizing[0] != null ? `${loopedWidth}px` : "fit-content",
         ...(gap &&
           !renderMode &&
           !isEach &&
@@ -2008,11 +2006,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * каждой берёт содержимое. Через flex так не скажешь — там перенос
        * считает пиксели, которых тут нет.
        */
-      const unsized =
-        objectsSizing[0] == null || objectsSizing[1] == null;
+      const unsized = objectsSizing[0] == null || objectsSizing[1] == null;
 
       if (unsized && lines && lines > 1) {
-        const across = direction === "x" ? "gridTemplateRows" : "gridTemplateColumns";
+        const across =
+          direction === "x" ? "gridTemplateRows" : "gridTemplateColumns";
 
         return {
           ...common,
@@ -2079,7 +2077,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsOrder,
       objectsAlign,
       lines,
-          isEach,
+      isEach,
       loopLocal,
       mirrored,
     ]);
@@ -2091,7 +2089,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * `emitNavigate`, а жест читает её в момент, когда действительно нужен.
      */
     const emitNavigateRef = React.useRef<
-      (reason: NavigateReason, axis: "x" | "y", from: number, to: number) => void
+      (
+        reason: NavigateReason,
+        axis: "x" | "y",
+        from: number,
+        to: number,
+      ) => void
     >(() => {});
 
     /*
@@ -2340,7 +2343,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         // в обычном скролле страниц нет — их листают только команды
         if (mode === "scroll") continue;
 
-        onNavigate?.({ reason: reason ?? "scroll", axis, from: before, to: now });
+        onNavigate?.({
+          reason: reason ?? "scroll",
+          axis,
+          from: before,
+          to: now,
+        });
       }
     }, [mode, onNavigate, pageNow]);
 
@@ -2547,10 +2555,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * уже прочитаны scrollLeft и scrollTop: раскладка на этот момент
          * посчитана, лишнего пересчёта не будет.
          */
-        onScrollPosition?.(listXRef.current(scrollEl.scrollLeft), scrollEl.scrollTop, {
-          x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
-          y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
-        });
+        onScrollPosition?.(
+          listXRef.current(scrollEl.scrollLeft),
+          scrollEl.scrollTop,
+          {
+            x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
+            y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
+          },
+        );
 
         const scrollOrSlider = el.querySelectorAll<HTMLElement>(
           mode === "scroll" ? ".ms-bar" : ".ms-slider",
@@ -2999,7 +3011,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         const at = dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
         const inside = ((value % period) + period) % period;
-        const ahead = ((inside - at) % period + period) % period;
+        const ahead = (((inside - at) % period) + period) % period;
 
         return at + (ahead <= period / 2 ? ahead : ahead - period);
       },
@@ -3034,7 +3046,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         markNavigate("bar");
 
         // страницу называют по списку, а не по разметке
-        const asList = (value: number) => (isX && flipsX ? listX(value) : value);
+        const asList = (value: number) =>
+          isX && flipsX ? listX(value) : value;
 
         let target = asList(period + Math.round(index * step));
 
@@ -3082,9 +3095,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               if (respectUserScroll && !atEndRef.current[dir]) return;
 
               smoothScrollLocal(
-                dir === "x"
-                  ? listX(endObjectsWrapper.w)
-                  : endObjectsWrapper.h,
+                dir === "x" ? listX(endObjectsWrapper.w) : endObjectsWrapper.h,
                 dir,
                 duration,
               );
@@ -3245,7 +3256,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        */
       void wrap.offsetHeight;
 
-      for (const box of wrap.children) (box as HTMLElement).style.transition = "";
+      for (const box of wrap.children)
+        (box as HTMLElement).style.transition = "";
     });
 
     const loopStartRef = React.useRef("");
@@ -3317,12 +3329,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         firstRender.current ? 0 : duration,
         true,
       );
-    }, [
-      stickLocal.join(),
-      endObjectsWrapper.w,
-      endObjectsWrapper.h,
-      duration,
-    ]);
+    }, [stickLocal.join(), endObjectsWrapper.w, endObjectsWrapper.h, duration]);
 
     /*
      * Якорь: содержимое выросло сверху — читатель остаётся на месте.
@@ -3348,8 +3355,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       (index: number) => {
         if (isEach) {
           const item = packed.items[index];
-          if (!item)
-            return { left: 0, top: 0, width: 0, height: 0 };
+          if (!item) return { left: 0, top: 0, width: 0, height: 0 };
 
           return {
             left: item.left,
@@ -3417,7 +3423,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     React.useLayoutEffect(() => {
       const previous = anchorRef.current;
       const remember = () => {
-        anchorRef.current = { token: keysToken, keys: validChildrenKeys, startOf };
+        anchorRef.current = {
+          token: keysToken,
+          keys: validChildrenKeys,
+          startOf,
+        };
       };
 
       // первый список якорить не от чего, круг водит окно сам
@@ -3681,7 +3691,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       onScrollingChange?.(false); // стартовое состояние
 
-
       return () => {
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         if (scrollStateRef.current.animationFrameId)
@@ -3779,9 +3788,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // сложное условие...
       if (
         controlsLocal.drag ||
-        (!controlsLocal.drag &&
-          isTouchedRef.current &&
-          controlsLocal.wheel)
+        (!controlsLocal.drag && isTouchedRef.current && controlsLocal.wheel)
       )
         scrollEl.addEventListener("pointerdown", handler);
 
@@ -3998,9 +4005,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * пользователь: копии его дело не касаются.
        */
       const domKey =
-        copyX || copyY
-          ? `${key}${CONST.LOOP_KEY_SEP}${copyX}-${copyY}`
-          : key;
+        copyX || copyY ? `${key}${CONST.LOOP_KEY_SEP}${copyX}-${copyY}` : key;
       const shiftX = loopPlace(copyX, 0);
       const shiftY = loopPlace(copyY, 1);
       // ищем реальный child по ключу
@@ -4171,7 +4176,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 childLocal,
                 visibilityRatioWithoutMargin,
                 domKey,
-              index,
+                index,
               )
             : null;
       }
@@ -4189,7 +4194,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           childLocal,
           visibilityRatioWithoutMargin,
           domKey,
-              index,
+          index,
         );
 
       const visibilityRatio = getVisibilityRatio();
@@ -4219,7 +4224,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           childLocal,
           visibilityRatioWithoutMargin,
           domKey,
-              index,
+          index,
         );
       }
 
@@ -4236,7 +4241,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         childLocal,
         visibilityRatioWithoutMargin,
         domKey,
-              index,
+        index,
       );
     };
 
@@ -4438,7 +4443,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           );
 
         return asked.map((i) =>
-          renderChild(validChildrenKeys[i], i, scrollLeft, scrollTop, copyX, copyY),
+          renderChild(
+            validChildrenKeys[i],
+            i,
+            scrollLeft,
+            scrollTop,
+            copyX,
+            copyY,
+          ),
         );
       };
 

@@ -396,7 +396,15 @@ const motionHandler = (
   if (barSize <= 0) return;
 
   const period = args.loopPeriods?.[wh] ?? 0;
-  const reach = Math.floor(((point[axis] - barStart) / barSize) * pages);
+
+  /*
+   * Полоса страниц развёрнутого списка показана справа налево, значит и
+   * прицел по ней читается оттуда же: у правого края её первая страница.
+   */
+  const along = (point[axis] - barStart) / barSize;
+  const reach = Math.floor(
+    (isX && args.flipX ? 1 - along : along) * pages,
+  );
 
   /*
    * За краем бара обычный слайдер упирается: дальше первого и последнего

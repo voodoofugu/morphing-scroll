@@ -317,6 +317,15 @@ const ScrollBar = ({
                     transformOrigin: "left top",
                     left: "50%",
                     transform: "translateX(-50%)",
+                    /*
+                     * Полоса страниц идёт туда же, куда список: у идущего
+                     * справа первая страница и её точка стоят справа. Порядок
+                     * при этом прежний — переворачивается показ, а не счёт.
+                     */
+                    ...(pageDirection === "rtl" && {
+                      flexDirection: "row-reverse" as const,
+                    }),
+
                     ...(progressReverse
                       ? { top: `${edgeGap}px` }
                       : { bottom: `${edgeGap}px` }),

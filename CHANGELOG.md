@@ -604,6 +604,12 @@ themselves are no longer transformed and can be positioned from CSS.
   that did not exist, and the result was an empty box. The trick is given up
   now instead of the content: the objects keep their CSS layout, every one of
   them stays mounted, and one message names exactly what was switched off.
+- **a slider's page strip ran the opposite way to its list.** The dots were
+  laid left to right whatever the list did, so the first page's dot sat at the
+  far end from the first card and the mark looked wrong the moment the scroll
+  opened. The strip runs with the list now, and the aim along it is read from
+  the same end; the order behind it is unchanged — what turned around is the
+  showing, not the counting.
 - **the slider bar aimed at one page and lit another when the list runs from
   the right.** The aim was taken as a page of the markup while the mark was
   read as a page of the list — the content went where it was asked to and a
