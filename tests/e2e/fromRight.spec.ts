@@ -230,6 +230,121 @@ for (const { name, config } of cases)
       );
   });
 
+/*
+ * Бегунок показывает, сколько пройдено списка, а не разметки. У развёрнутого
+ * списка это разные числа: разметка считает слева, список — справа. И идёт он
+ * по дорожке туда же, куда чтение.
+ */
+test.describe("бегунок", () => {
+  const RIG: Config = {
+    count: 40,
+    size: [680, 430],
+    direction: "x",
+    objects: { size: 170, gap: 12, lines: 20 },
+    controls: { wheel: true, bar: { element: "@thumb", thumbMinSize: 30 } },
+    render: { mode: "virtual", rootMargin: 200 },
+    loop: true,
+  };
+
+  const thumb = (page: Page) =>
+    page.evaluate(() => {
+      const bar = document.querySelector<HTMLElement>(".ms-bar")!;
+      const el = bar.querySelector<HTMLElement>(".ms-thumb")!;
+      const track = bar.getBoundingClientRect();
+      const at = el.getBoundingClientRect();
+
+      return {
+        head: Math.round(at.left - track.left),
+        tail: Math.round(track.right - at.right),
+      };
+    });
+
+  const goTo = (page: Page, to: number) =>
+    page.evaluate(
+      (value) =>
+        (
+          window as unknown as {
+            __ms: { scrollTo: (v: number, o: object) => void };
+          }
+        ).__ms.scrollTo(value, { duration: 0 }),
+      to,
+    );
+
+  test("на начале списка стоит у своего края", async ({ page }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+    const right = await thumb(page);
+
+    await page.goto(url(RIG));
+    await settle(page);
+    const left = await thumb(page);
+
+    // обычный прижат слева, развёрнутый — справа, и ровно так же
+    expect(left.head).toBe(0);
+    expect(right.tail).toBe(0);
+    expect(right.head).toBe(left.tail);
+  });
+
+  test("уходит по дорожке туда же, куда чтение", async ({ page }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+    await goTo(page, 600);
+    await page.waitForTimeout(250);
+    const right = await thumb(page);
+
+    await page.goto(url(RIG));
+    await settle(page);
+    await goTo(page, 600);
+    await page.waitForTimeout(250);
+    const left = await thumb(page);
+
+    // одно и то же место списка — одно и то же место дорожки, зеркально
+    expect(left.head).toBeGreaterThan(0);
+    expect(right.tail).toBe(left.head);
+  });
+
+  /* и сам он ведёт список туда, куда его тянут */
+  test("тянется в ту же сторону, что и список", async ({ page }) => {
+    const row = (page: Page) =>
+      page.evaluate(() => {
+        const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+        const box = view.getBoundingClientRect();
+        const seen = [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+          .map((el) => ({ n: el.textContent ?? "", r: el.getBoundingClientRect() }))
+          .filter(({ r }) => r.right > box.left + 1 && r.left < box.right - 1);
+        const top = Math.min(...seen.map(({ r }) => r.top));
+
+        return seen
+          .filter(({ r }) => Math.abs(r.top - top) < 2)
+          .sort((one, two) => one.r.left - two.r.left)
+          .map(({ n }) => n);
+      });
+
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+
+    const before = await row(page);
+    const grip = (await page.locator(".ms-thumb").first().boundingBox())!;
+
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(
+      grip.x + grip.width / 2 - 80,
+      grip.y + grip.height / 2,
+      { steps: 6 },
+    );
+    await page.mouse.up();
+    await page.waitForTimeout(350);
+
+    const after = await row(page);
+
+    // начало списка справа: тянем влево — идём вперёд, номера растут
+    expect(Number(after[after.length - 1])).toBeGreaterThan(
+      Number(before[before.length - 1]),
+    );
+  });
+});
+
 /* Команды говорят на языке списка, а не разметки — в любом сочетании. */
 for (const { name, config } of cases.slice(0, 8))
   test(`${name}: scrollTo говорит о списке`, async ({ page }) => {

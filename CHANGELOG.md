@@ -604,6 +604,11 @@ themselves are no longer transformed and can be positioned from CSS.
   that did not exist, and the result was an empty box. The trick is given up
   now instead of the content: the objects keep their CSS layout, every one of
   them stays mounted, and one message names exactly what was switched off.
+- **the bar of a list running from the right stood in the wrong place.** It
+  was placed by how much of the markup had gone by, and a mirrored list counts
+  its own progress from the other end — so at the start of the list the thumb
+  sat short of the right edge instead of against it. It reads the list now,
+  and travels the track the way the reading goes.
 - **`objects.order: "column"` was not turned around at all.** A column flow
   advances its columns sideways, and only the row flow was being reversed — so
   a list asked to run from the right ran the usual way, and its opening landed

@@ -1515,6 +1515,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? scrollElementRef.current?.scrollLeft || 0
           : scrollElementRef.current?.scrollTop || 0;
 
+      /*
+       * Бегунок показывает, сколько пройдено списка, а не разметки. У
+       * развёрнутого списка это разные числа: разметка считает слева, список —
+       * справа, и бегунок по разметке вставал не туда, где стоит чтение.
+       */
+      if (axis === 0 && flipsX) {
+        const passed = listX(at);
+        const period = loopPeriods[0];
+
+        return period ? ((passed % period) + period) % period : passed;
+      }
+
       return loopPeriods[axis] ? at - loopPeriods[axis] : at;
     };
 
@@ -1522,14 +1534,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       loopPeriods[axis] || whole;
 
     // высчитываем сдвиг scroll и ограничиваем его
+    /*
+     * И идёт он по дорожке в ту же сторону, что и чтение: у развёрнутого
+     * списка начало справа, значит и бегунок начинает справа и уходит влево.
+     */
+    const alongTrack = (space: number) =>
+      flipsX ? sizeMinusEdge[0] - thumbSizeMemo.x - space : space;
+
     const thumbSpace = {
       x:
         direction !== "y"
-          ? calculateThumbSpace(
-              barAt(0),
-              barEnd(0, endObjectsWrapper.w),
-              sizeMinusEdge[0],
-              thumbSizeMemo.x,
+          ? alongTrack(
+              calculateThumbSpace(
+                barAt(0),
+                barEnd(0, endObjectsWrapper.w),
+                sizeMinusEdge[0],
+                thumbSizeMemo.x,
+              ),
             )
           : 0,
       y:
