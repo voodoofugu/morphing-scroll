@@ -518,6 +518,71 @@ test.describe("слайдер", () => {
     expect(right.row).toEqual([...left.row].reverse());
   });
 
+  /*
+   * Прицел по бару брал страницу разметки, а пометка загоралась на странице
+   * списка: движение шло куда просили, а подсвечивалась чужая точка.
+   */
+  test("протаскивание по бару и пометка говорят об одном", async ({ page }) => {
+    const dragBar = async (p: Page, to: number) => {
+      await p.setViewportSize({ width: 1000, height: 800 });
+
+      const bar = (await p.locator(".ms-slider").boundingBox())!;
+
+      await p.mouse.move(bar.x + bar.width * 0.05, bar.y + bar.height / 2);
+      await p.mouse.down();
+      await p.mouse.move(bar.x + bar.width * to, bar.y + bar.height / 2, {
+        steps: 10,
+      });
+      await p.mouse.up();
+      await p.waitForTimeout(600);
+    };
+
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+    await dragBar(page, 0.8);
+    const right = await state(page);
+
+    await page.goto(url(RIG));
+    await settle(page);
+    await dragBar(page, 0.8);
+    const left = await state(page);
+
+    // одна и та же точка бара — одна и та же страница списка и та же пометка
+    expect(left.active).toBeGreaterThan(0);
+    expect(right.active).toBe(left.active);
+    expect(right.row).toEqual([...left.row].reverse());
+  });
+
+  /* и туда-обратно по бару возвращает ровно на место */
+  test("протаскивание туда и назад возвращает на место", async ({ page }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await page.waitForTimeout(200);
+
+    const before = await state(page);
+    const bar = (await page.locator(".ms-slider").boundingBox())!;
+
+    const dragTo = async (to: number) => {
+      await page.mouse.move(bar.x + bar.width * 0.05, bar.y + bar.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(bar.x + bar.width * to, bar.y + bar.height / 2, {
+        steps: 10,
+      });
+      await page.mouse.up();
+      await page.waitForTimeout(600);
+    };
+
+    await dragTo(0.5);
+    await dragTo(0.01);
+
+    const after = await state(page);
+
+    expect(after.active).toBe(before.active);
+    expect(after.row).toEqual(before.row);
+    expect(after.lead).toBe(before.lead);
+  });
+
   test("прилипание уходит на страницу вперёд, а не назад", async ({ page }) => {
     await page.goto(url({ ...RIG, fromRight: true }));
     await settle(page);

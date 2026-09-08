@@ -427,6 +427,33 @@ const check = (snap: Snapshot, where: string, sized: boolean) => {
     }
 };
 
+/*
+ * Раскладка при измеряемом размере приезжает не сразу: неизмеренные объекты
+ * рисуются пачкой и лежат в нуле, пока их не померят. Спрашивать её в этот
+ * момент — значит спрашивать про недостроенное, и проверка ловила бы не
+ * ошибку, а середину работы. Ждём, пока перестанет меняться.
+ */
+const settled = async (page: Page) => {
+  let was = "";
+
+  for (let i = 0; i < 20; i++) {
+    await page.waitForTimeout(100);
+
+    const now = await page.evaluate(() => {
+      const wrap = document.querySelector<HTMLElement>(".ms-objects-wrapper");
+      const box = wrap?.getBoundingClientRect();
+
+      return `${document.querySelectorAll(".ms-object-box").length}:${Math.round(
+        box?.width ?? 0,
+      )}x${Math.round(box?.height ?? 0)}`;
+    });
+
+    if (now === was && i > 1) return;
+
+    was = now;
+  }
+};
+
 /* — сама тряска — */
 
 const shake = async (page: Page) => {
@@ -537,7 +564,7 @@ for (const { name, config } of cases)
     });
 
     await page.goto(url(config));
-    await page.waitForTimeout(250);
+    await settled(page);
 
     check(await inspect(page), "на открытии", sized);
 

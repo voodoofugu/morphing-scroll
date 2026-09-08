@@ -419,8 +419,17 @@ const motionHandler = (
    * время перелёта она лежит между пунктами, и прицел в тот, откуда мы как раз
    * уезжаем, читался бы как «мы там и стоим» — перелёт не отменялся.
    */
+  /*
+   * Страницы бара считаются в координатах списка — там же, где их считают
+   * точки и стрелки. Иначе прицел брал страницу разметки, а пометка
+   * загоралась на странице списка: движение шло куда просили, а подсвечивалась
+   * чужая точка.
+   */
+  const asList = (value: number) =>
+    isX && args.flipX ? args.flipX(value) : value;
+
   const seen = rt.sliderAim[axis];
-  const current = seen ?? loopPageAt(el[topOrLeft] - period, step);
+  const current = seen ?? loopPageAt(asList(el[topOrLeft]) - period, step);
   rt.sliderAim[axis] = aimed;
   if (aimed === current) return;
 
@@ -442,7 +451,7 @@ const motionHandler = (
    * повторов: завернувшись с последней страницы на первую, мотать назад через
    * весь круг незачем — рядом та же самая.
    */
-  let target = period + Math.round(aimed * step);
+  let target = asList(period + Math.round(aimed * step));
 
   if (period) {
     const at = el[topOrLeft];
