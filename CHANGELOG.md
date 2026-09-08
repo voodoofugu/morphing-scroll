@@ -604,6 +604,12 @@ themselves are no longer transformed and can be positioned from CSS.
   that did not exist, and the result was an empty box. The trick is given up
   now instead of the content: the objects keep their CSS layout, every one of
   them stays mounted, and one message names exactly what was switched off.
+- **the slider counted its pages on the wrong grid when the list runs from the
+  right.** Pages are anchored at the start, and a mirrored list starts where
+  the markup ends — off the markup's grid the two never line up, so a step out
+  and back landed a fraction of a page short and the first card came back
+  clipped. The arrows, the snap after a drag, the dots and the mark on the
+  active one all count in the list's own coordinates now.
 - **the bar of a list running from the right stood in the wrong place.** It
   was placed by how much of the markup had gone by, and a mirrored list counts
   its own progress from the other end — so at the start of the list the thumb

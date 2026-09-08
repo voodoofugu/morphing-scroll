@@ -16,6 +16,13 @@ type handleArrowT = {
   gap: number[];
   /** the circle's period per axis, zero where the axis does not loop */
   loopPeriods?: [number, number];
+  /**
+   * turn the markup's horizontal position into the list's own and back.
+   * A list running from the right starts where the markup ends, so its pages
+   * are counted from there — off the markup's grid the two never line up and
+   * a step out and back lands short.
+   */
+  flipX?: (value: number) => number;
 };
 
 const handleArrow = ({
@@ -27,6 +34,7 @@ const handleArrow = ({
   duration,
   gap,
   loopPeriods,
+  flipX,
 }: handleArrowT) => {
   // - vars -
   const width = wrapSize[0];
@@ -39,7 +47,11 @@ const handleArrow = ({
    * нажатий стояла бы на месте.
    */
   const top = aimOf(scrollElement, "y") ?? scrollElement.scrollTop;
-  const left = aimOf(scrollElement, "x") ?? scrollElement.scrollLeft;
+  const rawLeft = aimOf(scrollElement, "x") ?? scrollElement.scrollLeft;
+
+  // считаем в координатах списка; наружу возвращаем обратно в разметку
+  const asList = (value: number) => (flipX ? flipX(value) : value);
+  const left = asList(rawLeft);
 
   // - funcs -
   /*
@@ -67,7 +79,9 @@ const handleArrow = ({
     const nextPage = page + delta;
 
     // целим в целое: иначе следующий шаг снова окажется под границей
-    return period + Math.round(step * nextPage);
+    const aim = period + Math.round(step * nextPage);
+
+    return dir === "x" ? asList(aim) : aim;
   };
 
   const pageOn = (dir: "x" | "y", value: number) => {
@@ -101,9 +115,17 @@ const handleArrow = ({
     return {
       axis: dir,
       from: pageOn(dir, isX ? left : top),
-      to: pageOn(dir, landing),
+      to: pageOn(dir, isX ? asList(landing) : landing),
     };
   };
+
+  /*
+   * Сторона экрана и шаг по списку — не одно и то же: у списка, идущего
+   * справа, вперёд ведёт левая стрелка. Считаем шагами списка, а сторону
+   * переводим здесь.
+   */
+  const onward = () => left + scrollSize[0] < width;
+  const backward = () => left > 0;
 
   // - logic -
   switch (arrowType) {
@@ -112,11 +134,11 @@ const handleArrow = ({
       break;
 
     case "left":
-      if (left > 0) return scrollTo("x", -1);
+      if (flipX ? onward() : backward()) return scrollTo("x", flipX ? 1 : -1);
       break;
 
     case "right":
-      if (left + scrollSize[0] < width) return scrollTo("x", 1);
+      if (flipX ? backward() : onward()) return scrollTo("x", flipX ? -1 : 1);
       break;
 
     case "bottom":

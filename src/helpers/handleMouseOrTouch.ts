@@ -63,6 +63,12 @@ type HandleMouseT = {
   ) => boolean;
   /** the speed a handed-over gesture arrives with */
   seedVelocity?: { x: number; y: number };
+  /**
+   * turn the markup's horizontal position into the list's own and back.
+   * A list running from the right starts where the markup ends, so its pages
+   * are counted from there.
+   */
+  flipX?: (value: number) => number;
   /** one page turn, reported the moment the gesture aims at a new one */
   emitNavigate: (
     reason: string,
@@ -638,8 +644,20 @@ function handleUp(args: HandleUpT) {
     const runScroll = (dir: "x" | "y", deltaDir?: 1 | -1) => {
       const isX = dir === "x";
 
+      // страницы считаем в координатах списка, а не разметки
+      const flipped = isX && !!args.flipX;
+      const asList = (value: number) =>
+        flipped ? args.flipX!(value) : value;
+
+      /*
+       * Куда тянули, считается по разметке, а страницы — по списку: у списка,
+       * идущего справа, это противоположные стороны. Без этого прилипание
+       * уводило на страницу назад вместо следующей.
+       */
+      const stepDir = flipped && deltaDir ? ((-deltaDir) as 1 | -1) : deltaDir;
+
       const maxTopOrLeft = isX ? args.maxScrollSize[0] : args.maxScrollSize[1];
-      const position = el[isX ? "scrollLeft" : "scrollTop"];
+      const position = asList(el[isX ? "scrollLeft" : "scrollTop"]);
       const gapPerDir = isX ? args.gap[0] : args.gap[1];
       const clientSize = el[isX ? "clientWidth" : "clientHeight"];
       const period = args.loopPeriods?.[isX ? 0 : 1] ?? 0;
@@ -653,16 +671,16 @@ function handleUp(args: HandleUpT) {
        */
       const from = position - period;
 
-      const currentPage = loopPageAt(from, step, deltaDir ?? 0);
+      const currentPage = loopPageAt(from, step, stepDir ?? 0);
       const nextValue =
-        period + Math.round((currentPage + (deltaDir ?? 0)) * step);
+        period + Math.round((currentPage + (stepDir ?? 0)) * step);
 
       /*
        * За границы не выезжаем — но в круге границ нет: там страница за
        * средней копией такая же настоящая, и позицию потом довернёт перенос.
        */
       if (period || (nextValue <= maxTopOrLeft && nextValue >= 0))
-        args.smoothScroll(nextValue, dir, args.duration);
+        args.smoothScroll(asList(nextValue), dir, args.duration);
     };
 
     const resolveScroll = (dir: "x" | "y", value: number) => {

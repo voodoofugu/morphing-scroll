@@ -376,3 +376,163 @@ for (const { name, config } of cases.slice(0, 8))
     );
     expect(right.told).toBe(left.told);
   });
+
+/*
+ * Слайдер считает страницами, а сетка страниц привязана к началу. У списка,
+ * идущего справа, начало на другом конце, и сетка по разметке с ней не
+ * совпадает: шаг туда и обратно возвращал не на то же место, прилипание
+ * уводило на страницу назад, а точка помечалась чужая.
+ */
+test.describe("слайдер", () => {
+  const RIG: Config = {
+    count: 12,
+    size: [400, 200],
+    direction: "x",
+    mode: "slider",
+    objects: { size: "full" },
+    controls: { wheel: true, drag: true, bar: "@dot" },
+  };
+
+  const state = (page: Page) =>
+    page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = view.getBoundingClientRect();
+      const dots = [...document.querySelectorAll(".ms-slider-item")];
+
+      const seen = [...document.querySelectorAll<HTMLElement>(".ms-object-box")]
+        .map((el) => ({ n: el.textContent ?? "", r: el.getBoundingClientRect() }))
+        .filter(({ r }) => r.right > box.left + 1 && r.left < box.right - 1)
+        .sort((one, two) => one.r.left - two.r.left);
+
+      return {
+        row: seen.map(({ n }) => n),
+        active: dots.findIndex((el) => el.classList.contains("ms-active")),
+        // расстояние от начала списка до своего края окна
+        lead: seen.length
+          ? Math.round(
+              Math.min(...seen.map(({ r }) => Math.abs(box.right - r.right))),
+            )
+          : -1,
+        tail: seen.length
+          ? Math.round(
+              Math.min(...seen.map(({ r }) => Math.abs(r.left - box.left))),
+            )
+          : -1,
+      };
+    });
+
+  const step = async (page: Page, side: string) => {
+    await page.evaluate(
+      (to) =>
+        (window as unknown as { __ms: { step: (s: string) => void } }).__ms.step(
+          to,
+        ),
+      side,
+    );
+    await page.waitForTimeout(450);
+  };
+
+  test("шаг туда и обратно возвращает ровно на место", async ({ page }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+
+    const before = await state(page);
+
+    await step(page, "left");
+    await step(page, "right");
+
+    const after = await state(page);
+
+    expect(after.row).toEqual(before.row);
+    expect(after.lead).toBe(before.lead);
+  });
+
+  /*
+   * И на широкой ленте в круге: там оборот делится на страницы нацело, но
+   * начало списка на эту сетку не попадает — шаг обратно возвращал короче на
+   * четверть страницы, и первая карточка оказывалась подрезана.
+   */
+  test("шаг туда и обратно в круге тоже возвращает на место", async ({
+    page,
+  }) => {
+    const WIDE: Config = {
+      count: 40,
+      size: [680, 430],
+      direction: "hybrid",
+      mode: "slider",
+      objects: { size: 170, gap: 12, lines: 20 },
+      wrapper: { margin: [12, 12, 12, 12] },
+      controls: { wheel: true, bar: "@dot" },
+      render: { mode: "virtual", rootMargin: 200 },
+      loop: true,
+      fromRight: true,
+    };
+
+    await page.goto(url(WIDE));
+    await settle(page);
+
+    const before = await state(page);
+
+    await step(page, "left");
+    await step(page, "right");
+
+    const after = await state(page);
+
+    expect(after.row).toEqual(before.row);
+    expect(after.lead).toBe(before.lead);
+  });
+
+  test("на начале списка помечена первая точка", async ({ page }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+
+    expect((await state(page)).active).toBe(0);
+  });
+
+  test("точка ведёт на ту же страницу, что и в обычном списке", async ({
+    page,
+  }) => {
+    const clickDot = async (p: Page) => {
+      await p.setViewportSize({ width: 1000, height: 800 });
+
+      const dot = (await p.locator(".ms-slider-item").nth(2).boundingBox())!;
+
+      await p.mouse.move(dot.x + dot.width / 2, dot.y + dot.height / 2);
+      await p.mouse.down();
+      await p.mouse.up();
+      await p.waitForTimeout(500);
+    };
+
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+    await clickDot(page);
+    const right = await state(page);
+
+    await page.goto(url(RIG));
+    await settle(page);
+    await clickDot(page);
+    const left = await state(page);
+
+    expect(left.active).toBe(2);
+    expect(right.active).toBe(left.active);
+    expect(right.row).toEqual([...left.row].reverse());
+  });
+
+  test("прилипание уходит на страницу вперёд, а не назад", async ({ page }) => {
+    await page.goto(url({ ...RIG, fromRight: true }));
+    await settle(page);
+
+    const view = (await page.locator(".ms-viewport").boundingBox())!;
+    const cx = view.x + view.width / 2;
+    const cy = view.y + view.height / 2;
+
+    // начало справа: тянем содержимое вправо — идём вперёд по списку
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx + 120, cy, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(700);
+
+    expect((await state(page)).active).toBe(1);
+  });
+});

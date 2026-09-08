@@ -2220,6 +2220,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           pointerId: event.pointerId,
           runtime: pointerRuntime,
           handOff: handOffGesture,
+          flipX: flipsX ? listX : undefined,
           seedVelocity: seed,
           tasks,
         });
@@ -2360,6 +2361,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           duration: duration,
           gap: gapXY,
           loopPeriods,
+          flipX: flipsX ? listX : undefined,
         });
 
         // упёрлись в край — никуда не поехали, и отчитываться не о чем
@@ -2396,6 +2398,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         direction,
         objLengthPerSize,
         loopPeriods,
+        flipsX ? listX : undefined,
       );
     }, [
       sizeLocal.join(),
@@ -3030,7 +3033,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         markNavigate("bar");
 
-        let target = period + Math.round(index * step);
+        // страницу называют по списку, а не по разметке
+        const asList = (value: number) => (isX && flipsX ? listX(value) : value);
+
+        let target = asList(period + Math.round(index * step));
 
         // в круге едем к ближайшему из повторов, а не через весь оборот
         if (period) {
@@ -3051,6 +3057,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         smoothScrollLocal,
         duration,
         sliderCheckLocal,
+        flipsX,
+        maxScrollSize[0],
       ],
     );
 

@@ -213,6 +213,11 @@ const sliderCheck = (
   objLengthPerSize: number[],
   /* периоды круга по осям: позиция считается внутри оборота, а не по ленте */
   loopPeriods: [number, number] = [0, 0],
+  /*
+   * Перевод горизонтали из разметки в список: список, идущий справа,
+   * начинается там, где разметка кончается, и страницу надо считать оттуда.
+   */
+  flipX?: (value: number) => number,
 ) => {
   [...scrollBars].forEach((msSlider, i) => {
     let cache = sliderCache.get(msSlider);
@@ -257,7 +262,8 @@ const sliderCheck = (
 
     if (!cache.elements.length) return;
 
-    const at = dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+    const raw = dir === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+    const at = dir === "x" && flipX ? flipX(raw) : raw;
     const visibleSize =
       dir === "x" ? scrollEl.clientWidth : scrollEl.clientHeight;
 
@@ -273,11 +279,11 @@ const sliderCheck = (
     const step = onLoop ? period / cache.elements.length : visibleSize;
 
     // вычисляем индекс страницы
-    const raw = Math.floor((scrollPosition + step / 2) / step);
+    const page = Math.floor((scrollPosition + step / 2) / step);
     const activeIndex = onLoop
-      ? ((raw % cache.elements.length) + cache.elements.length) %
+      ? ((page % cache.elements.length) + cache.elements.length) %
         cache.elements.length
-      : raw;
+      : page;
 
     if (activeIndex === cache.lastIndex) return;
 
