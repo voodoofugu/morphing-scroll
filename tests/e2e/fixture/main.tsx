@@ -1611,7 +1611,7 @@ function RtlRig() {
       <MorphScroll
         size={[300, 300]}
         objects={{ size: 90, gap: 10, lines: 3 }}
-        reading="rtl"
+        fromRight
         render="virtual"
         controls={{ wheel: true, bar: thumb }}
         {...(config as never)}

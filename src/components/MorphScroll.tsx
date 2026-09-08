@@ -138,7 +138,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       // Scroll Settings
       mode = "scroll",
       direction = "y",
-      reading = "ltr",
+      fromRight = false,
       initialPosition,
       stickToEnd = false,
       loop = false,
@@ -1302,14 +1302,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Отсчёт прокрутки при этом закреплён на `ltr` в любом случае: на нём
      * стоит вся арифметика от левого края. Разворачивается раскладка.
      */
-    const pageDirection = reading;
+    const mirrored = fromRight;
 
     /*
      * Список читается справа налево — значит и идёт справа налево: первый
      * объект стоит у правого края, следующие уходят влево. Это про порядок и
      * только про него: как выглядят сами объекты, библиотека не решает.
      */
-    const mirrored = pageDirection === "rtl";
 
     /*
      * Сетке разворот можно сказать только через `direction`, а он протекает
@@ -2020,17 +2019,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ) as "row" | "column";
 
       /*
-       * Ряд, идущий справа налево, — это `row-reverse`, а не `direction`:
-       * он разворачивает только раскладку и не трогает то, что внутри
-       * объектов. Колонка вдоль вертикали разворота не просит.
+       * Развернуть раскладку у flex можно, не трогая то, что внутри объектов:
+       * ряду — обратным ходом, а колонке — обратным переносом. У колонки
+       * горизонталь поперечная: новые колонки встают не вправо, а влево, и
+       * это ровно `wrap-reverse`. Раньше разворачивался только ряд, и при
+       * `order: "column"` список оставался неразвёрнутым вовсе.
        */
       const flexFlow =
         mirrored && flexDirection === "row"
           ? ("row-reverse" as const)
           : flexDirection;
 
-      // выравнивание элементы в линию когда размер неизвестен при direction !== "y"
-      const flexWrap = unsized ? undefined : "wrap";
+      const flexWrap = unsized
+        ? undefined
+        : mirrored && flexDirection === "column"
+          ? ("wrap-reverse" as const)
+          : ("wrap" as const);
 
       return {
         ...common,
@@ -3144,17 +3148,21 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     React.useEffect(() => {
       if (openedAtEnd.current) return;
-      if (!mirrored || direction === "y") return;
+      if (!flipsX) return;
       if (initialTarget) return; // названную позицию не перебиваем
 
-      const scrollEl = scrollElementRef.current;
-      const most = maxScrollSize[0];
-
-      if (!scrollEl || most <= 0) return;
+      if (!scrollElementRef.current || maxScrollSize[0] <= 0) return;
 
       openedAtEnd.current = true;
-      scrollEl.scrollLeft = most;
-    }, [mirrored, direction, maxScrollSize[0], initialTarget]);
+
+      /*
+       * Ставим прямо, а не командой: команда едет через кадр и через свою
+       * ссылку, а здесь нужен ровно тот момент, когда размеры стали известны.
+       * В круге край ленты не край: перенос тут же приведёт позицию в среднюю
+       * копию, к тому же месту оборота.
+       */
+      scrollElementRef.current.scrollLeft = maxScrollSize[0];
+    }, [flipsX, maxScrollSize[0], initialTarget]);
 
     /*
      * Круг открывается со средней копии, а не с самого начала ленты: из нуля
@@ -3240,13 +3248,32 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? Math.min(Math.max(at - before, 0), period - 1)
           : 0;
 
+        /*
+         * У развёрнутого списка «начало оборота» лежит не в периоде: место
+         * внутри оборота считается там от правого края, и ставить по левому
+         * значило открывать список с середины. Просим то же, что просит
+         * `scrollTo`, — место в списке; оно посчитается по живым размерам, а
+         * здесь их может ещё не быть.
+         */
+        /*
+         * У развёрнутого списка место внутри оборота считается от правого
+         * края, и ставить по левому значило открывать список с середины.
+         * Первое открытие делает эффект, дожидающийся размеров, а смену
+         * периода досчитываем командой — размеры к тому времени есть.
+         */
+        if (axis === 0 && flipsX) {
+          if (was) applyScrollPositionRef.current([inside, null], 0, false);
+
+          return;
+        }
+
         if (axis === 0) scrollEl.scrollLeft = period + inside;
         else scrollEl.scrollTop = period + inside;
       };
 
       place(0, loopPeriods[0]);
       place(1, loopPeriods[1]);
-    }, [loopLocal, loopPeriods.join()]);
+    }, [loopLocal, loopPeriods.join(), flipsX]);
 
     /*
      * А это правило, а не движение: контент дорос — едем за ним. От ушедшего
@@ -4323,7 +4350,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             key={args.direction}
             mode={mode}
             direction={args.direction}
-            pageDirection={pageDirection}
+            pageDirection={mirrored ? "rtl" : "ltr"}
             element={barLocal.element}
             reverse={barLocal.reverse[axis]}
             edgeGap={barLocal.edgeGap[axis]}

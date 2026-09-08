@@ -280,15 +280,15 @@ themselves are no longer transformed and can be positioned from CSS.
   own edge is reached, and hands over the speed with it, so a flick released
   after the handover coasts in the scroll that took it — which is what a
   native touch does in the same place.
-- **`reading`** — which way the list runs, `"ltr"` by default. `"rtl"` turns
-  the list around, so the first object stands at the right, the rest follow
-  leftwards, and a horizontal scroll opens there with its bar. The objects
-  themselves are left alone: turning the list around is about order, not about
-  how a card looks inside. Positions are counted from the start of the list
-  either way, so `scrollTo(0)` reaches the first object in both readings. It is asked for rather than taken from the page —
-  a page's direction is right until the widget reads the other way round from
-  everything around it, and asking costs a style recalculation on a render
-  that happens once a frame while scrolling.
+- **`fromRight`** — the list begins at the right and runs leftwards. The first
+  object stands there, a horizontal scroll opens there with its bar, and a
+  vertical one lays its columns from the right. The objects themselves are
+  left alone: it is about order, not about how a card looks inside. Positions
+  are counted from the start of the list either way, so `scrollTo(0)` reaches
+  the first object whichever way it runs. It is asked for rather than taken
+  from the page — a page's direction is right until the widget reads the other
+  way round from everything around it, and asking costs a style recalculation
+  on a render that happens once a frame while scrolling.
 - `loop` — the content runs in a circle: the same children repeat forever in
   both directions, with no first object and no last, and no seam to see. The
   strip does not grow, because a scroll cannot: browsers cut it off after tens
@@ -604,11 +604,15 @@ themselves are no longer transformed and can be positioned from CSS.
   that did not exist, and the result was an empty box. The trick is given up
   now instead of the content: the objects keep their CSS layout, every one of
   them stays mounted, and one message names exactly what was switched off.
-- **a right-to-left horizontal scroll opened on the end of its list.** The box
-  was mirrored along the very axis being scrolled, which moved the first object
-  past the right edge while the count still ran from the left — so the window
-  opened on the end and the start could not be reached. The scrolled axis is
-  left alone now, and the reading direction goes to the objects themselves.
+- **`objects.order: "column"` was not turned around at all.** A column flow
+  advances its columns sideways, and only the row flow was being reversed — so
+  a list asked to run from the right ran the usual way, and its opening landed
+  on the tail. The cross direction of a column flow is a reversed wrap.
+- **a list running from the right opened on the end of itself.** The opening
+  position was set before the sizes were known, and under `loop` the circle's
+  own opening — the start of the middle copy — is measured from the left,
+  which is the wrong end of a mirrored list. Both wait for the sizes now and
+  aim at the same place `scrollTo(0)` does.
 - `scrollToObject` with `align: "end"` pressed the object against the edge,
   eating the gap that stands between it and its neighbour everywhere else.
 - `objects.lines` was ignored when a side of `objects.size` was left to CSS.

@@ -161,7 +161,7 @@ test.describe("список справа налево", () => {
   test("первый объект стоит справа, следующие уходят влево", async ({
     page,
   }) => {
-    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await open(page, { ...HORIZONTAL, fromRight: true });
     await page.waitForTimeout(350);
 
     const out = await laid(page);
@@ -170,7 +170,7 @@ test.describe("список справа налево", () => {
   });
 
   test("прокрутка открывается там же, справа", async ({ page }) => {
-    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await open(page, { ...HORIZONTAL, fromRight: true });
     await page.waitForTimeout(350);
 
     const out = await laid(page);
@@ -181,7 +181,7 @@ test.describe("список справа налево", () => {
 
   /* значит и бегунок начинает справа, а уходит влево вместе с чтением */
   test("бегунок начинает справа", async ({ page }) => {
-    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await open(page, { ...HORIZONTAL, fromRight: true });
     await page.waitForTimeout(350);
 
     const rtl = await laid(page);
@@ -196,7 +196,7 @@ test.describe("список справа налево", () => {
   });
 
   test("сами объекты библиотека не разворачивает", async ({ page }) => {
-    await open(page, { ...HORIZONTAL, reading: "rtl" });
+    await open(page, { ...HORIZONTAL, fromRight: true });
     await page.waitForTimeout(350);
 
     expect((await laid(page)).boxDir).toBe("");
@@ -217,7 +217,7 @@ test.describe("список справа налево", () => {
     await open(page, {
       count: 9,
       size: [300, 300],
-      reading: "rtl",
+      fromRight: true,
       objects: { size: 80, gap: 10 },
       controls: { wheel: true },
     });
@@ -275,7 +275,7 @@ test.describe("разворот вместе с кругом", () => {
     );
 
   test("объекты остаются в окне", async ({ page }) => {
-    await open(page, { ...RIG, reading: "rtl" });
+    await open(page, { ...RIG, fromRight: true });
     await page.waitForTimeout(500);
 
     const rtl = await inWindow(page);
@@ -297,7 +297,7 @@ test.describe("разворот вместе с кругом", () => {
   test("широкая лента: окно спрашивает про свою сторону", async ({ page }) => {
     const wide = { ...RIG, objects: { size: 170, gap: 12, lines: 20 } };
 
-    await open(page, { ...wide, reading: "rtl" });
+    await open(page, { ...wide, fromRight: true });
     await page.waitForTimeout(500);
 
     const rtl = await inWindow(page);
@@ -312,7 +312,7 @@ test.describe("разворот вместе с кругом", () => {
   });
 
   test("и лежат в обратном порядке", async ({ page }) => {
-    await open(page, { ...RIG, reading: "rtl" });
+    await open(page, { ...RIG, fromRight: true });
     await page.waitForTimeout(500);
 
     const rtl = await inWindow(page);
@@ -378,7 +378,7 @@ test.describe("позиция считается от начала списка"
   test("ноль приводит к первому объекту, а он стоит справа", async ({
     page,
   }) => {
-    await open(page, { ...RIG, reading: "rtl" });
+    await open(page, { ...RIG, fromRight: true });
     await page.waitForTimeout(350);
     await goTo(page, 0);
 
@@ -390,7 +390,7 @@ test.describe("позиция считается от начала списка"
   });
 
   test("одно и то же число приводит к тем же объектам", async ({ page }) => {
-    await open(page, { ...RIG, reading: "rtl" });
+    await open(page, { ...RIG, fromRight: true });
     await page.waitForTimeout(350);
     await goTo(page, 400);
 

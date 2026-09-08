@@ -42,7 +42,7 @@ type Settings = {
   enableOnRenderedKeysChange: boolean;
   mode: ScrollMode;
   direction: Direction;
-  reading: "ltr" | "rtl";
+  fromRight: boolean;
   sizeMode: SizeMode;
   width: number;
   height: number;
@@ -135,7 +135,7 @@ const defaultSettings: Settings = {
   enableOnRenderedKeysChange: true,
   mode: "scroll",
   direction: "y",
-  reading: "ltr",
+  fromRight: false,
   sizeMode: "fixed",
   width: 680,
   height: 430,
@@ -923,11 +923,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["className", settings.className || undefined, "value"],
     ["mode", settings.mode, "value"],
     ["direction", settings.direction, "value"],
-    [
-      "reading",
-      settings.reading === "ltr" ? undefined : settings.reading,
-      "value",
-    ],
+    ["fromRight", settings.fromRight || undefined, "boolean"],
     ["size", size, "value"],
 
     ["objects", objectsGroup, "value"],
@@ -1378,7 +1374,7 @@ function App() {
         .join(" "),
 
       direction: settings.direction,
-      reading: settings.reading,
+      fromRight: settings.fromRight,
       autoScrollOnDrag: settings.autoScrollOnDrag,
       edge,
 
@@ -1615,17 +1611,16 @@ function App() {
             options={directionOptions}
             value={settings.direction}
           />
-          <SegmentedField
-            label="reading"
-            onChange={(value) => update("reading", value)}
-            options={["ltr", "rtl"] as const}
-            value={settings.reading}
+          <ToggleField
+            label="fromRight"
+            onChange={(value) => update("fromRight", value)}
+            value={settings.fromRight}
           />
           <p className="sub-note">
-            which way the list runs. <b>rtl</b> turns it around — the first
-            object stands at the right, the next ones follow leftwards, and a
-            horizontal scroll opens there with its bar. The objects themselves
-            are left alone: how they look is yours.
+            the list begins at the right and runs leftwards — the first
+            object stands there, and a horizontal scroll opens there with its
+            bar. The objects themselves are left alone: how they look is
+            yours.
           </p>
           <ToggleField
             label="stickToEnd"

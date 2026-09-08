@@ -171,34 +171,34 @@ You can set the value to horizontal, vertical or hybrid positions to customize t
 
 <h2></h2>
 
-<details><summary><b><code>reading</code></b></summary><br /><ul><div>
+<details><summary><b><code>fromRight</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-reading: "rtl"; // or "ltr"
+fromRight: true;
 ```
 
 <b>Default:</b><br />
-"ltr"<br />
+false<br />
 <br />
 <b>Description:</b><em><br />
-which way the list runs.<br />
+the list begins at the right and runs leftwards.<br />
+<br />
+The first object stands at the right, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
 <br />
 It is asked for rather than taken from the page. A page&apos;s own direction is right until the widget reads the other way round from everything around it, which is common enough; and asking the environment costs a style recalculation on every render, where a render here happens once a frame while scrolling.<br />
-<br />
-<code>"rtl"</code> turns the list around: the first object stands at the right, the rest follow leftwards, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
   <li>the objects themselves are left alone. Turning the list around is about order, not about how a card looks inside — that part is yours.</li><br />
-  <li>positions are counted from the start of the list either way, so <code>scrollTo(0)</code> reaches the first object in both readings and <code>onScrollPosition</code> reports the same number for the same place. Only the markup's own <code>scrollLeft</code> still counts from its left edge, which under <code>"rtl"</code> makes the start of the list its largest value — that shows up if you read the element yourself.</li>
+  <li>positions are counted from the start of the list either way, so <code>scrollTo(0)</code> reaches the first object whichever way it runs and <code>onScrollPosition</code> reports the same number for the same place. Only the markup's own <code>scrollLeft</code> still counts from its left edge, which here makes the start of the list its largest value — that shows up if you read the element yourself.</li>
 </ul>
 </em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} reading="rtl">
+<MorphScroll {...props} fromRight>
   {children}
 </MorphScroll>
 ```

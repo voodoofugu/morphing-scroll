@@ -305,19 +305,19 @@ export type MorphScroll = {
    */
   direction?: "x" | "y" | "hybrid";
   /**
-   * which way the list runs.
-   * @default "ltr"
+   * the list begins at the right and runs leftwards.
+   * @default false
    * @description
-   * `"rtl"` turns the list around: the first object stands at the right, the
-   * rest follow leftwards, and a horizontal scroll opens there with its bar.
-   * The objects themselves are left alone — how they look is yours.
+   * The first object stands at the right, the rest follow to the left, and a
+   * horizontal scroll opens there with its bar. The objects themselves are
+   * left alone — how they look is yours.
    * @note *positions are counted from the start of the list either way, so
-   * `scrollTo(0)` reaches the first object in both readings and
-   * `onScrollPosition` reports the same number for the same place. The
-   * markup's own `scrollLeft` still counts from its left edge, which under
-   * `"rtl"` means the start of the list is its largest value*
+   * `scrollTo(0)` reaches the first object whichever way it runs, and
+   * `onScrollPosition` reports the same number for the same place. Only the
+   * markup's own `scrollLeft` still counts from its left edge, which here
+   * makes the start of the list its largest value*
    */
-  reading?: "ltr" | "rtl";
+  fromRight?: boolean;
   /**
    * where the scroll opens.
    * @description

@@ -1208,7 +1208,7 @@ describe("MorphScroll — the arrangement follows the sizes", () => {
  * Проверяем порядок, а не `direction`: разворот — дело раскладки, а отсчёт и
  * у окна, и у коробки остаётся от левого края.
  */
-describe("MorphScroll — reading", () => {
+describe("MorphScroll — fromRight", () => {
   const orderOf = (props: Partial<MorphScrollProps>, host?: HTMLElement) => {
     const { container, unmount } = render(
       <MorphScroll
@@ -1241,17 +1241,17 @@ describe("MorphScroll — reading", () => {
     return out;
   };
 
-  it("named rtl turns the row around on a plain page", () => {
+  it("turns the row around", () => {
     const spy = quiet();
-    const flow = orderOf({ reading: "rtl" });
+    const flow = orderOf({ fromRight: true });
     spy.mockRestore();
 
     expect(flow).toBe("row-reverse");
   });
 
-  it("named ltr keeps its own order inside an rtl page", () => {
+  it("left out, the row runs the usual way", () => {
     const spy = quiet();
-    const flow = inRtlPage({ reading: "ltr" });
+    const flow = inRtlPage({});
     spy.mockRestore();
 
     expect(flow).toBe("row");
@@ -1263,14 +1263,14 @@ describe("MorphScroll — reading", () => {
    */
   it("does not take the page's word for it", () => {
     const spy = quiet();
-    const flow = inRtlPage({});
+    const flow = inRtlPage({ fromRight: false });
     spy.mockRestore();
 
     expect(flow).toBe("row");
   });
 });
 
-describe("MorphScroll — the bar of a right-to-left list", () => {
+describe("MorphScroll — the bar of a list running from the right", () => {
   const barStyle = (props?: Partial<MorphScrollProps>) => {
     const { container, unmount } = render(
       <MorphScroll
@@ -1292,7 +1292,7 @@ describe("MorphScroll — the bar of a right-to-left list", () => {
   it("stands on the left, where the reading starts", () => {
     const spy = quiet();
 
-    const rtl = barStyle({ reading: "rtl" });
+    const rtl = barStyle({ fromRight: true });
     const ltr = barStyle();
 
     spy.mockRestore();
