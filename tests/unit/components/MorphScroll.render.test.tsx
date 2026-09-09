@@ -369,14 +369,37 @@ describe("MorphScroll — controls shorthand", () => {
     expect(cursor(short)).toBe(cursor(long));
   });
 
-  it("leaves an empty config alone — the wheel is in it by default", () => {
+  /*
+   * Написанный набор заменяет умолчание целиком, поэтому пустой — это «ничем
+   * не двигать», а не «оставить как было». Об этом и говорим.
+   */
+  it("takes an empty config literally", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
       <MorphScroll objects={{ size: OBJ }} size={SIZE} controls={[]}>
         {boxes3()}
       </MorphScroll>,
     );
+    expect(
+      spy.mock.calls
+        .map((call) => String(call[0]))
+        .filter((text) => text.includes("nothing that can move")),
+    ).toHaveLength(1);
+    spy.mockRestore();
+  });
+
+  /* а без пропса вовсе — колесо и клавиши, как у нативной прокрутки */
+  it("moves with the wheel when no config is given", () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { container } = render(
+      <MorphScroll objects={{ size: OBJ }} size={SIZE}>
+        {boxes3()}
+      </MorphScroll>,
+    );
     expect(spy).not.toHaveBeenCalled();
+    expect(
+      container.querySelector<HTMLElement>(".ms-viewport"),
+    ).toBeTruthy();
     spy.mockRestore();
   });
 

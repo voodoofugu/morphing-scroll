@@ -436,20 +436,33 @@ describe("MorphScroll — findings", () => {
     expect(at).not.toBe(2400);
   });
 
-  it("a bar on its own still leaves the content scrollable", () => {
-    // controls replaces the default rather than merging into it, so naming
-    // the bar quietly switches the wheel off.
+  /*
+   * Набор заменяет умолчание, а не дополняет его: назвав один бар, колесо не
+   * получают в придачу. Захотят — напишут словом.
+   */
+  it("a bar on its own is a bar on its own", () => {
     const spy = quiet();
-    const s = mount({ controls: { bar: <i className="thumb" /> } });
+    const alone = mount({ controls: { bar: <i className="thumb" /> } });
 
-    fireEvent.wheel(s.el, { deltaY: 200 });
+    fireEvent.wheel(alone.el, { deltaY: 200 });
     frames();
 
-    const moved = s.el.scrollTop;
-    s.unmount();
+    const withoutWheel = alone.el.scrollTop;
+    alone.unmount();
+
+    const asked = mount({
+      controls: { wheel: true, bar: <i className="thumb" /> },
+    });
+
+    fireEvent.wheel(asked.el, { deltaY: 200 });
+    frames();
+
+    const withWheel = asked.el.scrollTop;
+    asked.unmount();
     spy.mockRestore();
 
-    expect(moved).toBeGreaterThan(0);
+    expect(withoutWheel).toBe(0);
+    expect(withWheel).toBeGreaterThan(0);
   });
 
   it("the native bar can actually scroll when it is the only control", () => {

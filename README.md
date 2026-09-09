@@ -1073,7 +1073,9 @@ everything that can move the scroll lives here: the wheel, the keys and a drag, 
 A name, or an array of names, is shorthand for switching those on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "drag"]</code> the same as <code>{ wheel: true, drag: true }</code>. Reach for the object form when one needs settings, or to pass an element.<br />
 <br />
 ✦ Note:<br />
-what you write is <b>added to</b> the default rather than put in its place: <code>{ bar: &lt;Thumb /&gt; }</code> gives you a bar on a scroll that still answers the wheel. To take one away, say so: <code>{ wheel: false, bar: &lt;Thumb /&gt; }</code>.<br /></em>
+what you write <b>replaces</b> the default rather than adding to it. <code>{ wheel: true, keys: true }</code> is what an unwritten prop means; write anything and that is the whole set — <code>{ bar: &lt;Thumb /&gt; }</code> is a bar and nothing else, <code>{ wheel: true, bar: &lt;Thumb /&gt; }</code> is a bar and the wheel.<br />
+<br />
+That is how a slider gets rid of the wheel, which there only leaves you between pages; and it is worth remembering that arrow keys come from <code>keys</code> — a scroll with none of it is worked by the pointer alone.<br /></em>
 
 <br />
 
@@ -1081,14 +1083,14 @@ what you write is <b>added to</b> the default rather than put in its place: <cod
 <b>Usage:</b><br />
 
 ```tsx
-wheel: false;
+wheel: true;
 ```
 
 <b>Default:</b><br />
-true<br />
+true, <em>while <code>controls</code> is not written at all</em><br />
 <br />
 <b>Description:</b><em><br />
-the wheel over the content moves the scroll. It is on without being asked for — a scroll nothing can move is almost never what was meant — so the value worth writing is <code>false</code>.<br />
+the wheel over the content moves the scroll. An unwritten <code>controls</code> carries it, because a scroll nothing can move is almost never what was meant; once you write the prop, name it if you want it. A slider is the case where you usually do not: the wheel there leaves you between pages.<br />
 <br />
 Both settings below are for <code>direction="hybrid"</code>, where one wheel has to serve two axes.<br />
 <br />
@@ -1162,14 +1164,14 @@ a modifier arrives with the wheel event itself, so it works wherever the pointer
 <b>Usage:</b><br />
 
 ```tsx
-keys: false;
+keys: true;
 ```
 
 <b>Default:</b><br />
-true<br />
+true, <em>while <code>controls</code> is not written at all</em><br />
 <br />
 <b>Description:</b><em><br />
-the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop. Like <code>wheel</code>, it is on without being asked for: a native scroll obeys the arrows once it has focus, and a keyboard user reaching a list that cannot be paged is a dead end. Switch it off with <code>false</code>.<br />
+the arrow keys move the scroll while it has focus — clicking it is enough, the viewport is a tab stop. A native scroll obeys the arrows once it has focus, and a keyboard user reaching a list that cannot be moved is a dead end, so an unwritten <code>controls</code> carries this. Write <code>controls</code> yourself and it is yours to name.<br />
 <br />
 ✦ Note:<br />
 inside an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> the arrows belong to the text, and the scroll leaves them alone.<br />

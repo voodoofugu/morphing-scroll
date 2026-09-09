@@ -445,7 +445,9 @@ export type MorphScroll = {
    * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*
    * @note
-   * - *`wheel` and `keys` are on unless you say otherwise: `{ keys: false }`*
+   * - *what you write replaces the default rather than adding to it: name a
+   * bar and the wheel is not thrown in — `{ wheel: true, bar }` asks for both.
+   * `{ wheel: true, keys: true }` is only what an unwritten prop means*
    * - *a name, or a list of them, switches those on: `"wheel"` is
    * `{ wheel: true }`*
    * - *`bar` draws a thumb or a slider depending on `mode`; `bar: true` with
