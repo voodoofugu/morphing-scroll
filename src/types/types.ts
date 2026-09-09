@@ -36,14 +36,14 @@ export type BarConfig = {
 
 /** the object form of `controls.wheel` */
 export type WheelConfig = {
-  /** let the wheel switch the axis it scrolls */
+  /** in `direction="hybrid"`, give the wheel to the x axis */
   changeDirection?: boolean;
   /**
-   * `KeyboardEvent.code` that switches the axis while held;
-   * an empty string turns it off
+   * `KeyboardEvent.code`, or a list of them, that hands the wheel back to the
+   * other axis while held. Needs `changeDirection`; an empty list turns it off
    * @default "KeyX"
    */
-  changeDirectionBtn?: string;
+  changeDirectionBtn?: string | string[];
 };
 
 /** the object form of `controls.keys` */
@@ -291,16 +291,11 @@ export type MorphScroll = {
   /**
    * change how the scroll behaves and what the progress element is.
    * @default "scroll"
-   * @note *the slider modes draw one element per page, so the count follows
-   * the content: a long list makes a long strip of them, and past a point it
-   * outgrows the scroll it belongs to. There is no cap on purpose — hiding
-   * pages would make the progress lie about where you are. They are for a
-   * handful of pages; for a list that keeps going, `mode="scroll"` shows the
-   * same position in one thumb*
+   * @note *a slider draws one element per page, so a long list makes a long
+   * strip of them: they are for a handful of pages, a growing list is
+   * `mode="scroll"`*
    * @note *a page is one window, so content that does not divide into whole
-   * windows ends on a short one: the last turn stops against the end rather
-   * than on a page of its own. Sizing the objects so a whole number of them
-   * fills the window — or `objects.size: "full"` — keeps every page equal*
+   * windows ends on a short one — `objects.size: "full"` keeps them equal*
    */
   mode?: "scroll" | "slider" | "sliderMenu";
   /**
@@ -312,16 +307,13 @@ export type MorphScroll = {
    * the list begins at the right and runs leftwards.
    * @default false
    * @description
-   * The first object stands at the right, the rest follow to the left, and a
-   * horizontal scroll opens there — so its bar starts at the right and travels
-   * left as you read on, and dragging it that way carries the list forward.
-   * A slider's pages run the same way: the first page's dot is the right one.
+   * The first object stands at the right and a horizontal scroll opens there:
+   * the bar starts at the right, and a slider's first page is the right dot.
    * The objects themselves are left alone — how they look is yours.
-   * @note *positions are counted from the start of the list either way, so
-   * `scrollTo(0)` reaches the first object whichever way it runs, and
-   * `onScrollPosition` reports the same number for the same place. Only the
-   * markup's own `scrollLeft` still counts from its left edge, which here
-   * makes the start of the list its largest value*
+   * @note *positions are still counted from the start of the list, so
+   * `scrollTo(0)` and `scrollToObject` reach the first object either way; only
+   * the element's own `scrollLeft` counts from the left, where the start of
+   * the list is its largest value*
    */
   fromRight?: boolean;
   /**
@@ -407,9 +399,8 @@ export type MorphScroll = {
    * replaces them with a placeholder*
    * @note *which side you hand over with `"auto"` arranges them: along the
    * scroll is a masonry, across it a flow, both a fill*
-   * @note *`render` counts by size, and a side left to CSS is the one it
-   * cannot count; `"auto"` it can — the library measures it*
-   * @note *pages need one size for all, so `"auto"` is for `mode="scroll"`*
+   * @note *a side left to CSS is the one `render` cannot count; `"auto"` it
+   * can, and pages need one size for all — so `"auto"` is for `mode="scroll"`*
    * @see the README for how each arrangement places its objects
    */
   objects?: ObjectsConfig;
@@ -465,10 +456,9 @@ export type MorphScroll = {
    * - `rootMargin`: *distance for loading from the root element*
    * - `deferLoadOnScroll`: *holds new content back while the scroll moves,
    * and lets it in once the scroll settles*
-   * - `trackVisibility`: *sets the `--ms-content-visibility` variable on every
-   * object box; it needs no `mode` of its own, and without one nothing is
-   * dropped — every object stays mounted and simply knows how much of it
-   * shows*
+   * - `trackVisibility`: *sets `--ms-content-visibility` on every object box;
+   * without a `mode` nothing is dropped — objects stay mounted and simply
+   * know how much of them shows*
    * @note
    * *`render` places objects by counting, so it needs an `objects.size` it can
    * count: a side left to your own CSS leaves nothing to count with*

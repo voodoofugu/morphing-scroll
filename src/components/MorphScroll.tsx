@@ -515,6 +515,25 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
     }, [controlsST, mode]);
 
+    /*
+     * Клавиши, которые на время удержания уводят колесо на другую ось. Смысл
+     * они имеют только при `changeDirection`: без него колесо и так делает
+     * ожидаемое, а горизонталь у браузера своя — Shift с колесом, — и буква,
+     * молча меняющая поведение колеса, была бы неожиданностью на пустом месте.
+     */
+    const flipKeys = React.useMemo(() => {
+      const wheel = controlsLocal.wheel;
+
+      if (typeof wheel !== "object" || !wheel.changeDirection) return null;
+
+      const named = wheel.changeDirectionBtn;
+      const list =
+        named === undefined ? ["KeyX"] : Array.isArray(named) ? named : [named];
+      const kept = list.filter(Boolean);
+
+      return kept.length ? kept : null;
+    }, [controlsST]);
+
     const arrowsLocal = React.useMemo(() => {
       const arrows = controlsLocal.arrows;
       /*
@@ -2793,13 +2812,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       (e: KeyboardEvent) => {
         if (keyDownX.current) return; // ранний выход
 
-        const keyName =
-          typeof controlsLocal.wheel === "object" &&
-          typeof controlsLocal.wheel.changeDirectionBtn === "string"
-            ? controlsLocal.wheel.changeDirectionBtn
-            : "KeyX";
-
-        if (e.code === keyName && direction === "hybrid" && !keyDownX.current) {
+        if (flipKeys?.includes(e.code) && direction === "hybrid") {
           // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
           e.stopPropagation();
           keyDownX.current = true;
@@ -2921,6 +2934,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * вешается, если нужен хоть кому-то из них.
        */
       const forChangeDirection =
+        !!flipKeys &&
         direction === "hybrid" &&
         wrapperEl.clientWidth! + mLocalX > scrollEl.clientWidth! &&
         wrapperEl.clientHeight! + mLocalY > scrollEl.clientHeight!;

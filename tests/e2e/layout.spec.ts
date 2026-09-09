@@ -175,9 +175,13 @@ test.describe("MorphScroll slider bar drag (real browser)", () => {
     const trail: number[] = await page.evaluate(
       () => (window as any).__trail ?? [],
     );
-    // кадры между страницами — их не бывает, когда позицию просто подставляют
+    /*
+     * Кадр между страницами: подставленная позиция не даёт ни одного, а
+     * ехавшая — хотя бы один. Больше требовать нельзя: под полным прогоном
+     * страница успевает меньше кадров, и счёт становился бы мерой нагрузки.
+     */
     const between = trail.filter((top) => top % 300 !== 0);
-    expect(between.length).toBeGreaterThanOrEqual(3);
+    expect(between.length).toBeGreaterThanOrEqual(1);
   });
 
   test("waits for the right element when the pointer comes back from outside", async ({

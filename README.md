@@ -47,16 +47,14 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 > **✦ Note:**
 >
-> - Supports both **ESM** (`import`) and **CommonJS** (`require`) builds.
-> - The MorphScroll container can be styled with CSS, but avoid modifying properties that affect the size or positioning of internal elements.
-> - Components include identifying attributes and MorphScroll internals elements use the `ms-` prefix for classes and attributes.
-> - While a scroll is running its root carries the `ms-scrolling` attribute. Nested scrolls read it to decide whether to take the wheel, and it is available for styling.
-> - Write objects, arrays and elements straight into the props — `controls={{ wheel: true }}`, `gap={[10, 20]}`, `controls={{ bar: <Thumb /> }}`. There is no need to wrap them in `useMemo`: MorphScroll compares prop values by content rather than by identity, so a fresh object with the same contents costs nothing. Callbacks are held through refs, so they never invalidate anything either.
-> - Two things happen without being asked for, because a scroll that skipped them would be wrong rather than minimal:
->   - content that loads **above** the reader does not push them down — the object they were looking at stays where it was, which is what a browser does for its own scrolling and what this one has to do itself;
->   - when the system asks for less motion, every move the library makes on its own arrives at once instead of animating — a drag still follows the finger, since that is not animation.
-> - When a combination cannot work, the library says so once — as a warning, prefixed `[MS n]`, where `n` tells one scroll on the page from another. It says what does not go with what and keeps running, in whatever way is left; the only thing it refuses outright is a missing `size`, without which there is nothing to build.
-> - With DevTools open the scroll can feel slower: the customization keeps the DOM changing, and the browser spends extra work reporting every change to the panel. It is an artefact of being watched — with DevTools closed, which is how the page is actually used, none of that cost exists.
+> - Ships **ESM** and **CommonJS** builds.
+> - Style the container as you like, but leave properties that size or position the internals alone.
+> - Internals carry the `ms-` prefix. A moving scroll marks its root with `ms-scrolling` — nested scrolls read it to decide about the wheel, and so can your CSS.
+> - Props are compared by content, so inline objects, arrays and elements need no `useMemo`; callbacks are held in refs.
+> - Two things are done for you: content loading **above** the reader does not push them down, and a system request for less motion turns the library's own animations into jumps.
+> - A combination that cannot work is reported once as a `[MS n]` warning (`n` tells one scroll from another) and the scroll keeps running; only a missing `size` throws.
+> - DevTools makes it feel slower — the DOM keeps changing and every change is reported to the panel. Closed, that cost does not exist.
+> - The API is final: **3.0** is what it will stay.
 
 <h2></h2>
 
@@ -128,9 +126,9 @@ displays distinct elements indicating the number of full scroll steps within the
 <code><b>sliderMenu</b></code>:<br />
 like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
 <br />
-Both draw one element per page, so the count follows the content: a long list makes a long strip of them, and past a point it outgrows the scroll it belongs to. There is no cap on purpose — hiding pages would make the progress lie about where you are. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
+Both draw one element per page, so a long list makes a long strip of them and past a point it outgrows the scroll. There is no cap on purpose: hiding pages would make the progress lie. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
 <br />
-A page is one window. Content that does not divide into whole windows ends on a short one: the last turn stops against the end rather than on a page of its own, and the page before it is a window away rather than a page away. Nothing breaks — the turns stay reversible — but the spacing of the last two is uneven. Sizing the objects so a whole number of them fills the window, or handing them the window with <code>objects.size: "full"</code>, keeps every page equal.</em><br />
+A page is one window, so content that does not divide into whole windows ends on a short one: the last turn stops against the end rather than on a page of its own. Nothing breaks — the turns stay reversible — but the last two are spaced unevenly. Sizing the objects so a whole number fills the window, or handing them the window with <code>objects.size: "full"</code>, keeps every page equal.</em><br />
 <br />
 <b>Example:</b>
 
@@ -189,13 +187,13 @@ the list begins at the right and runs leftwards.<br />
 <br />
 The first object stands at the right, and a horizontal scroll opens there — so its bar starts at the right and travels left as you read on. A slider's pages run the same way: the first page's dot is the right one, and the strip reads from there. A vertical list lays its columns from the right and puts its bar on the left, where a browser puts its own.<br />
 <br />
-It is asked for rather than taken from the page. A page&apos;s own direction is right until the widget reads the other way round from everything around it, which is common enough; and asking the environment costs a style recalculation on every render, where a render here happens once a frame while scrolling.<br />
+It is asked for rather than taken from the page: a widget often reads the other way round from what surrounds it, and asking the environment costs a style recalculation on every render.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
   <li>the objects themselves are left alone. Turning the list around is about order, not about how a card looks inside — that part is yours.</li><br />
-  <li>positions are counted from the start of the list either way, so <code>scrollTo(0)</code> reaches the first object whichever way it runs and <code>onScrollPosition</code> reports the same number for the same place. Only the markup's own <code>scrollLeft</code> still counts from its left edge, which here makes the start of the list its largest value — that shows up if you read the element yourself.</li>
+  <li>positions are counted from the start of the list either way, so <code>scrollTo(0)</code> reaches the first object whichever way it runs and <code>onScrollPosition</code> reports the same number for the same place. Only the element's own <code>scrollLeft</code> still counts from its left edge, where the start of the list is its largest value.</li>
 </ul>
 </em><br />
 <b>Example:</b>
@@ -288,17 +286,17 @@ false<br />
 <b>Description:</b><em><br />
 the content runs in a circle: the same children repeat forever in both directions, and there is no first object and no last.<br />
 <br />
-The seam is not visible, and the strip does not grow. It cannot: a scroll has a length, the browser cuts it off after tens of millions of pixels, and position and inertia lose their footing long before that. So the strip stays a fixed length — a few copies of the content, as many as the window needs — and the circle is made by moving the position instead. The window is kept in the middle copy, and the moment it leaves, the position moves by one period. Under the window at that moment is the very same content, so there is nothing to see.<br />
+The strip does not grow: a few copies of the content are mounted, the window is kept in the middle one, and the moment it leaves, the position moves by one period. Under the window at that moment is the same content, so the seam is never seen.<br />
 <br />
-With <code>render.mode</code> the objects are still mounted a window at a time, so a hundred turns cost what one costs — but the circle does not need it: it places its copies by coordinate either way, and without it simply mounts them all.<br />
+<code>render.mode</code> still mounts a window at a time, so a hundred turns cost what one costs; the circle does not need it — it places copies by coordinate either way — but a long list does.<br />
 <br />
-The slider modes turn in a circle too. Pages are counted within one turn, so the progress element shows as many dots as there really are — not one per copy — and they come back round to the first.<br />
+The slider modes turn too: pages are counted within one turn, so the progress element shows as many dots as there really are, and they come back round to the first.<br />
 <br />
-<code>direction="hybrid"</code> turns in both directions at once: the content repeats to the right and downward alike, the copies lie in a grid, and each axis is brought back to its own middle on its own.<br />
+<code>direction="hybrid"</code> turns both ways at once — the copies lie in a grid, and each axis returns to its own middle.<br />
 <br />
-A period is the exact length of the content, so the circle needs a size it can count: a side left to your own CSS cannot be counted — once the copies exist, measuring the box measures the copies — and the circle says so and stays open.<br />
+A period is the exact length of the content, so the circle needs a size it can count. A side left to your CSS cannot be counted — once the copies exist, measuring the box measures the copies — and the circle says so and stays open.<br />
 <br />
-<code>objects.size: "auto"</code> is the answer when you would rather not state sizes. It turns too, only not at once. A period is the length of the content, and that keeps growing while the measurements come in — turning on a period that moves would jolt the layout on every batch. So it waits: until everything is measured this scrolls as usual, and the circle closes by itself once there is nothing left to measure. A long list pays for a full measuring pass before it turns, and if something grows later the position keeps its place within the turn rather than jumping back to the start of it.</em><br />
+<code>objects.size: "auto"</code> turns as well, only not at once: the period is the content's length, and that keeps growing while measurements arrive. So it scrolls as usual until everything is measured and closes the circle then. If something grows later, the position keeps its place within the turn.</em><br />
 <br />
 <b>Note:</b><em><br />
 the list is repeated, not referenced — a few copies of every child are mounted at once. With <code>render.mode</code> only the ones in the window are, and the length of the list stops mattering; without it a long one is paid for several times over. For anything but a handful of objects, give the circle virtualising.</em><br />
@@ -400,7 +398,7 @@ brings one object into view. A place in the list rather than a place in pixels, 
   <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>, which leaves <code>objects.gap</code> showing past the object instead of pressing it against the edge.</li>
 </ul>
 
-<em>A group is an attribute on the child, read straight off the element — the child never has to pass it anywhere, and nothing has to be switched on. A group goes to its first object, and a key wins over a group of the same name. The key is left alone on purpose: it says which object this is, and packing a second meaning into it would break on every key that has a bracket of its own.</em>
+<em>A group is an attribute read straight off the child — nothing to pass on, nothing to switch on. A group resolves to its first object, and a key wins over a group of the same name.</em>
 
 ```tsx
 <MorphScroll {...props} ref={scroll} render="virtual">
@@ -559,9 +557,9 @@ for (const axis of ["x", "y"] as const) {
 
 <em>For auto-repeat while it is held, reach for the same <code>held</code> map the d-pad uses: remember when the next one is due and compare against <code>now</code>.<br />
 <br />
-Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick instead of chasing it through an animation, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true on every frame the d-pad is down, and stepping per frame would fly through the list.<br />
+Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true every frame the d-pad is down, and stepping per frame would fly through the list.<br />
 <br />
-Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is the reason polling stays out here: a game already has an input layer and a frame loop, and a loop inside the scroll would have to guess which of several scrolls on the page the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect exactly the same way; only the reason changes.</em>
+Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is why polling stays out here: a loop inside the scroll would have to guess which of several the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect the same way; only the reason changes.</em>
 
 </div></ul></details>
 
@@ -695,10 +693,10 @@ every object gets the size it asks for, and the library measures it. Which side 
 <br />
 <code>"auto"</code> on its own says it about both sides at once — the same as <code>["auto", "auto"]</code>.<br />
 <br />
-Measuring is done by one observer for the whole scroll, not one per object, and an object is watched for as long as it is on screen: a picture that arrives late or a text that changes moves its neighbours, instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization. Objects that have not been measured yet are drawn a batch at a time, so a list of five hundred does not arrive in a single frame.<br />
+One observer measures the whole scroll, and an object is watched while it is on screen: a picture that arrives late moves its neighbours instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization, and unmeasured objects are drawn a batch at a time.<br />
 <br />
 <b>a side left out</b>:<br />
-cells are still created, but <code>MorphScroll</code> does not measure them — they simply wrap your objects and the sizing is left to your CSS. In a pair the side is simply not named: <code>[100, null]</code> is a fixed width with the height decided by the content, and leaving <code>size</code> out entirely does it for both. There is no word for this on purpose — two ways of saying the same thing would have to be told apart every time.<br />
+cells are still created, but not measured — they wrap your objects and the sizing is left to your CSS. In a pair the side is simply not named: <code>[100, null]</code> is a fixed width with the height decided by the content, and leaving <code>size</code> out does it for both.<br />
 <br />
 Lines still work here, because <code>lines</code> counts objects rather than pixels: it is the one thing that can end a line when the width is not ours to know.<br />
 <br />
@@ -808,7 +806,7 @@ align: "center"; // or "start" | "end"
 <b>Description:</b><em><br />
 where a line that did not fill up sits — the last row of a grid, or the only row of a short list.<br />
 <br />
-<code>align</code> lines the rows up against the widest one — widest across the scroll, which is the vertical spread on a horizontal scroll just as much as the horizontal one on a vertical scroll. That row is as much room as the content actually needs and has nowhere to move; a row of two small objects leaves a gap beside it, and closing that gap is exactly what <code>align</code> is for. A fill has no rows at all, so each object closes its own gap instead — the one between it and whatever sits past it in that direction, or the edge of the room if nothing does; two objects side by side with room past both of them both move, each by as much as it individually has. <code>"center"</code> stops an object halfway between where the fit first placed it and where <code>"end"</code> would have pushed it. That room, in every case, is the scroll minus <code>wrapper.margin</code>, and nothing moves until every object has been measured, so the layout does not walk back as the sizes arrive.</em><br />
+Rows line up against the widest one, so a short row has spare space beside it and <code>align</code> decides where that space goes. A fill has no rows: each object moves by whatever room it has past itself, and <code>"center"</code> stops it halfway to <code>"end"</code>. The room is the scroll minus <code>wrapper.margin</code>, and nothing moves until every object is measured.</em><br />
 <br />
 <b>Example:</b>
 
@@ -837,11 +835,11 @@ order: "row"; // or "column"
 <b>Description:</b><em><br />
 changes the order of the provided elements based on the provided value.<br />
 <br />
-<code>"row"</code> fills a row and moves down, <code>"column"</code> fills a column and moves right. One of the two is what the list already does, and which one depends on where the scroll runs — a vertical scroll lays rows one after another, a horizontal one lays columns. The other asks for the order to be transposed: the first line then takes the first <code>ceil(n / lines)</code> objects, and a masonry asked for it stops looking for the shortest column, trading an even edge for reading straight through. The count is by number and never by size, so nothing jumps as the objects are measured.<br />
+<code>"row"</code> fills a row and moves down, <code>"column"</code> fills a column and moves right. One of the two is what the scroll already does — a vertical one lays rows, a horizontal one lays columns; the other transposes, and the first line then takes the first <code>ceil(n / lines)</code> objects. A masonry asked to transpose stops looking for the shortest column, trading an even edge for reading straight through. The count is by number, never by size, so nothing jumps as the objects are measured.<br />
 <br />
-Transposing needs lines to count. A masonry always has them — as many columns as fit, or as many as <code>lines</code> names. A flow has them when <code>lines</code> names them; without it a line ends where the room does, and how many there will be is not knowable in advance. A fill has none at all: it gives the order up for the fit, which is the whole point of handing over both sides. In those two cases the request is not carried out, and the library says so — when you wrote the value yourself, that is: on a horizontal scroll the default <code>"row"</code> is the transposed one, and complaining about a word nobody typed would only be noise.<br />
+Transposing needs a known number of lines: a masonry always has one, a flow only when <code>lines</code> names it, a fill none at all — it gives the order up for the fit. Without it the request is dropped, with a warning if you wrote the value yourself.<br />
 <br />
-<code>direction="hybrid"</code> answers the same request with the axis instead: <code>"row"</code> has <code>lines</code> bound the width and growth run down, <code>"column"</code> bounds the height and growth runs right — which is "the first column first", written as an axis rather than as an order.</em><br />
+In <code>direction="hybrid"</code> the same request is an axis: <code>"row"</code> has <code>lines</code> bound the width and growth run down, <code>"column"</code> bounds the height and growth runs right.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1049,7 +1047,7 @@ controls: {
   wheel: {
     // if direction="hybrid"
     changeDirection: true,
-    changeDirectionBtn: "KeyZ" // default "KeyX", "" to disable
+    changeDirectionBtn: "KeyZ" // default "KeyX", [] to disable
   },
   bar: [<Elem1 />, <Elem2 />, <Elem3 />],
   arrows: {
@@ -1072,7 +1070,7 @@ everything that can move the scroll lives here: the wheel, the keys and a drag, 
 A name, or an array of names, is shorthand for switching those on: <code>"wheel"</code> is the same as <code>{ wheel: true }</code>, and <code>["wheel", "drag"]</code> the same as <code>{ wheel: true, drag: true }</code>. Reach for the object form when one needs settings, or to pass an element.<br />
 <br />
 ✦ Note:<br />
-what you write is <b>added to</b> the default rather than put in its place. The wheel and the keys are how a scroll is worked by default, and naming a bar is not a request to take them away — <code>{ bar: &lt;Thumb /&gt; }</code> gives you a bar on a scroll that still answers the wheel. To take one away, say so: <code>{ wheel: false, bar: &lt;Thumb /&gt; }</code>.<br /></em>
+what you write is <b>added to</b> the default rather than put in its place: <code>{ bar: &lt;Thumb /&gt; }</code> gives you a bar on a scroll that still answers the wheel. To take one away, say so: <code>{ wheel: false, bar: &lt;Thumb /&gt; }</code>.<br /></em>
 
 <br />
 
@@ -1109,7 +1107,9 @@ changeDirection: true;
 ```
 
 <b>Description:</b><em><br />
-the wheel switches the axis it scrolls instead of always taking the same one.<br />
+in <code>direction="hybrid"</code>, gives the wheel to the x axis — a mouse has no sideways nudge of its own, and without this such a scroll is worked only by the trackpad or the bar.<br />
+<br />
+The other axis is then a held key away, see <code>changeDirectionBtn</code>. Without <code>changeDirection</code> nothing is hijacked: the wheel moves y, a trackpad moves both, and the browser's own <b>Shift</b> + wheel moves x.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1127,14 +1127,14 @@ the wheel switches the axis it scrolls instead of always taking the same one.<br
 <b>Usage:</b><br />
 
 ```tsx
-changeDirectionBtn: "KeyZ"; // "" turns it off
+changeDirectionBtn: "KeyZ"; // or ["ShiftLeft", "ShiftRight"], [] turns it off
 ```
 
 <b>Default:</b><br />
 "KeyX"<br />
 <br />
 <b>Description:</b><em><br />
-a held key switches the axis instead. Pass an empty string to disable it. <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values">more about keys</a><br />
+while one of these keys is held, the wheel goes back to the other axis. Needs <code>changeDirection</code>: on its own the wheel is not taken over, so there is nothing to hand back. A <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values"><code>KeyboardEvent.code</code></a>, or a list of them — a modifier has one per side, so <code>["ShiftLeft", "ShiftRight"]</code> is how a modifier is named. An empty list turns it off.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1243,7 +1243,7 @@ drag: true;
 <b>Description:</b><em><br />
 enables interaction by clicking and dragging anywhere within the scrollable content to move it.<br />
 <br />
-Anything can be dragged from — a menu of buttons, a row of links, a card with a picture in it — because what tells a tap from a scroll is the distance, not what happens to be under the pointer: below 2px it stays a click and the click lands, above it the wrapper drops <code>pointer-events</code> and it does not. The native drag of links and images is suppressed for as long as the gesture runs, so the browser cannot carry one away mid-scroll.<br />
+A tap is told from a scroll by distance, not by what is under the pointer: below 2px it stays a click and the click lands, above it the wrapper drops <code>pointer-events</code> and it does not. So anything can be dragged from — buttons, links, a card with a picture. The native drag of links and images is suppressed while the gesture runs.<br />
 <br />
 While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code> — that is the hook for a grabbing cursor.<br />
 <br />
@@ -1282,9 +1282,9 @@ determines how the scroll progress is managed<br />
 <br />
 
 <ul>
-  <li>When using <code>mode="scroll"</code>, you can provide a custom scroll element. If it's not ready yet, simply set <b>true</b> instead — this will fall back to the browser’s default scrollbar.</li><br />
-  <li>When using <code>mode="slider"</code>, a <b>.ms-slider</b> element is automatically generated. It contains multiple <b>ms-slider-item</b> elements that visually represent the scroll progress. One of them will always have the <code>ms-active</code> class depending on the current position. A dot answers a tap and turns to its own page; dragging along the bar still pages as you go.</li><br />
-  <li>When using <code>mode="sliderMenu"</code>, everything is the same as with <b>"slider"</b> but you can pass an array of custom buttons to <code>bar</code>. These buttons act as a navigation menu, allowing users to jump to specific sections.</li>
+  <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar.</li><br />
+  <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. A dot answers a tap and turns to its own page, and dragging along the bar pages as you go.</li><br />
+  <li>With <code>mode="sliderMenu"</code> everything is the same, but <code>bar</code> also takes an array of custom buttons — a navigation menu that jumps to a section.</li>
 </ul>
 <br />
 For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:<br />
@@ -1415,7 +1415,7 @@ showOnHover: true;
 report the bar as idle unless it is hovered, touched or the content is moving. Nothing is styled for you — see the note below.</em><br />
 
 ✦ Note:<br />
-with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whichever element the mode renders — <b>.ms-bar</b> in <code>mode="scroll"</code>, <b>.ms-slider</b> in the slider modes — so style both if you use both. The bar stays visible until you use the variable:<br />
+with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whatever the mode renders — <b>.ms-bar</b> or <b>.ms-slider</b> — so style both if you use both. The bar stays visible until you use the variable:<br />
 
 ```css
 .ms-bar,
@@ -1492,7 +1492,7 @@ arrows: <ArrowComponent />; // or true | an object
 <b>Description:</b><em><br />
 allows you to add custom arrows to the progress bar.<br />
 <br />
-Each arrow is a <b>.ms-arrow-box</b> strip along its own side of the scroll; the element you pass sits inside <b>.ms-arrow</b>, which only rotates it. An arrow with nowhere left to go gets the <code>ms-disabled</code> class and no <code>cursor: pointer</code>, so it does not advertise a click that does nothing — under <code>loop</code> there are no dead ends and the class never appears.<br />
+Each arrow is a <b>.ms-arrow-box</b> strip along its own side; the element you pass sits inside <b>.ms-arrow</b>, which only rotates it. An arrow with nowhere left to go gets <code>ms-disabled</code> and no <code>cursor: pointer</code> — under <code>loop</code> there are no dead ends, so the class never appears.<br />
 </em><br />
 
 <details><summary><code><b>element</b></code></summary><br /><ul><div>
@@ -1595,9 +1595,9 @@ marks the edges where the content is cut off. The library places the slots and r
 <br />
 Two edges are created for a single-axis <code>direction</code>, four for <code>"hybrid"</code>. Each carries the class <code>.ms-edge</code> plus its side — <code>.ms-top</code>, <code>.ms-right</code>, <code>.ms-bottom</code>, <code>.ms-left</code> — the <code>--ms-edge-visibility</code> variable (<b>1</b> when content is cut off on that side, <b>0</b> when it is not), and <code>.ms-disabled</code> while it is not.<br />
 <br />
-Passing a node instead of <b>true</b> renders it inside every edge slot, in a <b>.ms-edge-inner</b> wrapper. Author that node once, the way it looks along the top, and the library turns it onto the other three sides — the same bargain as the arrows, where one icon is drawn pointing right rather than four being drawn. The sideways slots get their sides swapped before the turn, so a gradient written across a wide strip lands correctly down a narrow one. The slot itself is never transformed, so your CSS can place it predictably.<br />
+Passing a node instead of <b>true</b> renders it inside every slot, in a <b>.ms-edge-inner</b> wrapper. Author it once, the way it looks along the top, and the library turns it onto the other three sides; the sideways slots get their sides swapped first, so a gradient written across a wide strip lands correctly down a narrow one. The slot itself is never transformed, so your CSS can place it predictably.<br />
 <br />
-Passing <code>{ element, size }</code> adds the thickness of the strip, the way <code>arrows.size</code> does — a height at the top and bottom, a width at the sides, worked out for you. Without it the thickness is yours to write.<br />
+Passing <code>{ element, size }</code> sets the strip's thickness the way <code>arrows.size</code> does — a height at the top and bottom, a width at the sides. Without it the thickness is yours to write.<br />
 <br />
 ✦ Note:<br />
 an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
@@ -1671,7 +1671,7 @@ When used, a container is created for each scrollable object, and its absolute p
 <em>✦ Note:<br />
 <code>render</code> places objects by counting, so it needs a size it can count with: a side left to your own CSS is the one it cannot count. <code>objects.size: "auto"</code> is fine — the library measures it and then knows it.<br />
 <br />
-A window also hides how long the list is, so the library says it in the markup instead: with a <code>mode</code> set, the wrapper is a list and every object is one of its items, numbered against the real total. Without a window every object is in the document and a screen reader counts them itself, so nothing is claimed; a slider is never called a list either, since its dots already say where you are.</em><br />
+A window also hides how long the list is, so the markup says it instead: with a <code>mode</code> set, the wrapper is a list and every object an item numbered against the real total. Without a window every object is in the document and a screen reader counts them itself; a slider is never called a list either, since its dots already say where you are.</em><br />
 <br />
 
 <details><summary><code><b>mode</b></code></summary><br /><ul><div>
@@ -1754,7 +1754,7 @@ trackVisibility: true;
 <b>Description:</b><em><br />
 sets the <code>--ms-content-visibility</code> variable on each object box, which is what a fade-in is styled with: <code>opacity: var(--ms-content-visibility);</code>.<br />
 <br />
-It needs no <code>mode</code> of its own. What stood in the way was never the rendering but the coordinates — they were worked out for the virtual modes alone — and asking to watch now works them out too. Without a <code>mode</code> nothing is dropped: every object stays mounted and simply knows how much of itself shows.</em><br />
+It needs no <code>mode</code> of its own: without one nothing is dropped — every object stays mounted and simply knows how much of itself shows.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1841,7 +1841,7 @@ onScrollPosition: (left, top, max) => {};
 <b>Description:</b><em><br />
 runs on every scroll event with the current offsets, and with how far each axis can go.<br />
 <br />
-That third argument is what makes a "load more" out of this without a prop for it: how far the end is, is <code>max</code> minus the position, and nothing outside the component has to know the length of the content. With <code>render</code> or <code>objects.size: "auto"</code> nothing outside <b>can</b> know it — the objects are not in the document, or their sizes were measured here.<br />
+That third argument is what makes a "load more" out of this without a prop for it: the distance to the end is <code>max</code> minus the position. With <code>render</code> or <code>objects.size: "auto"</code> nothing outside <b>can</b> know it — the objects are not in the document, or their sizes were measured here.<br />
 <br />
 ✦ Note:<br />
 in <code>loop</code> the content has no end, and <code>max</code> measures the strip of copies rather than one turn.</em><br />
@@ -1864,7 +1864,7 @@ in <code>loop</code> the content has no end, and <code>max</code> measures the s
 
 <details><summary><b><code>onScrollingChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-accepts a callback function that is triggered whenever the scroll status changes. The callback receives a boolean value, where <code>true</code> indicates that scrolling is in progress, and <code>false</code> indicates that scrolling has stopped. This can be useful for triggering additional actions, such as pausing animations or loading indicators based on the scroll state.</em><br />
+runs whenever the scroll starts or stops, with <b>true</b> while it moves and <b>false</b> once it settles — the hook for pausing an animation or showing a loading state.</em><br />
 <br />
 <b>Example:</b>
 
