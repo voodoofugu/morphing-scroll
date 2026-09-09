@@ -3755,8 +3755,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 ? Math.max(0, room - gapXY[wh])
                 : 0;
 
+          /*
+           * Место объекта считается по списку: у первого оно ноль, у каждого
+           * следующего больше. У списка, идущего справа, это не то же, что
+           * место в разметке — там первый объект стоит последним, — и `place`
+           * отмеряется не от левого края окна, а от правого: начало окна у
+           * такого списка справа. Считая по разметке, команда уезжала в другой
+           * конец и объект оставался за окном.
+           */
           const period = loopPeriods[wh];
-          let to = start - place;
+          let to = isX && flipsX ? listX(start) + place : start - place;
 
           // в круге место названо внутри оборота, и едем к ближнему повтору
           if (period) {
@@ -3780,6 +3788,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         duration,
         markNavigate,
         smoothScrollLocal,
+        flipsX,
+        maxScrollSize[0],
       ],
     );
 

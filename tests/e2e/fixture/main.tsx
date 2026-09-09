@@ -1525,8 +1525,9 @@ function CrashRig() {
   const config = revive(JSON.parse(raw)) as MorphScrollProps & {
     count?: number;
     vary?: boolean;
+    groups?: number;
   };
-  const { count = 12, vary = false, ...props } = config;
+  const { count = 12, vary = false, groups = 0, ...props } = config;
 
   return (
     <MorphScroll
@@ -1540,6 +1541,8 @@ function CrashRig() {
           key={`crash-${i}`}
           className="box"
           data-testid={`crash-${i}`}
+          /* по просьбе набора раскладываем объекты по секциям: s0, s1, ... */
+          {...(groups ? { "ms-group": `s${Math.floor(i / groups)}` } : {})}
           style={
             vary
               ? {

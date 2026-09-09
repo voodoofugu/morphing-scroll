@@ -511,6 +511,113 @@ for (const { name, config } of cases.slice(0, 8))
   });
 
 /*
+ * `scrollToObject` называет объект, а не число: место объекта считается по
+ * списку — у первого ноль, у каждого следующего больше. У списка, идущего
+ * справа, это не то же, что место в разметке, да и `align: "start"` значит
+ * там правый край окна, а не левый. Команда уезжала в другой конец, и объект,
+ * к которому позвали, оставался за окном.
+ */
+test.describe("scrollToObject", () => {
+  const RIG: Config = {
+    count: 24,
+    size: [680, 430],
+    direction: "x",
+    objects: { size: 170, gap: 12, lines: 2 },
+    controls: { wheel: true },
+    groups: 6, // s0 s1 s2 s3 — по шесть объектов в секции
+    duration: 0,
+  };
+
+  const goTo = (page: Page, target: number | string, align: string) =>
+    page.evaluate(
+      ([target, align]) =>
+        (
+          window as unknown as {
+            __ms: { scrollToObject: (t: unknown, o: object) => void };
+          }
+        ).__ms.scrollToObject(target, { align, duration: 0 }),
+      [target, align] as [number | string, string],
+    );
+
+  /*
+   * Сверяем с обычным списком: тот же вызов на зеркальном должен показать те
+   * же объекты в обратном порядке и оставить тот же отступ — только с другой
+   * стороны окна.
+   */
+  const both = async (
+    page: Page,
+    config: Config,
+    target: number | string,
+    align: string,
+  ) => {
+    await page.goto(url({ ...config, fromRight: true }));
+    await settle(page);
+    await goTo(page, target, align);
+    await settle(page);
+
+    const right = await look(page);
+
+    await page.goto(url(config));
+    await settle(page);
+    await goTo(page, target, align);
+    await settle(page);
+
+    return { right, left: await look(page) };
+  };
+
+  for (const align of ["start", "center", "end"] as const)
+    for (const target of [1, 9, "crash-14", "s2"] as const)
+      test(`${JSON.stringify(target)} с align: "${align}"`, async ({
+        page,
+      }) => {
+        const { right, left } = await both(page, RIG, target, align);
+
+        expect(left.count, "обычный список никуда не приехал").toBeGreaterThan(
+          0,
+        );
+        expect(right.row, "показаны другие объекты").toEqual(
+          [...left.row].reverse(),
+        );
+        // начало списка справа: отступ до края меняется стороной
+        expect(right.lead, "отступ у начала списка").toBe(left.tail);
+        expect(right.tail, "отступ у конца списка").toBe(left.lead);
+      });
+
+  /* и в круге: место названо внутри оборота, а сторона у него та же */
+  test("в круге ведёт туда же", async ({ page }) => {
+    const { right, left } = await both(
+      page,
+      { ...RIG, loop: true, render: { mode: "virtual" } },
+      "s1",
+      "start",
+    );
+
+    expect(left.count, "обычный список никуда не приехал").toBeGreaterThan(0);
+    expect(right.row).toEqual([...left.row].reverse());
+    expect(right.lead).toBe(left.tail);
+    expect(right.tail).toBe(left.lead);
+  });
+
+  /*
+   * По вертикали горизонталь поперечная — прокручивать её некуда, и зеркалится
+   * только порядок в строке. Едем к тому же объекту и ждём тех же соседей,
+   * поставленных в обратном порядке.
+   */
+  test("по y ведёт к тому же объекту", async ({ page }) => {
+    const { right, left } = await both(
+      page,
+      { ...RIG, direction: "y", objects: { size: 170, gap: 12, lines: 2 } },
+      9,
+      "start",
+    );
+
+    expect(left.count, "обычный список никуда не приехал").toBeGreaterThan(0);
+    expect(right.row).toEqual([...left.row].reverse());
+    expect(right.count).toBe(left.count);
+  });
+});
+
+/*
  * Слайдер считает страницами, а сетка страниц привязана к началу. У списка,
  * идущего справа, начало на другом конце, и сетка по разметке с ней не
  * совпадает: шаг туда и обратно возвращал не на то же место, прилипание
