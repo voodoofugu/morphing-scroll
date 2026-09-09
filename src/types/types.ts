@@ -192,10 +192,11 @@ export type MorphScrollHandle = {
    * which a child gives itself: `ms-group="news"`. A group goes to its first
    * object; a key wins over a group of the same name.
    *
-   * `align` is `"start"` by default, `"center"`, or `"end"` — which leaves
-   * `objects.gap` showing past the object rather than pressing it to the edge.
-   * A pair places the axes apart in `direction="hybrid"`:
-   * `["center", "start"]`.
+   * `align` is `"start"` by default, `"center"`, or `"end"`. It puts the
+   * object where the list itself holds that edge: `"start"` where the first
+   * object sits at `scrollTo(0)`, `"end"` where the last one sits at the end
+   * of the run — so `wrapper.margin` stays on the side it aligns to. A pair
+   * places the axes apart in `direction="hybrid"`: `["center", "start"]`.
    * @note *`align` asks, the range answers: an object near either end of an
    * axis cannot be moved off it, so all three land in the same place there —
    * the first object is at the start whatever you ask for*

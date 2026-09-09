@@ -811,11 +811,16 @@ describe("MorphScroll — scrollToObject", () => {
     )),
   ];
 
-  const mount = (children: React.ReactNode, extra?: { gap?: number }) => {
+  const mount = (
+    children: React.ReactNode,
+    extra?: { gap?: number; margin?: number },
+  ) => {
+    const { margin, ...objects } = extra ?? {};
     const u = render(
       <MorphScroll
         size={[100, 300]}
-        objects={{ size: 100, ...extra }}
+        objects={{ size: 100, ...objects }}
+        {...(margin ? { wrapper: { margin } } : {})}
         ref={ref}
       >
         {children}
@@ -826,7 +831,8 @@ describe("MorphScroll — scrollToObject", () => {
       clientWidth: 100,
       clientHeight: 300,
       scrollWidth: 100,
-      scrollHeight: 1000 + (extra?.gap ?? 0) * 10,
+      scrollHeight:
+        1000 + (extra?.gap ?? 0) * 10 + (extra?.margin ?? 0) * 2,
     });
     return { ...u, el };
   };
@@ -904,11 +910,11 @@ describe("MorphScroll — scrollToObject", () => {
   });
 
   /*
-   * У края объект встаёт не вплотную: между ним и соседом лежит зазор, и у
-   * последней стороны он такой же. Прижав объект к самому краю, мы съедали бы
-   * именно его — снизу выходило теснее, чем сверху.
+   * Куда ставить объект, решает сам список: `"end"` — туда, где стоит
+   * последний объект в конце. Полей у обёртки нет — значит и под объектом
+   * пусто, ровно как под последним при полной прокрутке.
    */
-  it("leaves the gap under an object aligned to the end", () => {
+  it("presses an object to the end when the list itself ends there", () => {
     const spy = quiet();
     const s = mount(items(10), { gap: 20 });
     settle();
@@ -920,11 +926,53 @@ describe("MorphScroll — scrollToObject", () => {
     s.unmount();
     spy.mockRestore();
 
-    /*
-     * Шестой объект при шаге 120 лежит на 600, окно 300. Вплотную к низу — это
-     * 600 + 100 - 300 = 400; с зазором под ним объект поднимается на те же 20.
-     */
-    expect(at).toBe(420);
+    // шестой объект при шаге 120 лежит на 600, окно 300: 600 + 100 - 300
+    expect(at).toBe(400);
+  });
+
+  /*
+   * А есть поле — остаётся и оно, и с той же стороны: иначе `"end"` в
+   * середине списка прижимал бы объект теснее, чем список прижимает свой
+   * последний.
+   */
+  it("keeps the wrapper margin on the side it aligns to", () => {
+    const spy = quiet();
+    const s = mount(items(10), { margin: 20 });
+    settle();
+
+    act(() => ref.current?.scrollToObject(6, { align: "end" }));
+    settle();
+    const atEnd = s.el.scrollTop;
+
+    act(() => ref.current?.scrollToObject(6, { align: "start" }));
+    settle();
+    const atStart = s.el.scrollTop;
+
+    s.unmount();
+    spy.mockRestore();
+
+    // объект на 500 внутри обёртки, поле 20: снизу поле, сверху поле
+    expect(atEnd).toBe(500 + 20 + 100 + 20 - 300);
+    expect(atStart).toBe(500);
+  });
+
+  /*
+   * И первый объект по `"start"` приезжает туда же, куда `scrollTo(0)`: место
+   * покоя у списка одно, как бы к нему ни попросили.
+   */
+  it("sends the first object exactly where the list rests", () => {
+    const spy = quiet();
+    const s = mount(items(10), { margin: 20 });
+    settle();
+
+    act(() => ref.current?.scrollToObject(1, { align: "start" }));
+    settle();
+
+    const at = s.el.scrollTop;
+    s.unmount();
+    spy.mockRestore();
+
+    expect(at).toBe(0);
   });
 
   it("does nothing for a name that is neither a key nor a group", () => {

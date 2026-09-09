@@ -398,7 +398,7 @@ brings one object into view. A place in the list rather than a place in pixels, 
 
 <ul>
   <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b> — which a child names on itself, <code>ms-group="news"</code>.</li><br />
-  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>, which leaves <code>objects.gap</code> showing past the object instead of pressing it against the edge.</li>
+  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>. Each puts the object where the list itself holds that edge, so <code>wrapper.margin</code> stays on the side it aligns to and <code>scrollToObject(1)</code> arrives exactly where <code>scrollTo(0)</code> does. A pair aligns the axes apart under <code>direction="hybrid"</code>: <code>["center", "start"]</code>.</li>
 </ul>
 
 <em>A group is an attribute read straight off the child — nothing to pass on, nothing to switch on. A group resolves to its first object, and a key wins over a group of the same name.<br />

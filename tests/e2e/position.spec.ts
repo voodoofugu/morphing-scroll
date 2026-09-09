@@ -165,9 +165,8 @@ test.describe("MorphScroll sliderMenu (real browser)", () => {
 });
 
 /*
- * Место объекта считается внутри обёртки, а прокрутка — от края окна: между
- * ними лежат поля обёртки. Не прибавив их, `"start"` оставлял поле лишним
- * зазором, а `"end"` съедал им тот зазор, ради которого он и вычитается.
+ * Три замера на глаз к перебору из `scrollToObject.spec.ts`: правило там
+ * проверяется правилом, а здесь видно, как оно выглядит в пикселях.
  */
 test.describe("MorphScroll scrollToObject: where it lands", () => {
   const RIG = {
@@ -231,15 +230,15 @@ test.describe("MorphScroll scrollToObject: where it lands", () => {
       .toEqual;
   };
 
-  test('"start" puts it against the window, not a margin away', async ({
+  /* поле обёртки остаётся с той стороны, к которой прижимаются */
+  test('"start" keeps the margin the list keeps at its start', async ({
     page,
   }) => {
     await open(page);
-    await (await goTo(page, "start"))([0, 570, 0, 348]);
+    await (await goTo(page, "start"))([12, 558, 12, 336]);
   });
 
-  /* а `"end"` оставляет зазор объекта, а не отдаёт его полю обёртки */
-  test('"end" leaves the gap showing past it', async ({ page }) => {
+  test('"end" keeps the margin the list keeps at its end', async ({ page }) => {
     await open(page);
     await (await goTo(page, "end"))([558, 12, 336, 12]);
   });
