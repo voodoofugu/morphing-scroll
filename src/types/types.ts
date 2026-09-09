@@ -4,7 +4,7 @@ export type Vec2 = Pair<number>;
 
 type Edges = [top: number, right: number, bottom: number, left: number];
 type SpacingValue = number | Vec2 | Edges;
-type Align = "start" | "center" | "end";
+export type Align = "start" | "center" | "end";
 type MinSize = number | "full";
 type ObjectSize = number | "full" | "firstChild" | "auto";
 
@@ -194,6 +194,8 @@ export type MorphScrollHandle = {
    *
    * `align` is `"start"` by default, `"center"`, or `"end"` — which leaves
    * `objects.gap` showing past the object rather than pressing it to the edge.
+   * A pair places the axes apart in `direction="hybrid"`:
+   * `["center", "start"]`.
    * @note *`align` asks, the range answers: an object near either end of an
    * axis cannot be moved off it, so all three land in the same place there —
    * the first object is at the start whatever you ask for*
@@ -202,7 +204,7 @@ export type MorphScrollHandle = {
     target: number | string,
     options?: {
       duration?: number;
-      align?: "start" | "center" | "end";
+      align?: Align | Pair<Align>;
       reason?: NavigateReason;
     },
   ) => void;
@@ -307,12 +309,13 @@ export type MorphScroll = {
    * @default "scroll"
    * @description
    * - `"scroll"`: *a thumb running along a track*
-   * - `"slider"`: *a carousel — one element per page, and everything lands on
-   * them: a wheel notch, a drag, a press on the strip*
-   * - `"sliderMenu"`: *the same pages and the same turns, but the strip is a
-   * menu — pressed rather than dragged along*
-   * @note *both take an array in `controls.bar`, one node per page — custom
-   * buttons are not what tells them apart*
+   * - `"slider"`: *a carousel — one element per page; the strip is a handle,
+   * dragged along, and a press on it does nothing*
+   * - `"sliderMenu"`: *the same pages, but the strip is a menu — a press on
+   * an element turns to its page, and there is nothing to drag*
+   * @note *what tells them apart is the gesture the strip answers, and the
+   * cursor says which. The elements are yours either way: `controls.bar`
+   * takes an array, one node per page, in both*
    * @note *a slider draws one element per page, so a long list makes a long
    * strip of them: they are for a handful of pages, a growing list is
    * `mode="scroll"`*

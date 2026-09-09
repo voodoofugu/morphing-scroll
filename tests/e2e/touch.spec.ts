@@ -148,7 +148,7 @@ test.describe("MorphScroll touch: nesting and taps", () => {
     expect(await scrollTop(outer)).toBe(0);
   });
 
-  test("точка слайдера отзывается на нажатие пальцем", async ({ page }) => {
+  test("пункт меню отзывается на нажатие пальцем", async ({ page }) => {
     await page.goto("/?scenario=sliderTapTouch");
 
     const dots = page.locator(".ms-slider-item");

@@ -121,12 +121,12 @@ defines how the provided <code>bar</code> behaves within <code>controls</code> a
 the default — a thumb running along a track.<br />
 <br />
 <code><b>slider</b></code>:<br />
-a carousel: one element per page, and everything lands on them — a wheel notch turns a page, a drag settles on the nearest one, and dragging along the strip pages as you go.<br />
+a carousel: one element per page, and everything lands on them — a wheel notch turns a page, a drag settles on the nearest one. The strip is a handle: it is dragged along, and a press on it does nothing.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-the same pages and the same turns, but the strip is a menu rather than a handle: it answers a press and cannot be dragged along.<br />
+the same pages and the same turns, but the strip is a menu: a press on an element turns to its page, and there is nothing to drag.<br />
 <br />
-Both take an array in <code>bar</code>, one node per page, so custom buttons are not what tells them apart.<br />
+So what tells them apart is the gesture the strip answers — dragged or pressed — and the cursor says which. Both take an array in <code>bar</code>, one node per page, so the elements themselves are yours either way: page dots that are only dragged along, or the same dots as a menu.<br />
 <br />
 Both draw one element per page, so a long list makes a long strip of them and past a point it outgrows the scroll. There is no cap on purpose: hiding pages would make the progress lie. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
 <br />
@@ -1293,8 +1293,8 @@ determines how the scroll progress is managed<br />
 
 <ul>
   <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar.</li><br />
-  <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. A dot answers a tap and turns to its own page, and dragging along the bar pages as you go.</li><br />
-  <li>With <code>mode="sliderMenu"</code> the strip is the same, but it is pressed rather than dragged along.</li>
+  <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. The strip is dragged along and pages as you go.</li><br />
+  <li>With <code>mode="sliderMenu"</code> the strip is the same, but pressed rather than dragged: an element turns to its own page.</li>
 </ul>
 <br />
 For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:<br />

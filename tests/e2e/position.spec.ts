@@ -79,7 +79,7 @@ test.describe("MorphScroll sliderMenu (real browser)", () => {
     const config = {
       count: 6,
       size: 300,
-      mode: "slider",
+      mode: "sliderMenu", // нажатие живёт там
       objects: { size: "full" },
       controls: { bar: "@dot" },
       duration: 1500, // длинный переезд: успеть спросить в дороге
@@ -161,5 +161,92 @@ test.describe("MorphScroll sliderMenu (real browser)", () => {
     await expect.poll(async () => (await navigateLog(page)).at(-1)).toMatchObject({
       reason: "scroll",
     });
+  });
+});
+
+/*
+ * Место объекта считается внутри обёртки, а прокрутка — от края окна: между
+ * ними лежат поля обёртки. Не прибавив их, `"start"` оставлял поле лишним
+ * зазором, а `"end"` съедал им тот зазор, ради которого он и вычитается.
+ */
+test.describe("MorphScroll scrollToObject: where it lands", () => {
+  const RIG = {
+    count: 300,
+    direction: "hybrid",
+    size: [720, 460],
+    objects: { size: [150, 112], gap: 12, lines: 20 },
+    wrapper: { margin: [12, 12, 12, 12] },
+    controls: { wheel: true },
+    render: { mode: "virtual", rootMargin: 160 },
+    duration: 0,
+  };
+
+  const open = async (page: Page) => {
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(RIG))}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator(".ms-viewport")
+          .evaluate((el) => el.scrollHeight - el.clientHeight),
+      )
+      .toBeGreaterThan(0);
+  };
+
+  /* объект 151 — середина сетки: и слева, и сверху от него ещё есть куда ехать */
+  const goTo = async (page: Page, align: unknown) => {
+    await page.evaluate(
+      (a) =>
+        (
+          window as unknown as {
+            __ms: { scrollToObject: (t: number, o: object) => void };
+          }
+        ).__ms.scrollToObject(151, { align: a, duration: 0 }),
+      align,
+    );
+
+    return expect
+      .poll(() =>
+        page.evaluate(() => {
+          const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+          const frame = view.getBoundingClientRect();
+          const box = [
+            ...document.querySelectorAll<HTMLElement>(".ms-object-box"),
+          ].find((el) => el.textContent === "150");
+
+          if (!box) return null;
+
+          const r = box.getBoundingClientRect();
+
+          return [
+            Math.round(r.left - frame.left),
+            Math.round(frame.right - r.right),
+            Math.round(r.top - frame.top),
+            Math.round(frame.bottom - r.bottom),
+          ];
+        }),
+      )
+      .toEqual;
+  };
+
+  test('"start" puts it against the window, not a margin away', async ({
+    page,
+  }) => {
+    await open(page);
+    await (await goTo(page, "start"))([0, 570, 0, 348]);
+  });
+
+  /* а `"end"` оставляет зазор объекта, а не отдаёт его полю обёртки */
+  test('"end" leaves the gap showing past it', async ({ page }) => {
+    await open(page);
+    await (await goTo(page, "end"))([558, 12, 336, 12]);
+  });
+
+  /* при двух осях у каждой своё место в окне */
+  test("a pair places the axes apart", async ({ page }) => {
+    await open(page);
+    await (await goTo(page, ["center", "end"]))([285, 285, 336, 12]);
   });
 });

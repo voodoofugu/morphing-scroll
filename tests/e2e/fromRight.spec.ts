@@ -758,9 +758,12 @@ test.describe("слайдер", () => {
     expect(await side(page)).toBe("left");
   });
 
+  /* нажатие — механика меню, там его и проверяем */
   test("точка ведёт на ту же страницу, что и в обычном списке", async ({
     page,
   }) => {
+    const menu = { ...RIG, mode: "sliderMenu" };
+
     const clickDot = async (p: Page) => {
       await p.setViewportSize({ width: 1000, height: 800 });
 
@@ -772,12 +775,12 @@ test.describe("слайдер", () => {
       await p.waitForTimeout(500);
     };
 
-    await page.goto(url({ ...RIG, fromRight: true }));
+    await page.goto(url({ ...menu, fromRight: true }));
     await settle(page);
     await clickDot(page);
     const right = await state(page);
 
-    await page.goto(url(RIG));
+    await page.goto(url(menu));
     await settle(page);
     await clickDot(page);
     const left = await state(page);

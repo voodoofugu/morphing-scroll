@@ -1,6 +1,7 @@
 import React from "react";
 
 import type {
+  Align,
   BarConfig,
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
@@ -3878,7 +3879,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         target: number | string,
         options?: {
           duration?: number;
-          align?: "start" | "center" | "end";
+          align?: Align | Pair<Align>;
           reason?: NavigateReason;
         },
       ) => {
@@ -3889,7 +3890,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (index === -1) return;
 
         const box = boxOf(index);
-        const align = options?.align ?? "start";
+        const asked = options?.align ?? "start";
+        // при двух осях у каждой своё место в окне, но одного слова хватает обеим
+        const alignXY: Pair<Align> = Array.isArray(asked)
+          ? asked
+          : [asked, asked];
         const moveDuration = options?.duration ?? duration;
 
         if (options?.reason) markNavigate(options.reason);
@@ -3901,9 +3906,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           const isX = axis === "x";
           const wh = isX ? 0 : 1;
 
+          const align = alignXY[wh];
           const start = isX ? box.left : box.top;
           const size = isX ? box.width : box.height;
           const view = sizeLocal[wh];
+
+          /*
+           * Место объекта считается внутри обёртки, а прокрутка — от края
+           * окна: между ними лежат поля обёртки. Не прибавив их, `"start"`
+           * оставлял поле лишним зазором, а `"end"` съедал им тот зазор,
+           * ради которого он и вычитается.
+           */
+          const lead = isX ? mL : mT;
+          const trail = isX ? mR : mB;
 
           /*
            * У края объект встаёт не вплотную: между ним и соседом лежит зазор,
@@ -3928,7 +3943,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
            * конец и объект оставался за окном.
            */
           const period = loopPeriods[wh];
-          let to = isX && flipsX ? listX(start) + place : start - place;
+          let to =
+            isX && flipsX
+              ? listX(start) + place - trail
+              : start + lead - place;
 
           // в круге место названо внутри оборота, и едем к ближнему повтору
           if (period) {
@@ -3954,6 +3972,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         smoothScrollLocal,
         flipsX,
         maxScrollSize[0],
+        mT,
+        mR,
+        mB,
+        mL,
       ],
     );
 

@@ -1591,11 +1591,11 @@ scenarios.nestedTouch = (
   </MorphScroll>
 );
 
-/* Точка слайдера должна отзываться и на палец, а не только на мышь. */
+/* Пункт меню должен отзываться и на палец, а не только на мышь. */
 scenarios.sliderTapTouch = (
   <MorphScroll
     size={300}
-    mode="slider"
+    mode="sliderMenu"
     objects={{ size: 300 }}
     controls={{ wheel: true, bar: <div className="dot" /> }}
     onScrollPosition={onScrollPosition}

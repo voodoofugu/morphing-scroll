@@ -996,7 +996,12 @@ describe("MorphScroll — second pass", () => {
       vi.advanceTimersByTime(ms);
     });
 
-  it("a dot answers a tap in both slider modes", () => {
+  /*
+   * Нажатие — механика меню, и живёт оно там. У слайдера полосу тянут, и
+   * нажатие по ней не ведёт никуда: два способа сделать одно и то же спорили
+   * бы и на вид — курсор обещал бы клик на том, что берут и ведут.
+   */
+  it("a dot answers a tap in the menu, and only there", () => {
     const spy = quiet();
 
     for (const mode of ["slider", "sliderMenu"] as const) {
@@ -1031,7 +1036,9 @@ describe("MorphScroll — second pass", () => {
       const at = el.scrollTop;
       u.unmount();
 
-      expect(at, `${mode} did not answer the tap`).toBe(600);
+      expect(at, `${mode} answered the tap wrongly`).toBe(
+        mode === "sliderMenu" ? 600 : 0,
+      );
     }
 
     spy.mockRestore();
