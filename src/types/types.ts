@@ -46,6 +46,11 @@ export type WheelConfig = {
    * other axis while held — **Shift** by default, the same key a browser
    * scrolls sideways with. Needs `changeDirection`; an empty list turns it off
    * @default ["ShiftLeft", "ShiftRight"]
+   * @note *a list is "any of these"; `"+"` joins codes into one combination,
+   * so `["ShiftLeft+KeyX"]` waits for both*
+   * @note *a modifier arrives with the wheel event itself and works wherever
+   * the pointer is; any other key is read from the keyboard, which the scroll
+   * only hears while it has focus*
    */
   changeDirectionBtn?: string | string[];
 };

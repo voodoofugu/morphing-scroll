@@ -208,7 +208,7 @@ It is asked for rather than taken from the page: a widget often reads the other 
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><b><code>initialPosition</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -305,6 +305,7 @@ the list is repeated, not referenced — a few copies of every child are mounted
 <br />
 <br />
 <b>What changes around it:</b><em><br /></em>
+
 <ul>
   <li><code>edge</code> stays lit on both sides: there really is more content both ways</li>
   <li>the progress element shows the position within one turn, not within the strip, so it cycles instead of jumping — and it appears only when a turn is longer than the window, since a strip that is always longer would otherwise always show one</li>
@@ -524,7 +525,7 @@ function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><b>Recipe — the stick, moving through objects instead of panning</b></summary><br /><ul><div>
 
@@ -566,8 +567,6 @@ Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the
 Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is why polling stays out here: a loop inside the scroll would have to guess which of several the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect the same way; only the reason changes.</em>
 
 </div></ul></details>
-
-<br />
 
 </div></ul></details>
 
@@ -739,7 +738,7 @@ Lines still work here, because <code>lines</code> counts objects rather than pix
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>lines</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -771,7 +770,7 @@ how many lines the objects run in, across the scroll — columns on a vertical s
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>gap</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -795,7 +794,7 @@ allows you to set spacing in pixels between list items for rows and columns.</em
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>align</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -824,7 +823,7 @@ Rows line up against the widest one, so a short row has spare space beside it an
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>order</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -857,7 +856,7 @@ In <code>direction="hybrid"</code> the same request is an axis: <code>"row"</cod
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>empty</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -964,7 +963,7 @@ spacing between the objects and their wrapper, which grows the scrollable area b
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>minSize</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -988,7 +987,7 @@ the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>align</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1125,13 +1124,13 @@ The other axis is then <b>Shift</b> away, see <code>changeDirectionBtn</code>. W
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>changeDirectionBtn</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
-changeDirectionBtn: "KeyX"; // or ["AltLeft", "AltRight"], [] turns it off
+changeDirectionBtn: "KeyX"; // or ["ShiftLeft+KeyX", "AltLeft"], [] turns it off
 ```
 
 <b>Default:</b><br />
@@ -1140,25 +1139,24 @@ changeDirectionBtn: "KeyX"; // or ["AltLeft", "AltRight"], [] turns it off
 <b>Description:</b><em><br />
 while one of these keys is held, the wheel goes back to the other axis. <b>Shift</b> by default — the key a browser already scrolls sideways with, so the gesture is the one people know. Needs <code>changeDirection</code>: on its own the wheel is not taken over, and there is nothing to hand back.<br />
 <br />
-A <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values"><code>KeyboardEvent.code</code></a>, or a list of them — a modifier has one code per side, which is why the default names both. An empty list turns it off.<br />
+A <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values"><code>KeyboardEvent.code</code></a>, or a list of them. The list is <b>any of these</b>; <code>"+"</code> joins codes into one combination, so <code>["ShiftLeft+KeyX"]</code> waits for both and <code>["ShiftLeft", "AltLeft"]</code> answers either. A modifier has one code per side, which is why the default names both. An empty list turns it off.<br />
+<br />
+✦ Note:<br />
+a modifier arrives with the wheel event itself, so it works wherever the pointer is. Any other key is read from the keyboard, and a keyboard is only heard while the scroll has focus — a combination that mixes the two needs the scroll focused.<br />
 </em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  controls={{ wheel: { changeDirectionBtn: "KeyZ" } }}
->
+<MorphScroll {...props} controls={{ wheel: { changeDirectionBtn: "KeyZ" } }}>
   {children}
 </MorphScroll>
 ```
 
 </div></ul></details>
 
-<br />
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>keys</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1210,7 +1208,7 @@ Focus lands on the <code>.ms-object-box</code> itself, so the highlight is the w
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>step</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1237,7 +1235,7 @@ how far one press nudges in <b>"pan"</b>.<br />
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>drag</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1274,7 +1272,7 @@ The drag does not start only where the element has a drag or a caret of its own:
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>bar</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1327,7 +1325,7 @@ the node the bar is built from. What it becomes depends on <code>mode</code>: in
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>edgeGap</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1342,10 +1340,7 @@ distance between the bar and the side it sits on. A negative value pushes it pas
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  controls={{ bar: { element: <Thumb />, edgeGap: 8 } }}
->
+<MorphScroll {...props} controls={{ bar: { element: <Thumb />, edgeGap: 8 } }}>
   {children}
 </MorphScroll>
 ```
@@ -1354,7 +1349,7 @@ distance between the bar and the side it sits on. A negative value pushes it pas
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>trackGap</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1381,7 +1376,7 @@ shortens the track by this much at each of its two ends. Not to be confused with
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>reverse</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1408,7 +1403,7 @@ put the bar on the opposite side.<br />
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>showOnHover</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1455,7 +1450,7 @@ with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> 
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>thumbMinSize</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1482,11 +1477,9 @@ the thumb never shrinks below this.<br />
 
 </div></ul></details>
 
-<br />
-
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>arrows</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1514,10 +1507,7 @@ the icon the arrows are made of. Draw it pointing <b>right</b>: that is the one 
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  controls={{ arrows: { element: <ArrowComponent /> } }}
->
+<MorphScroll {...props} controls={{ arrows: { element: <ArrowComponent /> } }}>
   {children}
 </MorphScroll>
 ```
@@ -1526,7 +1516,7 @@ the icon the arrows are made of. Draw it pointing <b>right</b>: that is the one 
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>size</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1544,10 +1534,7 @@ thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the el
 <b>Example:</b>
 
 ```tsx
-<MorphScroll
-  {...props}
-  controls={{ arrows: { element: <Arrow />, size: 60 } }}
->
+<MorphScroll {...props} controls={{ arrows: { element: <Arrow />, size: 60 } }}>
   {children}
 </MorphScroll>
 ```
@@ -1556,7 +1543,7 @@ thickness of the <b>.ms-arrow-box</b> strip. The icon's own size is up to the el
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>reserveSpace</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1702,7 +1689,7 @@ mode: "lazy"; // or "virtual"
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>rootMargin</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1726,7 +1713,7 @@ how far beyond the viewport an object still counts as visible, in px. Widen it t
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>deferLoadOnScroll</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1748,7 +1735,7 @@ holds new objects back while the scroll is moving and lets them in once it stops
 
 </div></ul></details>
 
-<br />
+<h2></h2>
 
 <details><summary><code><b>trackVisibility</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />
@@ -1855,7 +1842,8 @@ in <code>loop</code> the content has no end, and <code>max</code> measures the s
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props}
+<MorphScroll
+  {...props}
   onScrollPosition={(left, top, max) => {
     if (max.y - top < 300) loadMore();
   }}
@@ -1947,9 +1935,8 @@ accepts a callback function that receives the keys of all currently rendered ele
 ```
 
 </div></ul></details>
-  
-</div></ul>
-</details>
+
+</div></ul></details>
 
 <h2></h2>
 

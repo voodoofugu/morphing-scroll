@@ -47,13 +47,57 @@ test.describe("MorphScroll hybrid wheel (real browser)", () => {
     await page.goto("/?scenario=hybridChangeDir");
     await expect(page.locator(".ms-viewport")).toBeVisible();
 
-    await page.locator(".ms-viewport").click({ position: { x: 20, y: 20 } });
+    /*
+     * Фокуса никто не давал — модификатор зажимают до того, как коснулись
+     * списка, и его нажатие уходит куда угодно, только не сюда. Состояние
+     * модификатора приходит с самим колесом, поэтому этого и хватает.
+     */
     await page.keyboard.down("Shift");
     await wheelOverElement(page);
 
     await expect.poll(() => offsets(page).then((o) => o.top)).toBeGreaterThan(50);
     expect((await offsets(page)).left).toBe(0);
 
+    await page.keyboard.up("Shift");
+  });
+
+  /*
+   * Сочетание: «+» соединяет коды в одно, и держать надо оба. Буквы в событии
+   * колеса нет, её нажатие ловится на самом скролле — фокус тут обязателен.
+   */
+  test("a combination needs every key of it", async ({ page }) => {
+    const config = {
+      count: 40,
+      size: [300, 220],
+      direction: "hybrid",
+      // восемь в ряд и пять рядов: вылезает по обеим осям, есть между чем менять
+      objects: { size: 60, gap: 10, lines: 8 },
+      controls: {
+        wheel: { changeDirection: true, changeDirectionBtn: "ShiftLeft+KeyX" },
+      },
+      duration: 0,
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.locator(".ms-viewport").click({ position: { x: 20, y: 20 } });
+
+    // половина сочетания — колесо остаётся на своей оси
+    await page.keyboard.down("Shift");
+    await page.waitForTimeout(150); // нажатию нужно дойти раньше колеса
+    await wheelOverElement(page);
+    await expect.poll(() => offsets(page).then((o) => o.left)).toBeGreaterThan(50);
+    expect((await offsets(page)).top).toBe(0);
+
+    // вторая половина — и ось меняется
+    await page.keyboard.down("x");
+    await page.waitForTimeout(150);
+    await wheelOverElement(page);
+    await expect.poll(() => offsets(page).then((o) => o.top)).toBeGreaterThan(50);
+
+    await page.keyboard.up("x");
     await page.keyboard.up("Shift");
   });
 

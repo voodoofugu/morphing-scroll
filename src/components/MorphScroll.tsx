@@ -131,6 +131,26 @@ const isTextEntry = (target: EventTarget | null) => {
  * ### Links:
  * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */
+/*
+ * Состояние модификатора приходит с самим событием колеса, и это единственный
+ * надёжный источник: нажатие ловится на элементе прокрутки, а фокуса на нём в
+ * этот момент может и не быть — модификатор зажимают до того, как коснулись
+ * списка. Остальные клавиши в событии не отражены, их приходится сторожить.
+ */
+const MODIFIER_FLAG: Record<
+  string,
+  "shiftKey" | "altKey" | "ctrlKey" | "metaKey"
+> = {
+  ShiftLeft: "shiftKey",
+  ShiftRight: "shiftKey",
+  AltLeft: "altKey",
+  AltRight: "altKey",
+  ControlLeft: "ctrlKey",
+  ControlRight: "ctrlKey",
+  MetaLeft: "metaKey",
+  MetaRight: "metaKey",
+};
+
 const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
   function MorphScroll(
     {
@@ -313,7 +333,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       animationFrameId: 0,
     });
     const isScrollingRef = React.useRef<boolean>(false);
-    const keyDownX = React.useRef<boolean>(false);
     /*
      * Липнет ли скролл к концу. `scrollPosition: "end"` означает «держись
      * низа», но вырывать пользователя из середины истории нельзя — а понять,
@@ -552,10 +571,44 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           : Array.isArray(named)
             ? named
             : [named];
-      const kept = list.filter(Boolean);
 
-      return kept.length ? kept : null;
+      /* «+» соединяет коды в одно сочетание, а список — это «любое из» */
+      const combos = list
+        .map((entry) =>
+          String(entry)
+            .split("+")
+            .map((code) => code.trim())
+            .filter(Boolean),
+        )
+        .filter((combo) => combo.length);
+
+      return combos.length ? combos : null;
     }, [controlsST]);
+
+    /*
+     * Сторожить приходится только то, чего нет в событии колеса: модификатор
+     * оно приносит само, а буква живёт лишь в нажатии — и требует фокуса.
+     */
+    const watchedKeys = React.useMemo(() => {
+      const set = new Set<string>();
+
+      for (const combo of flipKeys ?? [])
+        for (const code of combo) if (!MODIFIER_FLAG[code]) set.add(code);
+
+      return set;
+    }, [flipKeys]);
+
+    const heldKeys = React.useRef<Set<string>>(new Set());
+
+    /* сочетание сложилось: модификаторы — по событию, остальное — по нажатию */
+    const flipsWheel = (event: WheelEvent) =>
+      !!flipKeys?.some((combo) =>
+        combo.every((code) => {
+          const flag = MODIFIER_FLAG[code];
+
+          return flag ? event[flag] : heldKeys.current.has(code);
+        }),
+      );
 
     const arrowsLocal = React.useMemo(() => {
       const arrows = controlsLocal.arrows;
@@ -2833,13 +2886,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const onKeyDown = React.useCallback(
       (e: KeyboardEvent) => {
-        if (keyDownX.current) return; // ранний выход
-
-        if (flipKeys?.includes(e.code) && direction === "hybrid") {
+        if (watchedKeys.has(e.code) && direction === "hybrid") {
           // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
           e.stopPropagation();
-          keyDownX.current = true;
-          triggerRAF();
+          heldKeys.current.add(e.code);
           return;
         }
 
@@ -2905,12 +2955,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ],
     );
     const onKeyUp = React.useCallback((e: KeyboardEvent) => {
-      if (keyDownX.current) {
-        // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
-        e.stopPropagation();
-        keyDownX.current = false;
-        triggerRAF();
-      }
+      // останавливаем нажатие на кнопку что бы не попасть на родителя если он тоже scroll
+      if (heldKeys.current.delete(e.code)) e.stopPropagation();
     }, []);
 
     React.useLayoutEffect(() => {
@@ -2951,13 +2997,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       if (!wrapperEl || !scrollEl) return;
 
       /*
-       * `changeDirectionBtn` нужен только там, где есть между чем переключать:
-       * hybrid, и контент вылезает по обеим осям. `keys` таких условий не
-       * ставит — стрелки работают в любом направлении, поэтому слушатель
-       * вешается, если нужен хоть кому-то из них.
+       * Слушать нажатия ради смены оси приходится только там, где в сочетании
+       * есть что-то кроме модификатора: модификатор приезжает с самим колесом.
+       * И только там, где есть между чем переключать: hybrid, и контент
+       * вылезает по обеим осям. `keys` таких условий не ставит — стрелки
+       * работают в любом направлении, поэтому слушатель вешается, если нужен
+       * хоть кому-то из них.
        */
       const forChangeDirection =
-        !!flipKeys &&
+        watchedKeys.size > 0 &&
         direction === "hybrid" &&
         wrapperEl.clientWidth! + mLocalX > scrollEl.clientWidth! &&
         wrapperEl.clientHeight! + mLocalY > scrollEl.clientHeight!;
@@ -3037,16 +3085,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           ? "x"
           : direction;
 
-      const preferredDirection =
-        (direction === "hybrid" &&
-          objectsWrapperHeight + mLocalY <= sizeLocal[1]) ||
-        keyDownX.current
-          ? // уточнение был ли применён changeDirection что бы клавиша меняла уже его направление
-            ["hybrid", "y"].includes(directionWithPriority)
-            ? "x"
-            : "y"
-          : directionWithPriority;
-
       /*
        * Приоритет остаётся приоритетом, но только пока по выбранной оси есть
        * что прокручивать. Иначе `changeDirection` уводил колесо на ось, где
@@ -3055,14 +3093,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        */
       const roomOn = (axis: "x" | "y") =>
         maxScrollSize[axis === "x" ? 0 : 1] > 0;
-
-      const other = preferredDirection === "x" ? "y" : "x";
-      const directionForWheel =
-        preferredDirection !== "hybrid" &&
-        !roomOn(preferredDirection) &&
-        roomOn(other)
-          ? other
-          : preferredDirection;
 
       const wheelHandler = (e: WheelEvent) => {
         /*
@@ -3087,13 +3117,37 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * край, скролл движение не берёт — и тогда оно уходит наружу, к
          * родительскому скроллу или к странице, как у нативной прокрутки.
          */
+        /*
+         * Ось выбираем на самом событии, а не заранее: зажатый модификатор
+         * приходит вместе с ним, и заранее о нём не знает никто.
+         */
+        const handedOver = flipsWheel(e);
+
+        const preferredDirection =
+          (direction === "hybrid" &&
+            objectsWrapperHeight + mLocalY <= sizeLocal[1]) ||
+          handedOver
+            ? // уточняем, был ли применён changeDirection: клавиша меняет уже его направление
+              ["hybrid", "y"].includes(directionWithPriority)
+              ? "x"
+              : "y"
+            : directionWithPriority;
+
+        const other = preferredDirection === "x" ? "y" : "x";
+        const directionForWheel =
+          preferredDirection !== "hybrid" &&
+          !roomOn(preferredDirection) &&
+          roomOn(other)
+            ? other
+            : preferredDirection;
+
         const consumed = handleWheel(
           e,
           scrollEl,
           maxScrollSize,
           scrollStateRef.current,
           directionForWheel,
-          keyDownX.current,
+          handedOver,
         );
 
         if (!consumed) return;
@@ -3114,7 +3168,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsWrapperHeight,
       sizeLocal[1],
       mLocalY,
-      keyDownX.current,
       maxScrollSize.join(),
     ]);
 
