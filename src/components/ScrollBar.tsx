@@ -19,6 +19,12 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
   scrollBarEvent: (event: PointerEvent) => void;
   /** turn to that page of the bar — the step everything else counts with */
   goToPage: (index: number, axis: "x" | "y") => void;
+  /** one notch of the wheel over a slider is one page, same as over content */
+  pageByWheel: (
+    event: WheelEvent,
+    axis: "x" | "y" | "hybrid",
+    handedOver: boolean,
+  ) => boolean;
   thumbSize: number;
   thumbSpace: number;
   objLengthPerSize: number;
@@ -54,6 +60,7 @@ const ScrollBar = ({
   controls,
   scrollBarEvent,
   goToPage,
+  pageByWheel,
   thumbSize,
   thumbSpace,
   objLengthPerSize,
@@ -165,6 +172,16 @@ const ScrollBar = ({
       e.stopPropagation();
       e.preventDefault();
 
+      /*
+       * Над баром колесо делает то же, что и над содержимым: у слайдера это
+       * страница за деление. Иначе полоса оставалась единственным местом, где
+       * то же движение везло пиксели и уводило между страницами.
+       */
+      if (mode !== "scroll") {
+        pageByWheel(e, dataDirection, false);
+        return;
+      }
+
       handleWheel(
         e,
         scrollElem,
@@ -176,7 +193,7 @@ const ScrollBar = ({
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [dataDirection, isTouched, controls[1]]);
+  }, [dataDirection, isTouched, controls[1], mode, pageByWheel]);
 
   React.useEffect(() => {
     // добавление клика на scrollBar или thumb

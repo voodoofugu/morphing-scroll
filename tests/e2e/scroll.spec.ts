@@ -556,6 +556,36 @@ test.describe("MorphScroll: the wheel over a slider", () => {
       ]);
     });
 
+  /*
+   * И над самой полосой тоже: она была единственным местом, где то же
+   * движение везло пиксели и оставляло между страницами.
+   */
+  for (const mode of ["slider", "sliderMenu"] as const)
+    test(`${mode}: a notch over the strip turns a page too`, async ({
+      page,
+    }) => {
+      await page.goto(url(mode));
+      await expect(page.locator(".ms-slider")).toBeVisible();
+      await expect
+        .poll(() =>
+          page
+            .locator(".ms-viewport")
+            .evaluate((el) => el.scrollHeight - el.clientHeight),
+        )
+        .toBe(2100);
+      await page.waitForTimeout(300);
+
+      const bar = (await page.locator(".ms-slider").boundingBox())!;
+      await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+
+      await page.mouse.wheel(0, 100);
+      await expect.poll(() => scrollTopOf(page)).toBe(300);
+
+      await page.waitForTimeout(250);
+      await page.mouse.wheel(0, 100);
+      await expect.poll(() => scrollTopOf(page)).toBe(600);
+    });
+
   /* и тяга содержимого прилипает к странице в обоих режимах */
   test("sliderMenu: a drag settles on a page too", async ({ page }) => {
     await page.goto(

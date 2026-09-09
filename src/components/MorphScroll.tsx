@@ -4765,6 +4765,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             controls={[controlsLocal, controlsST]}
             scrollBarEvent={onMoveScrollThumb}
             goToPage={goToPage}
+            pageByWheel={pageByWheel}
             thumbSize={args.thumbSize}
             thumbSpace={args.thumbSpace}
             objLengthPerSize={args.objLengthPerSize}

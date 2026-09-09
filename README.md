@@ -1092,7 +1092,7 @@ true, <em>while <code>controls</code> is not written at all</em><br />
 <b>Description:</b><em><br />
 the wheel over the content moves the scroll. An unwritten <code>controls</code> carries it, because a scroll nothing can move is almost never what was meant; once you write the prop, name it if you want it.<br />
 <br />
-In the slider modes it turns pages instead of carrying pixels: one notch, one page, the same step an arrow takes. A gesture on a trackpad is dozens of events, so turns are spaced — otherwise a single flick would fly through the list.<br />
+In the slider modes it turns pages instead of carrying pixels: one notch, one page, the same step an arrow takes — over the content and over the strip alike. A gesture on a trackpad is dozens of events, so turns are spaced; otherwise a single flick would fly through the list.<br />
 <br />
 At the very end the wheel goes outward, to a scroll around this one or to the page — but not in the same instant. While it is still being turned it stays here, the way a native scroll keeps it; without that the page below moves in the very frame the list runs out.<br />
 <br />
