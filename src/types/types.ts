@@ -107,6 +107,7 @@ export type NavigateReason =
   | "arrows"
   | "bar"
   | "keys"
+  | "wheel"
   | "scroll"
   // `& {}` не даёт литералам выше раствориться в `string` и потерять подсказки
   | (string & {});
@@ -114,7 +115,8 @@ export type NavigateReason =
 /** the argument of `onNavigate` */
 export type NavigateEvent = {
   /**
-   * `"scroll"` — the content got there on its own: a drag, the wheel, inertia
+   * `"scroll"` — the content got there on its own: a drag or inertia. A wheel
+   * notch over a slider is a page turn asked for, and reports as `"wheel"`
    */
   reason: NavigateReason;
   axis: "x" | "y";
@@ -305,12 +307,12 @@ export type MorphScroll = {
    * @default "scroll"
    * @description
    * - `"scroll"`: *a thumb running along a track*
-   * - `"slider"`: *a carousel — one element per page, and the content snaps
-   * to them*
-   * - `"sliderMenu"`: *the same strip, but nothing snaps: it marks where you
-   * are and jumps when pressed, the way a section menu does*
-   * @note *both slider modes take an array in `controls.bar`, one node per
-   * page — custom buttons are not what tells them apart, snapping is*
+   * - `"slider"`: *a carousel — one element per page, and everything lands on
+   * them: a wheel notch, a drag, a press on the strip*
+   * - `"sliderMenu"`: *the same pages and the same turns, but the strip is a
+   * menu — pressed rather than dragged along*
+   * @note *both take an array in `controls.bar`, one node per page — custom
+   * buttons are not what tells them apart*
    * @note *a slider draws one element per page, so a long list makes a long
    * strip of them: they are for a handful of pages, a growing list is
    * `mode="scroll"`*
@@ -439,7 +441,8 @@ export type MorphScroll = {
    * everything that can move the scroll.
    * @description
    * @default { wheel: true, keys: true }
-   * - `wheel`: *allow to scroll by mouse wheel*
+   * - `wheel`: *allow to scroll by mouse wheel; in the slider modes one notch
+   * turns one page*
    * - `drag`: *allow to scroll by dragging the content*
    * - `keys`: *arrow keys move the scroll while it has focus*
    * - `bar`: *the progress element, plus everything about how it sits*

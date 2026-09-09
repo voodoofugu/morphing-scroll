@@ -13,6 +13,18 @@ const CONST = {
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
   SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation
   SCROLL_END_DELAY: 200, // Delay before marking scroll as ended (ms)
+  /*
+   * У края скролл отдаёт колесо наружу не сразу: пока его крутят, оно ещё
+   * его. Так ведёт себя нативная прокрутка — иначе страница под списком
+   * трогается ровно в тот кадр, в котором список кончился, и это резко.
+   */
+  WHEEL_HANDOVER_DELAY: 200, // ms — тишина, после которой колесо уходит наружу
+  /*
+   * Слайдер листает колесом: одно деление — одна страница. Пока страница
+   * едет, следующие деления не считаем, иначе трекпад пролетает список
+   * насквозь — у него на один жест приходятся десятки событий.
+   */
+  SLIDER_WHEEL_LOCK: 180, // ms
   END_STICK_THRESHOLD: 16, // px — на таком расстоянии от конца скролл всё ещё «внизу»
   SCROLL_READY_MAX_FRAMES: 60, // Frames to wait for the content to become scrollable
   SCROLL_READY_STILL_FRAMES: 5, // Frames of an unchanged range that end that wait

@@ -489,3 +489,199 @@ test.describe("MorphScroll: a last page shorter than the rest", () => {
     expect(back).toEqual([forward[1], forward[0], 0]);
   });
 });
+
+/*
+ * У слайдера страницы, а не пиксели, и колесо должно попадать в них так же,
+ * как стрелка или точка на полосе. Свободная прокрутка оставляла между
+ * страницами — на экране половина одной и половина другой, а пометка при этом
+ * уже показывала на соседнюю.
+ */
+test.describe("MorphScroll: the wheel over a slider", () => {
+  const config = (mode: string) => ({
+    count: 8,
+    size: 300,
+    mode,
+    objects: { size: "full" },
+    controls: { wheel: true, bar: "@dot" },
+    duration: 80,
+  });
+
+  const url = (mode: string) =>
+    `/?scenario=crash&props=${encodeURIComponent(
+      JSON.stringify(config(mode)),
+    )}`;
+
+  const over = async (page: Page) => {
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  };
+
+  const active = (page: Page) =>
+    page.evaluate(() =>
+      [...document.querySelectorAll(".ms-slider-item")].findIndex((el) =>
+        el.classList.contains("ms-active"),
+      ),
+    );
+
+  /* оба режима листают: меню — такой же слайдер, только полосу не тянут */
+  for (const mode of ["slider", "sliderMenu"] as const)
+    test(`${mode}: one notch turns one page`, async ({ page }) => {
+      await page.goto(url(mode));
+      await expect(page.locator(".ms-viewport")).toBeVisible();
+      // размер страницы меряется по окну — до этого листать нечем
+      await expect
+        .poll(() =>
+          page
+            .locator(".ms-viewport")
+            .evaluate((el) => el.scrollHeight - el.clientHeight),
+        )
+        .toBe(2100);
+      // размер уже в разметке, но обработчик колеса пересоберётся рендером
+      await page.waitForTimeout(300);
+      await over(page);
+
+      await page.mouse.wheel(0, 100); // деления хватает любого
+      await expect.poll(() => scrollTopOf(page)).toBe(300);
+      expect(await active(page)).toBe(1);
+
+      await page.waitForTimeout(250);
+      await page.mouse.wheel(0, 100);
+      await expect.poll(() => scrollTopOf(page)).toBe(600);
+      expect(await active(page)).toBe(2);
+
+      expect((await navigateLog(page)).map((e) => [e.reason, e.to])).toEqual([
+        ["wheel", 1],
+        ["wheel", 2],
+      ]);
+    });
+
+  /* и тяга содержимого прилипает к странице в обоих режимах */
+  test("sliderMenu: a drag settles on a page too", async ({ page }) => {
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(
+        JSON.stringify({ ...config("sliderMenu"), controls: { drag: true, bar: "@dot" } }),
+      )}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator(".ms-viewport")
+          .evaluate((el) => el.scrollHeight - el.clientHeight),
+      )
+      .toBe(2100);
+    await page.waitForTimeout(300);
+
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
+    const x = box.x + box.width / 2;
+
+    await page.mouse.move(x, box.y + box.height - 20);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i++)
+      await page.mouse.move(x, box.y + box.height - 20 - i * 26);
+
+    // содержимое идёт за пальцем, а не ждёт отпускания
+    expect(await scrollTopOf(page), "содержимое не пошло за пальцем").toBeGreaterThan(
+      100,
+    );
+
+    await page.mouse.up();
+
+    await expect.poll(() => scrollTopOf(page)).toBe(300);
+  });
+
+  /*
+   * У трекпада на один жест приходятся десятки событий. Считай их все — и
+   * список пролетает насквозь от одного движения пальцем.
+   */
+  test("a trackpad burst does not fly through the list", async ({ page }) => {
+    await page.goto(url("slider"));
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator(".ms-viewport")
+          .evaluate((el) => el.scrollHeight - el.clientHeight),
+      )
+      .toBe(2100);
+    await page.waitForTimeout(300);
+    await over(page);
+
+    for (let i = 0; i < 10; i++) await page.mouse.wheel(0, 30);
+    await page.waitForTimeout(500);
+
+    const at = await scrollTopOf(page);
+
+    expect(at).toBeGreaterThan(0);
+    expect(at).toBeLessThanOrEqual(900); // десять событий — не десять страниц
+    expect(at % 300).toBe(0); // и всё равно ровно на странице
+  });
+});
+
+/*
+ * Упёршись в край, скролл отдаёт колесо наружу — но не в тот же миг. Пока его
+ * крутят, оно остаётся за тем, кто его вёл: так ведёт себя нативная прокрутка,
+ * а иначе страница под списком трогается ровно в тот кадр, в котором список
+ * кончился.
+ */
+test.describe("MorphScroll: the wheel at the very end", () => {
+  const escaped = (page: Page) =>
+    page.evaluate(() => (window as unknown as { __out: number }).__out);
+
+  for (const mode of ["scroll", "slider"] as const)
+    test(`${mode}: keeps the wheel while it is being turned`, async ({
+      page,
+    }) => {
+      const config = {
+        count: 8,
+        size: 300,
+        mode,
+        objects: { size: "full" },
+        controls: { wheel: true, bar: mode === "scroll" ? "@thumb" : "@dot" },
+        duration: 80,
+      };
+
+      await page.goto(
+        `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+      );
+      await expect(page.locator(".ms-viewport")).toBeVisible();
+
+      await expect
+        .poll(() =>
+          page
+            .locator(".ms-viewport")
+            .evaluate((el) => el.scrollHeight - el.clientHeight),
+        )
+        .toBe(2100);
+      await page.waitForTimeout(300);
+
+      const box = (await page.locator(".ms-viewport").boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+
+      await page.evaluate(() => {
+        (window as unknown as { __out: number }).__out = 0;
+        document.addEventListener(
+          "wheel",
+          () => (window as unknown as { __out: number }).__out++,
+          { passive: true },
+        );
+      });
+
+      // один жест: доезжаем до конца и продолжаем крутить
+      for (let i = 0; i < 20; i++) {
+        await page.mouse.wheel(0, 400);
+        await page.waitForTimeout(50);
+      }
+
+      expect(await scrollTopOf(page)).toBe(2100); // конец
+      expect(await escaped(page), "колесо ушло наружу посреди жеста").toBe(0);
+
+      // жест кончился — следующее деление достаётся тому, кто снаружи
+      await page.waitForTimeout(500);
+      await page.mouse.wheel(0, 400);
+      await page.waitForTimeout(150);
+
+      expect(await escaped(page), "колесо не отдали и после паузы").toBe(1);
+    });
+});

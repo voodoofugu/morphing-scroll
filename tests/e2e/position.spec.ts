@@ -109,16 +109,57 @@ test.describe("MorphScroll sliderMenu (real browser)", () => {
     expect(await navigateLog(page)).toHaveLength(1);
   });
 
-  test("onNavigate calls a wheel page turn a plain scroll", async ({ page }) => {
+  /* колесо над слайдером листает страницу — это просьба, и след у неё свой */
+  test("onNavigate blames the wheel for a notch over a slider", async ({
+    page,
+  }) => {
     await page.goto("/?scenario=sliderMenu");
     await expect(page.locator(".ms-slider-item.ms-active")).toHaveCount(1);
+    // обработчик колеса пересобирается рендером после измерения
+    await page.waitForTimeout(300);
 
     await page.locator(".ms-viewport").hover();
     await page.mouse.wheel(0, 400);
 
     await expect.poll(async () => (await navigateLog(page)).at(-1)).toMatchObject({
-      reason: "scroll",
+      reason: "wheel",
       from: 0,
+      to: 1,
+    });
+  });
+
+  /*
+   * А `"scroll"` остаётся за тем, что доехало само: тягу никто не называл
+   * стрелкой или точкой, и страница у неё случается по пути.
+   */
+  test("onNavigate calls a drag that landed on a page a plain scroll", async ({
+    page,
+  }) => {
+    const config = {
+      count: 8,
+      size: 300,
+      mode: "sliderMenu",
+      objects: { size: "full" },
+      controls: { drag: true, bar: "@dot" },
+      duration: 80,
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+    await expect(page.locator(".ms-slider-item.ms-active")).toHaveCount(1);
+
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
+    const x = box.x + box.width / 2;
+
+    await page.mouse.move(x, box.y + box.height - 20);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i++)
+      await page.mouse.move(x, box.y + box.height - 20 - i * 26);
+    await page.mouse.up();
+
+    await expect.poll(async () => (await navigateLog(page)).at(-1)).toMatchObject({
+      reason: "scroll",
     });
   });
 });

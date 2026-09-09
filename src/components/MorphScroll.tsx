@@ -2524,7 +2524,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         // тот же шаг делают и кнопки-стрелки, и клавиши — меняется только след
         reason: NavigateReason = "arrows",
       ) => {
-        if (!scrollElementRef.current) return;
+        if (!scrollElementRef.current) return false;
 
         const moved = handleArrow({
           arrowType: arrowType,
@@ -2540,6 +2540,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         // упёрлись в край — никуда не поехали, и отчитываться не о чем
         if (moved) emitNavigate(reason, moved.axis, moved.from, moved.to);
+
+        return !!moved;
       },
 
       [
@@ -2555,6 +2557,53 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         flipsX,
         maxScrollSize[0],
       ],
+    );
+
+    /*
+     * Колесо у слайдера листает страницами, а не везёт пиксели. Пока страница
+     * едет, следующие деления не считаем: у трекпада на один жест приходятся
+     * десятки событий, и без замка он пролетел бы список насквозь.
+     */
+    const wheelPageAt = React.useRef(0);
+
+    /* когда колесо в последний раз досталось нам: по этому и держим его у края */
+    const wheelHeldAt = React.useRef(0);
+
+    const pageByWheel = React.useCallback(
+      (event: WheelEvent, axis: "x" | "y" | "hybrid", handedOver: boolean) => {
+        const now = performance.now();
+
+        // замок держим «съевшим»: жест наш, наружу его отдавать не за что
+        if (now - wheelPageAt.current < CONST.SLIDER_WHEEL_LOCK) return true;
+
+        const { deltaX, deltaY } = event;
+        const isX =
+          axis === "x" ||
+          (axis === "hybrid" && Math.abs(deltaX) > Math.abs(deltaY));
+
+        const along = isX
+          ? deltaX || deltaY
+          : handedOver
+            ? deltaY || deltaX
+            : deltaY;
+
+        if (!along) return false;
+
+        const side = isX
+          ? along > 0
+            ? "right"
+            : "left"
+          : along > 0
+            ? "bottom"
+            : "top";
+
+        const moved = handleArrowLocal(side, "wheel");
+
+        if (moved) wheelPageAt.current = now;
+
+        return moved;
+      },
+      [handleArrowLocal],
     );
 
     const sliderCheckLocal = React.useCallback(() => {
@@ -3143,16 +3192,36 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             ? other
             : preferredDirection;
 
-        const consumed = handleWheel(
-          e,
-          scrollEl,
-          maxScrollSize,
-          scrollStateRef.current,
-          directionForWheel,
-          handedOver,
-        );
+        /*
+         * У слайдера страницы, а не пиксели: одно деление колеса листает на
+         * соседнюю — тем же шагом, что и стрелка. Свободная прокрутка тут
+         * оставляла между страницами, и пометка начинала врать о том, где мы.
+         */
+        const consumed =
+          mode === "scroll"
+            ? handleWheel(
+                e,
+                scrollEl,
+                maxScrollSize,
+                scrollStateRef.current,
+                directionForWheel,
+                handedOver,
+              )
+            : pageByWheel(e, directionForWheel, handedOver);
 
-        if (!consumed) return;
+        const now = performance.now();
+
+        /*
+         * Упёршись в край, скролл движение не берёт — и тогда оно уходит
+         * наружу, к родительскому скроллу или к странице. Но не в тот же миг:
+         * пока колесо крутят, оно остаётся за тем, кто его вёл. Так ведёт себя
+         * и нативная прокрутка, и без этого страница под списком трогается
+         * ровно в тот кадр, в котором список кончился.
+         */
+        if (!consumed && now - wheelHeldAt.current > CONST.WHEEL_HANDOVER_DELAY)
+          return;
+
+        wheelHeldAt.current = now;
 
         e.stopPropagation();
         e.preventDefault();
@@ -3171,6 +3240,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeLocal[1],
       mLocalY,
       maxScrollSize.join(),
+      mode,
+      pageByWheel,
     ]);
 
     /*

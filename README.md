@@ -121,12 +121,12 @@ defines how the provided <code>bar</code> behaves within <code>controls</code> a
 the default — a thumb running along a track.<br />
 <br />
 <code><b>slider</b></code>:<br />
-a carousel: one element per page, and the content snaps to them — a drag settles on the nearest page, and dragging along the strip pages as you go.<br />
+a carousel: one element per page, and everything lands on them — a wheel notch turns a page, a drag settles on the nearest one, and dragging along the strip pages as you go.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-the same strip of pages, but the content keeps scrolling freely: nothing snaps and the strip cannot be dragged along. It marks where you are and jumps when you press it — which is what a section menu does.<br />
+the same pages and the same turns, but the strip is a menu rather than a handle: it answers a press and cannot be dragged along.<br />
 <br />
-Both slider modes take an array in <code>bar</code>, one node per page, so custom buttons are not what tells them apart — snapping is.<br />
+Both take an array in <code>bar</code>, one node per page, so custom buttons are not what tells them apart.<br />
 <br />
 Both draw one element per page, so a long list makes a long strip of them and past a point it outgrows the scroll. There is no cap on purpose: hiding pages would make the progress lie. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
 <br />
@@ -1075,7 +1075,7 @@ A name, or an array of names, is shorthand for switching those on: <code>"wheel"
 ✦ Note:<br />
 what you write <b>replaces</b> the default rather than adding to it. <code>{ wheel: true, keys: true }</code> is what an unwritten prop means; write anything and that is the whole set — <code>{ bar: &lt;Thumb /&gt; }</code> is a bar and nothing else, <code>{ wheel: true, bar: &lt;Thumb /&gt; }</code> is a bar and the wheel.<br />
 <br />
-That is how a slider gets rid of the wheel, which there only leaves you between pages; and it is worth remembering that arrow keys come from <code>keys</code> — a scroll with none of it is worked by the pointer alone.<br /></em>
+Worth remembering that arrow keys come from <code>keys</code> — a scroll with none of it is worked by the pointer alone.<br /></em>
 
 <br />
 
@@ -1090,7 +1090,11 @@ wheel: true;
 true, <em>while <code>controls</code> is not written at all</em><br />
 <br />
 <b>Description:</b><em><br />
-the wheel over the content moves the scroll. An unwritten <code>controls</code> carries it, because a scroll nothing can move is almost never what was meant; once you write the prop, name it if you want it. A slider is the case where you usually do not: the wheel there leaves you between pages.<br />
+the wheel over the content moves the scroll. An unwritten <code>controls</code> carries it, because a scroll nothing can move is almost never what was meant; once you write the prop, name it if you want it.<br />
+<br />
+In the slider modes it turns pages instead of carrying pixels: one notch, one page, the same step an arrow takes. A gesture on a trackpad is dozens of events, so turns are spaced — otherwise a single flick would fly through the list.<br />
+<br />
+At the very end the wheel goes outward, to a scroll around this one or to the page — but not in the same instant. While it is still being turned it stays here, the way a native scroll keeps it; without that the page below moves in the very frame the list runs out.<br />
 <br />
 Both settings below are for <code>direction="hybrid"</code>, where one wheel has to serve two axes.<br />
 <br />
@@ -1290,7 +1294,7 @@ determines how the scroll progress is managed<br />
 <ul>
   <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar.</li><br />
   <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. A dot answers a tap and turns to its own page, and dragging along the bar pages as you go.</li><br />
-  <li>With <code>mode="sliderMenu"</code> the strip is the same, but the content does not snap to it — the pages are a menu over a scroll that runs freely.</li>
+  <li>With <code>mode="sliderMenu"</code> the strip is the same, but it is pressed rather than dragged along.</li>
 </ul>
 <br />
 For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:<br />

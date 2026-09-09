@@ -368,8 +368,8 @@ const motionHandler = (
     return;
   }
 
-  // обновление предыдущих координат для ! wrapp при slider
-  if (args.mode === "slider") rt.checkSliderThumbSize[axis] += move;
+  // обновление предыдущих координат для ! wrapp при слайдере
+  if (args.mode !== "scroll") rt.checkSliderThumbSize[axis] += move;
 
   // --- логика для wrapp ---
   if (args.clickedObject.current === "wrapp") {
@@ -511,9 +511,12 @@ function handleMouseOrTouch(args: HandleMouseT) {
 
   // получение некоторых данных заранее при клике
   const wrapElWH = [el.scrollWidth, el.scrollHeight];
-  const visualDiff = ["scroll", "slider"].includes(args.mode!)
-    ? getVisualToLayoutScale(el)
-    : [];
+  /*
+   * Масштаб нужен всякому, кто тащит содержимое, — а тащат его во всех
+   * режимах. Без него делитель приходил пустым, движение выходило `NaN`, и
+   * жест в меню слайдера молча не делал ничего.
+   */
+  const visualDiff = getVisualToLayoutScale(el);
   // --------------------------------------------
 
   // получаем thumbRatio
@@ -657,7 +660,8 @@ function handleUp(args: HandleUpT) {
   cursorClassChange(args.clickedObject.current, args.target, el, "end", rt);
 
   // логика для слайдера
-  if (args.mode === "slider" && args.clickedObject.current !== "thumb") {
+  /* у страниц прилипает и тяга содержимого — в обоих режимах слайдера */
+  if (args.mode !== "scroll" && args.clickedObject.current !== "thumb") {
     const acc = rt.checkSliderThumbSize; // размеры передвижения
 
     const runScroll = (dir: "x" | "y", deltaDir?: 1 | -1) => {
