@@ -363,6 +363,9 @@ themselves are no longer transformed and can be positioned from CSS.
   `"arrows"`, `"bar"` and `"keys"`.
 - **`scrollToObject` takes a pair of `align`**, one per axis, for
   `direction="hybrid"`: `["center", "end"]`.
+- an empty `controls` — `[]` or `{}` — is taken at its word and says nothing
+  about it. A scroll driven entirely through the `ref` is a thing people
+  build, and the prop replacing the default is what makes it sayable.
 - `edge` takes `{ element, size }`: the node is authored once, the way it
   looks along the top, and the library turns it onto the other three sides —
   the same bargain as the arrows, where one icon is drawn pointing right
@@ -685,12 +688,20 @@ themselves are no longer transformed and can be positioned from CSS.
   which is the wrong end of a mirrored list. Both wait for the sizes now and
   aim at the same place `scrollTo(0)` does.
 - `scrollToObject` placed the object by the markup rather than by the list, so
-  every `align` was measured from the wrong side of a mirrored list, and
-  `wrapper.margin` was left out of all of them. It now puts the object where
-  the list itself holds that edge — `"start"` where the first object sits at
-  `scrollTo(0)`, `"end"` where the last one sits at the end of the run — so
-  the two ways of reaching the same place agree. An object larger than the
-  window showed its start for every `align`; `"end"` now shows its end.
+  every `align` was measured from the wrong side of a mirrored list, and the
+  space it left at the edge came from nowhere in particular — sometimes
+  `objects.gap` where the objects had run out, sometimes nothing at all where
+  a neighbour stood. The space is now the one that is really in that place:
+  the gap against a neighbour, `wrapper.margin` past the outermost object.
+  So the ends agree with themselves — `scrollToObject(1, { align: "start" })`
+  arrives where `scrollTo(0)` does — and `moveFocus`, which brings an object
+  to an edge for the arrow keys, follows the same rule from the same place in
+  the code. An object larger than the window showed its start for every
+  `align`; `"end"` now shows its end.
+- `moveFocus` read what stands beyond an object off the boxes next to it, and
+  under `render` only a part of the list is in the document — so the first box
+  drawn was taken for the first object there is, and got the wrapper's margin
+  where a gap belonged.
 - `objects.lines` was ignored when a side of `objects.size` was left to CSS.
   The count is the one thing that can end a line when the width is not ours to
   know, and it was exactly there that it was dropped — a list asked for three

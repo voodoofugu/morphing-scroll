@@ -371,20 +371,22 @@ describe("MorphScroll — controls shorthand", () => {
 
   /*
    * Написанный набор заменяет умолчание целиком, поэтому пустой — это «ничем
-   * не двигать», а не «оставить как было». Об этом и говорим.
+   * не двигать», а не «оставить как было». И сказано это нарочно: скролл, у
+   * которого всё идёт через `ref`, — обычное дело, ругаться тут не на что.
    */
-  it("takes an empty config literally", () => {
+  it("takes an empty config literally, and says nothing about it", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    render(
+    const { container } = render(
       <MorphScroll objects={{ size: OBJ }} size={SIZE} controls={[]}>
         {boxes3()}
       </MorphScroll>,
     );
-    expect(
-      spy.mock.calls
-        .map((call) => String(call[0]))
-        .filter((text) => text.includes("nothing that can move")),
-    ).toHaveLength(1);
+    const el = container.querySelector<HTMLElement>(".ms-viewport")!;
+
+    fireEvent.wheel(el, { deltaY: 100 });
+    expect(el.scrollTop).toBe(0); // колеса не просили — его и нет
+
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 
@@ -403,7 +405,8 @@ describe("MorphScroll — controls shorthand", () => {
     spy.mockRestore();
   });
 
-  it("warns when nothing in the config can move the scroll", () => {
+  /* и выключенное поимённо — тоже просьба, а не описка */
+  it("says nothing when every control is switched off by name", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
       <MorphScroll
@@ -414,7 +417,7 @@ describe("MorphScroll — controls shorthand", () => {
         {boxes3()}
       </MorphScroll>,
     );
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining("controls"));
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 });

@@ -1,9 +1,13 @@
+import edgePads from "./edgePads";
+
 type Side = "top" | "right" | "bottom" | "left";
 
 /** how much free space there is around the objects — by axis, and at the edges */
 type Spacing = {
   gap: [x: number, y: number];
   margin: [top: number, right: number, bottom: number, left: number];
+  /** axes running in a circle, where no object is the outermost one */
+  endless?: [x: boolean, y: boolean];
 };
 
 const NO_SPACING: Spacing = { gap: [0, 0], margin: [0, 0, 0, 0] };
@@ -90,40 +94,37 @@ const pickNeighbour = (
 };
 
 /** whether any object lies beyond this one along the axis */
-const boxBeyond = (
-  boxes: HTMLElement[],
-  box: DOMRect,
-  axis: "x" | "y",
-  forward: boolean,
-) =>
-  boxes.some((other) => {
-    const o = other.getBoundingClientRect();
-
-    if (axis === "x") return forward ? o.left >= box.right : o.right <= box.left;
-
-    return forward ? o.top >= box.bottom : o.bottom <= box.top;
-  });
-
 /**
- * The space an object keeps between itself and the edge of the view. It comes
- * from whatever is actually in that place: between objects it is the gap, and
- * past the outermost one there is no gap left — there it is the wrapper's
- * margin.
+ * The space an object keeps between itself and the edge of the view — the one
+ * that is really in that place, by the rule `edgePads` holds for every
+ * command that brings an object to an edge.
+ *
+ * What lies beyond the object is read off the wrapper rather than off the
+ * boxes next to it: under `render` only a part of the list is in the document
+ * at all, and the first box drawn is not the first object there is.
  */
 const padsAround = (
-  boxes: HTMLElement[],
+  wrapper: DOMRect,
   box: DOMRect,
-  { gap: [gapX, gapY], margin: [mT, mR, mB, mL] }: Spacing,
-) => ({
-  x: {
-    start: boxBeyond(boxes, box, "x", false) ? gapX : mL,
-    end: boxBeyond(boxes, box, "x", true) ? gapX : mR,
-  },
-  y: {
-    start: boxBeyond(boxes, box, "y", false) ? gapY : mT,
-    end: boxBeyond(boxes, box, "y", true) ? gapY : mB,
-  },
-});
+  { gap: [gapX, gapY], margin: [mT, mR, mB, mL], endless }: Spacing,
+) => {
+  const [xStart, xEnd] = edgePads(
+    box.left - wrapper.left,
+    wrapper.right - box.right,
+    gapX,
+    [mL, mR],
+    endless?.[0],
+  );
+  const [yStart, yEnd] = edgePads(
+    box.top - wrapper.top,
+    wrapper.bottom - box.bottom,
+    gapY,
+    [mT, mB],
+    endless?.[1],
+  );
+
+  return { x: { start: xStart, end: xEnd }, y: { start: yStart, end: yEnd } };
+};
 
 type Pads = ReturnType<typeof padsAround>;
 
@@ -198,7 +199,11 @@ function focusStep(
 
   return {
     box: next,
-    delta: intoViewDelta(view, rect, padsAround(boxes, rect, spacing)),
+    delta: intoViewDelta(
+      view,
+      rect,
+      padsAround(wrapper.getBoundingClientRect(), rect, spacing),
+    ),
   };
 }
 

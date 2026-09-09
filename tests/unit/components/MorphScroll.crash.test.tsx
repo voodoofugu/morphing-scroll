@@ -910,11 +910,10 @@ describe("MorphScroll — scrollToObject", () => {
   });
 
   /*
-   * Куда ставить объект, решает сам список: `"end"` — туда, где стоит
-   * последний объект в конце. Полей у обёртки нет — значит и под объектом
-   * пусто, ровно как под последним при полной прокрутке.
+   * Отступ у края берётся из того, что в этом месте лежит. За шестым объектом
+   * стоит седьмой — значит между ними зазор, и он же остаётся под окном.
    */
-  it("presses an object to the end when the list itself ends there", () => {
+  it("leaves the gap under an object another one follows", () => {
     const spy = quiet();
     const s = mount(items(10), { gap: 20 });
     settle();
@@ -926,43 +925,41 @@ describe("MorphScroll — scrollToObject", () => {
     s.unmount();
     spy.mockRestore();
 
-    // шестой объект при шаге 120 лежит на 600, окно 300: 600 + 100 - 300
-    expect(at).toBe(400);
+    // шестой при шаге 120 лежит на 600, окно 300: 600 + 100 - 300, и зазор 20
+    expect(at).toBe(420);
   });
 
   /*
-   * А есть поле — остаётся и оно, и с той же стороны: иначе `"end"` в
-   * середине списка прижимал бы объект теснее, чем список прижимает свой
-   * последний.
+   * А за последним объектом зазору не с чем стоять — там поле обёртки, и
+   * `"end"` приезжает ровно туда же, куда `scrollTo("end")`.
    */
-  it("keeps the wrapper margin on the side it aligns to", () => {
+  it("leaves the wrapper margin where the objects run out", () => {
     const spy = quiet();
-    const s = mount(items(10), { margin: 20 });
+    const s = mount(items(10), { gap: 20, margin: 30 });
     settle();
 
-    act(() => ref.current?.scrollToObject(6, { align: "end" }));
+    act(() => ref.current?.scrollToObject(10, { align: "end" }));
+    settle();
+    const atObject = s.el.scrollTop;
+
+    act(() => ref.current?.scrollTo("end", { duration: 0 }));
     settle();
     const atEnd = s.el.scrollTop;
-
-    act(() => ref.current?.scrollToObject(6, { align: "start" }));
-    settle();
-    const atStart = s.el.scrollTop;
 
     s.unmount();
     spy.mockRestore();
 
-    // объект на 500 внутри обёртки, поле 20: снизу поле, сверху поле
-    expect(atEnd).toBe(500 + 20 + 100 + 20 - 300);
-    expect(atStart).toBe(500);
+    expect(atObject).toBe(atEnd);
   });
 
   /*
-   * И первый объект по `"start"` приезжает туда же, куда `scrollTo(0)`: место
-   * покоя у списка одно, как бы к нему ни попросили.
+   * То же с другого конца: у первого объекта перед ним не зазор, а поле, и
+   * `"start"` приезжает туда же, куда `scrollTo(0)`. Место покоя у списка
+   * одно, как бы к нему ни попросили.
    */
   it("sends the first object exactly where the list rests", () => {
     const spy = quiet();
-    const s = mount(items(10), { margin: 20 });
+    const s = mount(items(10), { gap: 20, margin: 30 });
     settle();
 
     act(() => ref.current?.scrollToObject(1, { align: "start" }));
@@ -973,6 +970,23 @@ describe("MorphScroll — scrollToObject", () => {
     spy.mockRestore();
 
     expect(at).toBe(0);
+  });
+
+  /* а у объекта в середине перед ним стоит сосед — значит зазор */
+  it("leaves the gap above an object another one precedes", () => {
+    const spy = quiet();
+    const s = mount(items(10), { gap: 20, margin: 30 });
+    settle();
+
+    act(() => ref.current?.scrollToObject(6, { align: "start" }));
+    settle();
+
+    const at = s.el.scrollTop;
+    s.unmount();
+    spy.mockRestore();
+
+    // объект на 600 внутри обёртки, поле сверху 30, зазор перед ним 20
+    expect(at).toBe(600 + 30 - 20);
   });
 
   it("does nothing for a name that is neither a key nor a group", () => {

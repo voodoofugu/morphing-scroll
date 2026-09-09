@@ -398,10 +398,12 @@ brings one object into view. A place in the list rather than a place in pixels, 
 
 <ul>
   <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b> — which a child names on itself, <code>ms-group="news"</code>.</li><br />
-  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>. Each puts the object where the list itself holds that edge, so <code>wrapper.margin</code> stays on the side it aligns to and <code>scrollToObject(1)</code> arrives exactly where <code>scrollTo(0)</code> does. A pair aligns the axes apart under <code>direction="hybrid"</code>: <code>["center", "start"]</code>.</li>
+  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>. A pair aligns the axes apart under <code>direction="hybrid"</code>: <code>["center", "start"]</code>.</li>
 </ul>
 
 <em>A group is an attribute read straight off the child — nothing to pass on, nothing to switch on. A group resolves to its first object, and a key wins over a group of the same name.<br />
+<br />
+An aligned object does not stand against the edge of the window: it stops short of it by whatever is really in that place. Another object beyond it means the <code>objects.gap</code> the two hold between them; where the objects run out there is no gap left, and there it is <code>wrapper.margin</code>. So the ends agree with themselves — <code>scrollToObject(1, { align: "start" })</code> arrives exactly where <code>scrollTo(0)</code> does, and the last object with <b>"end"</b> where <code>scrollTo("end")</code> does. <code>moveFocus</code> and <code>keys: { mode: "focus" }</code> bring an object to an edge by the same rule.<br />
 <br />
 <code>align</code> asks, the range answers: an object near either end of an axis cannot be moved off it, so all three values land in the same place there — the first object sits at the start whatever you ask for. In a grid that is per axis, and a section starting in the first column is at the start of the horizontal one.</em>
 

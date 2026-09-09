@@ -37,6 +37,21 @@ const build = (layout: Box[] = GRID, inner?: (i: number) => string) => {
   scrollEl.getBoundingClientRect = () => rect(VIEW);
 
   const wrapper = document.createElement("div");
+  /*
+   * Обёртка обнимает содержимое, и по её границам видно, кончились объекты
+   * или за этим стоит ещё один — на этом стоит выбор отступа у края.
+   */
+  wrapper.getBoundingClientRect = () =>
+    rect({
+      left: Math.min(...layout.map((b) => b.left)),
+      top: Math.min(...layout.map((b) => b.top)),
+      width:
+        Math.max(...layout.map((b) => b.left + b.width)) -
+        Math.min(...layout.map((b) => b.left)),
+      height:
+        Math.max(...layout.map((b) => b.top + b.height)) -
+        Math.min(...layout.map((b) => b.top)),
+    });
   scrollEl.append(wrapper);
   document.body.append(scrollEl);
 

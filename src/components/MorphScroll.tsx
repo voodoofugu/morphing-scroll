@@ -73,6 +73,7 @@ import {
   unregisterContainer,
 } from "../helpers/autoScrollRegistry";
 
+import edgePads from "../helpers/edgePads";
 import CONST from "../constants";
 
 /** the side a key points at — the same one the arrow buttons use */
@@ -422,20 +423,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        */
       return named ?? { wheel: true, keys: true };
     }, [controlsST]) as ControlsConfig;
-
-    /*
-     * Набор, в котором ничем двигать нельзя, — почти наверняка описка.
-     */
-    if (
-      !controlsLocal.wheel &&
-      !controlsLocal.drag &&
-      !controlsLocal.keys &&
-      !controlsLocal.bar &&
-      !controlsLocal.arrows
-    )
-      complain(
-        `controls leaves nothing that can move the scroll — name one of wheel, drag, keys, bar, arrows`,
-      );
 
     /*
      * Прилипание задаётся на обе оси разом или на каждую отдельно: при
@@ -1453,6 +1440,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const loopedHeight = loopLocal?.y ? loopLocal.y.span : objectsWrapperHeight;
     const loopedWidth = loopLocal?.x ? loopLocal.x.span : objectsWrapperWidth;
+
+    /* длина самого содержимого по осям — без полей обёртки вокруг него */
+    const spanXY = React.useMemo<Vec2>(
+      () => [loopedWidth, loopedHeight],
+      [loopedWidth, loopedHeight],
+    );
 
     const objectsWrapperHeightFull = React.useMemo(() => {
       return loopedHeight + mLocalY;
@@ -2903,6 +2896,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const moved = focusStep(objectsWrapperRef.current, scrollEl, side, {
           gap: gapXY,
           margin: [mT, mR, mB, mL],
+          endless: [!!loopPeriods[0], !!loopPeriods[1]],
         });
         if (!moved || !scrollEl) return;
 
@@ -3912,18 +3906,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           const view = sizeLocal[wh];
 
           /*
-           * Куда именно ставить объект, решает сам список: `"start"` — туда,
-           * где стоит первый объект в начале списка, `"end"` — где последний
-           * в конце. Между окном и крайним объектом лежит поле обёртки, и
-           * держать его надо и в середине списка, иначе `scrollToObject`
-           * первого объекта приезжает не туда, куда `scrollTo(0)`.
-           *
-           * Поля названы по разметке, а считаем по списку: у идущего справа
-           * начало у правого края, и ведущее поле там — правое.
+           * Поля обёртки названы по разметке, а место объекта — по списку: у
+           * идущего справа начало у правого края, и поле там правое. Считаем
+           * всё по списку, а в разметку переводим уже готовое.
            */
           const flips = isX && flipsX;
-          const lead = isX ? (flips ? mR : mL) : mT;
-          const trail = isX ? (flips ? mL : mR) : mB;
+          const origin = isX ? (flips ? mR : mL) : mT;
+          const tail = isX ? (flips ? mL : mR) : mB;
+
+          const period = loopPeriods[wh];
+
+          /* сколько отступить от края окна — берём из того, что там лежит */
+          const [padLead, padTrail] = edgePads(
+            start,
+            spanXY[wh] - (start + size),
+            gapXY[wh],
+            [origin, tail],
+            !!period,
+          );
 
           /*
            * Насколько ведущий край объекта отступает от ведущего края окна.
@@ -3937,18 +3937,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             align === "center"
               ? room / 2
               : align === "end"
-                ? room - trail
-                : lead;
+                ? room - padTrail
+                : padLead;
 
-          /*
-           * Место объекта названо по списку: у первого оно ноль, у каждого
-           * следующего больше. У идущего справа это не место в разметке — там
-           * первый объект стоит последним, — поэтому по списку считаем до
-           * конца, а в разметку переводим уже готовое. Считая сразу по
-           * разметке, команда уезжала в другой конец.
-           */
-          const period = loopPeriods[wh];
-          let to = start + lead - place;
+          let to = start + origin - place;
 
           if (flips) to = listX(to);
 
@@ -3970,6 +3962,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         direction,
         sizeLocal.join(),
         loopPeriods.join(),
+        spanXY.join(),
         duration,
         markNavigate,
         smoothScrollLocal,

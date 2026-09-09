@@ -230,15 +230,13 @@ test.describe("MorphScroll scrollToObject: where it lands", () => {
       .toEqual;
   };
 
-  /* поле обёртки остаётся с той стороны, к которой прижимаются */
-  test('"start" keeps the margin the list keeps at its start', async ({
-    page,
-  }) => {
+  /* у объекта в середине сетки соседи со всех сторон — значит зазор, 12 */
+  test('"start" leaves the gap its neighbour holds', async ({ page }) => {
     await open(page);
     await (await goTo(page, "start"))([12, 558, 12, 336]);
   });
 
-  test('"end" keeps the margin the list keeps at its end', async ({ page }) => {
+  test('"end" leaves it on the other side', async ({ page }) => {
     await open(page);
     await (await goTo(page, "end"))([558, 12, 336, 12]);
   });
@@ -247,5 +245,63 @@ test.describe("MorphScroll scrollToObject: where it lands", () => {
   test("a pair places the axes apart", async ({ page }) => {
     await open(page);
     await (await goTo(page, ["center", "end"]))([285, 285, 336, 12]);
+  });
+});
+
+/*
+ * А где зазор и поле не совпадают, видно и то, откуда берётся отступ: за
+ * объектом в середине списка стоит сосед, за крайним — поле обёртки.
+ */
+test.describe("MorphScroll scrollToObject: the space it leaves", () => {
+  const RIG = {
+    count: 40,
+    direction: "y",
+    size: [400, 400],
+    objects: { size: [150, 100], gap: 8, lines: 2 },
+    wrapper: { margin: [40, 40, 40, 40] },
+    duration: 0,
+  };
+
+  const above = (page: Page, target: number, text: string) =>
+    page.evaluate(
+      async ([target, text]: [number, string]) => {
+        const ms = (window as unknown as { __ms: { scrollToObject: Function } })
+          .__ms;
+        ms.scrollToObject(target, { align: "start", duration: 0 });
+        await new Promise((r) => setTimeout(r, 120));
+
+        const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+        const frame = view.getBoundingClientRect();
+        const el = [
+          ...document.querySelectorAll<HTMLElement>(".ms-object-box"),
+        ].find((e) => e.textContent === text)!;
+
+        return Math.round(el.getBoundingClientRect().top - frame.top);
+      },
+      [target, text] as [number, string],
+    );
+
+  const open = async (page: Page) => {
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(RIG))}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(200);
+  };
+
+  test("a neighbour above means the gap it holds", async ({ page }) => {
+    await open(page);
+    expect(await above(page, 21, "20")).toBe(8);
+  });
+
+  /* а над первым объектом соседа нет — там поле обёртки, и это прокрутка в 0 */
+  test("nothing above means the wrapper margin", async ({ page }) => {
+    await open(page);
+    expect(await above(page, 1, "0")).toBe(40);
+    expect(
+      await page
+        .locator(".ms-viewport")
+        .evaluate((el) => (el as HTMLElement).scrollTop),
+    ).toBe(0);
   });
 });
