@@ -209,7 +209,7 @@ const combos = (): Array<[string, Partial<MorphScrollProps>]> => {
 
 /** a combination the library is entitled to complain about */
 const EXPECTED_COMPLAINT =
-  /cannot be counted|pages need one size|needs objects\.lines|pull against each other|prop "controls"|objects\.order|two children with the same key/;
+  /cannot be counted|pages need one size|needs objects\.lines|pull against each other|prop "controls"|objects\.order|two children with the same key|needs direction: "hybrid"/;
 
 describe("MorphScroll — crash pass over the prop surface", () => {
   it("survives every prop value and awkward pair", () => {

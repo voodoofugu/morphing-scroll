@@ -38,6 +38,12 @@ export default function handleWheel(
   maxScrollSize: Vec2,
   stateRef: ScrollStateRefT,
   direction: MorphScroll["direction"],
+  /**
+   * the axis was handed over — take the turn from whichever delta carries it.
+   * Holding a modifier makes the browser report the wheel sideways, and the
+   * axis we were asked for would otherwise see nothing at all.
+   */
+  handedOver = false,
 ) {
   /*
    * Фокус нужен для клавиатурной навигации (changeDirectionBtn слушается на
@@ -82,8 +88,13 @@ export default function handleWheel(
    * по-прежнему сводят всё на одну ось.
    */
   const moveX =
-    direction === "x" ? deltaX || deltaY : direction === "hybrid" ? deltaX : 0;
-  const moveY = direction === "x" ? 0 : deltaY;
+    direction === "x"
+      ? deltaX || deltaY
+      : direction === "hybrid"
+        ? deltaX
+        : 0;
+  const moveY =
+    direction === "x" ? 0 : handedOver ? deltaY || deltaX : deltaY;
 
   /*
    * Съел ли этот скролл движение.

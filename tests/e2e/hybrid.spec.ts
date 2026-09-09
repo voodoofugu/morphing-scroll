@@ -48,13 +48,36 @@ test.describe("MorphScroll hybrid wheel (real browser)", () => {
     await expect(page.locator(".ms-viewport")).toBeVisible();
 
     await page.locator(".ms-viewport").click({ position: { x: 20, y: 20 } });
-    await page.keyboard.down("x");
+    await page.keyboard.down("Shift");
     await wheelOverElement(page);
 
     await expect.poll(() => offsets(page).then((o) => o.top)).toBeGreaterThan(50);
     expect((await offsets(page)).left).toBe(0);
 
-    await page.keyboard.up("x");
+    await page.keyboard.up("Shift");
+  });
+
+  /*
+   * С зажатым модификатором браузер докладывает поворот колеса вбок — это его
+   * собственный способ прокрутить горизонталь. Ось, которую мы в этот момент
+   * вернули, увидела бы ноль, поэтому берём поворот с той стороны, где он
+   * пришёл.
+   */
+  test("a handed-over axis takes the turn sideways too", async ({ page }) => {
+    await page.goto("/?scenario=hybridChangeDir");
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+
+    await page.locator(".ms-viewport").click({ position: { x: 20, y: 20 } });
+    await page.keyboard.down("Shift");
+
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(400, 0); // как его шлёт браузер под модификатором
+
+    await expect.poll(() => offsets(page).then((o) => o.top)).toBeGreaterThan(50);
+    expect((await offsets(page)).left).toBe(0);
+
+    await page.keyboard.up("Shift");
   });
 
   test("without changeDirection the key does nothing", async ({ page }) => {
@@ -62,13 +85,13 @@ test.describe("MorphScroll hybrid wheel (real browser)", () => {
     await expect(page.locator(".ms-viewport")).toBeVisible();
 
     await page.locator(".ms-viewport").click({ position: { x: 20, y: 20 } });
-    await page.keyboard.down("x");
+    await page.keyboard.down("Shift");
     await wheelOverElement(page);
 
     // как и без клавиши: вертикаль едет, горизонталь стоит
     await expect.poll(() => offsets(page).then((o) => o.top)).toBeGreaterThan(50);
     expect((await offsets(page)).left).toBe(0);
 
-    await page.keyboard.up("x");
+    await page.keyboard.up("Shift");
   });
 });

@@ -169,7 +169,7 @@ const defaultSettings: Settings = {
   edgeSize: 42,
   wheel: true,
   wheelChangeDirection: true,
-  wheelChangeDirectionBtn: "KeyX",
+  wheelChangeDirectionBtn: "",
   contentDrag: false,
   keys: true,
   keysMode: "pan",
@@ -859,7 +859,10 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     wheel: settings.wheel
       ? {
           changeDirection: settings.wheelChangeDirection,
-          changeDirectionBtn: settings.wheelChangeDirectionBtn || "KeyX",
+          // пусто — значит умолчание библиотеки, Shift; в разметку не пишем
+          ...(settings.wheelChangeDirectionBtn && {
+            changeDirectionBtn: settings.wheelChangeDirectionBtn,
+          }),
         }
       : false,
     drag: settings.contentDrag,
@@ -1430,7 +1433,9 @@ function App() {
         wheel: settings.wheel
           ? {
               changeDirection: settings.wheelChangeDirection,
-              changeDirectionBtn: settings.wheelChangeDirectionBtn || "KeyX",
+              ...(settings.wheelChangeDirectionBtn && {
+                changeDirectionBtn: settings.wheelChangeDirectionBtn,
+              }),
             }
           : false,
       },
@@ -2091,6 +2096,7 @@ function App() {
                 onChange={(event) =>
                   update("wheelChangeDirectionBtn", event.target.value)
                 }
+                placeholder="Shift"
                 value={settings.wheelChangeDirectionBtn}
               />
             </Field>

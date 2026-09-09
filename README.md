@@ -118,13 +118,15 @@ mode: "slider"; // or "scroll" | "sliderMenu"
 defines how the provided <code>bar</code> behaves within <code>controls</code> and how you interact with it.<br />
 <br />
 <code><b>scroll</b></code>:<br />
-the default value and represents a standard scrollbar.<br />
+the default — a thumb running along a track.<br />
 <br />
 <code><b>slider</b></code>:<br />
-displays distinct elements indicating the number of full scroll steps within the list.<br />
+a carousel: one element per page, and the content snaps to them — a drag settles on the nearest page, and dragging along the strip pages as you go.<br />
 <br />
 <code><b>sliderMenu</b></code>:<br />
-like <code>slider</code>, but the <code>bar</code> is a menu, and you can provide custom buttons as an array in <code>bar</code>.<br />
+the same strip of pages, but the content keeps scrolling freely: nothing snaps and the strip cannot be dragged along. It marks where you are and jumps when you press it — which is what a section menu does.<br />
+<br />
+Both slider modes take an array in <code>bar</code>, one node per page, so custom buttons are not what tells them apart — snapping is.<br />
 <br />
 Both draw one element per page, so a long list makes a long strip of them and past a point it outgrows the scroll. There is no cap on purpose: hiding pages would make the progress lie. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
 <br />
@@ -398,7 +400,9 @@ brings one object into view. A place in the list rather than a place in pixels, 
   <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>, which leaves <code>objects.gap</code> showing past the object instead of pressing it against the edge.</li>
 </ul>
 
-<em>A group is an attribute read straight off the child — nothing to pass on, nothing to switch on. A group resolves to its first object, and a key wins over a group of the same name.</em>
+<em>A group is an attribute read straight off the child — nothing to pass on, nothing to switch on. A group resolves to its first object, and a key wins over a group of the same name.<br />
+<br />
+<code>align</code> asks, the range answers: an object near either end of an axis cannot be moved off it, so all three values land in the same place there — the first object sits at the start whatever you ask for. In a grid that is per axis, and a section starting in the first column is at the start of the horizontal one.</em>
 
 ```tsx
 <MorphScroll {...props} ref={scroll} render="virtual">
@@ -1047,7 +1051,7 @@ controls: {
   wheel: {
     // if direction="hybrid"
     changeDirection: true,
-    changeDirectionBtn: "KeyZ" // default "KeyX", [] to disable
+    changeDirectionBtn: "KeyX" // default ["ShiftLeft", "ShiftRight"], [] to disable
   },
   bar: [<Elem1 />, <Elem2 />, <Elem3 />],
   arrows: {
@@ -1107,9 +1111,9 @@ changeDirection: true;
 ```
 
 <b>Description:</b><em><br />
-in <code>direction="hybrid"</code>, gives the wheel to the x axis — a mouse has no sideways nudge of its own, and without this such a scroll is worked only by the trackpad or the bar.<br />
+in <code>direction="hybrid"</code>, gives the wheel to the x axis — a mouse has no sideways nudge of its own, and without this such a scroll is worked only by the trackpad or the bar. One axis has nothing to switch to, so this needs <code>"hybrid"</code> and says so otherwise.<br />
 <br />
-The other axis is then a held key away, see <code>changeDirectionBtn</code>. Without <code>changeDirection</code> nothing is hijacked: the wheel moves y, a trackpad moves both, and the browser's own <b>Shift</b> + wheel moves x.<br />
+The other axis is then <b>Shift</b> away, see <code>changeDirectionBtn</code>. Without <code>changeDirection</code> nothing is taken over: the wheel moves y, a trackpad moves both, and <b>Shift</b> + wheel moves x — that last one is the browser's own doing, and it works here with no prop at all.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1127,14 +1131,16 @@ The other axis is then a held key away, see <code>changeDirectionBtn</code>. Wit
 <b>Usage:</b><br />
 
 ```tsx
-changeDirectionBtn: "KeyZ"; // or ["ShiftLeft", "ShiftRight"], [] turns it off
+changeDirectionBtn: "KeyX"; // or ["AltLeft", "AltRight"], [] turns it off
 ```
 
 <b>Default:</b><br />
-"KeyX"<br />
+["ShiftLeft", "ShiftRight"]<br />
 <br />
 <b>Description:</b><em><br />
-while one of these keys is held, the wheel goes back to the other axis. Needs <code>changeDirection</code>: on its own the wheel is not taken over, so there is nothing to hand back. A <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values"><code>KeyboardEvent.code</code></a>, or a list of them — a modifier has one per side, so <code>["ShiftLeft", "ShiftRight"]</code> is how a modifier is named. An empty list turns it off.<br />
+while one of these keys is held, the wheel goes back to the other axis. <b>Shift</b> by default — the key a browser already scrolls sideways with, so the gesture is the one people know. Needs <code>changeDirection</code>: on its own the wheel is not taken over, and there is nothing to hand back.<br />
+<br />
+A <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values"><code>KeyboardEvent.code</code></a>, or a list of them — a modifier has one code per side, which is why the default names both. An empty list turns it off.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1284,7 +1290,7 @@ determines how the scroll progress is managed<br />
 <ul>
   <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar.</li><br />
   <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. A dot answers a tap and turns to its own page, and dragging along the bar pages as you go.</li><br />
-  <li>With <code>mode="sliderMenu"</code> everything is the same, but <code>bar</code> also takes an array of custom buttons — a navigation menu that jumps to a section.</li>
+  <li>With <code>mode="sliderMenu"</code> the strip is the same, but the content does not snap to it — the pages are a menu over a scroll that runs freely.</li>
 </ul>
 <br />
 For settings, pass an object instead of the element — the same shape <code>arrows</code> takes:<br />
@@ -1309,7 +1315,7 @@ element: <ScrollThumbComponent />;
 ```
 
 <b>Description:</b><em><br />
-the node the bar is built from. What it becomes depends on <code>mode</code>: in <b>"scroll"</b> it is the thumb that runs along the track, in <b>"slider"</b> it is one dot, repeated for every page, and in <b>"sliderMenu"</b> it is one button of the menu — there an array gives each page its own node, in order.<br />
+the node the bar is built from. What it becomes depends on <code>mode</code>: in <b>"scroll"</b> it is the thumb that runs along the track, and in the slider modes it is one page marker, repeated for every page — an array gives each page its own node, in order.<br />
 </em><br />
 <b>Example:</b>
 

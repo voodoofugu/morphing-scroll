@@ -57,4 +57,30 @@ describe("MorphScroll — hybrid wheel priority", () => {
     expect(el.scrollLeft).toBe(0);
     expect(el.scrollTop).toBeGreaterThan(0);
   });
+
+  /*
+   * Переключать колесо можно там, где осей две. При одной переключать не на
+   * что, и молчаливое бездействие читается как поломка.
+   */
+  it("says so when there is only one axis to be on", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    render(
+      <MorphScroll objects={{ size: 100 }}
+        size={[300, 300]}
+        direction="y"
+        controls={{ wheel: { changeDirection: true } }}
+      >
+        {items(12)}
+      </MorphScroll>,
+    );
+
+    expect(
+      warn.mock.calls
+        .map((call) => String(call[0]))
+        .filter((text) => text.includes("changeDirection")),
+    ).toHaveLength(1);
+
+    warn.mockRestore();
+  });
 });

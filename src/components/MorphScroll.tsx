@@ -263,6 +263,25 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         complain(`loop does not work with stickToEnd — it is ignored`);
     }
 
+    /*
+     * Переключать колесо между осями можно там, где осей две. При одной
+     * `changeDirection` просто не на что переключать, и молчаливое бездействие
+     * читается как поломка — говорим.
+     */
+    if (
+      direction !== "hybrid" &&
+      !!controls &&
+      typeof controls === "object" &&
+      !Array.isArray(controls) &&
+      typeof (controls as { wheel?: unknown }).wheel === "object" &&
+      ((controls as { wheel?: { changeDirection?: boolean } }).wheel
+        ?.changeDirection ??
+        false)
+    )
+      complain(
+        `controls.wheel.changeDirection needs direction: "hybrid" — one axis has nothing to switch to`,
+      );
+
     // ♦ refs
     const customScrollRef = React.useRef<HTMLDivElement | null>(null);
     const scrollContentRef = React.useRef<HTMLDivElement | null>(null);
@@ -528,7 +547,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       const named = wheel.changeDirectionBtn;
       const list =
-        named === undefined ? ["KeyX"] : Array.isArray(named) ? named : [named];
+        named === undefined
+          ? ["ShiftLeft", "ShiftRight"]
+          : Array.isArray(named)
+            ? named
+            : [named];
       const kept = list.filter(Boolean);
 
       return kept.length ? kept : null;
@@ -3070,6 +3093,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           maxScrollSize,
           scrollStateRef.current,
           directionForWheel,
+          keyDownX.current,
         );
 
         if (!consumed) return;

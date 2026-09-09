@@ -36,12 +36,16 @@ export type BarConfig = {
 
 /** the object form of `controls.wheel` */
 export type WheelConfig = {
-  /** in `direction="hybrid"`, give the wheel to the x axis */
+  /**
+   * in `direction="hybrid"`, give the wheel to the x axis.
+   * @note *one axis has nothing to switch to, so it needs `"hybrid"`*
+   */
   changeDirection?: boolean;
   /**
    * `KeyboardEvent.code`, or a list of them, that hands the wheel back to the
-   * other axis while held. Needs `changeDirection`; an empty list turns it off
-   * @default "KeyX"
+   * other axis while held — **Shift** by default, the same key a browser
+   * scrolls sideways with. Needs `changeDirection`; an empty list turns it off
+   * @default ["ShiftLeft", "ShiftRight"]
    */
   changeDirectionBtn?: string | string[];
 };
@@ -183,6 +187,9 @@ export type MorphScrollHandle = {
    *
    * `align` is `"start"` by default, `"center"`, or `"end"` — which leaves
    * `objects.gap` showing past the object rather than pressing it to the edge.
+   * @note *`align` asks, the range answers: an object near either end of an
+   * axis cannot be moved off it, so all three land in the same place there —
+   * the first object is at the start whatever you ask for*
    */
   scrollToObject: (
     target: number | string,
@@ -291,6 +298,14 @@ export type MorphScroll = {
   /**
    * change how the scroll behaves and what the progress element is.
    * @default "scroll"
+   * @description
+   * - `"scroll"`: *a thumb running along a track*
+   * - `"slider"`: *a carousel — one element per page, and the content snaps
+   * to them*
+   * - `"sliderMenu"`: *the same strip, but nothing snaps: it marks where you
+   * are and jumps when pressed, the way a section menu does*
+   * @note *both slider modes take an array in `controls.bar`, one node per
+   * page — custom buttons are not what tells them apart, snapping is*
    * @note *a slider draws one element per page, so a long list makes a long
    * strip of them: they are for a handful of pages, a growing list is
    * `mode="scroll"`*
