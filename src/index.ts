@@ -32,9 +32,11 @@ export type {
   WheelConfig,
   EmptyObjectsConfig,
   ObjectsConfig,
+  Align,
   NavigateEvent,
   NavigateReason,
   WrapperConfig,
   Pair,
+  Vec2,
 } from "./types/types";
 export default Morph;

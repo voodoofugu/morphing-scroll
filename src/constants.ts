@@ -11,7 +11,6 @@ const CONST = {
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
-  SCROLL_OFFSET: 2, // Adjustment offset for scroll boundary calculation
   SCROLL_END_DELAY: 200, // Delay before marking scroll as ended (ms)
   /*
    * У края скролл отдаёт колесо наружу не сразу: пока его крутят, оно ещё

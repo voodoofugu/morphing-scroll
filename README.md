@@ -72,7 +72,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 
 <details><summary><b><code>className</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-allows you to add additional classes to the component.</em><br />
+adds your own classes to the outermost element. Inside it the library nests <b>.ms-content</b>, then <b>.ms-viewport</b> — the element that actually scrolls — then <b>.ms-objects-wrapper</b> holding one <b>.ms-object-box</b> per child. Style them if you need to, but leave what sizes or positions them to the library.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1292,7 +1292,7 @@ determines how the scroll progress is managed<br />
 <br />
 
 <ul>
-  <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar.</li><br />
+  <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar. The element you pass sits inside <b>.ms-thumb</b>, which is the part that moves and is sized along the track — leave its own size and position to the library and style what is inside it.</li><br />
   <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. The strip is dragged along and pages as you go.</li><br />
   <li>With <code>mode="sliderMenu"</code> the strip is the same, but pressed rather than dragged: an element turns to its own page.</li>
 </ul>
@@ -1893,7 +1893,7 @@ onNavigate: ({ reason, axis, from, to }) => {};
 <b>Description:</b><em><br />
 the discrete half of scrolling: one event per page turn. <code>onScrollPosition</code> reports continuous movement; this one reports the turns, so it is the place to hang a sound, a haptic or an analytics event.<br />
 <br />
-<code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a drag along the bar), <b>"keys"</b>, your own string from a <code>ref</code> command, or <b>"scroll"</b> when the content simply arrived by wheel, drag or inertia.<br />
+<code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a drag along the bar), <b>"keys"</b>, <b>"wheel"</b> (a notch over a slider, which turns a page), your own string from a <code>ref</code> command, or <b>"scroll"</b> when the content simply arrived by drag or inertia.<br />
 <br />
 ✦ Note:<br />
 

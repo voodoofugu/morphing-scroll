@@ -1,4 +1,4 @@
-## [3.0.0] - 2026-09-05
+## [3.0.0] - 2026-09-09
 
 A rewrite of the whole library: instance isolation, an API cleanup, new
 layout and scrolling work, and a combination pass over the entire prop
@@ -68,6 +68,13 @@ controls={{
 `"wheel"`, `["wheel", "drag"]`, `"bar"` — which is the same as
 `{ wheel: true }` and `{ wheel: true, drag: true }`. The object form is
 unchanged.
+
+What you write **replaces** the default rather than adding to it.
+`{ wheel: true, keys: true }` is what an unwritten prop means; write anything
+and that is the whole set, so `{ bar: <Thumb /> }` is a bar and nothing else.
+`progressTrigger` merged, and in the slider modes that made the wheel
+impossible to leave out — where one notch turns a whole page, an unasked-for
+wheel is in the way.
 
 #### IntersectionTracker only watches now
 
@@ -337,6 +344,25 @@ themselves are no longer transformed and can be positioned from CSS.
   virtual modes alone — and asking to watch now works them out too. Without a
   `mode` nothing is dropped: every object stays mounted and simply knows how
   much of itself shows through `--ms-content-visibility`.
+- **the wheel turns a page in the slider modes.** One notch is one page, over
+  the content and over the strip alike, so the gesture that moves a scroll
+  moves a slider the same way. A trackpad sends dozens of events per flick and
+  is held to one page for as long as that page is travelling.
+- **at the end the wheel is handed outward, but not in the same instant.**
+  While it is still being turned it stays with the scroll it started in — the
+  way a native one keeps it. Without the delay the page below moved in the
+  very frame the list ran out.
+- **`controls.wheel.changeDirectionBtn` holds the wheel on the other axis**
+  while a key is down, **Shift** by default — the key a browser already
+  scrolls sideways with. A list of codes means any of them; `"+"` joins codes
+  into one combination, so `["ShiftLeft+KeyX"]` waits for both. A modifier
+  comes with the wheel event itself and works wherever the pointer is; any
+  other key needs the scroll focused. It needs `changeDirection`, which in
+  turn needs `direction="hybrid"` — one axis has nothing to switch to.
+- **`onNavigate` reports `"wheel"`** for a notch that turned a page, next to
+  `"arrows"`, `"bar"` and `"keys"`.
+- **`scrollToObject` takes a pair of `align`**, one per axis, for
+  `direction="hybrid"`: `["center", "end"]`.
 - `edge` takes `{ element, size }`: the node is authored once, the way it
   looks along the top, and the library turns it onto the other three sides —
   the same bargain as the arrows, where one icon is drawn pointing right
@@ -406,9 +432,8 @@ themselves are no longer transformed and can be positioned from CSS.
   A place in the list is the one a caller can name: with `render` the object
   is not in the document, and with `objects.size: "auto"` only the library
   knows where it landed. `target` is a position in the list, a child's `key`,
-  or the name of a **group** — written in the key itself, in brackets at the
-  end, so `"post-4[news]"` answers to both. `align` says where in the window
-  it lands.
+  or the name of a **group**, which a child names on itself:
+  `ms-group="news"`. `align` says where in the window it lands.
 - **the position survives content arriving above it.** A browser anchors its
   own scrolling; here the objects are placed by coordinate and have none, so
   loading older messages pushed the reader down by exactly their height. The
@@ -461,6 +486,12 @@ themselves are no longer transformed and can be positioned from CSS.
   is prefixed `[MS n]` so it stands out in a busy console, `n` telling one
   scroll on the page from another. A missing `size` is still an error — there
   is nothing to build without it.
+- **what tells `mode="slider"` from `mode="sliderMenu"` is the gesture the
+  strip answers.** The slider's strip is a handle: it is dragged along, and a
+  press on it does nothing. The menu's is pressed, and an element turns to its
+  page. They used to be a menu and a menu that also dragged, and the two
+  promises collided on the same element — the cursor could only say one of
+  them. `controls.bar` takes an array in both, so the same dots serve either.
 - a group is an attribute on the child — `ms-group="news"` — read straight off
   the element, rather than a name packed into its `key`. The key says which
   object this is; a second meaning in the same string breaks on every key that
@@ -469,8 +500,8 @@ themselves are no longer transformed and can be positioned from CSS.
 - `objects.groups` is gone. Holding a group's heading against the edge sounded
   useful and was not: the held object climbed over `edge` with its own
   `z-index`, and scrolled past anyway. Marking out the first object of a group
-  is a few lines of CSS in the app that knows what a group means. The names in
-  the keys stay — `scrollToObject` reads them, and needs nothing switched on.
+  is a few lines of CSS in the app that knows what a group means. The groups
+  stay — `scrollToObject` reads them, and needs nothing switched on.
 - `scrollToObject` counts places in the list **from one**: the tenth object is
   `10`. Asking for the tenth and landing on the eleventh reads as a bug every
   time, whatever the documentation says.
@@ -653,8 +684,13 @@ themselves are no longer transformed and can be positioned from CSS.
   own opening — the start of the middle copy — is measured from the left,
   which is the wrong end of a mirrored list. Both wait for the sizes now and
   aim at the same place `scrollTo(0)` does.
-- `scrollToObject` with `align: "end"` pressed the object against the edge,
-  eating the gap that stands between it and its neighbour everywhere else.
+- `scrollToObject` placed the object by the markup rather than by the list, so
+  every `align` was measured from the wrong side of a mirrored list, and
+  `wrapper.margin` was left out of all of them. It now puts the object where
+  the list itself holds that edge — `"start"` where the first object sits at
+  `scrollTo(0)`, `"end"` where the last one sits at the end of the run — so
+  the two ways of reaching the same place agree. An object larger than the
+  window showed its start for every `align`; `"end"` now shows its end.
 - `objects.lines` was ignored when a side of `objects.size` was left to CSS.
   The count is the one thing that can end a line when the width is not ours to
   know, and it was exactly there that it was dropped — a list asked for three

@@ -134,6 +134,7 @@ export type ObjectsConfig = {
   gap?: number | Vec2;
   /** how many lines the objects run in, across the scroll */
   lines?: number;
+  /** where a short last line sits */
   align?: Align;
   /**
    * which way the list runs through the lines — it names the order, not the
@@ -192,11 +193,10 @@ export type MorphScrollHandle = {
    * which a child gives itself: `ms-group="news"`. A group goes to its first
    * object; a key wins over a group of the same name.
    *
-   * `align` is `"start"` by default, `"center"`, or `"end"`. It puts the
-   * object where the list itself holds that edge: `"start"` where the first
-   * object sits at `scrollTo(0)`, `"end"` where the last one sits at the end
-   * of the run — so `wrapper.margin` stays on the side it aligns to. A pair
-   * places the axes apart in `direction="hybrid"`: `["center", "start"]`.
+   * `align` puts the object where the list itself holds that edge: `"start"`
+   * (the default) where the first object sits at `scrollTo(0)`, `"end"` where
+   * the last one sits at the end of the run, `"center"` in the middle. A pair
+   * aims the axes apart under `direction="hybrid"`: `["center", "start"]`.
    * @note *`align` asks, the range answers: an object near either end of an
    * axis cannot be moved off it, so all three land in the same place there —
    * the first object is at the start whatever you ask for*
@@ -299,9 +299,9 @@ export type IntersectionTracker = {
 
 export type MorphScroll = {
   // — GENERAL —
-  /** set a custom class name. */
+  /** your own class on the root element */
   className?: string;
-  /** add custom user content. */
+  /** the objects; give each a key of its own, as React asks */
   children?: React.ReactNode;
 
   // — SCROLL —
@@ -389,23 +389,20 @@ export type MorphScroll = {
    */
   duration?: number;
   /**
-   * enables automatic scrolling when dragging elements near the edges of the container.
-   * @note
-   * *Supports attributes:*
-   * - *`draggable="true"`*
-   * - *`ms-custom-drag`*
-   *
-   * *Set attribute: `ms-under-drag`*
+   * an object dragged toward an edge scrolls the list under it.
+   * @note *the dragged object is either `draggable="true"` or carries
+   * `ms-custom-drag` for a drag of your own; while it moves the scroll, the
+   * root carries `ms-under-drag`*
    */
   autoScrollOnDrag?: boolean;
 
   // — SIZE —
   /**
-   * width and height dimension of scroll area. ( **REQUIRED** )
+   * how big the scroll is — the only prop it cannot do without.
    * @description
-   * - `number` *sets the width and height*
-   * - `Size` *width and height as an array*
-   * - `"auto"` *for automatic resizing based on the parent element*
+   * - `number`: *the same for both sides*
+   * - `[x, y]`: *a pair*
+   * - `"auto"`: *takes it from the parent element*
    */
   size: number | "auto" | Vec2;
   /**
@@ -443,8 +440,8 @@ export type MorphScroll = {
   // — CONTROLS —
   /**
    * everything that can move the scroll.
-   * @description
    * @default { wheel: true, keys: true }
+   * @description
    * - `wheel`: *allow to scroll by mouse wheel; in the slider modes one notch
    * turns one page*
    * - `drag`: *allow to scroll by dragging the content*
@@ -477,12 +474,11 @@ export type MorphScroll = {
 
   // — OPTIMIZATION —
   /**
-   * rendering strategy for performance optimization.
-   * @descriptions
-   * - `mode` — determines the render strategy:
-   * - `"lazy"`: *render once when visible*
-   * - `"virtual"`: *render only when visible*
-   * - `rootMargin`: *distance for loading from the root element*
+   * draw only what is worth drawing — for lists too long to mount whole.
+   * @description
+   * - `mode`: *`"lazy"` draws an object once it comes near and keeps it;
+   * `"virtual"` also drops it again once it leaves*
+   * - `rootMargin`: *how far beyond the window counts as near*
    * - `deferLoadOnScroll`: *holds new content back while the scroll moves,
    * and lets it in once the scroll settles*
    * - `trackVisibility`: *sets `--ms-content-visibility` on every object box;
@@ -502,15 +498,12 @@ export type MorphScroll = {
         deferLoadOnScroll?: boolean;
         trackVisibility?: boolean;
       };
-  /** enables React Suspense for children. */
+  /** wrap the objects in React Suspense */
   suspending?: boolean;
   /**
-   * element to display during loading or placeholder.
-   * @note
-   * *Used when:*
-   * - *`suspending === true`*
-   * - *`render.deferLoadOnScroll === true`*
-   * - *`emptyObjects.mode === "fallback"`*
+   * what stands in for an object that is not there yet.
+   * @note *used by `suspending`, `render.deferLoadOnScroll` and
+   * `objects.empty: "fallback"`*
    */
   fallback?: React.ReactNode;
 
@@ -535,8 +528,8 @@ export type MorphScroll = {
     max: { x: number; y: number },
   ) => void;
   /**
-   * callback for scroll status.
-   * @param motion boolean indicating if scrolling is in progress.
+   * called when the scroll starts moving and when it stops.
+   * @param motion whether it is moving now
    */
   onScrollingChange?: (motion: boolean) => void;
   /**
@@ -555,10 +548,8 @@ export type MorphScroll = {
    */
   onNavigate?: (event: NavigateEvent) => void;
   /**
-   * callback for keys that are currently rendered inside `MorphScroll`.
-   * @param keys array of rendered child keys.
-   * @note
-   * *Use explicit React keys to receive meaningful names.*
+   * called when the set of drawn objects changes — what `render` is keeping.
+   * @param keys the keys of the children currently in the document
    */
   onRenderedKeysChange?: (keys: string[]) => void;
 };
