@@ -36,7 +36,18 @@
   },
   "keywords": [
     "react",
-    "scroll"
+    "react-component",
+    "scroll",
+    "scrollbar",
+    "custom-scrollbar",
+    "virtual-list",
+    "virtualization",
+    "lazy-render",
+    "slider",
+    "carousel",
+    "masonry",
+    "horizontal-scroll",
+    "rtl"
   ],
   "devDependencies": {
     "@eslint/js": "^9.39.4",
