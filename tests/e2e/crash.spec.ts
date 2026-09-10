@@ -58,11 +58,13 @@ const build = () => {
         ...(i % 4 !== 2 && { align }),
         ...(i % 9 === 7 && { direction: "column" }),
       },
-      render: {
-        ...(virtual && { mode: virtual }),
-        ...(i % 4 === 0 && { trackVisibility: true }),
-        ...(i % 8 === 2 && { rootMargin: 40, deferLoadOnScroll: true }),
-      },
+      ...(virtual && {
+        render: {
+          mode: virtual,
+          ...(i % 8 === 2 && { rootMargin: 40, deferLoadOnScroll: true }),
+        },
+      }),
+      ...(i % 4 === 0 && { trackVisibility: true }),
       controls: {
         wheel: i % 7 === 5 ? { changeDirection: true } : true,
         drag: i % 2 === 0,
@@ -256,7 +258,7 @@ const EDGES: { name: string; config: Config }[] = [
       vary: true,
       objects: { size: "auto", lines: 3, gap: 10 },
       controls: { wheel: true, drag: true, bar: "@thumb" },
-      render: { trackVisibility: true },
+      trackVisibility: true,
     },
   },
 ];
@@ -764,7 +766,7 @@ const MOVING: { name: string; config: Config }[] = [
       vary: true,
       objects: { size: "auto", gap: 10, lines: 3 },
       controls: { wheel: true, bar: "@thumb", arrows: { element: "@arrow", size: 30 } },
-      render: { trackVisibility: true },
+      trackVisibility: true,
       duration: 300,
     },
   },

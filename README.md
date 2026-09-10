@@ -569,7 +569,7 @@ an unnamed <code>size</code> does not stand aside — it answers for the objects
   <li><code>mode="slider"</code> or <b>"sliderMenu"</b> — <b>"full"</b>: a page is the window, so the object is too. The mode answers before the direction does.</li>
 </ul>
 
-Every one of those can be counted, so <code>render</code>, <code>loop</code> and <code>render.trackVisibility</code> work with nothing named at all.<br />
+Every one of those can be counted, so <code>render</code>, <code>loop</code> and <code>trackVisibility</code> work with nothing named at all.<br />
 <br />
 One case is left alone: <code>lines</code> above <b>1</b> on a single axis. That is a grid of as many tracks as you named, each as wide as its content — your CSS decides those widths, nothing can count them, and <code>render</code> stays off until you name a size.<br />
 <br />
@@ -851,7 +851,9 @@ minSize: "full"; // or a number | ["full", 10]
 ```
 
 <b>Description:</b><em><br />
-the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. <b>"full"</b> means the <code>size</code> prop.<br />
+the smallest the wrapper may get, applied as <code>min-width</code> / <code>min-height</code>. A <b>number</b> is that floor in pixels; <b>"full"</b> is all the room there is — the <code>size</code> of the scroll, less <code>wrapper.margin</code>.<br />
+<br />
+Useful where the content may be shorter than the scroll and the box has to stay put anyway — a background that must not shrink, a bar that has to keep its place.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1070,7 +1072,9 @@ mode: "focus"; // or "step" | "pan"
 <b>"step"</b> in the slider modes, <b>"pan"</b> in <code>mode="scroll"</code><br />
 <br />
 <b>Description:</b><em><br />
-<b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>; <b>"pan"</b> nudges the content along by <code>step</code> pixels; <b>"focus"</b> walks the objects.<br />
+<b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>;<br />
+<b>"pan"</b> nudges the content along by <code>step</code> pixels;<br />
+<b>"focus"</b> walks the objects.<br />
 <br />
 <b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object — picked by geometry, so a grid walks its row and drops to the next one — and the scroll follows, far enough to bring it into view and no further, leaving the <code>objects.gap</code> or the <code>wrapper.margin</code> that is there.<br />
 Focus lands on the <code>.ms-object-box</code> itself, so the highlight is the whole card and there is one thing to style: <code>.ms-object-box:focus</code>. Give a box a <code>tabIndex</code> of your own and the library leaves it alone. The same move from any other device is <code>ref.moveFocus()</code>.<br />
@@ -1303,19 +1307,9 @@ report the bar as idle unless it is hovered, touched or the content is moving. N
 with <code>showOnHover</code> the library sets <code>--ms-bar-visibility</code> (<b>1</b> active, <b>0</b> idle) and adds <b>.ms-hover</b> / <b>.ms-leave</b>, but styles nothing. It lands on whatever the mode renders — <b>.ms-bar</b> or <b>.ms-slider</b> — so style both if you use both. The bar stays visible until you use the variable:<br />
 
 ```css
-.ms-bar,
 .ms-slider {
   opacity: var(--ms-bar-visibility, 1);
   transition: opacity 0.2s ease-in-out;
-}
-```
-
-<em>which also means you are not limited to <code>opacity</code>:</em>
-
-```css
-.ms-bar {
-  transform: scaleX(var(--ms-bar-visibility, 1));
-  transition: transform 0.2s ease-in-out;
 }
 ```
 
@@ -1474,7 +1468,7 @@ Two edges are created for a single-axis <code>direction</code>, four for <code>"
 <br />
 Passing a node instead of <b>true</b> renders it inside every slot, in a <b>.ms-edge-inner</b> wrapper. Author it once, the way it looks along the top, and the library turns it onto the other three sides; the sideways slots get their sides swapped first, so a gradient written across a wide strip lands correctly down a narrow one. The slot itself is never transformed, so your CSS can place it predictably.<br />
 <br />
-Passing <code>{ element, size }</code> sets the strip's thickness the way <code>arrows.size</code> does — a height at the top and bottom, a width at the sides. Without it the thickness is yours to write.<br />
+Passing <code>element.size</code> sets the strip's thickness the way <code>arrows.size</code> does — a height at the top and bottom, a width at the sides. Without it the thickness is yours to write.<br />
 <br />
 ✦ Note:<br />
 an edge has no size and no colour of its own, so nothing shows until you give it some:<br />
@@ -1491,13 +1485,7 @@ an edge has no size and no colour of its own, so nothing shows until you give it
 }
 ```
 
-```tsx
-<MorphScroll {...props} edge={{ element: <Fade />, size: 40 }}>
-  {children}
-</MorphScroll>
-```
-
-<em>Leave <code>size</code> out and the thickness is yours to write — a <b>height</b> on <code>.ms-top</code> and <code>.ms-bottom</code>, a <b>width</b> on <code>.ms-left</code> and <code>.ms-right</code>. Write only one of those pairs and the other stays at zero: present in the DOM, and invisible.</em>
+<em>Leave <code>size</code> out and the thickness is yours to write — a <b>height</b> on <code>.ms-top</code> and <code>.ms-bottom</code>, a <b>width</b> on <code>.ms-left</code> and <code>.ms-right</code>.</em>
 
 <br />
 <b>Example:</b>
@@ -1533,8 +1521,7 @@ render: "lazy"; // or "virtual"
 render: {
   mode: "lazy", // or "virtual" (required)
   rootMargin: 100, // or [x, y] | [t, r, b, l]
-  deferLoadOnScroll: true,
-  trackVisibility: true
+  deferLoadOnScroll: true
 }
 ```
 
@@ -1546,7 +1533,7 @@ this parameter adds a gradual rendering of the content as it enters the viewport
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.</em><br />
 
 <em>✦ Note:<br />
-<code>render</code> places objects by counting, so it needs a size it can count with: a side left to your own CSS is the one it cannot count. <code>objects.size: "auto"</code> is fine — the library measures it and then knows it.<br />
+<code>render</code> places objects by counting, and an unnamed <code>objects.size</code> answers for them — so it works with nothing else named. Two sizes it cannot count: a side named <code>null</code>, and <code>objects.lines</code> above <b>1</b> without a size. Your CSS decides those, and it is said once in the console.<br />
 <br />
 A window also hides how long the list is, so the markup says it instead: with a <code>mode</code> set, the wrapper is a list and every object an item numbered against the real total. Without a window every object is in the document and a screen reader counts them itself; a slider is never called a list either, since its dots already say where you are.</em><br />
 <br />
@@ -1607,7 +1594,7 @@ deferLoadOnScroll: true;
 ```
 
 <b>Description:</b><em><br />
-holds new objects back while the scroll is moving and lets them in once it stops.<br />
+delays the loading of new objects while scrolling and loads them as soon as scrolling stops.<br />
 </em><br />
 <b>Example:</b>
 
@@ -1619,29 +1606,39 @@ holds new objects back while the scroll is moving and lets them in once it stops
 
 </div></ul></details>
 
+</div></ul></details>
+
 <h2></h2>
 
-<details><summary><code><b>trackVisibility</b></code></summary><br /><ul><div>
+<details><summary><b><code>trackVisibility</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
 ```tsx
 trackVisibility: true;
 ```
 
+<b>Default:</b><br />
+false<br />
+<br />
 <b>Description:</b><em><br />
-sets the <code>--ms-content-visibility</code> variable on each object box, which is what a fade-in is styled with: <code>opacity: var(--ms-content-visibility);</code>.<br />
+reports how much of every object shows, through <code>--ms-content-visibility</code> on its <code>.ms-object-box</code> — <b>0</b> out of sight, <b>1</b> whole, a fraction in between. That is what a fade is styled with: <code>opacity: var(--ms-content-visibility);</code><br />
 <br />
-It needs no <code>mode</code> of its own: without one nothing is dropped — every object stays mounted and simply knows how much of itself shows.</em><br />
+Nothing is styled for you and nothing is dropped: the objects stay mounted and simply know where they are. It goes with <code>render</code> and without it alike — the two are different questions, which is why they are different props.<br />
 <br />
+✦ Note:<br />
+
+<ul>
+  <li>the ratio is counted against the window itself, so <code>render.rootMargin</code> does not widen it: an object preloaded past the edge reports <b>0</b> until it truly shows.</li>
+  <li>counted by place, so it needs an <code>objects.size</code> that can be counted — the same one <code>render</code> needs.</li>
+</ul>
+</em><br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} render={{ trackVisibility: true }}>
+<MorphScroll {...props} trackVisibility>
   {children}
 </MorphScroll>
 ```
-
-</div></ul></details>
 
 </div></ul></details>
 
@@ -1715,7 +1712,7 @@ named, it is the whole set — <code>{ empty }</code> on its own leaves nothing 
   fallback={{ loading: <Skeleton />, empty: <p>Nothing here</p> }}
 >
   {children}
-</MorphScroll>
+</MorphScroll>;
 ```
 
 </div></ul></details>
@@ -1737,7 +1734,12 @@ runs on every scroll event with the current offsets, and with how far each axis 
 That third argument is what makes a "load more" out of this without a prop for it: the distance to the end is <code>max</code> minus the position. With <code>render</code> or <code>objects.size: "auto"</code> nothing outside <b>can</b> know it — the objects are not in the document, or their sizes were measured here.<br />
 <br />
 ✦ Note:<br />
-in <code>loop</code> the content has no end, and <code>max</code> measures the strip of copies rather than one turn.</em><br />
+
+<ul>
+  <li>measure with a distance, not with equality. <code>max</code> is read off the element, where the sizes are whole numbers while the position need not be: under browser zoom the two drift apart by a fraction of a pixel, and the position can even read past <code>max</code>. <code>max.y - top &lt; 1</code> is "at the end" — and a "load more" wants a wider reach than that anyway, so it is the natural way to write it.</li>
+  <li>in <code>loop</code> the content has no end, and <code>max</code> measures the strip of copies rather than one turn.</li>
+</ul>
+</em><br />
 <br />
 <b>Example:</b>
 
@@ -1789,7 +1791,7 @@ the discrete half of scrolling: one event per page turn. <code>onScrollPosition<
 <br />
 <code><b>reason</b></code>: what put it there — <b>"arrows"</b>, <b>"bar"</b> (a slider dot or a drag along the bar), <b>"keys"</b>, <b>"wheel"</b> (a notch over a slider, which turns a page), your own string from a <code>ref</code> command, or <b>"scroll"</b> when the content simply arrived by drag or inertia.<br />
 <br />
-✦ Note:<br />
+✦ Note:
 
 <ul>
   <li>a turn that was asked for reports the moment it is asked for. Three quick presses of an arrow share one ride and still report three times — the count follows the presses, not the animation.</li>

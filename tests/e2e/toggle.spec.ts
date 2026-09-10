@@ -231,7 +231,7 @@ const PLAIN_TOGGLES: Toggle[] = [
   { patch: { mode: "sliderMenu" } },
   { patch: { render: "virtual" } },
   { patch: { render: "lazy" } },
-  { patch: { render: { trackVisibility: true } } },
+  { patch: { trackVisibility: true } },
   { patch: { render: { mode: "virtual", rootMargin: 40, deferLoadOnScroll: true } } },
   { patch: { objects: { size: "full" } } },
   { patch: { objects: { size: "auto" }, vary: true } },

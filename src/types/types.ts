@@ -504,23 +504,35 @@ export type MorphScroll = {
    * - `rootMargin`: *how far beyond the window counts as near*
    * - `deferLoadOnScroll`: *holds new content back while the scroll moves,
    * and lets it in once the scroll settles*
-   * - `trackVisibility`: *sets `--ms-content-visibility` on every object box;
-   * without a `mode` nothing is dropped — objects stay mounted and simply
-   * know how much of them shows*
    * @note
-   * *`render` places objects by counting, so it needs an `objects.size` it can
-   * count: a side left to your own CSS leaves nothing to count with*
+   * *`render` places objects by counting, and an unnamed `objects.size`
+   * answers for them, so it works with nothing else named. The two sizes it
+   * cannot count are a side named `null` and `objects.lines` above one
+   * without a size — your CSS decides those*
    */
   render?:
     | "lazy"
     | "virtual"
     | {
-        /** leave it out to keep every object mounted and only watch them */
-        mode?: "lazy" | "virtual";
+        mode: "lazy" | "virtual";
         rootMargin?: SpacingValue;
         deferLoadOnScroll?: boolean;
-        trackVisibility?: boolean;
       };
+  /**
+   * report how much of every object shows, through `--ms-content-visibility`
+   * on its `.ms-object-box` — `0` out of sight, `1` whole, a fraction in
+   * between.
+   * @description
+   * Nothing is styled and nothing is dropped: the objects stay mounted and
+   * simply know where they are, so a card can fade or shrink as it leaves.
+   * It goes with `render` and without it alike.
+   * @note *the ratio is counted against the window itself, so
+   * `render.rootMargin` does not widen it — an object preloaded past the
+   * edge reports `0` until it truly shows*
+   * @note *counted by place, so it needs an `objects.size` that can be
+   * counted — the same one `render` needs*
+   */
+  trackVisibility?: boolean;
   /** wrap the objects in React Suspense */
   suspending?: boolean;
   /**
@@ -546,8 +558,9 @@ export type MorphScroll = {
    * `max` is what makes this a "load more" signal without a prop for it: how
    * far the end is, is `max` minus the position. With `render` or
    * `objects.size: "auto"` nothing else *can* know it.
-   * @note *test it with a distance, not equality: a position need not be a
-   * whole number, so `max.y - top < 1` is "at the end"*
+   * @note *test it with a distance, not equality: the sizes it comes from are
+   * whole numbers while the position need not be, and under browser zoom the
+   * two drift apart — `max.y - top < 1` is "at the end"*
    * @note *in `loop` there is no end, and `max` measures the whole strip*
    */
   onScrollPosition?: (

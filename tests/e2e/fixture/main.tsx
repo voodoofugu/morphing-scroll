@@ -1067,7 +1067,7 @@ scenarios.visibilityPlain = (
   <MorphScroll
     objects={{ size: [180, 60], gap: 10 }}
     size={[200, 200]}
-    render={{ trackVisibility: true }}
+    trackVisibility
     controls={{ wheel: true }}
   >
     {Array.from({ length: 12 }, (_, i) => (
@@ -1086,7 +1086,8 @@ scenarios.loopSliderEach = (
     direction="hybrid"
     mode="slider"
     loop
-    render={{ rootMargin: 100, trackVisibility: true }}
+    render={{ mode: "virtual", rootMargin: 100 }}
+    trackVisibility
     duration={220}
     controls={{ drag: true, arrows: <b />, bar: <div className="dot" /> }}
   >

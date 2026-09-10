@@ -68,7 +68,7 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["edge node", { edge: true }, { edge: <u /> }],
   ["render", {}, { render: "virtual" }],
   ["render.rootMargin", { render: "virtual" }, { render: { mode: "virtual", rootMargin: 300 } }],
-  ["render.trackVisibility", { render: "virtual" }, { render: { mode: "virtual", trackVisibility: true } }],
+  ["trackVisibility", { render: "virtual" }, { render: "virtual", trackVisibility: true }],
   // the placeholder only shows where something is missing
   ["fallback", { suspending: true, children: <Suspends key="a" /> },
     { suspending: true, fallback: <b className="mine" />, children: <Suspends key="a" /> }],

@@ -59,7 +59,8 @@ export const everyProp = (
       },
       arrows: { element: <b />, size: 40 },
     }}
-    render={{ mode: "virtual", rootMargin: [0, 100, 0, 100], trackVisibility: true }}
+    render={{ mode: "virtual", rootMargin: [0, 100, 0, 100] }}
+    trackVisibility
     suspending
     fallback={<span />}
     autoScrollOnDrag
@@ -140,9 +141,8 @@ export const keysModeIsClosed = (
 export const emptyObjectsConfig = (
   <MorphScroll
     size={100}
-    objects={{
-      empty: { mode: "fallback", fallback: <b />, clickTrigger: ".btn" },
-    }}
+    objects={{ empty: { mode: "fallback", clickTrigger: ".btn" } }}
+    fallback={{ loading: <i />, empty: <b /> }}
   />
 );
 

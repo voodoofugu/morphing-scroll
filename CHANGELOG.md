@@ -708,10 +708,23 @@ themselves are no longer transformed and can be positioned from CSS.
   `react/jsx-runtime` — an entry point React did not have before 16.14. The
   package promised to work from 16.8 and could not be imported at all there.
   It is built with the classic transform now, for about a hundred bytes.
+- **`render.trackVisibility` is a prop of its own**, `trackVisibility`, and
+  `render.mode` is required again. Reporting how much of an object shows
+  drops nothing and defers nothing — it does not even read `render.rootMargin`,
+  since the ratio is counted against the window itself. Living inside `render`
+  it had forced `mode` to become optional, so `render={{ trackVisibility: true }}`
+  read as a drawing strategy that draws everything. The two questions have two
+  props now: `render="virtual" trackVisibility` says both in fewer words than
+  the object form said one.
 - **`fallback` takes `{ loading, empty }`**, and `objects.empty.fallback` is
   gone. Both were a node for an object that is not showing, in two places
   with a rule about which one won; the occasions are told apart by name now
   instead. A node on its own still stands in for both.
+- an object box kept the place the flow gave it when `trackVisibility` was
+  switched on over a live scroll: the wrapper went over to coordinates and the
+  boxes stayed in the flow, one to a line. The list of what the boxes are
+  built from named the four things coordinates are decided by rather than the
+  decision itself, and a fifth would have been missed the same way.
 - `objects.size: "full"` took the whole window and paid no attention to
   `wrapper.margin`, though the objects live inside those margins: the object
   came out wider than the room it had by exactly them, so a vertical list

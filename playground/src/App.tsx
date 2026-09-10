@@ -882,20 +882,17 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
   };
 
   /*
-   * Слежение за видимостью само по себе тоже режим отрисовки — просто ничего
-   * не выбрасывающий. Значит `render` нужен и без `mode`.
+   * Слежение за видимостью ничего не выбрасывает и живёт отдельным пропом:
+   * `render` остаётся про то, что рисовать, и без `mode` его не бывает.
    */
-  const renderOff =
-    settings.renderMode === "off" && !settings.trackVisibility;
-
-  const render: CodeValue | undefined = renderOff
-    ? undefined
-    : {
-        ...(settings.renderMode !== "off" && { mode: settings.renderMode }),
-        rootMargin: settings.rootMargin,
-        deferLoadOnScroll: settings.deferLoadOnScroll,
-        trackVisibility: settings.trackVisibility,
-      };
+  const render: CodeValue | undefined =
+    settings.renderMode === "off"
+      ? undefined
+      : {
+          mode: settings.renderMode,
+          rootMargin: settings.rootMargin,
+          deferLoadOnScroll: settings.deferLoadOnScroll,
+        };
 
   const emptyObjects: CodeValue | undefined =
     settings.emptyMode === "off"
@@ -949,6 +946,7 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ],
     ["controls", controls, "value"],
     ["render", render, "value"],
+    ["trackVisibility", settings.trackVisibility || undefined, "boolean"],
 
     ["suspending", settings.suspending || undefined, "boolean"],
     [
@@ -1341,21 +1339,14 @@ function App() {
   }, [progressMenu, settings.progressElementMode, settings.mode]);
 
   const render = React.useMemo<MorphScrollProps["render"]>(() => {
-    if (settings.renderMode === "off" && !settings.trackVisibility)
-      return undefined;
+    if (settings.renderMode === "off") return undefined;
 
     return {
+      mode: settings.renderMode,
       rootMargin: settings.rootMargin,
       deferLoadOnScroll: settings.deferLoadOnScroll,
-      trackVisibility: settings.trackVisibility,
-      ...(settings.renderMode !== "off" && { mode: settings.renderMode }),
     };
-  }, [
-    settings.renderMode,
-    settings.rootMargin,
-    settings.deferLoadOnScroll,
-    settings.trackVisibility,
-  ]);
+  }, [settings.renderMode, settings.rootMargin, settings.deferLoadOnScroll]);
 
   const emptyObjects = React.useMemo<
     NonNullable<MorphScrollProps["objects"]>["empty"]
@@ -1445,6 +1436,7 @@ function App() {
           : false,
       },
       render,
+      trackVisibility: settings.trackVisibility,
       stickToEnd: settings.stickToEnd,
       loop: settings.loop,
       duration: scrollCommand.duration,

@@ -123,6 +123,7 @@ const isTextEntry = (target: EventTarget | null) => {
  *
  * ##### — OPTIMIZATION —
  * - `render`
+ * - `trackVisibility`
  * - `suspending`
  * - `fallback`
  *
@@ -186,6 +187,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // Optimization
       render,
+      trackVisibility = false,
       suspending = false,
       fallback,
 
@@ -730,7 +732,6 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         mode: undefined as "lazy" | "virtual" | undefined,
         rootMargin: 0 as number | number[],
         deferLoadOnScroll: false,
-        trackVisibility: false,
       };
 
       if (typeof render === "string") {
@@ -742,9 +743,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           mode,
           rootMargin = base.rootMargin,
           deferLoadOnScroll = base.deferLoadOnScroll,
-          trackVisibility = base.trackVisibility,
         } = render;
-        return { mode, rootMargin, deferLoadOnScroll, trackVisibility };
+        return { mode, rootMargin, deferLoadOnScroll };
       }
 
       return base;
@@ -901,7 +901,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * от содержимого: всё остаётся смонтированным, и об этом сказано.
      */
     const renderMode = countable ? renderLocal.mode : undefined;
-    const tracking = renderLocal.trackVisibility && countable;
+    const tracking = !!trackVisibility && countable;
 
     /*
      * Всё, что расставляет объекты само, считает их размерами: окно, слежение
@@ -912,7 +912,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const asked = [
       renderLocal.mode && "render.mode",
-      renderLocal.trackVisibility && "render.trackVisibility",
+      trackVisibility && "trackVisibility",
       loop && "loop",
     ].filter(Boolean);
 
@@ -4417,6 +4417,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         asList,
         validChildrenKeys.length,
         updateEmptyKeysClickLocal,
+        /*
+         * Зависим от самого `byCoords`, а не от того, из чего он сложен:
+         * слагаемых у него четыре, и перечисляя их, легко забыть новое —
+         * `trackVisibility` отдельным пропом сюда как раз не доходил, и
+         * включённый на ходу оставлял коробки в потоке.
+         */
+        byCoords,
         renderMode,
         isEach,
         eachFixed.join(),

@@ -5,7 +5,7 @@ import { test, expect, type Page } from "@playwright/test";
  * окне. Это ускорение и ничего больше, поэтому проверять надо ровно одно: на
  * экране оказывается то же, что оказалось бы при полном обходе.
  *
- * Полный обход берём у `render: { trackVisibility: true }` — там смонтированы
+ * Полный обход берём у `trackVisibility` без `render` — там смонтированы
  * все объекты, а координаты считаются те же самые. Что из них попадает в окно,
  * измеряем по настоящей раскладке браузера и сверяем с тем, что нарисовала
  * виртуализация. jsdom так не умеет: у него нет раскладки, и «auto» там ничего
@@ -107,7 +107,7 @@ test.describe("окно виртуализации", () => {
 
       for (const top of [0, 137, 480, 900]) {
         await page.goto(
-          url({ ...base, render: { trackVisibility: true } }),
+          url({ ...base, trackVisibility: true }),
         );
         await settle(page);
         await scrollTo(page, 0, top);
@@ -140,7 +140,7 @@ test.describe("окно виртуализации", () => {
       [120, 240],
       [200, 700],
     ]) {
-      await page.goto(url({ ...base, render: { trackVisibility: true } }));
+      await page.goto(url({ ...base, trackVisibility: true }));
       await settle(page);
       await scrollTo(page, left, top);
       const expected = await inView(page);
