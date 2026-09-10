@@ -550,6 +550,8 @@ objects: {
 everything about the objects themselves: how big they are, how they sit next to each other, and what to do with the ones that render nothing.<br />
 <br />
 Each object is wrapped in an <code>.ms-object-box</code> of its own — this is what decides the size of that box and how the boxes are arranged.<br />
+<br />
+Where a box stands is the library's to say, and it says it with <code>transform</code>. A CSS <b>animation</b> on <code>.ms-object-box</code> that touches <code>transform</code> wins over that — keyframes outrank an inline style — and every object collapses into one place. Animate what is inside the box, or animate <code>opacity</code> alone.<br />
 </em><br />
 
 <details><summary><code><b>size</b></code></summary><br /><ul><div>

@@ -311,7 +311,12 @@ export type IntersectionTracker = {
 
 export type MorphScroll = {
   // — GENERAL —
-  /** your own class on the root element */
+  /**
+   * your own class on the root element.
+   * @note *where an `.ms-object-box` stands is said with `transform`, and a
+   * CSS animation touching `transform` on it outranks that — animate what is
+   * inside the box instead*
+   */
   className?: string;
   /** the objects; give each a key of its own, as React asks */
   children?: React.ReactNode;

@@ -758,3 +758,76 @@ test.describe("objects.empty: clear", () => {
     ).toEqual([]);
   });
 });
+
+/*
+ * `objects.size: "full"` — это всё место, которое у объекта есть. Поперёк
+ * прокрутки поле обёртки это место отнимает, а вдоль — нет: там оно добавляет
+ * длины, по которой едут. Отняв и вдоль, мы делали объект меньше окна, и
+ * страница слайдера переставала совпадать со страницей прокрутки — полоса с
+ * точками пропадала совсем.
+ */
+test.describe('objects.size: "full" и поля обёртки', () => {
+  const shot = async (page: Page, cfg: Record<string, unknown>) => {
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(cfg))}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(320);
+
+    return page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const box = document
+        .querySelector<HTMLElement>(".ms-object-box")!
+        .getBoundingClientRect();
+
+      return {
+        box: [Math.round(box.width), Math.round(box.height)],
+        dots: document.querySelectorAll(".ms-slider-item").length,
+        maxX: Math.round(view.scrollWidth - view.clientWidth),
+        maxY: Math.round(view.scrollHeight - view.clientHeight),
+      };
+    });
+  };
+
+  const RIG = {
+    count: 4,
+    size: [400, 300],
+    objects: { size: "full" },
+    wrapper: { margin: [10, 10, 10, 10] },
+  };
+
+  test("вдоль прокрутки объект остаётся во всё окно", async ({ page }) => {
+    const y = await shot(page, { ...RIG, direction: "y" });
+    const x = await shot(page, { ...RIG, direction: "x" });
+
+    // поперёк поле отнято, вдоль — нет
+    expect(y.box).toEqual([380, 300]);
+    expect(x.box).toEqual([400, 280]);
+
+    // и поперёк ехать некуда: объект помещается в отведённое ему место
+    expect(y.maxX).toBe(0);
+    expect(x.maxY).toBe(0);
+  });
+
+  test("у слайдера с полями остаются его точки", async ({ page }) => {
+    const got = await shot(page, {
+      ...RIG,
+      direction: "x",
+      mode: "sliderMenu",
+      controls: { bar: "@dot" },
+    });
+
+    expect(got.dots).toBe(4);
+  });
+
+  /* у `hybrid` едут обе стороны — значит ни с одной не отнимаем */
+  test("при hybrid поле не отнимается ни с одной стороны", async ({ page }) => {
+    const got = await shot(page, {
+      ...RIG,
+      direction: "hybrid",
+      objects: { size: "full", lines: 2 },
+    });
+
+    expect(got.box).toEqual([400, 300]);
+  });
+});

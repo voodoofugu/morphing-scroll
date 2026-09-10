@@ -975,12 +975,20 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const { height, width } = receivedChildSizeRef.current;
 
       /*
-       * `"full"` — это всё место, которое у объекта есть, а не всё окно:
-       * объекты живут внутри полей обёртки, и на их величину места меньше.
-       * Взяв окно целиком, объект вылезал за него ровно на поля — список с
-       * `wrapper.margin` ехал вбок на 24 пикселя, а у слайдера на столько же
-       * расходились страницы.
+       * `"full"` — это всё место, которое у объекта есть. Поперёк прокрутки
+       * поле обёртки это место отнимает: взяв окно целиком, объект вылезал за
+       * него ровно на поля, и вертикальный список ехал вбок.
+       *
+       * А вдоль прокрутки поле ничего не отнимает — оно добавляет длины, по
+       * которой едут. Отняв и там, мы делали объект меньше окна, и страница
+       * слайдера переставала совпадать со страницей прокрутки: полоса с
+       * точками пропадала совсем. У `hybrid` едут обе стороны, значит ни с
+       * одной не отнимаем.
        */
+      const roomOn = (wh: 0 | 1) =>
+        isHybrid || wh === mainAxis
+          ? sizeLocal[wh]
+          : Math.max(0, sizeLocal[wh] - (wh === 0 ? mLocalX : mLocalY));
       const getSize = (
         val: number | "firstChild" | "full" | "auto" | null,
         receivedSize: number,
@@ -1001,8 +1009,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               : 0;
 
       return [
-        getSize(objectsSizing[0], width, Math.max(0, sizeLocal[0] - mLocalX)),
-        getSize(objectsSizing[1], height, Math.max(0, sizeLocal[1] - mLocalY)),
+        getSize(objectsSizing[0], width, roomOn(0)),
+        getSize(objectsSizing[1], height, roomOn(1)),
       ];
     }, [
       objectsSizing.join(),
@@ -1012,6 +1020,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizeLocal.join(),
       mLocalX,
       mLocalY,
+      mainAxis,
+      isHybrid,
     ]);
 
     /* размер ячейки ещё не измерен, а взять его больше неоткуда */

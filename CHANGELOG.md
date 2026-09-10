@@ -717,6 +717,12 @@ themselves are no longer transformed and can be positioned from CSS.
   instead. A node on its own still stands in for both, and `empty` is a
   refinement rather than a separate set — leaving it out is not turning it
   off.
+- `objects.size: "full"` was made smaller by `wrapper.margin` on both sides,
+  where only the side across the scroll loses that room — along it the margin
+  adds length to travel rather than taking it away. An object came out
+  narrower than the window, so a slider's page no longer matched a page of
+  scrolling and the strip of dots disappeared. Nothing is taken away under
+  `direction="hybrid"`, where both sides move.
 - **`objects.empty: "clear"` looped forever.** Clearing takes an empty object
   out of the list, and the sweep that forgets the keys of departed objects
   read that same list — so it took the key back out of the set that was

@@ -1684,6 +1684,32 @@ function EmptyClearRig() {
 
 scenarios.emptyClear = <EmptyClearRig />;
 
+/* узкая колонка кнопок, размер которых решает их собственный CSS */
+scenarios.questColumn = (
+  <MorphScroll
+    size={[78, 550]}
+    objects={{ gap: 8 }}
+    controls={{ wheel: true, bar: thumb }}
+    wrapper={{ align: "center" }}
+  >
+    {Array.from({ length: 10 }, (_, i) => (
+      <div
+        key={`q-${i}`}
+        style={{
+          width: 62,
+          height: i % 3 === 0 ? 120 : 62,
+          background: "#4a5",
+          borderRadius: 8,
+          /* собственное поле у ребёнка — так стилизованы кнопки в игре */
+          ...(i % 3 === 0 && { margin: "8px 0" }),
+        }}
+      >
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 scenarios.crash = <CrashRig />;
 
 /*
