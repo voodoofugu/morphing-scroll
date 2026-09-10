@@ -569,7 +569,7 @@ defines the <b>[width, height]</b> of cells for each of your objects.<br />
 sets a fixed size for your custom objects.<br />
 <br />
 <code><b>"full"</b></code>:<br />
-the dimensions will be taken from <code>size</code>.<br />
+the object takes all the room it has — the <code>size</code> of the scroll, less <code>wrapper.margin</code>, which is the space the objects live inside. Taking the whole window instead would put the object past it by exactly those margins.<br />
 <br />
 <code><b>"firstChild"</b></code>:<br />
 creates a <code>ResizeTracker</code> wrapper for the first child of your list. This wrapper will calculate the size of the first child, and these dimensions will be applied to all cells in the list.<br />

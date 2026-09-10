@@ -416,9 +416,10 @@ export type MorphScroll = {
    * next to each other, and what to do with the empty ones.
    * @default { order: "row" }
    * @description
-   * - `size`: *a number, a pair for both axes, `"full"` for the size of the
-   * scroll, `"firstChild"` to measure the first one, or `"auto"` to hand a
-   * side to the object itself. A side named `null` is left to your own CSS*
+   * - `size`: *a number, a pair for both axes, `"full"` for all the room an
+   * object has — the scroll less `wrapper.margin` — `"firstChild"` to measure
+   * the first one, or `"auto"` to hand a side to the object itself. A side
+   * named `null` is left to your own CSS*
    * @note *an unnamed `size` answers for the objects rather than standing
    * aside: across the scroll an object takes the whole window, along it the
    * size is its own — a slider's page is the window on both sides, and

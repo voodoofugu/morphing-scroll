@@ -1,4 +1,4 @@
-## [3.0.0] - 2026-09-09
+## [3.0.0] - 2026-09-10
 
 A rewrite of the whole library: instance isolation, an API cleanup, new
 layout and scrolling work, and a combination pass over the entire prop
@@ -551,50 +551,36 @@ themselves are no longer transformed and can be positioned from CSS.
 - `objects.size` takes `"auto"`: objects keep the size they came with, and
   the library measures it. Which side is handed over decides the layout —
   along the scroll it is a masonry (`[90, "auto"]`: fixed columns, each
-  object into the shortest one, so the bottom stays even); across it a flow,
-  where objects follow one another with the same gap between them and a line
-  ends when the room across runs out — or when `lines` says it is full;
-  and on both sides a fill, where every object takes the highest place it
-  fits into, so nothing hangs under a short neighbour and order gives way to
-  the fit. `direction="hybrid"` hands over neither side, so `objects.size`
-  alone cannot say which axis a line runs along there — `lines` is the
-  only thing that can end a line, and a fill cannot stand in for it, since a
-  fill needs a boundary across and the only one on offer is the scroll
-  itself. With `lines` and a known size across it is a masonry, so
-  nothing hangs under a short neighbour; with both sides handed over, a flow
-  by that count.
+  object into the shortest one, so the bottom stays even); across it, or on
+  both sides, a flow, where objects follow one another with the same gap
+  between them and a line ends when the room across runs out — or sooner,
+  when `lines` says it is full. `"auto"` on its own is the short way of
+  saying it about both sides.
 
-  `"auto"` on its own is the short way of saying it about both sides. `align`
-  lines the rows up against the widest one — that row is the width of the
-  content and has nowhere to move, while the rest close the gap beside them;
-  a fill has no rows, so each object closes its own gap instead, and
-  `"center"` stops it halfway between where the fit placed it and where
-  `"end"` would push it. That room is the scroll minus `wrapper.margin`, and
-  nothing moves until every object has been measured.
+  `align` lines the rows up against the widest one — that row is the width of
+  the content and has nowhere to move, while the rest close the gap beside
+  them. Where the block itself sits in the window is a different question,
+  and `wrapper.align` answers it. Nothing moves until every object has been
+  measured.
 
   A line is as thick as the thickest object in it, and when that thickness is
-  the objects' own too — both sides handed over, `lines` ending the line
-  — the shorter ones no longer hang under it: each rises into the room above
-  it on its own, while the order stays line by line, and stops a gap short of
-  whatever it comes near — sideways as well as head on, since keeping objects
-  of different lines apart used to be the line's job. That is the difference
-  from a fill, which closes the same gaps by giving the order up.
+  the objects' own the shorter ones do not hang under it: each rises into the
+  room above it on its own, the order staying line by line, and stops a gap
+  short of whatever it comes near — sideways as well as head on, since
+  keeping objects of different lines apart used to be the line's job.
 
-  `objects.direction` works for `"auto"` the same way it works for a known
-  size: it chooses the order, not the layout, and the words mean what they say
-  on both axes — `"row"` fills a row and moves down, `"column"` fills a column
+  `objects.order` works for `"auto"` the same way it works for a known size:
+  it chooses the order, not the layout, and the words mean what they say on
+  both axes — `"row"` fills a row and moves down, `"column"` fills a column
   and moves right. One of the two is what the list already does (a vertical
   scroll lays rows, a horizontal one lays columns) and the other transposes
   it: the first line then takes the first `ceil(n / lines)` objects, and a
   masonry stops looking for the shortest column, trading an even edge for
   reading straight through. The count is by number and never by size, so
-  nothing jumps as the objects are measured. Transposing needs lines to count:
-  a masonry always has them, a flow has them when `lines` names them, and
-  a fill has none at all, since it gives the order up for the fit. There the
-  request is not carried out, and it is reported when you wrote the value
-  yourself. `direction="hybrid"` answers the same request with the axis:
-  `"row"` has `lines` bound the width and growth run down, `"column"`
-  bounds the height and growth runs right.
+  nothing jumps as the objects are measured. Transposing needs lines to
+  count: a masonry always has them, a flow when `lines` names them. Without
+  them the request is not carried out, and it is reported when you wrote the
+  value yourself.
 
   One observer per scroll, not one per object, and an object is watched while
   it is on screen — a picture arriving late moves its neighbours instead of
@@ -634,13 +620,6 @@ themselves are no longer transformed and can be positioned from CSS.
   list runs through the lines. "Stop" read as "switch loading off", where the
   loading is only put off until the scroll settles.
 
-- **`objects.layout`** names the arrangement: `"grid"`, `"masonry"`, `"flow"`
-  or `"fill"`. It was only ever implied by which side of `size` was handed to
-  the objects, which is terse but took three paragraphs to explain and turned
-  every impossible combination into a console message. Both forms work and say
-  the same thing; naming it also means the side it measures needs no size, so
-  `{ layout: "masonry", size: 90 }` is a column ninety wide with heights of
-  each card's own.
 - the keys of objects that have left the list are forgotten. `"lazy"` never
   removes what it has shown, which is the point, but it was keeping the names
   of objects that no longer exist, and on a long-lived list with a lot of
@@ -723,28 +702,19 @@ themselves are no longer transformed and can be positioned from CSS.
   `react/jsx-runtime` — an entry point React did not have before 16.14. The
   package promised to work from 16.8 and could not be imported at all there.
   It is built with the classic transform now, for about a hundred bytes.
-- **`objects.size: "auto"` on both sides lays a flow, not a packing of its
-  own.** It used to give the order up for the fit: every object took the
-  highest place it fitted into, so a card could jump ahead of the ones before
-  it — and the same list with `objects.lines` named read straight through.
-  Measured on cards of a real size the packing was not even the tighter of the
-  two, being four per cent taller while it scrambled the order. Now the count
-  is a ceiling and nothing else: unnamed, a line ends where the room does, and
-  the holes under short objects are closed by lifting each up to whatever
-  stands above it — order kept. `objects.align` there aligns a short line
-  against the widest one, as it does in any flow; where the block sits in the
-  window is `wrapper.align`.
-- **the gap between objects held on one side only where the layout searches
-  for a place rather than taking the next one in turn.** With
-  `objects.size: "auto"` and no `lines` the objects are packed into the room
-  they leave each other, and the gap was reserved past an object once it was
-  placed — so one placed later and further back could come right up against
-  it, a card standing four pixels from its neighbour where twenty-four were
-  asked for. Choosing a place now asks for the room the gap needs too.
-  Pushing objects toward the far edge for `objects.align: "center"` and
-  `"end"` had the same hole from the other side: it counted only the ones it
-  overlapped along the scroll, and pressed together those the packing had
-  parted by a hair.
+- `objects.size: "full"` took the whole window and paid no attention to
+  `wrapper.margin`, though the objects live inside those margins: the object
+  came out wider than the room it had by exactly them, so a vertical list
+  scrolled sideways by 24 pixels and a slider's pages drifted from the window
+  by the same. It is all the room an object has now — the scroll less the
+  margins.
+- `objects.order` and the grid that `objects.lines` lays without a size read
+  each other wrong. The order was mixed with the axis, so `"row"` and
+  `"column"` traded places on a horizontal scroll; and the tracks were always
+  counted across the scroll, so the transposed order left the grid nothing to
+  end a line with and the whole list went into one. Each word now means what
+  it says on either axis — `"row"` fills a row and moves down — and the tracks
+  are counted on the side the filling crosses.
 - `objects.lines` grew the list sideways instead of limiting it when the side
   across was the objects' own. With a size named in numbers the count has
   always been a ceiling — ask for eight columns where three fit and you get

@@ -974,10 +974,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const objectsSizeLocal = React.useMemo(() => {
       const { height, width } = receivedChildSizeRef.current;
 
+      /*
+       * `"full"` — это всё место, которое у объекта есть, а не всё окно:
+       * объекты живут внутри полей обёртки, и на их величину места меньше.
+       * Взяв окно целиком, объект вылезал за него ровно на поля — список с
+       * `wrapper.margin` ехал вбок на 24 пикселя, а у слайдера на столько же
+       * расходились страницы.
+       */
       const getSize = (
         val: number | "firstChild" | "full" | "auto" | null,
         receivedSize: number,
-        sizeLocal: number,
+        room: number,
       ) =>
         /*
          * Измеренное берём только там, где его и просили: измеряет первого
@@ -990,12 +997,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           : typeof val === "number"
             ? val
             : val === "full"
-              ? sizeLocal
+              ? room
               : 0;
 
       return [
-        getSize(objectsSizing[0], width, sizeLocal[0]),
-        getSize(objectsSizing[1], height, sizeLocal[1]),
+        getSize(objectsSizing[0], width, Math.max(0, sizeLocal[0] - mLocalX)),
+        getSize(objectsSizing[1], height, Math.max(0, sizeLocal[1] - mLocalY)),
       ];
     }, [
       objectsSizing.join(),
@@ -1003,6 +1010,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       receivedChildSizeRef.current.width,
       receivedChildSizeRef.current.height,
       sizeLocal.join(),
+      mLocalX,
+      mLocalY,
     ]);
 
     /* размер ячейки ещё не измерен, а взять его больше неоткуда */
@@ -2172,22 +2181,36 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const unsized = objectsSizing[0] == null || objectsSizing[1] == null;
 
       if (unsized && lines && lines > 1) {
-        const across =
-          direction === "x" ? "gridTemplateRows" : "gridTemplateColumns";
+        /*
+         * Порядок обхода говорится сетке потоком, и говорит он ровно то же:
+         * `"row"` заполняет строку и уходит ниже, `"column"` — столбец и
+         * уходит правее. Ось прокрутки тут ни при чём, и раньше она сюда
+         * подмешивалась: у горизонтальной эти два значения менялись местами.
+         */
+        const byRow = objectsOrder === "row";
+
+        /*
+         * Разметить надо ту ось, поперёк которой идёт заполнение: строчному
+         * потоку — столбцы, столбцовому — строки. Дорожек на ней столько,
+         * сколько линий, если это поперечная ось прокрутки; вдоль неё линия
+         * длиннее — по стольку объектов, сколько их приходится на линию.
+         *
+         * Размечали всегда поперечную, и при переставленном порядке сетке
+         * нечем было оборвать линию: весь список уходил в одну.
+         */
+        const across = byRow ? "gridTemplateColumns" : "gridTemplateRows";
+        const acrossIsCross = byRow === (direction !== "x");
+        const tracks = acrossIsCross
+          ? lines
+          : Math.max(1, Math.ceil(validChildrenKeys.length / lines));
 
         return {
           ...common,
           display: "grid",
           // у сетки развернуть дорожки можно только направлением
           ...(flippedByDirection && { direction: "rtl" }),
-          [across]: `repeat(${lines}, auto)`,
-          /*
-           * Порядок обхода: `"row"` идёт вдоль строки, `"column"` — вдоль
-           * столбца. Сетке это и говорится потоком, только у неё оси названы
-           * наоборот тому, как идёт список.
-           */
-          gridAutoFlow:
-            (objectsOrder === "row") === (direction !== "x") ? "row" : "column",
+          [across]: `repeat(${tracks}, auto)`,
+          gridAutoFlow: byRow ? "row" : "column",
           justifyContent: getStyleAlign(objectsAlign),
         };
       }
@@ -2241,6 +2264,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objectsOrder,
       objectsAlign,
       lines,
+      validChildrenKeys.length,
       isEach,
       loopLocal,
       mirrored,

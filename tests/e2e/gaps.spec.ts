@@ -112,6 +112,9 @@ for (const direction of ["y", "x", "hybrid"] as const)
             const got = await measure(page, {
               count: 24,
               vary: true,
+              /* карточки размером с настоящие: на горошинах укладка не
+                 доходит до случаев, где зазор и ломался */
+              wide: shape !== "known",
               size: [700, 460],
               direction,
               objects,

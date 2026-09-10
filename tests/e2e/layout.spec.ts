@@ -607,3 +607,83 @@ test.describe("objects.lines против окна", () => {
     expect(got.maxY).toBeGreaterThan(0);
   });
 });
+
+/*
+ * Размера нет вовсе, а линии названы — это сетка, дорожки которой меряет CSS.
+ * `objects.order` говорит ей, как обходить: `"row"` заполняет строку и уходит
+ * ниже, `"column"` — столбец и уходит правее. Означает он это при любом
+ * направлении: ось прокрутки решает, сколько дорожек, а не куда идти.
+ *
+ * Ломалось и то, и другое: у горизонтальной прокрутки значения менялись
+ * местами, а переставленный порядок размечал не ту ось — сетке нечем было
+ * оборвать линию, и весь список уходил в одну.
+ */
+test.describe("сетка без размера: порядок обхода", () => {
+  const grid = async (page: Page, direction: "x" | "y", order: "row" | "column") => {
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(
+        JSON.stringify({
+          /* двенадцать на три линии: вдоль линии их четыре, и число дорожек
+             по двум осям разное — иначе перепутать их незаметно */
+          count: 12,
+          vary: true,
+          size: [700, 460],
+          direction,
+          objects: { gap: 10, lines: 3, order },
+        }),
+      )}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(320);
+
+    return page.evaluate(() => {
+      const wrap = document.querySelector<HTMLElement>(".ms-objects-wrapper")!;
+      const box = wrap.getBoundingClientRect();
+      const at = [
+        ...document.querySelectorAll<HTMLElement>(".ms-object-box"),
+      ].map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          n: Number(el.textContent),
+          x: Math.round(r.left - box.left),
+          y: Math.round(r.top - box.top),
+        };
+      });
+
+      return {
+        columns: new Set(at.map((p) => p.x)).size,
+        rows: new Set(at.map((p) => p.y)).size,
+        /* кто с кем в одной линии: по три подряд из списка */
+        firstLine: at
+          .filter((p) => (p.y === 0 ? true : false))
+          .sort((p, q) => p.x - q.x)
+          .map((p) => p.n),
+      };
+    });
+  };
+
+  for (const direction of ["y", "x"] as const) {
+    /* линий поперёк ровно три, а вдоль каждой — по четыре объекта */
+    const across: [number, number] =
+      direction === "x" ? [4, 3] : [3, 4]; // [столбцов, строк]
+
+    test(`${direction}: "row" заполняет строку`, async ({ page }) => {
+      const got = await grid(page, direction, "row");
+
+      expect([got.columns, got.rows]).toEqual(across);
+      expect(got.firstLine).toEqual(
+        direction === "x" ? [0, 1, 2, 3] : [0, 1, 2],
+      );
+    });
+
+    test(`${direction}: "column" заполняет столбец`, async ({ page }) => {
+      const got = await grid(page, direction, "column");
+
+      expect([got.columns, got.rows]).toEqual(across);
+      // сверху — первые в своих столбцах
+      expect(got.firstLine).toEqual(
+        direction === "x" ? [0, 3, 6, 9] : [0, 4, 8],
+      );
+    });
+  }
+});
