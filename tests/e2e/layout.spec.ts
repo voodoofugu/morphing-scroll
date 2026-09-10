@@ -511,3 +511,99 @@ test.describe("умолчание objects.size", () => {
     expect(got.drawn).toBeGreaterThan(20); // лента из копий
   });
 });
+
+/*
+ * `objects.lines` в обычном скролле — потолок, а не задание: линию и без него
+ * есть обо что оборвать, а названное число обрывает её раньше. Просить больше,
+ * чем влезает, можно — но вырасти от этого список не должен, иначе он выходит
+ * за окно вбок, и вертикальная прокрутка начинает ехать поперёк себя.
+ *
+ * У заданного числом размера так и было. У `"auto"` счёт подменял собой место:
+ * восемь колонок вставали восемью, сколько бы ни было окна.
+ */
+test.describe("objects.lines против окна", () => {
+  const spill = async (page: Page, props: Record<string, unknown>) => {
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(320);
+
+    return page.evaluate(() => {
+      const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+      const frame = view.getBoundingClientRect();
+      const boxes = [
+        ...document.querySelectorAll<HTMLElement>(".ms-object-box"),
+      ].map((el) => el.getBoundingClientRect());
+
+      return {
+        /* сколько торчит за окном по каждой стороне */
+        outX: Math.round(
+          Math.max(0, Math.max(...boxes.map((b) => b.right)) - frame.right),
+        ),
+        outY: Math.round(
+          Math.max(0, Math.max(...boxes.map((b) => b.bottom)) - frame.bottom),
+        ),
+        maxX: Math.round(view.scrollWidth - view.clientWidth),
+        maxY: Math.round(view.scrollHeight - view.clientHeight),
+      };
+    });
+  };
+
+  /* разнобой по сторонам нужен только там, где стороны меряются */
+  const rig = (size: number | "auto") => ({
+    count: 24,
+    size: [300, 300],
+    vary: size === "auto",
+  });
+
+  for (const size of [90, "auto"] as const)
+    test(`вертикальный со ${JSON.stringify(size)} не вылезает вбок`, async ({
+      page,
+    }) => {
+      for (const lines of [4, 8, 20]) {
+        const got = await spill(page, {
+          ...rig(size),
+          direction: "y",
+          objects: { size, gap: 10, lines },
+        });
+
+        expect(got.outX, `lines: ${lines}`).toBe(0);
+        expect(got.maxX, `lines: ${lines}`).toBe(0);
+        expect(got.maxY).toBeGreaterThan(0); // а ехать вниз ему по-прежнему есть куда
+      }
+    });
+
+  for (const size of [90, "auto"] as const)
+    test(`горизонтальный со ${JSON.stringify(size)} не вылезает вниз`, async ({
+      page,
+    }) => {
+      for (const lines of [4, 8, 20]) {
+        const got = await spill(page, {
+          ...rig(size),
+          direction: "x",
+          objects: { size, gap: 10, lines },
+        });
+
+        expect(got.outY, `lines: ${lines}`).toBe(0);
+        expect(got.maxY, `lines: ${lines}`).toBe(0);
+        expect(got.maxX).toBeGreaterThan(0);
+      }
+    });
+
+  /*
+   * А при `hybrid` окна поперёк нет, и счёт там не потолок, а само задание:
+   * шесть просили — шесть и стоят, даже если это шире окна. Ехать туда есть
+   * куда, в том и смысл двух осей.
+   */
+  test("hybrid: названный счёт остаётся точным", async ({ page }) => {
+    const got = await spill(page, {
+      ...rig("auto"),
+      direction: "hybrid",
+      objects: { size: "auto", gap: 10, lines: 6 },
+    });
+
+    expect(got.maxX).toBeGreaterThan(0);
+    expect(got.maxY).toBeGreaterThan(0);
+  });
+});

@@ -27,6 +27,11 @@ type PackArgs = {
   columns: number;
   /** how much room a line has across the scroll — `flow` wraps by it */
   crossLimit: number;
+  /**
+   * both sides scroll, so a line has no room to run out of and `columns` is
+   * the only thing that ends it
+   */
+  boundless?: boolean;
   /** where the objects sit when they do not fill the room across */
   align: "start" | "center" | "end";
   /**
@@ -215,7 +220,7 @@ const masonry = (a: PackArgs, measuredPrefix: number): PackResult => {
  * не задали числом.
  */
 const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
-  const { keys, sizes, isX, fixed, gap, crossLimit, columns } = a;
+  const { keys, sizes, isX, fixed, gap, crossLimit, columns, boundless } = a;
   const ready = measuredPrefix === keys.length;
   const main: 0 | 1 = isX ? 0 : 1;
   const cross: 0 | 1 = isX ? 1 : 0;
@@ -277,13 +282,18 @@ const flow = (a: PackArgs, measuredPrefix: number): PackResult => {
     const along = measured ? sideOf(known, fixed, main) : 0;
 
     /*
-     * Названный счёт линий важнее места: он единственное, чем можно
-     * оборвать строку там, где места нет вовсе — при `hybrid` прокрутка идёт
-     * в обе стороны, и упереться не во что.
+     * Строку обрывает то, что случится раньше: названный счёт или кончившееся
+     * место. Счёт только ограничивает — увеличить им строку нельзя, иначе
+     * список вылезает за окно вбок, и вертикальная прокрутка начинает ехать
+     * поперёк себя. Раньше счёт подменял собой место, и именно это выходило.
+     *
+     * Где места нет вовсе — при `hybrid` прокрутка идёт в обе стороны, и
+     * упереться не во что — счёт остаётся единственным, чем строку оборвать.
      */
+    const noRoomLeft = cursor > 0 && cursor + across > crossLimit;
     const full = columns
-      ? inLine >= columns
-      : cursor > 0 && cursor + across > crossLimit;
+      ? inLine >= columns || (!boundless && noRoomLeft)
+      : noRoomLeft;
 
     if (full) {
       closeLine();

@@ -723,6 +723,15 @@ themselves are no longer transformed and can be positioned from CSS.
   `react/jsx-runtime` — an entry point React did not have before 16.14. The
   package promised to work from 16.8 and could not be imported at all there.
   It is built with the classic transform now, for about a hundred bytes.
+- `objects.lines` grew the list sideways instead of limiting it when the side
+  across was the objects' own. With a size named in numbers the count has
+  always been a ceiling — ask for eight columns where three fit and you get
+  three — but with `objects.size: "auto"` it replaced the room check outright,
+  so eight stood eight: the content ran past the window across, and a
+  vertical scroll started moving sideways. A line now ends at whichever comes
+  first, the count or the room. `direction="hybrid"` is the exception it
+  always was — with both sides moving there is no room to run out of, and the
+  count is the only thing that can end a line.
 - `moveFocus` read what stands beyond an object off the boxes next to it, and
   under `render` only a part of the list is in the document — so the first box
   drawn was taken for the first object there is, and got the wrapper's margin
