@@ -5,7 +5,7 @@ const CONST = {
   EDGE_VISIBILITY_VAR: "--ms-edge-visibility", // 0/1 when content is cut off at an edge
   // отличает копию контента в круге от оригинала; наружу не выходит
   LOOP_KEY_SEP: "\u0000loop\u0000",
-  CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while render.trackVisibility is on
+  CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while trackVisibility is on
   /** the group a child names on itself; `scrollToObject` takes that name */
   GROUP_ATR: "ms-group",
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running

@@ -1086,7 +1086,6 @@ scenarios.loopSliderEach = (
     direction="hybrid"
     mode="slider"
     loop
-    render={{ mode: "virtual", rootMargin: 100 }}
     trackVisibility
     duration={220}
     controls={{ drag: true, arrows: <b />, bar: <div className="dot" /> }}

@@ -542,8 +542,8 @@ export type MorphScroll = {
    * apart by name: `loading` while an object is on its way — `suspending`
    * and `render.deferLoadOnScroll` — and `empty` where one rendered nothing,
    * under `objects.empty: "fallback"`.
-   * @note *named, it is the whole set: `{ empty }` alone leaves nothing to
-   * show while an object loads*
+   * @note *`empty` is a refinement, not a separate set: leaving it out is not
+   * turning it off, and the one you did name stands in there too*
    */
   fallback?: React.ReactNode | FallbackConfig;
 

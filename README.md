@@ -1669,7 +1669,7 @@ They are unrelated and combine freely — <code>render="virtual"</code> with <co
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} suspending fallback={<Skeleton />}>
+<MorphScroll {...props} suspending fallback={<Loader />}>
   {children}
 </MorphScroll>
 ```
@@ -1681,9 +1681,25 @@ They are unrelated and combine freely — <code>render="virtual"</code> with <co
 <details><summary><b><code>fallback</code></b></summary><br /><ul><div>
 <b>Usage:</b><br />
 
+<ul>
+  <li><b>Simple</b>:<br />
+
 ```tsx
-fallback: <div>Loading...</div>; // or { loading, empty }
+fallback: <div>Loading...</div>;
 ```
+
+  </li>
+  <li><b>Advanced</b>:<br />
+
+```tsx
+fallback: {
+  loading: <Loader />, // optional
+  empty: <div>Empty!</div>, // optional
+}
+```
+
+  </li>
+</ul>
 
 <b>Description:</b><em><br />
 what stands in for an object that is not showing. There are two such occasions, and a node passed on its own stands in for both:<br />
@@ -1693,26 +1709,24 @@ what stands in for an object that is not showing. There are two such occasions, 
   <li><b>an object that rendered nothing</b> — under <code>objects.empty: "fallback"</code>.</li>
 </ul>
 
-Tell them apart by naming them: <code>{ loading, empty }</code>. A spinner where the data is on its way and a word where there is none to come reads better than one node doing both jobs.<br />
+<br />
+
+Tell them apart by naming them. A spinner where the data is on its way and a word where there is none to come reads better than one node doing both jobs.<br />
 <br />
 ✦ Note:<br />
-named, it is the whole set — <code>{ empty }</code> on its own leaves nothing to show while an object loads. Under <code>objects.empty: "fallback"</code> with <code>render</code> the library keeps an empty <code>.ms-empty-object</code> in place of a missing <code>empty</code>: the window counts objects by the piece, and one dropping out would pull everything below it up.</em><br />
+
+<ul>
+  <li><code>empty</code> is a refinement, not a separate set: leaving it out is not turning it off, and the one you did name stands in there too.</li>
+  <li>naming neither is still fine — under <code>objects.empty: "fallback"</code> with <code>render</code> an empty <code>.ms-empty-object</code> holds the box: the window counts objects by the piece, and one dropping out would pull everything below it up.</li>
+</ul>
+</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} suspending fallback={<div>Loading...</div>}>
+<MorphScroll {...props} fallback={<div>Loading...</div>}>
   {children}
-</MorphScroll>;
-
-<MorphScroll
-  {...props}
-  suspending
-  objects={{ empty: "fallback" }}
-  fallback={{ loading: <Skeleton />, empty: <p>Nothing here</p> }}
->
-  {children}
-</MorphScroll>;
+</MorphScroll>
 ```
 
 </div></ul></details>

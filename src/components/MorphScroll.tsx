@@ -1035,11 +1035,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return {
         loading: named.loading,
         /*
-         * Место в окне считается по штукам, и пустой объект должен чем-то
-         * остаться: выпав, он утянул бы за собой всех, кто ниже.
+         * `empty` — уточнение, а не отдельный набор: не назвав его, человек
+         * не отказался от заглушки, он просто не стал разделять два случая.
+         * Берём ту, что есть.
+         *
+         * А если её нет вовсе, пустой объект всё равно должен чем-то
+         * остаться: место в окне считается по штукам, и выпав, он утянул бы
+         * за собой всех, кто ниже.
          */
         empty:
           named.empty ??
+          named.loading ??
           (render && emptyObjectsLocal ? (
             <div className="ms-empty-object"></div>
           ) : undefined),

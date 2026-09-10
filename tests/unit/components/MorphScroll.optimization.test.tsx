@@ -73,6 +73,27 @@ describe("MorphScroll — emptyObjects", () => {
     });
   });
 
+  /*
+   * `empty` — уточнение: не назвав его, человек не отказался от заглушки, и
+   * названный `loading` встаёт и на пустой объект.
+   */
+  it("the empty case takes the stand-in there is when it has none", async () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: OBJ, empty: "fallback" }}
+        size={SIZE}
+        render="virtual"
+        fallback={{ loading: <i className="only-one" /> }}
+      >
+        {mixed()}
+      </MorphScroll>,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector("i.only-one")).toBeInTheDocument();
+    });
+  });
+
   /* та же заглушка и при объектной форме `empty` — она про режим, не про узел */
   it("the object form of empty asks for the same stand-in", async () => {
     const { container } = render(

@@ -345,11 +345,6 @@ themselves are no longer transformed and can be positioned from CSS.
   the arrows knew about it. The wheel, a drag and the keys ran into the same
   wall as before. Now the content itself is endless and every way of moving it
   sees the same thing.
-- `render.trackVisibility` no longer needs a `mode`. What stood in the way was
-  never the rendering but the coordinates — they were worked out for the
-  virtual modes alone — and asking to watch now works them out too. Without a
-  `mode` nothing is dropped: every object stays mounted and simply knows how
-  much of itself shows through `--ms-content-visibility`.
 - **the wheel turns a page in the slider modes.** One notch is one page, over
   the content and over the strip alike, so the gesture that moves a scroll
   moves a slider the same way. A trackpad sends dozens of events per flick and
@@ -377,7 +372,7 @@ themselves are no longer transformed and can be positioned from CSS.
   is its own: `direction="y"` is `["full", "auto"]`, `"x"` is
   `["auto", "full"]`, `"hybrid"` hands both to the objects, and a slider's
   page is the window on both sides. All of that can be counted, so `render`,
-  `loop` and `render.trackVisibility` work with nothing named — before, the
+  `loop` and `trackVisibility` work with nothing named — before, the
   unnamed size meant "both sides are your CSS", which is the one pair nothing
   can count, and a first look at the library began with a message about
   something nobody had asked for. `lines` above one without a size is
@@ -719,7 +714,9 @@ themselves are no longer transformed and can be positioned from CSS.
 - **`fallback` takes `{ loading, empty }`**, and `objects.empty.fallback` is
   gone. Both were a node for an object that is not showing, in two places
   with a rule about which one won; the occasions are told apart by name now
-  instead. A node on its own still stands in for both.
+  instead. A node on its own still stands in for both, and `empty` is a
+  refinement rather than a separate set — leaving it out is not turning it
+  off.
 - an object box kept the place the flow gave it when `trackVisibility` was
   switched on over a live scroll: the wrapper went over to coordinates and the
   boxes stayed in the flow, one to a line. The list of what the boxes are
