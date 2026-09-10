@@ -456,6 +456,53 @@ test.describe("умолчание objects.size", () => {
     expect([got.w, got.h]).toEqual([400, 300]);
   });
 
+  /*
+   * При `hybrid` окна поперёк нет, и оборвать линию нечем, кроме счёта — но
+   * счёт у него есть и без просьбы: одна линия. Список идёт в столбец, каждый
+   * объект своей ширины, и вбок скролл едет настолько, насколько широк самый
+   * широкий. Не написанный `lines` раньше означал не это, а одну строку.
+   */
+  test("hybrid без lines: то же, что lines: 1", async ({ page }) => {
+    const props = {
+      count: 40,
+      direction: "hybrid",
+      size: [60, 300],
+      vary: true,
+    };
+
+    /* размер, названный числом, и был тем случаем, где эти двое расходились */
+    const bare = await open(page, { ...props, objects: { size: 120 } });
+    const named = await open(page, {
+      ...props,
+      objects: { size: 120, lines: 1 },
+    });
+
+    expect([bare.maxX, bare.maxY]).toEqual([named.maxX, named.maxY]);
+    expect(bare.maxY).toBeGreaterThan(0); // столбец, а не строка
+
+    /* а не названный размер и так укладывался столбцом — теперь ещё и молча */
+    const auto = await open(page, props);
+
+    expect(auto.said).toEqual([]);
+    expect(auto.maxX).toBeGreaterThan(0); // вбок — до самого широкого объекта
+    expect(auto.maxY).toBeGreaterThan(0); // вниз — по всему списку
+  });
+
+  /* а названный счёт при `hybrid` только добавляет линий к этой одной */
+  test("hybrid: названный lines разводит по линиям", async ({ page }) => {
+    const props = {
+      count: 40,
+      direction: "hybrid",
+      size: [300, 300],
+      vary: true,
+      objects: { lines: 3 },
+    };
+    const got = await open(page, props);
+
+    expect(got.said).toEqual([]);
+    expect(got.maxY).toBeGreaterThan(0);
+  });
+
   /* и круг, которому тоже нужен счёт, заводится без единого размера */
   test("круг заводится без размера", async ({ page }) => {
     const got = await open(page, { count: 20, size: [400, 300], loop: true });

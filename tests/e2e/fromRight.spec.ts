@@ -111,7 +111,15 @@ const BASE: Config = {
 
 const cases: { name: string; config: Config }[] = [
   { name: "по x", config: { ...BASE, direction: "x" } },
-  { name: "по обеим осям", config: { ...BASE, direction: "hybrid" } },
+  {
+    /* при hybrid счёт линий не берётся из окна — сетку задаём сами */
+    name: "по обеим осям",
+    config: {
+      ...BASE,
+      direction: "hybrid",
+      objects: { size: 170, gap: 12, lines: 5 },
+    },
+  },
   { name: "по y — горизонталь поперечная", config: BASE },
   {
     name: "много линий",

@@ -203,11 +203,25 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const {
       size: objectsSize,
       gap,
-      lines,
+      lines: linesAsked,
       align: objectsAlign,
       order: objectsOrder = "row",
       empty: emptyObjects,
     } = objects ?? {};
+
+    /*
+     * `lines` в обычном скролле только ограничивает: линию и без него есть обо
+     * что оборвать — окно, — а названное число ставит границу раньше. При
+     * `hybrid` окна поперёк нет, обрывать нечем, и число там не ограничение,
+     * а единственный источник счёта: любое `lines` больше умолчания.
+     *
+     * А умолчание — одна линия: список идёт в столбец, каждый объект своей
+     * ширины, и вбок скролл едет ровно настолько, насколько широк самый
+     * широкий. Это работало и раньше — но только если написать `lines: 1`
+     * своей рукой; не написанное уводило все объекты в одну строку, то есть
+     * означало другое, и об этом приходилось предупреждать.
+     */
+    const lines = direction === "hybrid" ? (linesAsked ?? 1) : linesAsked;
 
     // const id = `${React.useId()}`.replace(/^(.{2})(.*).$/, "$2");
     const id = useIdent();
@@ -919,24 +933,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         } not work without a countable objects.size — give it a number or "auto"`,
       );
 
-    if (isEach) {
-      if (mode !== "scroll")
-        complain(`objects.size: "auto" does not work with mode: "${mode}"`);
-
-      /*
-       * Линию надо обо что-то оборвать, а при `hybrid` едут обе стороны:
-       * упереться не во что, кроме `lines`. Без него линия не кончается
-       * никогда — все объекты уходят в одну.
-       *
-       * Говорим про то, что надо добавить, а не про размер: размер здесь
-       * чаще всего не написан вовсе — объекты меряют себя сами, потому что
-       * так решает умолчание.
-       */
-      if (isHybrid && !lines)
-        complain(
-          `direction: "hybrid" needs objects.lines to know where a line ends`,
-        );
-    }
+    if (isEach && mode !== "scroll")
+      complain(`objects.size: "auto" does not work with mode: "${mode}"`);
 
     /*
      * `objects.order` не выбирает раскладку — раскладку выбирают размеры.

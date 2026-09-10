@@ -132,7 +132,11 @@ export type ObjectsConfig = {
    */
   size?: ObjectSize | Pair<ObjectSize | null | undefined>;
   gap?: number | Vec2;
-  /** how many lines the objects run in, across the scroll */
+  /**
+   * how many lines the objects run in, across the scroll.
+   * @note *in `direction="hybrid"` there is no window across to end a line,
+   * so the count is the only thing that can: it is `1` unless you raise it*
+   */
   lines?: number;
   /** where a short last line sits */
   align?: Align;
@@ -420,10 +424,11 @@ export type MorphScroll = {
    * size is its own — a slider's page is the window on both sides, and
    * `direction="hybrid"` hands both to the objects. All of that can be
    * counted, so `render` and `loop` work with nothing named. The exception is
-   * `lines` without a size: that is a grid whose track widths your CSS
-   * decides, and nothing can count them*
+   * `lines` above one without a size: that is a grid whose track widths your
+   * CSS decides, and nothing can count them*
    * - `gap`: *space between the objects, one number or `[x, y]`*
-   * - `lines`: *how many lines the objects run in, across the scroll*
+   * - `lines`: *how many lines the objects run in, across the scroll — `1` in
+   * `direction="hybrid"`, where nothing else can end one*
    * - `align`: *where a short last line sits*
    * - `order`: *which way the list runs through the lines — `"row"` fills a
    * row and moves down, `"column"` fills a column and moves right*

@@ -374,8 +374,14 @@ themselves are no longer transformed and can be positioned from CSS.
   `loop` and `render.trackVisibility` work with nothing named — before, the
   unnamed size meant "both sides are your CSS", which is the one pair nothing
   can count, and a first look at the library began with a message about
-  something nobody had asked for. `lines` without a size is untouched: that
-  is a grid whose track widths your CSS decides.
+  something nobody had asked for. `lines` above one without a size is
+  untouched: that is a grid whose track widths your CSS decides.
+- **`objects.lines` is `1` in `direction="hybrid"`** unless it is raised.
+  With both sides moving there is no window across to wrap against, so the
+  count is the only thing that can end a line — and one line is a column of
+  objects each its own width, which scrolls sideways as far as the widest of
+  them. Written as `lines: 1` that already worked; left out it meant
+  something else — every object in a single row — and had to be warned about.
 - the instance number the console messages are signed with — the `n` in
   `[MS n]` — is put on the root as `morph-scroll="n"` once it is mounted, so
   the scroll a message is about can be found in the inspector. It is set

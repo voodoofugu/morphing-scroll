@@ -38,15 +38,19 @@ describe('objects.size: "auto"', () => {
    * У hybrid едут обе стороны: оборвать линию нечем, кроме счёта. Заполнением
    * это не подменить — ему нужна граница поперёк, а взять её можно только из
    * окна, и тогда вторая сторона перестанет ехать.
+   *
+   * Поэтому счёт там есть всегда: не названный — это одна линия. Столбец
+   * объектов, каждый своей ширины, и вбок он едет до самого широкого.
    */
-  it("ругается на hybrid без lines: линию нечем оборвать", () => {
+  it("молчит на hybrid без lines: там счёт есть и без просьбы", () => {
     render(
       <MorphScroll size={[200, 300]} direction="hybrid" objects={{ size: "auto" }}>
         {items()}
       </MorphScroll>,
     );
 
-    expect(said("needs objects.lines")).toBe(true);
+    expect(said("needs objects.lines")).toBe(false);
+    expect(said("does not work")).toBe(false);
   });
 
   it("с lines hybrid молчит", () => {

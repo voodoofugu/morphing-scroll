@@ -593,18 +593,18 @@ leaving <code>size</code> out does not stand aside — it answers for the object
 <ul>
   <li><code>direction="y"</code>: a row the width of the scroll, as tall as its content — the same as <code>size: ["full", "auto"]</code>.</li><br />
   <li><code>direction="x"</code>: a column the height of the scroll, as wide as its content — <code>["auto", "full"]</code>.</li><br />
-  <li><code>direction="hybrid"</code>: both sides are the object's own — <code>"auto"</code>. It still needs <code>lines</code>, which is the only thing that can end a row when both sides move.</li><br />
+  <li><code>direction="hybrid"</code>: both sides are the object's own — <code>"auto"</code>.</li><br />
   <li><code>mode="slider"</code> and <code>"sliderMenu"</code>: a page is the window, so the object is too — <code>"full"</code>.</li>
 </ul>
 
-All of those can be counted, so <code>render</code>, <code>loop</code> and <code>trackVisibility</code> work with nothing named at all. The one exception is <code>lines</code> without a size: that is the grid above, whose track widths your CSS decides — nothing can count them, and the default leaves it alone.<br />
+All of those can be counted, so <code>render</code>, <code>loop</code> and <code>trackVisibility</code> work with nothing named at all. The one exception is <code>lines</code> above one without a size: that is the grid above, whose track widths your CSS decides — nothing can count them, and the default leaves it alone.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
   <li>a side left to your CSS is not compatible with <code>render</code>: it places objects by counting, and that side is the one it cannot count. <b>"auto"</b> is fine — the library measures it and then knows it.</li>
   <li><b>"auto"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
-  <li>with <code>direction="hybrid"</code> it needs <code>lines</code> — that is the only thing left that can end a row.</li>
+  <li>with <code>direction="hybrid"</code> the line is ended by <code>lines</code> and nothing else: there is no window across to wrap against. It is <b>1</b> unless you raise it — a column of objects each its own width, which scrolls sideways as far as the widest one.</li>
   <li>the layout follows the objects, so anything that changes their size while they are on screen repacks them. Reserving space for a late picture (<code>aspect-ratio</code> does it in one line) still saves that repack.</li>
 </ul>
 </em><br />
@@ -635,8 +635,8 @@ how many lines the objects run in, across the scroll — columns on a vertical s
 ✦ Note:<br />
 
 <ul>
-  <li>If you use <b>"x"</b> or <b>"y"</b> for the <code>direction</code> parameter, <code>lines</code> only limits the <b>maximum</b> number of columns or rows.</li>
-  <li>If you use <b>"hybrid"</b> for the <code>direction</code> parameter, <code>lines</code> defines the <b>exact</b> number of columns or rows in dependence of <code>direction</code>, but not exceeding the total number of passed elements.</li>
+  <li>with <code>direction="x"</code> or <b>"y"</b> it only <b>limits</b> the count: the window already ends a line, and this ends it sooner.</li>
+  <li>with <b>"hybrid"</b> it <b>is</b> the count, and the only one — there is no window across to wrap against. Unwritten it is <b>1</b>: a single line of objects, which is why raising it is the only direction it goes.</li>
 </ul>
 </em><br />
 

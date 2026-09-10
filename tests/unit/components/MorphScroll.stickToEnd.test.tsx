@@ -142,7 +142,8 @@ describe("MorphScroll — stickToEnd парой", () => {
   const Grid = ({ count, stick }: { count: number; stick: boolean | [boolean, boolean] }) => (
     <MorphScroll
       size={[VIEW, VIEW]}
-      objects={{ size: OBJ }}
+      /* одна линия вдоль столбцов — это лента в строку, растущая вправо */
+      objects={{ size: OBJ, order: "column", lines: 1 }}
       direction="hybrid"
       stickToEnd={stick}
       duration={0}
