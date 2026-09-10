@@ -60,6 +60,32 @@ describe("MorphScroll — mounting & children", () => {
     expect(container.querySelector(".ms-objects-wrapper")).toBeInTheDocument();
   });
 
+  /*
+   * Сообщения в консоли подписаны номером экземпляра, и по нему надо уметь
+   * найти тот самый скролл: номер стоит в `morph-scroll`. Проставляет его
+   * эффект, а не разметка — напечатанный на сервере, он расходился бы с
+   * клиентским счётом при гидрации.
+   */
+  it("marks the root with the instance number the messages are signed by", () => {
+    const { container } = render(
+      <React.Fragment>
+        <MorphScroll objects={{ size: OBJ }} size={SIZE}>
+          <div key="a">a</div>
+        </MorphScroll>
+        <MorphScroll objects={{ size: OBJ }} size={SIZE}>
+          <div key="b">b</div>
+        </MorphScroll>
+      </React.Fragment>,
+    );
+    const marks = [...container.querySelectorAll("[morph-scroll]")].map((el) =>
+      el.getAttribute("morph-scroll"),
+    );
+
+    expect(marks).toHaveLength(2);
+    expect(marks.every(Boolean)).toBe(true);
+    expect(Number(marks[1])).toBe(Number(marks[0]) + 1);
+  });
+
   it("ignores null/undefined children", () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ }} size={SIZE}>
@@ -126,10 +152,15 @@ describe("MorphScroll — render: virtual / lazy", () => {
     expect(tagged).toContain("item-0");
   });
 
+  /* отданную CSS сторону посчитать нечем, и об этом говорим */
   it("logs an error when render is combined with a size left to CSS", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
-      <MorphScroll objects={{ gap: 10 }} size={SIZE} render="virtual">
+      <MorphScroll
+        objects={{ gap: 10, size: [OBJ, null] }}
+        size={SIZE}
+        render="virtual"
+      >
         {items(3)}
       </MorphScroll>,
     );
@@ -487,9 +518,14 @@ describe("MorphScroll — render без размера объекта", () => {
     return said;
   };
 
-  it("говорит и про размер, которого нет вовсе", () => {
-    expect(warnsFor(undefined)).toBe(true);
-    expect(warnsFor({ gap: 10 })).toBe(true);
+  /*
+   * Не названный размер окну не мешает: умолчание отвечает за объект само, и
+   * считать есть что. Жаловаться тут не на что — раньше именно этот случай и
+   * встречал человека сообщением.
+   */
+  it("молчит, когда размер не назван вовсе", () => {
+    expect(warnsFor(undefined)).toBe(false);
+    expect(warnsFor({ gap: 10 })).toBe(false);
   });
 
   it("молчит, когда размер задан", () => {

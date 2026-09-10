@@ -477,14 +477,15 @@ describe("MorphScroll — findings", () => {
 
   it("complains about a bad combination once, not on every render", () => {
     const spy = quiet();
+    const cssSide = { size: [100, null] } as never;
     const { rerender } = render(
-      <MorphScroll {...COLUMN} objects={{}} render="virtual" />,
+      <MorphScroll {...COLUMN} objects={cssSide} render="virtual" />,
     );
     for (let i = 0; i < 20; i++)
       rerender(
         <MorphScroll
           {...COLUMN}
-          objects={{}}
+          objects={cssSide}
           render="virtual"
           className={`n${i}`}
         />,

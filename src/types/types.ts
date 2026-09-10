@@ -414,7 +414,14 @@ export type MorphScroll = {
    * @description
    * - `size`: *a number, a pair for both axes, `"full"` for the size of the
    * scroll, `"firstChild"` to measure the first one, or `"auto"` to hand a
-   * side to the object itself. A side left out is left to your own CSS*
+   * side to the object itself. A side named `null` is left to your own CSS*
+   * @note *an unnamed `size` answers for the objects rather than standing
+   * aside: across the scroll an object takes the whole window, along it the
+   * size is its own — a slider's page is the window on both sides, and
+   * `direction="hybrid"` hands both to the objects. All of that can be
+   * counted, so `render` and `loop` work with nothing named. The exception is
+   * `lines` without a size: that is a grid whose track widths your CSS
+   * decides, and nothing can count them*
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `lines`: *how many lines the objects run in, across the scroll*
    * - `align`: *where a short last line sits*

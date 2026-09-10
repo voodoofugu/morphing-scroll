@@ -16,6 +16,14 @@ const isDevBuild = process.env.MORPHING_SCROLL_BUILD === "development";
  */
 const bundleCompilerOptions = {
   target: "ES2020",
+  /*
+   * Классический JSX, а не автоматический: тот импортирует
+   * `react/jsx-runtime`, а этой точки входа нет в React до 16.14 — пакет,
+   * обещающий работать с 16.8, падал бы на нём при первом же импорте.
+   * Разработка и стенды остаются на `react-jsx` из общего tsconfig; здесь
+   * трансформ стоит около сотни байт и снимает границу по версии.
+   */
+  jsx: "react",
 };
 const outputOptions = {
   generatedCode: "es2015",

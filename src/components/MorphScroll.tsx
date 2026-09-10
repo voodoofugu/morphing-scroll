@@ -306,6 +306,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     // ♦ refs
     const customScrollRef = React.useRef<HTMLDivElement | null>(null);
+
+    /*
+     * Номер экземпляра проставляем после монтирования: в разметке он ломает
+     * гидрацию, а в инспекторе он нужен — по нему видно, о котором из
+     * нескольких скроллов говорит сообщение в консоли.
+     */
+    React.useEffect(() => {
+      customScrollRef.current?.setAttribute("morph-scroll", id);
+    }, [id]);
+
     const scrollContentRef = React.useRef<HTMLDivElement | null>(null);
     const scrollElementRef = React.useRef<HTMLDivElement | null>(null);
     const objectsWrapperRef = React.useRef<HTMLDivElement | null>(null);
@@ -807,16 +817,46 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * взять её неоткуда, кроме окна: упереть объекты в окно значило бы, что
      * вторая сторона больше никуда не едет.
      */
+    /*
+     * Не названный размер раньше значил «обе стороны решает ваш CSS» — а это
+     * ровно та пара, которую нечем сосчитать: окно, круг и слежение за
+     * видимостью отказывались работать, и первое знакомство с библиотекой
+     * начиналось с сообщения о том, чего человек не просил.
+     *
+     * Умолчание отвечает на вопрос «что такое объект здесь», и ответ у него
+     * есть: у страницы слайдера это окно, у списка — полоса во всю ширину со
+     * своей высотой (и наоборот у горизонтального), у сетки — объект целиком
+     * свой. Всё это считается, так что и `render` работает сразу.
+     */
     const objectsSizing = React.useMemo(() => {
+      if (!objectsSize) {
+        /* страница слайдера — это окно, обе стороны у неё оттуда */
+        if (mode !== "scroll") return (["full", "full"] as const).slice();
+
+        /* при `hybrid` едут обе стороны, и обе стороны объект знает сам */
+        if (direction === "hybrid") return (["auto", "auto"] as const).slice();
+
+        /*
+         * Названный `objects.lines` без размера — это сетка, у которой ширину
+         * каждой дорожки решает содержимое. Считать её нечем: решает CSS, и
+         * окна там не будет — но и подменять её умолчанием нельзя, это
+         * отдельная раскладка, за которой приходят нарочно.
+         */
+        if (lines && lines > 1) return [null, null];
+
+        /* одну линию объект занимает поперёк целиком, а вдоль знает сам */
+        return direction === "x"
+          ? (["auto", "full"] as const).slice()
+          : (["full", "auto"] as const).slice();
+      }
+
       const written: (number | "full" | "firstChild" | "auto" | null)[] =
-        objectsSize
-          ? !Array.isArray(objectsSize)
-            ? argsFormatter(objectsSize, true, 2)
-            : objectsSize.map((axis) => axis ?? null)
-          : [null, null];
+        !Array.isArray(objectsSize)
+          ? argsFormatter(objectsSize, true, 2)
+          : objectsSize.map((axis) => axis ?? null);
 
       return written;
-    }, [objectsSizeST]);
+    }, [objectsSizeST, mode, direction, lines]);
 
     const eachOnMain = objectsSizing[mainAxis] === "auto";
     const eachOnCross = objectsSizing[crossAxis] === "auto";
@@ -887,10 +927,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * Линию надо обо что-то оборвать, а при `hybrid` едут обе стороны:
        * упереться не во что, кроме `lines`. Без него линия не кончается
        * никогда — все объекты уходят в одну.
+       *
+       * Говорим про то, что надо добавить, а не про размер: размер здесь
+       * чаще всего не написан вовсе — объекты меряют себя сами, потому что
+       * так решает умолчание.
        */
       if (isHybrid && !lines)
         complain(
-          `objects.size: "auto" with direction: "hybrid" needs objects.lines`,
+          `direction: "hybrid" needs objects.lines to know where a line ends`,
         );
     }
 
@@ -4895,10 +4939,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const content = (
       <div
         /*
-         * Атрибут — маркер присутствия: autoScrollRegistry ищет ближайший
-         * `[morph-scroll]`, значение никто не читает. Печатать сюда id нельзя —
-         * он из модульного счётчика, на сервере и на клиенте счёт разный, и
-         * гидрация ловила несовпадение атрибутов. id остаётся в текстах ошибок.
+         * Атрибут — маркер присутствия: `autoScrollRegistry` и `gestureRelay`
+         * ищут ближайший `[morph-scroll]`, и селектору достаточно его самого.
+         *
+         * Номер сюда печатает эффект, а не разметка. Он из модульного
+         * счётчика, на сервере и на клиенте счёт разный, и напечатанный в
+         * разметку он ловил несовпадение при гидрации. После монтирования
+         * сверять уже нечего — и в консоли `[MS 1]` перестаёт быть загадкой:
+         * этот самый скролл находится в инспекторе по `[morph-scroll="1"]`.
          */
         morph-scroll=""
         className={className}

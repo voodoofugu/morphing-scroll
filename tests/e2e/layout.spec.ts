@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
 const open = (page: import("@playwright/test").Page, scenario: string) =>
   page.goto(`/?scenario=${scenario}`);
@@ -372,5 +372,95 @@ test.describe("линии без заданного размера", () => {
     );
 
     expect(new Set(widths).size).toBeGreaterThan(1);
+  });
+});
+
+/*
+ * Не названный размер отвечает на вопрос «что такое объект здесь», а не
+ * молчит: вертикальный список кладёт полосу во всю ширину со своей высотой,
+ * горизонтальный — колонку во всю высоту со своей шириной, страница слайдера
+ * это окно. Всё это считается, поэтому `render` работает сразу — раньше на
+ * первом же знакомстве он отказывался и говорил об этом в консоль.
+ */
+test.describe("умолчание objects.size", () => {
+  const open = async (page: Page, props: Record<string, unknown>) => {
+    const said: string[] = [];
+    page.on("console", (m) => {
+      if (m.type() === "warning") said.push(m.text());
+    });
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(props))}`,
+    );
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(320);
+
+    return {
+      said,
+      ...(await page.evaluate(() => {
+        const view = document.querySelector<HTMLElement>(".ms-viewport")!;
+        const boxes = [
+          ...document.querySelectorAll<HTMLElement>(".ms-object-box"),
+        ];
+        const first = boxes[0]?.getBoundingClientRect();
+
+        return {
+          drawn: boxes.length,
+          w: first ? Math.round(first.width) : 0,
+          h: first ? Math.round(first.height) : 0,
+          maxX: Math.round(view.scrollWidth - view.clientWidth),
+          maxY: Math.round(view.scrollHeight - view.clientHeight),
+        };
+      })),
+    };
+  };
+
+  test("вертикальный: полоса во всю ширину, и окно считается", async ({
+    page,
+  }) => {
+    const got = await open(page, {
+      count: 200,
+      size: [400, 300],
+      render: "virtual",
+    });
+
+    expect(got.said).toEqual([]);
+    expect(got.w).toBe(400);
+    expect(got.drawn).toBeLessThan(60); // окно работает, а не всё подряд
+    expect(got.maxY).toBeGreaterThan(0);
+  });
+
+  test("горизонтальный: колонка во всю высоту", async ({ page }) => {
+    const got = await open(page, {
+      count: 200,
+      direction: "x",
+      size: [400, 300],
+      render: "virtual",
+    });
+
+    expect(got.said).toEqual([]);
+    expect(got.h).toBe(300);
+    expect(got.drawn).toBeLessThan(60);
+    expect(got.maxX).toBeGreaterThan(0);
+  });
+
+  test("страница слайдера — это окно", async ({ page }) => {
+    const got = await open(page, {
+      count: 8,
+      size: [400, 300],
+      mode: "slider",
+      controls: { bar: "@dot" },
+    });
+
+    expect(got.said).toEqual([]);
+    expect([got.w, got.h]).toEqual([400, 300]);
+  });
+
+  /* и круг, которому тоже нужен счёт, заводится без единого размера */
+  test("круг заводится без размера", async ({ page }) => {
+    const got = await open(page, { count: 20, size: [400, 300], loop: true });
+
+    expect(got.said).toEqual([]);
+    expect(got.drawn).toBeGreaterThan(20); // лента из копий
   });
 });

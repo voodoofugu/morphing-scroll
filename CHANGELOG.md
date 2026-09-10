@@ -366,6 +366,21 @@ themselves are no longer transformed and can be positioned from CSS.
 - an empty `controls` — `[]` or `{}` — is taken at its word and says nothing
   about it. A scroll driven entirely through the `ref` is a thing people
   build, and the prop replacing the default is what makes it sayable.
+- **an unnamed `objects.size` answers for the objects** rather than standing
+  aside. Across the scroll an object takes the whole window, along it the size
+  is its own: `direction="y"` is `["full", "auto"]`, `"x"` is
+  `["auto", "full"]`, `"hybrid"` hands both to the objects, and a slider's
+  page is the window on both sides. All of that can be counted, so `render`,
+  `loop` and `render.trackVisibility` work with nothing named — before, the
+  unnamed size meant "both sides are your CSS", which is the one pair nothing
+  can count, and a first look at the library began with a message about
+  something nobody had asked for. `lines` without a size is untouched: that
+  is a grid whose track widths your CSS decides.
+- the instance number the console messages are signed with — the `n` in
+  `[MS n]` — is put on the root as `morph-scroll="n"` once it is mounted, so
+  the scroll a message is about can be found in the inspector. It is set
+  after mounting rather than rendered into the markup, where it would not
+  survive hydration.
 - `edge` takes `{ element, size }`: the node is authored once, the way it
   looks along the top, and the library turns it onto the other three sides —
   the same bargain as the arrows, where one icon is drawn pointing right
@@ -698,6 +713,10 @@ themselves are no longer transformed and can be positioned from CSS.
   to an edge for the arrow keys, follows the same rule from the same place in
   the code. An object larger than the window showed its start for every
   `align`; `"end"` now shows its end.
+- the published build used the automatic JSX runtime, which imports
+  `react/jsx-runtime` — an entry point React did not have before 16.14. The
+  package promised to work from 16.8 and could not be imported at all there.
+  It is built with the classic transform now, for about a hundred bytes.
 - `moveFocus` read what stands beyond an object off the boxes next to it, and
   under `render` only a part of the list is in the document — so the first box
   drawn was taken for the first object there is, and got the wrapper's margin

@@ -36,7 +36,13 @@ const markup = (props: Partial<MorphScrollProps>) => {
   const { container, unmount } = render(
     <MorphScroll {...BASE} {...(props as MorphScrollProps)} />,
   );
-  const html = container.querySelector("[morph-scroll]")!.outerHTML;
+  /*
+   * Номер экземпляра растёт от рендера к рендеру — сравниваем разметку, а не
+   * то, который это по счёту скролл.
+   */
+  const html = container
+    .querySelector("[morph-scroll]")!
+    .outerHTML.replace(/morph-scroll="\d+"/, 'morph-scroll=""');
   unmount();
   return html;
 };

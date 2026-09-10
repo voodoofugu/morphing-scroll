@@ -74,15 +74,43 @@ describe("MorphScroll — objectsSize modes", () => {
     expect(box.style.height).toBe("120px");
   });
 
-  it("none: leaves box dimensions unset", () => {
+  /*
+   * Не названный размер — не «размера нет», а «спросите список»: вертикальный
+   * кладёт полосу во всю ширину со своей высотой.
+   */
+  it("none: a full-width row with a height of its own", () => {
     const { container } = render(
       <MorphScroll objects={{}} size={[100, 300]}>
         {items(2)}
       </MorphScroll>,
     );
     const box = firstBox(container);
-    expect(box.style.width).toBe("");
+    expect(box.style.width).toBe("100px");
     expect(box.style.height).toBe("");
+  });
+
+  /* у горизонтального то же самое, только осями наоборот */
+  it("none on the x axis: a full-height column of its own width", () => {
+    const { container } = render(
+      <MorphScroll objects={{}} size={[100, 300]} direction="x">
+        {items(2)}
+      </MorphScroll>,
+    );
+    const box = firstBox(container);
+    expect(box.style.width).toBe("");
+    expect(box.style.height).toBe("300px");
+  });
+
+  /* а страница слайдера — это окно, и обе стороны у неё оттуда */
+  it("none in a slider: the object is the window", () => {
+    const { container } = render(
+      <MorphScroll objects={{}} size={[100, 300]} mode="slider">
+        {items(2)}
+      </MorphScroll>,
+    );
+    const box = firstBox(container);
+    expect(box.style.width).toBe("100px");
+    expect(box.style.height).toBe("300px");
   });
 });
 

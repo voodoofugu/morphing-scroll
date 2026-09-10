@@ -302,8 +302,9 @@ A period is the exact length of the content, so the circle needs a size it can c
 <br />
 <b>Note:</b><em><br />
 the list is repeated, not referenced — a few copies of every child are mounted at once. With <code>render.mode</code> only the ones in the window are, and the length of the list stops mattering; without it a long one is paid for several times over. For anything but a handful of objects, give the circle virtualising.</em><br />
+
 <br />
-<br />
+
 <b>What changes around it:</b><em><br /></em>
 
 <ul>
@@ -315,23 +316,13 @@ the list is repeated, not referenced — a few copies of every child are mounted
   <li><code>scrollTo</code> takes a number as a place within the turn and goes there the short way round, whichever side that is</li>
   <li><code>stickToEnd</code> is refused — it drives to an end the circle does not have</li>
 </ul>
+
+<br />
+
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} loop render={{ mode: "virtual" }}>
-  {slides}
-</MorphScroll>
-```
-
-<em>Or as an endless carousel, arrows and dots and all:</em>
-
-```tsx
-<MorphScroll
-  {...props}
-  mode="slider"
-  loop
-  controls={{ arrows: <Arrow />, bar: <Dot /> }}
->
+<MorphScroll {...props} loop>
   {slides}
 </MorphScroll>
 ```
@@ -394,12 +385,14 @@ props describe state, methods do something now. <code>initialPosition</code> and
 Unlike <code>stickToEnd</code>, which follows new content only while the scroll is still at the bottom and leaves you alone once you have scrolled up to read, an explicit <code>scrollTo("end")</code> always runs.<br />
 <br />
 <code><b>scrollToObject(target, options?)</b></code>:<br />
-brings one object into view. A place in the list rather than a place in pixels, which is the one you can actually name: with <code>render</code> the object is not in the document, and with <code>objects.size: "auto"</code> only the library knows where it ended up.<br />
+brings one object into view. A place in the list rather than a place in pixels, which is the one you can actually name: with <code>render</code> the object is not in the document, and with <code>objects.size: "auto"</code> only the library knows where it ended up<br />
 
 <ul>
   <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b> — which a child names on itself, <code>ms-group="news"</code>.</li><br />
   <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>. A pair aligns the axes apart under <code>direction="hybrid"</code>: <code>["center", "start"]</code>.</li>
 </ul>
+
+<br />
 
 <em>A group is an attribute read straight off the child — nothing to pass on, nothing to switch on. A group resolves to its first object, and a key wins over a group of the same name.<br />
 <br />
@@ -415,8 +408,8 @@ An aligned object does not stand against the edge of the window: it stops short 
 </MorphScroll>;
 
 scroll.current?.scrollToObject(10); // the tenth, counted from one
-scroll.current?.scrollToObject("post-4", { align: "center" });
 scroll.current?.scrollToObject("news"); // the first post of that section
+scroll.current?.scrollToObject("post-4", { align: "center" }); // with align
 ```
 
 <code><b>step(side, options?)</b></code>:<br />
@@ -455,120 +448,9 @@ React.useEffect(() => {
 }, []);
 ```
 
-<em>Poll, read the stick, call <code>pan</code>. Everything in the recipe below is what makes it feel right rather than work at all: distance measured in time so a slow frame travels as far, a step per press instead of per frame, and the d-pad repeating while it is held.</em>
-
+<em>Poll, read the stick, call <code>pan</code>. Two things worth knowing when you build it out: multiply the distance by elapsed time, so a slow frame travels as far as two quick ones; and guard a button press with a timestamp of your own, because <code>buttons[13].pressed</code> is true on every frame it is held and a <code>step</code> per frame flies through the list. Swap <code>step</code> for <code>moveFocus</code> and the same loop walks the objects instead of turning pages.<br />
 <br />
-
-<details><summary><b>Recipe — a gamepad, in full</b></summary><br /><ul><div>
-
-<em>The stick pans continuously, the d-pad steps once per press. Both call the same two methods.</em>
-
-```tsx
-const DEAD_ZONE = 0.15; // what the stick reports while it rests
-const PAN_PER_SECOND = 900; // px with the stick pushed all the way
-const REPEAT = { first: 400, next: 120 }; // auto-repeat of a held button, ms
-
-function useGamepadScroll(scroll: React.RefObject<MorphScrollHandle | null>) {
-  React.useEffect(() => {
-    let frame = 0;
-    let last = performance.now();
-    const held = new Map<number, number>(); // button -> when it fires again
-
-    const DPAD = { 12: "top", 13: "bottom", 14: "left", 15: "right" } as const;
-
-    const tick = (now: number) => {
-      frame = requestAnimationFrame(tick);
-
-      // a frame can be a long one: count by time, not by number of frames
-      const delta = Math.min(now - last, 100) / 1000;
-      last = now;
-
-      const pad = navigator.getGamepads().find(Boolean);
-      if (!pad) return held.clear();
-
-      // — the right stick: continuous movement —
-      const [x, y] = [pad.axes[2] ?? 0, pad.axes[3] ?? 0].map((value) =>
-        Math.abs(value) < DEAD_ZONE ? 0 : value,
-      );
-
-      if (x || y)
-        scroll.current?.pan(
-          { x: x * PAN_PER_SECOND * delta, y: y * PAN_PER_SECOND * delta },
-          { duration: 0, reason: "gamepad" },
-        );
-
-      // — the d-pad: a step per press, not per frame —
-      for (const [index, side] of Object.entries(DPAD)) {
-        const button = Number(index);
-
-        if (!pad.buttons[button]?.pressed) {
-          held.delete(button);
-          continue;
-        }
-
-        const due = held.get(button);
-        if (due === undefined) {
-          scroll.current?.step(side, { reason: "gamepad" });
-          held.set(button, now + REPEAT.first);
-        } else if (now >= due) {
-          scroll.current?.step(side, { reason: "gamepad" });
-          held.set(button, now + REPEAT.next);
-        }
-      }
-    };
-
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [scroll]);
-}
-```
-
-<em>Swap <code>step</code> for <code>moveFocus</code> in the d-pad branch and the same loop walks the objects instead of turning pages — a highlight moving card to card, which is what a controller usually wants.</em>
-
-</div></ul></details>
-
-<h2></h2>
-
-<details><summary><b>Recipe — the stick, moving through objects instead of panning</b></summary><br /><ul><div>
-
-<em>A stick is a position, not an event, so the discrete move belongs to the crossing: it fires when the stick leaves the centre, and coming back re-arms it. Everything else is the same loop.</em>
-
-```tsx
-const THRESHOLD = 0.5;
-const aimed = { x: 0, y: 0 }; // where the stick leans right now: -1, 0 or 1
-
-const tilt = (value: number) =>
-  value > THRESHOLD ? 1 : value < -THRESHOLD ? -1 : 0;
-
-// inside tick, in place of the stick branch
-const next = { x: tilt(pad.axes[2] ?? 0), y: tilt(pad.axes[3] ?? 0) };
-
-for (const axis of ["x", "y"] as const) {
-  if (next[axis] === aimed[axis]) continue; // same lean — the step already fired
-
-  aimed[axis] = next[axis];
-  if (!next[axis]) continue; // back at the centre — this only re-arms it
-
-  const side =
-    axis === "x"
-      ? next.x > 0
-        ? "right"
-        : "left"
-      : next.y > 0
-        ? "bottom"
-        : "top";
-
-  scroll.current?.moveFocus(side, { reason: "gamepad" });
-}
-```
-
-<em>For auto-repeat while it is held, reach for the same <code>held</code> map the d-pad uses: remember when the next one is due and compare against <code>now</code>.<br />
-<br />
-Two things this leans on. <code>pan</code> takes <code>duration: 0</code> so the content tracks the stick, and the distance is multiplied by elapsed time so a 30fps frame moves as far as two 60fps ones. <code>step</code> is guarded by the <code>held</code> map: <code>buttons[13].pressed</code> is true every frame the d-pad is down, and stepping per frame would fly through the list.<br />
-<br />
-Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is why polling stays out here: a loop inside the scroll would have to guess which of several the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect the same way; only the reason changes.</em>
-
-</div></ul></details>
+Which scroll gets the input is your decision too — the ref you poll is the one that answers. That is why the polling stays out here: a loop inside the scroll would have to guess which of several the stick was aimed at. A remote, a MIDI pedal or your own hotkeys connect the same way; only the reason changes.</em>
 
 </div></ul></details>
 
@@ -700,10 +582,22 @@ every object gets the size it asks for, and the library measures it. Which side 
 <br />
 One observer measures the whole scroll, and an object is watched while it is on screen: a picture that arrives late moves its neighbours instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization, and unmeasured objects are drawn a batch at a time.<br />
 <br />
-<b>a side left out</b>:<br />
-cells are still created, but not measured — they wrap your objects and the sizing is left to your CSS. In a pair the side is simply not named: <code>[100, null]</code> is a fixed width with the height decided by the content, and leaving <code>size</code> out does it for both.<br />
+<b>a side left to your CSS</b>:<br />
+cells are still created, but not measured — they wrap your objects and the sizing is left to your CSS. The side is named <code>null</code>: <code>[100, null]</code> is a fixed width with the height decided by the content.<br />
 <br />
 Lines still work here, because <code>lines</code> counts objects rather than pixels: it is the one thing that can end a line when the width is not ours to know.<br />
+<br />
+<b>nothing at all</b>:<br />
+leaving <code>size</code> out does not stand aside — it answers for the objects, and the answer follows the scroll. Across it an object takes the whole window; along it the size is its own:<br />
+
+<ul>
+  <li><code>direction="y"</code>: a row the width of the scroll, as tall as its content — the same as <code>size: ["full", "auto"]</code>.</li><br />
+  <li><code>direction="x"</code>: a column the height of the scroll, as wide as its content — <code>["auto", "full"]</code>.</li><br />
+  <li><code>direction="hybrid"</code>: both sides are the object's own — <code>"auto"</code>. It still needs <code>lines</code>, which is the only thing that can end a row when both sides move.</li><br />
+  <li><code>mode="slider"</code> and <code>"sliderMenu"</code>: a page is the window, so the object is too — <code>"full"</code>.</li>
+</ul>
+
+All of those can be counted, so <code>render</code>, <code>loop</code> and <code>trackVisibility</code> work with nothing named at all. The one exception is <code>lines</code> without a size: that is the grid above, whose track widths your CSS decides — nothing can count them, and the default leaves it alone.<br />
 <br />
 ✦ Note:<br />
 
@@ -719,20 +613,6 @@ Lines still work here, because <code>lines</code> counts objects rather than pix
 ```tsx
 <MorphScroll {...props} objects={{ size: [70, 100] }}>
   {children}
-</MorphScroll>
-```
-
-```tsx
-// a masonry of cards: 90 wide, as tall as each card turns out to be
-<MorphScroll {...props} objects={{ size: [90, "auto"], gap: 10 }}>
-  {cards}
-</MorphScroll>
-```
-
-```tsx
-// a flow of tags: 28 tall, each as wide as its own word
-<MorphScroll {...props} objects={{ size: ["auto", 28], gap: 8 }}>
-  {tags}
 </MorphScroll>
 ```
 
