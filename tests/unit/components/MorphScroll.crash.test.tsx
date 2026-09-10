@@ -477,7 +477,7 @@ describe("MorphScroll — findings", () => {
 
   it("complains about a bad combination once, not on every render", () => {
     const spy = quiet();
-    const cssSide = { size: [100, null] } as never;
+    const cssSide = { lines: 3 } as never; // сетка, дорожки которой меряет CSS
     const { rerender } = render(
       <MorphScroll {...COLUMN} objects={cssSide} render="virtual" />,
     );

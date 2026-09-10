@@ -152,15 +152,14 @@ describe("MorphScroll — render: virtual / lazy", () => {
     expect(tagged).toContain("item-0");
   });
 
-  /* отданную CSS сторону посчитать нечем, и об этом говорим */
+  /*
+   * Сосчитать нечем ровно один случай: названные линии без размера — это
+   * сетка, дорожки которой меряет CSS. Об этом и говорим.
+   */
   it("logs an error when render is combined with a size left to CSS", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
-      <MorphScroll
-        objects={{ gap: 10, size: [OBJ, null] }}
-        size={SIZE}
-        render="virtual"
-      >
+      <MorphScroll objects={{ gap: 10, lines: 3 }} size={SIZE} render="virtual">
         {items(3)}
       </MorphScroll>,
     );
@@ -533,8 +532,14 @@ describe("MorphScroll — render без размера объекта", () => {
     expect(warnsFor({ size: "firstChild" })).toBe(false);
   });
 
-  it("ловит пару, где без размера одна ось", () => {
-    expect(warnsFor({ size: [100, undefined] })).toBe(true);
+  /* а пара с пустой стороной считается: пустая — это `"auto"` */
+  it("молчит на паре, где сторону оставили пустой", () => {
+    expect(warnsFor({ size: [100, undefined] })).toBe(false);
+  });
+
+  /* сказать нечего только сетке, дорожки которой меряет CSS */
+  it("ловит линии без размера", () => {
+    expect(warnsFor({ lines: 3 })).toBe(true);
   });
 });
 
@@ -560,14 +565,30 @@ describe("MorphScroll — пустая ось в паре размеров", () 
     return style;
   };
 
-  it("незаданная сторона не отменяет заданную", () => {
-    // названную сторону обёртка берёт себе, оставшуюся отдаёт содержимому
-    expect(wrapperStyle([100, undefined])).toContain("width: 100px");
-    expect(wrapperStyle([100, undefined])).toContain("height: fit-content");
-    expect(wrapperStyle([undefined, 100])).toContain("width: fit-content");
+  /*
+   * Пустая сторона в паре значит «я не знаю, какой тут размер» — а это ровно
+   * `"auto"`: объект решает сам, библиотека меряет. Отдать сторону CSS было
+   * можно и раньше, но вёрстку это никому не отдавало — раскладку обёртки
+   * библиотека задаёт всё равно, — только выключало окно, круг и слежение.
+   */
+  it("пустая сторона значит auto, и её меряют", () => {
+    // обе стороны известны: у названной — своё число, у пустой — измеренное
+    expect(wrapperStyle([100, undefined])).not.toContain("fit-content");
+    expect(wrapperStyle([undefined, 100])).not.toContain("fit-content");
   });
 
   it("заданная ось при этом не теряется", () => {
-    expect(wrapperStyle([100, undefined])).toContain("width: 100px");
+    const { container, unmount } = render(
+      <MorphScroll size={[300, 300]} objects={{ size: [100, undefined] }}>
+        {items()}
+      </MorphScroll>,
+    );
+    const box = container
+      .querySelector<HTMLElement>(".ms-object-box")!
+      .getAttribute("style");
+    unmount();
+
+    // сто — это ширина колонки; сколько их влезет, решает окно
+    expect(box).toContain("width: 100px");
   });
 });

@@ -864,12 +864,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           : (["full", "auto"] as const).slice();
       }
 
-      const written: (number | "full" | "firstChild" | "auto" | null)[] =
-        !Array.isArray(objectsSize)
-          ? argsFormatter(objectsSize, true, 2)
-          : objectsSize.map((axis) => axis ?? null);
-
-      return written;
+      /*
+       * Сторону, оставленную в паре пустой, меряем: «я не знаю, какой тут
+       * размер» — это ровно `"auto"`. Отказаться от измерения было можно и
+       * раньше, и это не отдавало вёрстку CSS — раскладку обёртки библиотека
+       * задаёт всё равно, — а только выключало окно, круг и слежение.
+       */
+      return !Array.isArray(objectsSize)
+        ? argsFormatter(objectsSize, true, 2)
+        : objectsSize.map((axis) => axis ?? "auto");
     }, [objectsSizeST, mode, direction, lines]);
 
     const eachOnMain = objectsSizing[mainAxis] === "auto";

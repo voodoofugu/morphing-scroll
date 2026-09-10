@@ -530,8 +530,8 @@ themselves are no longer transformed and can be positioned from CSS.
 - `scrollToObject` counts places in the list **from one**: the tenth object is
   `10`. Asking for the tenth and landing on the eleventh reads as a bug every
   time, whatever the documentation says.
-- `objects.size` takes `null` for a side left to CSS, so a pair can be written
-  `[100, null]` as well as `[100, undefined]`.
+- a side left out of an `objects.size` pair is the same as `"auto"`:
+  `[100, undefined]` is a hundred across with the content deciding along.
 - `objects.layout` is gone; the sizes say it on their own, which is what they
   did before it existed. Four names that mostly changed nothing — a grid was
   already a grid once both sides were numbers — and the one thing naming it
@@ -642,13 +642,14 @@ themselves are no longer transformed and can be positioned from CSS.
   is added before the mirroring, and the mirroring measured one copy rather
   than the whole strip — so every copy but the first landed far off to the
   left and the window came up empty.
-- **nothing was drawn at all when `objects.size` left a side to CSS.** Every
+- **nothing was drawn at all where a size could not be counted.** Every
   feature that places objects itself — the window, visibility tracking, the
-  circle, a held heading — works by counting their size, and a side left to
-  CSS is the one side that cannot be counted; they were placed by coordinates
-  that did not exist, and the result was an empty box. The trick is given up
-  now instead of the content: the objects keep their CSS layout, every one of
-  them stays mounted, and one message names exactly what was switched off.
+  circle, a held heading — works by counting their size, and the grid that
+  `objects.lines` lays without one has track widths only CSS knows; the
+  objects were placed by coordinates that did not exist, and the result was an
+  empty box. The trick is given up now instead of the content: the objects
+  keep their CSS layout, every one of them stays mounted, and one message
+  names exactly what was switched off.
 - **turning the reading around on a live scroll left the reader at the other
   end.** The position in the markup stayed where it was while its meaning
   flipped, so someone reading the start of the list ended up at its end, and
@@ -711,6 +712,14 @@ themselves are no longer transformed and can be positioned from CSS.
   read as a drawing strategy that draws everything. The two questions have two
   props now: `render="virtual" trackVisibility` says both in fewer words than
   the object form said one.
+- **`objects.size` no longer takes `null` for a side.** It read as "I do not
+  know this one", and what it did was decline to measure — which handed the
+  layout nowhere, since the wrapper's own display and direction are the
+  library's either way, and only switched off `render`, `loop` and
+  `trackVisibility`. What the library measures is your CSS in both cases;
+  `"auto"` is the one that takes it into account. A side left out of a pair
+  now means `"auto"`, so `[100, undefined]` is a hundred across with the
+  content deciding along.
 - **`fallback` takes `{ loading, empty }`**, and `objects.empty.fallback` is
   gone. Both were a node for an object that is not showing, in two places
   with a rule about which one won; the occasions are told apart by name now
@@ -761,7 +770,7 @@ themselves are no longer transformed and can be positioned from CSS.
   under `render` only a part of the list is in the document — so the first box
   drawn was taken for the first object there is, and got the wrapper's margin
   where a gap belonged.
-- `objects.lines` was ignored when a side of `objects.size` was left to CSS.
+- `objects.lines` was ignored where no size was named and CSS decided one.
   The count is the one thing that can end a line when the width is not ours to
   know, and it was exactly there that it was dropped — a list asked for three
   columns stood in one. Unsized lines are laid as a grid now, tracks counted

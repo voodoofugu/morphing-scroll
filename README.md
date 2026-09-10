@@ -558,7 +558,7 @@ Where a box stands is the library's to say, and it says it with <code>transform<
 <b>Usage:</b><br />
 
 ```tsx
-size: 100; // or [100, 70] | [100, null] | "full" | "firstChild" | "auto"
+size: 100; // or [100, 70] | [100, "auto"] | "full" | "firstChild" | "auto"
 ```
 
 <b>Default:</b><br />
@@ -573,7 +573,7 @@ an unnamed <code>size</code> does not stand aside — it answers for the objects
 
 Every one of those can be counted, so <code>render</code>, <code>loop</code> and <code>trackVisibility</code> work with nothing named at all.<br />
 <br />
-One case is left alone: <code>lines</code> above <b>1</b> on a single axis. That is a grid of as many tracks as you named, each as wide as its content — your CSS decides those widths, nothing can count them, and <code>render</code> stays off until you name a size.<br />
+One case is left alone: <code>lines</code> above <b>1</b> on a single axis. That is a grid of as many tracks as you named, each as wide as its content — your CSS decides those widths, nothing can count them, and <code>render</code> stays off until you name a size. It is the only such case left.<br />
 <br />
 <b>Description:</b><em><br />
 defines the <b>[width, height]</b> of cells for each of your objects.<br />
@@ -593,15 +593,15 @@ every object gets the size it asks for, and the library measures it. Which side 
 <br />
 One observer measures the whole scroll, and an object is watched while it is on screen: a picture that arrives late moves its neighbours instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization, and unmeasured objects are drawn a batch at a time.<br />
 <br />
-<b>a side left to your CSS</b>:<br />
-cells are still created, but not measured — they wrap your objects and the sizing is left to your CSS. The side is named <code>null</code>: <code>[100, null]</code> is a fixed width with the height decided by the content.<br />
+<b>a side left out of a pair</b>:<br />
+it is the same as <b>"auto"</b> — the object decides that side and the library measures it. <code>[100, "auto"]</code> and <code>[100, undefined]</code> are one and the same: a hundred across, the content deciding along.<br />
 <br />
-Lines still work here, because <code>lines</code> counts objects rather than pixels: it is the one thing that can end a line when the width is not ours to know.<br />
+There is no way to ask the library not to measure a side, and there was no point in one: what it measures is your CSS either way, and declining to measure only switched off <code>render</code>, <code>loop</code> and <code>trackVisibility</code> without handing the layout anywhere.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
-  <li>a side left to your CSS is not compatible with <code>render</code>: it places objects by counting, and that side is the one it cannot count. <b>"auto"</b> is fine — the library measures it and then knows it.</li>
+  <li><b>"auto"</b> works with <code>render</code>: the library measures the side and then knows it. The only size it cannot count is the grid above — <code>lines</code> without a size.</li>
   <li><b>"auto"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
   <li>with <code>direction="hybrid"</code> the line is ended by <code>lines</code> and nothing else: there is no window across to wrap against. It is <b>1</b> unless you raise it — a column of objects each its own width, which scrolls sideways as far as the widest one.</li>
   <li>the layout follows the objects, so anything that changes their size while they are on screen repacks them. Reserving space for a late picture (<code>aspect-ratio</code> does it in one line) still saves that repack.</li>
@@ -1535,7 +1535,7 @@ this parameter adds a gradual rendering of the content as it enters the viewport
 When used, a container is created for each scrollable object, and its absolute positioning is calculated based on scroll position and area dimensions.</em><br />
 
 <em>✦ Note:<br />
-<code>render</code> places objects by counting, and an unnamed <code>objects.size</code> answers for them — so it works with nothing else named. Two sizes it cannot count: a side named <code>null</code>, and <code>objects.lines</code> above <b>1</b> without a size. Your CSS decides those, and it is said once in the console.<br />
+<code>render</code> places objects by counting, and an unnamed <code>objects.size</code> answers for them — so it works with nothing else named. The one size it cannot count is <code>objects.lines</code> above <b>1</b> without a size: that grid's track widths are your CSS's to decide, and it is said once in the console.<br />
 <br />
 A window also hides how long the list is, so the markup says it instead: with a <code>mode</code> set, the wrapper is a list and every object an item numbered against the real total. Without a window every object is in the document and a screen reader counts them itself; a slider is never called a list either, since its dots already say where you are.</em><br />
 <br />

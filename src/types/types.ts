@@ -127,10 +127,10 @@ export type NavigateEvent = {
 /** the object form of `objects` */
 export type ObjectsConfig = {
   /**
-   * one value for both sides, or a pair. `"auto"` hands that side to the
-   * object itself; `null` — or leaving it out — hands it to your own CSS
+   * one value for both sides, or a pair. A side left out of a pair is the
+   * same as `"auto"`: the object decides it and the library measures it
    */
-  size?: ObjectSize | Pair<ObjectSize | null | undefined>;
+  size?: ObjectSize | Pair<ObjectSize | undefined>;
   gap?: number | Vec2;
   /**
    * how many lines the objects run in, across the scroll.
@@ -429,15 +429,14 @@ export type MorphScroll = {
    * @description
    * - `size`: *a number, a pair for both axes, `"full"` for all the room an
    * object has — the scroll less `wrapper.margin` — `"firstChild"` to measure
-   * the first one, or `"auto"` to hand a side to the object itself. A side
-   * named `null` is left to your own CSS*
+   * the first one, or `"auto"` to hand a side to the object itself*
    * @note *an unnamed `size` answers for the objects rather than standing
    * aside: across the scroll an object takes the whole window, along it the
    * size is its own — a slider's page is the window on both sides, and
    * `direction="hybrid"` hands both to the objects. All of that can be
    * counted, so `render` and `loop` work with nothing named. The exception is
    * `lines` above one without a size: that is a grid whose track widths your
-   * CSS decides, and nothing can count them*
+   * CSS decides, and nothing can count them — name a size to get them back*
    * - `gap`: *space between the objects, one number or `[x, y]`*
    * - `lines`: *how many lines the objects run in, across the scroll — `1` in
    * `direction="hybrid"`, where nothing else can end one*
@@ -511,9 +510,9 @@ export type MorphScroll = {
    * and lets it in once the scroll settles*
    * @note
    * *`render` places objects by counting, and an unnamed `objects.size`
-   * answers for them, so it works with nothing else named. The two sizes it
-   * cannot count are a side named `null` and `objects.lines` above one
-   * without a size — your CSS decides those*
+   * answers for them, so it works with nothing else named. The one size it
+   * cannot count is `objects.lines` above one without a size — that grid's
+   * tracks are your CSS's to decide*
    */
   render?:
     | "lazy"
