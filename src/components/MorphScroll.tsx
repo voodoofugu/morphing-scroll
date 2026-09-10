@@ -671,21 +671,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return map;
     }, [childrenArray]);
 
-    const validChildrenKeys = React.useMemo(() => {
+    /** ключи, которые дал родитель — до того, как очистка убрала пустые */
+    const givenChildrenKeys = React.useMemo(() => {
       return childrenArray
-        .map((child) => {
-          if (React.isValidElement(child) && child.key) {
-            return childKey(String(child.key));
-          }
-          return null;
-        })
-        .filter((key): key is string => key !== null)
-        .filter((key) =>
-          emptyObjectsLocal?.mode === "clear"
-            ? !objectsKeys.current.empty?.has(key)
-            : true,
-        );
-    }, [children, emptyObjectsST, objectsKeysEmptyST]);
+        .map((child) =>
+          React.isValidElement(child) && child.key
+            ? childKey(String(child.key))
+            : null,
+        )
+        .filter((key): key is string => key !== null);
+    }, [children]);
+
+    const validChildrenKeys = React.useMemo(() => {
+      return givenChildrenKeys.filter((key) =>
+        emptyObjectsLocal?.mode === "clear"
+          ? !objectsKeys.current.empty?.has(key)
+          : true,
+      );
+    }, [givenChildrenKeys, emptyObjectsST, objectsKeysEmptyST]);
 
     /*
      * Ключи в списке зависимостей: сравнивать надо по содержимому, иначе
@@ -3171,7 +3174,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * Ключ копии в круге несёт хвост с её номером — сравниваем по корню.
      */
     React.useEffect(() => {
-      const alive = new Set(validChildrenKeys);
+      /*
+       * Живым считаем то, что дал родитель, а не то, что осталось после
+       * очистки: очистка сама смотрит в этот набор, и сверяясь с её же
+       * результатом, чистка вынимала оттуда только что положенный ключ.
+       * Объект возвращался, снова оказывался пустым, снова удалялся — и так
+       * без конца, полтораста монтирований в секунду.
+       */
+      const alive = new Set(givenChildrenKeys);
       const rootOf = (key: string) => key.split(CONST.LOOP_KEY_SEP)[0];
 
       const prune = (set: Set<string> | null) => {
@@ -3183,7 +3193,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       prune(objectsKeys.current.loaded);
       prune(objectsKeys.current.empty);
-    }, [keysToken]);
+    }, [givenChildrenKeys]);
 
     React.useEffect(() => {
       if (!emptyObjectsLocal || !renderMode) return; // ранний выход

@@ -687,3 +687,74 @@ test.describe("сетка без размера: порядок обхода", (
     });
   }
 });
+
+/*
+ * Пустой объект под `objects.empty: "clear"` убирают из списка — и на этом
+ * всё. Но чистка забытых ключей сверялась с тем же списком, из которого
+ * очистка их и вынула: ключ считался мёртвым, вынимался из набора пустых, и
+ * объект возвращался — чтобы снова оказаться пустым и снова уйти.
+ *
+ * Снаружи это выглядело так, что список дёргается, а объект, который должен
+ * был появиться со временем, не появлялся никогда: его размонтировали раньше,
+ * чем срабатывал его собственный таймер. Считаем заводы: их должно быть
+ * столько же через три секунды, сколько было сразу.
+ */
+test.describe("objects.empty: clear", () => {
+  const mounts = (page: Page) =>
+    page.evaluate(() => (window as unknown as { __mounts?: number }).__mounts ?? 0);
+
+  test("пустой объект убирают один раз, а не по кругу", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+
+    await page.goto("/?scenario=emptyClear");
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(300);
+
+    const first = await mounts(page);
+    await page.waitForTimeout(2500);
+
+    expect(await mounts(page)).toBe(first);
+    expect(errors).toEqual([]);
+  });
+
+  /*
+   * И убирают по-настоящему. Под окном отрисовки пустоту видно не сразу: не
+   * нарисованный объект и пустым не признать, — так что дальний уходит, когда
+   * до него доезжают. Проезжаем список целиком и смотрим, что осталось.
+   */
+  test("в списке остаётся только непустое", async ({ page }) => {
+    await page.goto("/?scenario=emptyClear");
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(400);
+
+    const seen = new Set<string>();
+    const view = page.locator(".ms-viewport");
+
+    for (let step = 0; step < 12; step++) {
+      for (const key of await page
+        .locator(".ms-object-box")
+        .evaluateAll((els) =>
+          els.map((el) => el.getAttribute("ms-wrap-id") ?? ""),
+        ))
+        seen.add(key);
+
+      await view.evaluate((el, at) => (el.scrollTop = at), step * 130);
+      await page.waitForTimeout(120);
+    }
+
+    // все двенадцать настоящих объектов доехали
+    expect([...seen].filter((k) => k.startsWith("box-"))).toHaveLength(12);
+
+    await page.waitForTimeout(300);
+
+    // а пустых не осталось ни одного, включая тот, до которого доехали
+    expect(
+      await page
+        .locator(".ms-object-box")
+        .evaluateAll((els) =>
+          els.map((el) => el.getAttribute("ms-wrap-id")).filter((k) => k?.startsWith("e-")),
+        ),
+    ).toEqual([]);
+  });
+});

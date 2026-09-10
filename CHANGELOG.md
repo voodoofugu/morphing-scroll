@@ -717,6 +717,13 @@ themselves are no longer transformed and can be positioned from CSS.
   instead. A node on its own still stands in for both, and `empty` is a
   refinement rather than a separate set — leaving it out is not turning it
   off.
+- **`objects.empty: "clear"` looped forever.** Clearing takes an empty object
+  out of the list, and the sweep that forgets the keys of departed objects
+  read that same list — so it took the key back out of the set that was
+  holding the object away, the object returned, turned out to be empty again,
+  and left again: about a hundred and fifty remounts a second. An object meant
+  to arrive with its own timer never arrived, since it was unmounted long
+  before the timer could fire. The sweep now reads the keys the parent gave.
 - an object box kept the place the flow gave it when `trackVisibility` was
   switched on over a live scroll: the wrapper went over to coordinates and the
   boxes stayed in the flow, one to a line. The list of what the boxes are

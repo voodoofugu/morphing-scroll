@@ -1637,6 +1637,53 @@ function RtlRig() {
 
 scenarios.rtlGrid = <RtlRig />;
 
+/*
+ * Пустые объекты под `empty: "clear"`: ребёнок сперва рисует `null`, а потом
+ * приходит содержимым. Считаем перерисовки — зацикливание видно по счётчику.
+ */
+function EmptyLater({ after = 600 }: { after?: number }) {
+  const [node, setNode] = React.useState<React.ReactNode>(null);
+
+  React.useEffect(() => {
+    /* сколько раз этот объект заводили заново — по нему и видно зацикливание */
+    (window as any).__mounts = ((window as any).__mounts ?? 0) + 1;
+
+    const t = setTimeout(() => setNode(<span>hi</span>), after);
+    return () => clearTimeout(t);
+  }, [after]);
+
+  return node;
+}
+
+function EmptyClearRig() {
+  return (
+    <MorphScroll
+      size={[504, 346]}
+      objects={{
+        size: [230, 124],
+        gap: 12,
+        empty: { mode: "clear", clickTrigger: { selector: ".exit", delay: 220 } },
+      }}
+      wrapper={{ margin: [0, 5], align: ["center", "start"], minSize: [472, 0] }}
+      controls={{ wheel: true, bar: { element: thumb, showOnHover: true } }}
+      edge
+      render={{ mode: "virtual" }}
+      trackVisibility
+    >
+      <EmptyLater key="e-0" />
+      <EmptyLater key="e-1" />
+      {Array.from({ length: 12 }, (_, i) => (
+        <div key={`box-${i}`} className="box">
+          {i}
+        </div>
+      ))}
+      <EmptyLater key="e-2" />
+    </MorphScroll>
+  );
+}
+
+scenarios.emptyClear = <EmptyClearRig />;
+
 scenarios.crash = <CrashRig />;
 
 /*
