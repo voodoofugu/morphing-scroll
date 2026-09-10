@@ -881,15 +881,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * колонок ровно столько, сколько сказали, и дырок под низкими соседями
      * они не оставляют, чего поток по тому же счёту не умеет.
      */
-    const inferredLayout: PackLayout = isHybrid
-      ? eachOnMain && !eachOnCross && lines
-        ? "masonry"
-        : "flow"
-      : eachOnMain && eachOnCross && !lines
-        ? "fill"
-        : eachOnMain && !eachOnCross
-          ? "masonry"
-          : "flow";
+    const inferredLayout: PackLayout =
+      eachOnMain && !eachOnCross && (!isHybrid || lines) ? "masonry" : "flow";
 
     const eachLayout: PackLayout = inferredLayout;
 
@@ -966,7 +959,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * каждый поднимается до того, что стоит над ним, а строка остаётся
      * строкой. Заданная числом сторона дыр и не оставляет, закрывать нечего.
      */
-    const eachCompact = eachLayout === "flow" && !!lines && eachOnMain;
+    const eachCompact = eachLayout === "flow" && eachOnMain;
 
     /*
      * Ругаемся только на написанное: `"row"` стоит умолчанием и при
@@ -975,11 +968,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     if (isEach && wantsSplit && !eachOrderable && objects && "order" in objects)
       complain(
-        `objects.order: "${objectsOrder}" needs a known number of lines — ${
-          eachLayout === "fill"
-            ? `a fill has none, it gives the order up for the fit`
-            : `name objects.lines`
-        }`,
+        `objects.order: "${objectsOrder}" needs a known number of lines — name objects.lines`,
       );
 
     const objectsSizeLocal = React.useMemo(() => {

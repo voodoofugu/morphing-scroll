@@ -435,7 +435,9 @@ export type MorphScroll = {
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
    * replaces them with a placeholder*
    * @note *which side you hand over with `"auto"` arranges them: along the
-   * scroll is a masonry, across it a flow, both a fill*
+   * scroll is a masonry — fixed columns, each object into the shortest one;
+   * across it, or both, is a flow — a line at a time, ended by the room or by
+   * `lines`*
    * @note *a side left to CSS is the one `render` cannot count; `"auto"` it
    * can, and pages need one size for all — so `"auto"` is for `mode="scroll"`*
    * @see the README for how each arrangement places its objects

@@ -8,10 +8,8 @@ import type { SizeStore } from "./createSizeStore";
  * - `flow` — the side across the scroll is measured: objects fill a line one
  *   after another, and a new line starts when the room across runs out or
  *   when `lines` says the line is full.
- * - `fill` — both sides are the objects' own: every object takes the highest
- *   place it fits into, so no holes are left. Order gives way to the fit.
  */
-type PackLayout = "masonry" | "flow" | "fill";
+type PackLayout = "masonry" | "flow";
 
 type PackArgs = {
   keys: string[];
@@ -471,68 +469,6 @@ const createSkyline = (limit: number) => {
 };
 
 /*
- * Заполнение кладёт объект в первое место, куда он влезает, — это и есть
- * выравнивание к ближнему краю по построению. Дальний край и середина не
- * двигают блок целиком: строк тут нет, и общего остатка тоже — у каждого
- * объекта своё свободное место справа от него, и толкать нужно каждый
- * отдельно, а не всех на одно и то же расстояние.
- *
- * Толкаем от дальнего к ближнему: то, что толкаем сейчас, ещё не сдвинуто
- * и не помешает тому, что уже растолкано. Обратный порядок дал бы объекту
- * упереться в соседа, который потом сам отъедет и освободит место, — и это
- * место осталось бы закрытым просто потому, что до него не пересчитали.
- *
- * "center" — середина между тем, где объект лежит сейчас (это и есть его
- * положение при "start"), и тем, куда он дотолкался бы при "end". Толкаем
- * оба раза одинаково, независимо от того, что применяем в итоге: иначе
- * толкание с оглядкой на уже сдвинутых на середину соседей давало бы дырки
- * между ними, которых при чистом "end" не было.
- */
-const compactFill = (
-  items: Placed[],
-  isX: boolean,
-  gapMain: number,
-  gapCross: number,
-  crossLimit: number,
-  align: "center" | "end",
-) => {
-  const order = items
-    .filter((item) => item.measured)
-    .sort((a, b) => crossEnd(b, isX) - crossEnd(a, isX));
-
-  const pushedTo = new Map<Placed, number>();
-
-  for (const item of order) {
-    const width = crossEnd(item, isX) - crossStart(item, isX);
-    let bound = crossLimit;
-
-    for (const [other, otherStart] of pushedTo) {
-      /*
-       * Мешает не только тот, кто пересекается по главной оси, но и тот, кто
-       * разошёлся с нами меньше чем на зазор: укладка держит ровно это —
-       * пересеклись поперёк, значит вдоль между вами не меньше зазора. Спросив
-       * про одно пересечение, толкание сводило вплотную тех, кого укладка
-       * развела на волосок.
-       */
-      if (mainEnd(item, isX) + gapMain <= mainStart(other, isX)) continue;
-      if (mainEnd(other, isX) + gapMain <= mainStart(item, isX)) continue;
-
-      bound = Math.min(bound, otherStart - gapCross);
-    }
-
-    const pushed = Math.max(crossStart(item, isX), bound - width);
-    pushedTo.set(item, pushed);
-
-    const at =
-      align === "end"
-        ? pushed
-        : Math.round((crossStart(item, isX) + pushed) / 2);
-
-    moveCross(item, at, isX);
-  }
-};
-
-/*
  * Свободное место вдоль прокрутки. Линия толщиной с самый толстый объект
  * оставляет под низкими дыры — поднимаем каждый до того, что стоит над ним.
  * Порядок при этом остаётся построчным, чем это и отличается от заполнения:
@@ -587,118 +523,6 @@ const compactMain = (
 };
 
 /*
- * Заполнение: объект встаёт не следующим по очереди, а в самое высокое место,
- * куда влезает. Дырок под низкими соседями не остаётся — но и порядок теперь
- * не построчный: тот, кто ниже по списку, может оказаться выше на экране.
- *
- * Занятое помним силуэтом — списком отрезков поперёк с высотой каждого. Для
- * очередного объекта перебираем начала отрезков: годится то, где он влезает
- * в ширину и упирается ниже всех.
- */
-const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
-  const { keys, sizes, isX, fixed, gap, crossLimit } = a;
-  const ready = measuredPrefix === keys.length;
-  const main: 0 | 1 = isX ? 0 : 1;
-  const cross: 0 | 1 = isX ? 1 : 0;
-
-  const gapMain = gap[main];
-  const gapCross = gap[cross];
-
-  const sky = createSkyline(crossLimit);
-  const { restingAt, raise } = sky;
-
-  const items: Placed[] = [];
-
-  for (const key of keys) {
-    const known = sizes.get(key);
-    const measured = known !== undefined;
-
-    const across = measured ? sideOf(known, fixed, cross) : 0;
-    const along = measured ? sideOf(known, fixed, main) : 0;
-
-    let bestAt = 0;
-    let bestTop = 0;
-
-    if (measured && across > 0) {
-      let found = false;
-
-      for (const part of sky.parts) {
-        const at = part.at;
-        if (at + across > crossLimit) continue;
-
-        /*
-         * Место просим вместе с зазором за объектом — тем же, что оставляет
-         * за собой уже поставленный. Иначе зазор держался только с одной
-         * стороны: вставший позже и левее соседа подходил к нему вплотную,
-         * потому что о своём правом крае не спрашивал.
-         *
-         * У края отведённого зазору стоять не с чем, и там просим по себе.
-         */
-        const want = Math.min(across + gapCross, Math.max(crossLimit - at, across));
-
-        const top = restingAt(at, want);
-        if (top === null) continue;
-
-        if (!found || top < bestTop || (top === bestTop && at < bestAt)) {
-          found = true;
-          bestAt = at;
-          bestTop = top;
-        }
-      }
-
-      // шире отведённого — кладём с начала, за край он выйдет сам
-      if (!found) bestTop = restingAt(0, Math.max(crossLimit, 1)) ?? 0;
-    }
-
-    items.push(
-      isX
-        ? {
-            left: bestTop,
-            right: bestTop + along,
-            top: bestAt,
-            bottom: bestAt + across,
-            measured,
-          }
-        : {
-            top: bestTop,
-            bottom: bestTop + along,
-            left: bestAt,
-            right: bestAt + across,
-            measured,
-          },
-    );
-
-    if (measured && across > 0)
-      raise(
-        bestAt,
-        Math.min(across + gapCross, Math.max(crossLimit - bestAt, across)),
-        bestTop + along + gapMain,
-      );
-  }
-
-  if (a.align !== "start" && ready)
-    compactFill(items, isX, gapMain, gapCross, crossLimit, a.align);
-
-  const alongSize = items.reduce(
-    (max, i) => Math.max(max, isX ? i.right : i.bottom),
-    0,
-  );
-  const acrossSize = items.reduce(
-    (max, i) => Math.max(max, isX ? i.bottom : i.right),
-    0,
-  );
-
-  return {
-    items,
-    width: isX ? alongSize : acrossSize,
-    height: isX ? acrossSize : alongSize,
-    measuredPrefix,
-    order: [],
-    extent: 0,
-  };
-};
-
-/*
  * Указатель для окна. Кладка и поток раскладывают почти по возрастанию, так
  * что сортировка тут почти всегда идёт по уже упорядоченному, и стоит она
  * заметно меньше самой раскладки.
@@ -726,11 +550,9 @@ const packObjects = (args: PackArgs): PackResult => {
   }
 
   const packed =
-    args.layout === "fill"
-      ? fill(args, measuredPrefix)
-      : args.layout === "flow"
-        ? flow(args, measuredPrefix)
-        : masonry(args, measuredPrefix);
+    args.layout === "flow"
+      ? flow(args, measuredPrefix)
+      : masonry(args, measuredPrefix);
 
   return indexed(packed, args.isX);
 };

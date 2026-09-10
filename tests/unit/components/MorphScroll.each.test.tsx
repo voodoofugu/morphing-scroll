@@ -143,20 +143,6 @@ describe('objects.size: "auto"', () => {
     expect(said("needs a known number of lines")).toBe(true);
   });
 
-  /*
-   * У заполнения линий нет вовсе: оно отдаёт порядок ради посадки, и просить
-   * у него порядок — просить отменить его же смысл.
-   */
-  it("ругается на column в заполнении: порядок там отдан за посадку", () => {
-    render(
-      <MorphScroll size={[200, 300]} objects={{ size: "auto", order: "column" }}>
-        {items()}
-      </MorphScroll>,
-    );
-
-    expect(said("a fill has none")).toBe(true);
-  });
-
   it("молчит на row: это порядок по умолчанию, и он выполним всегда", () => {
     render(
       <MorphScroll size={[200, 300]} objects={{ size: "auto", order: "row" }}>

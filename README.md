@@ -576,7 +576,7 @@ creates a <code>ResizeTracker</code> wrapper for the first child of your list. T
 This can be useful if you want to change the size of objects in your list dynamically, e.g., when reducing the size of the user's screen.<br />
 <br />
 <code><b>"auto"</b></code>:<br />
-every object gets the size it asks for, and the library measures it. Which side you hand over settles how the objects are then arranged — that is what <code>layout</code> names in words, and either way of saying it works.<br />
+every object gets the size it asks for, and the library measures it. Which side you hand over settles how the objects are then arranged: the side along the scroll is a <b>masonry</b> — fixed columns, each object into the shortest one; the side across it, or both, is a <b>flow</b> — objects fill a line one after another, and a new line starts when the room runs out or when <code>lines</code> says it is full.<br />
 <br />
 <code>"auto"</code> on its own says it about both sides at once — the same as <code>["auto", "auto"]</code>.<br />
 <br />
@@ -691,7 +691,7 @@ align: "center"; // or "start" | "end"
 <b>Description:</b><em><br />
 where a line that did not fill up sits — the last row of a grid, or the only row of a short list.<br />
 <br />
-Rows line up against the widest one, so a short row has spare space beside it and <code>align</code> decides where that space goes. A fill has no rows: each object moves by whatever room it has past itself, and <code>"center"</code> stops it halfway to <code>"end"</code>. The room is the scroll minus <code>wrapper.margin</code>, and nothing moves until every object is measured.</em><br />
+Rows line up against the widest one, so a short row has spare space beside it and <code>align</code> decides where that space goes. Where the whole block sits in the window is a different question, and <code>wrapper.align</code> answers it. Nothing moves until every object is measured.</em><br />
 <br />
 <b>Example:</b>
 
@@ -722,7 +722,7 @@ changes the order of the provided elements based on the provided value.<br />
 <br />
 <code>"row"</code> fills a row and moves down, <code>"column"</code> fills a column and moves right. One of the two is what the scroll already does — a vertical one lays rows, a horizontal one lays columns; the other transposes, and the first line then takes the first <code>ceil(n / lines)</code> objects. A masonry asked to transpose stops looking for the shortest column, trading an even edge for reading straight through. The count is by number, never by size, so nothing jumps as the objects are measured.<br />
 <br />
-Transposing needs a known number of lines: a masonry always has one, a flow only when <code>lines</code> names it, a fill none at all — it gives the order up for the fit. Without it the request is dropped, with a warning if you wrote the value yourself.<br />
+Transposing needs a known number of lines: a masonry always has one, a flow only when <code>lines</code> names it. Without it the request is dropped, with a warning if you wrote the value yourself.<br />
 <br />
 In <code>direction="hybrid"</code> the same request is an axis: <code>"row"</code> has <code>lines</code> bound the width and growth run down, <code>"column"</code> bounds the height and growth runs right.</em><br />
 <br />

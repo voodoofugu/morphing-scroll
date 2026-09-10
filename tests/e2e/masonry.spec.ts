@@ -361,11 +361,14 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * Обе стороны за объектом — значит и раскладка идёт по месту, а не по
-   * очереди: каждый встаёт в самое высокое, куда влезает.
+   * Обе стороны за объектом — строку тогда обрывает место, а не счёт: он не
+   * назван. Порядок при этом построчный, а дыры под низкими соседями
+   * закрывает подъём — каждый встаёт под того, кто над ним.
    */
-  test("заполнение не оставляет дыр под низкими соседями", async ({ page }) => {
-    await page.goto("/?scenario=fillFree");
+  test("без счёта строку обрывает место, и дыр под ней не остаётся", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=freeFlow");
     await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
@@ -375,15 +378,18 @@ test.describe("objects.size: each (real browser)", () => {
       [0, 0],
       [100, 0],
       [0, 50],
-      [0, 110],
       [100, 130],
-      [0, 150],
+      [0, 110],
+      [100, 170],
     ]);
 
-    // под каждым объектом левой колонки нет пустоты больше зазора
-    const left = all.filter((b) => b.x === 0).sort((a, b) => a.y - b.y);
-    for (let i = 1; i < left.length; i++)
-      expect(left[i].y - (left[i - 1].y + left[i - 1].h)).toBe(10);
+    // и в каждой колонке между соседями ровно зазор, без пустот
+    for (const x of [0, 100]) {
+      const line = all.filter((b) => b.x === x).sort((a, b) => a.y - b.y);
+
+      for (let i = 1; i < line.length; i++)
+        expect(line[i].y - (line[i - 1].y + line[i - 1].h)).toBe(10);
+    }
   });
 
   /*
@@ -416,67 +422,60 @@ test.describe("objects.size: each (real browser)", () => {
   });
 
   /*
-   * Без `lines` строк нет — есть заполнение, и равнять его можно только
-   * по самой области.
+   * `objects.align` — про то, куда девается место в короткой строке, а не про
+   * место блока в окне: за второе отвечает `wrapper.align`. Одна строка на
+   * весь список короткой не бывает, и двигать в ней нечего.
    */
-  test("align в заполнении двигает блок к краю области", async ({ page }) => {
-    await page.goto("/?scenario=fillAlign");
+  test("align не двигает единственную строку", async ({ page }) => {
+    await page.goto("/?scenario=freeAlign");
     await settled(page);
 
-    const all = await boxes(page);
-    const right = Math.max(...all.map((b) => b.x + b.w));
+    const all = (await boxes(page)).sort((a, b) => a.i - b.i);
 
-    // три карточки по 80 с зазором 10 — блок 260 из 300, уезжает на 40
-    expect(right).toBe(300);
-    expect(Math.min(...all.map((b) => b.x))).toBe(40);
+    // три карточки по 80 с зазором 10 встали в одну строку и остались в ней
+    expect(all.map((b) => [b.x, b.y])).toEqual([
+      [0, 0],
+      [90, 0],
+      [180, 0],
+    ]);
   });
 
   /*
-   * Строк в заполнении нет, но у каждого объекта своё свободное место справа
-   * от него: A и B стоят бок о бок и оставляют заметный зазор, C ниже занял
-   * почти всю ширину сам по себе. Толкать нужно каждый отдельно — единый
-   * сдвиг блока мерил бы по C и почти не трогал бы ряд A/B.
+   * Короткая строка равняется по самой широкой — она и есть ширина
+   * содержимого. A и B стоят вдвоём и не добирают до C, который занял строку
+   * один: этот недобор `align` и раздаёт.
    */
-  test("align в заполнении толкает каждый объект отдельно", async ({
-    page,
-  }) => {
-    await page.goto("/?scenario=fillAlignRows");
+  test("короткая строка равняется по самой широкой", async ({ page }) => {
+    await page.goto("/?scenario=freeAlignRows");
     await settled(page);
 
     const all = (await boxes(page)).sort((a, b) => a.i - b.i);
     const [a, b, c] = all;
 
-    // A и B дотолкались друг до друга и до правого края вместе
-    expect(a.x + a.w).toBeLessThan(b.x);
+    // A и B — 80 + 10 + 80 = 170, C — 190: недобор в 20 уходит перед A
+    expect(a.x).toBe(20);
     expect(b.x - (a.x + a.w)).toBe(10);
-    expect(b.x + b.w).toBe(200);
-
-    // C ниже — тоже до края, но независимо от A и B
-    expect(c.x + c.w).toBe(200);
-
-    // без исправления оба ряда сдвинулись бы на одно и то же малое число
-    expect(a.x).not.toBe(c.x);
+    expect(b.x + b.w).toBe(c.x + c.w);
+    expect(c.x).toBe(0);
   });
 
   /*
-   * Тот же случай при direction="x" — оси зеркально поменяны местами. Кладка
-   * и поток для горизонтальной прокрутки уже проверялись; заполнение с обеими
-   * сторонами "auto" при isX=true — нет. Числа посчитаны вручную зеркалом
-   * от прошлого теста: cross-координата (там — left, здесь — top) и
-   * main-координата (там — top, здесь — left) меняются местами.
+   * Тот же случай при direction="x" — оси зеркально поменяны местами. Числа
+   * посчитаны зеркалом от прошлого теста: cross-координата (там left, здесь
+   * top) и main-координата (там top, здесь left) меняются местами.
    */
-  test("align в заполнении толкает каждый объект отдельно (direction=x)", async ({
+  test("короткая строка равняется по самой широкой (direction=x)", async ({
     page,
   }) => {
-    await page.goto("/?scenario=fillAlignRowsX");
+    await page.goto("/?scenario=freeAlignRowsX");
     await settled(page);
 
     const boxesXY = (await boxes(page)).sort((p, q) => p.i - q.i);
     const [a, b, c] = boxesXY;
 
-    expect([a.x, a.y, a.w, a.h]).toEqual([0, 30, 50, 80]);
-    expect([b.x, b.y, b.w, b.h]).toEqual([0, 120, 50, 80]);
-    expect([c.x, c.y, c.w, c.h]).toEqual([60, 10, 40, 190]);
+    expect([a.x, a.y, a.w, a.h]).toEqual([0, 20, 50, 80]);
+    expect([b.x, b.y, b.w, b.h]).toEqual([0, 110, 50, 80]);
+    expect([c.x, c.y, c.w, c.h]).toEqual([60, 0, 40, 190]);
   });
 
   /*

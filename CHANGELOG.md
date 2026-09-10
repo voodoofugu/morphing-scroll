@@ -723,6 +723,17 @@ themselves are no longer transformed and can be positioned from CSS.
   `react/jsx-runtime` — an entry point React did not have before 16.14. The
   package promised to work from 16.8 and could not be imported at all there.
   It is built with the classic transform now, for about a hundred bytes.
+- **`objects.size: "auto"` on both sides lays a flow, not a packing of its
+  own.** It used to give the order up for the fit: every object took the
+  highest place it fitted into, so a card could jump ahead of the ones before
+  it — and the same list with `objects.lines` named read straight through.
+  Measured on cards of a real size the packing was not even the tighter of the
+  two, being four per cent taller while it scrambled the order. Now the count
+  is a ceiling and nothing else: unnamed, a line ends where the room does, and
+  the holes under short objects are closed by lifting each up to whatever
+  stands above it — order kept. `objects.align` there aligns a short line
+  against the widest one, as it does in any flow; where the block sits in the
+  window is `wrapper.align`.
 - **the gap between objects held on one side only where the layout searches
   for a place rather than taking the next one in turn.** With
   `objects.size: "auto"` and no `lines` the objects are packed into the room

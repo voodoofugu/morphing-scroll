@@ -579,7 +579,7 @@ function Reordered() {
 scenarios.eachReorder = <Reordered />;
 
 /* Заполнение: обе стороны за объектом, дырок под низкими быть не должно */
-scenarios.fillFree = (
+scenarios.freeFlow = (
   <MorphScroll objects={{ size: "auto", gap: 10 }} size={[200, 300]}>
     {[
       [90, 40],
@@ -601,7 +601,7 @@ scenarios.fillFree = (
 );
 
 /* Заполнение с выравниванием: блок целиком уходит к дальнему краю области */
-scenarios.fillAlign = (
+scenarios.freeAlign = (
   <MorphScroll
     objects={{ size: "auto", gap: 10, align: "end" }}
     size={[300, 300]}
@@ -619,12 +619,12 @@ scenarios.fillAlign = (
 );
 
 /*
- * Тот же случай заполнения, что и fillAlignRows, но с горизонтальной
+ * Тот же случай, что и freeAlignRows, но с горизонтальной
  * прокруткой — оси зеркально поменяны местами (высота/ширина), числа те же.
  * Кладка и поток для direction="x" уже проверены; заполнение с обеими
  * сторонами "auto" при isX=true до сих пор не гонялось живьём ни разу.
  */
-scenarios.fillAlignRowsX = (
+scenarios.freeAlignRowsX = (
   <MorphScroll
     objects={{ size: "auto", gap: 10, align: "end" }}
     size={[300, 200]}
@@ -647,7 +647,7 @@ scenarios.fillAlignRowsX = (
  * занял почти всю ширину сам. Сдвиг всего блока мерил бы по C и почти не
  * трогал бы ряд A/B — каждый должен дотолкаться до края независимо.
  */
-scenarios.fillAlignRows = (
+scenarios.freeAlignRows = (
   <MorphScroll
     objects={{ size: "auto", gap: 10, align: "end" }}
     size={[200, 300]}
@@ -1508,6 +1508,8 @@ const revive = (value: unknown): unknown => {
 
 /* Разнобой по сторонам нужен для "auto": на одинаковых укладка не ошибётся. */
 const CRASH_SIZES = [40, 70, 55, 90, 60, 110, 45, 80];
+/* и карточки размером с настоящие — на горошинах раскладка не ошибётся */
+const WIDE_SIZES = [150, 200, 120, 190, 130, 210, 160, 180];
 
 function CrashRig() {
   const ref = React.useRef<MorphScrollHandle>(null);
@@ -1525,9 +1527,11 @@ function CrashRig() {
   const config = revive(JSON.parse(raw)) as MorphScrollProps & {
     count?: number;
     vary?: boolean;
+    /* карточки размером с настоящие, а не с горошину */
+    wide?: boolean;
     groups?: number;
   };
-  const { count = 12, vary = false, groups = 0, ...props } = config;
+  const { count = 12, vary = false, wide = false, groups = 0, ...props } = config;
 
   return (
     <MorphScroll
@@ -1546,8 +1550,10 @@ function CrashRig() {
           style={
             vary
               ? {
-                  width: CRASH_SIZES[i % CRASH_SIZES.length],
-                  height: CRASH_SIZES[(i + 3) % CRASH_SIZES.length],
+                  width: (wide ? WIDE_SIZES : CRASH_SIZES)[i % CRASH_SIZES.length],
+                  height: (wide ? WIDE_SIZES : CRASH_SIZES)[
+                    (i + 3) % CRASH_SIZES.length
+                  ],
                 }
               : undefined
           }
@@ -1651,7 +1657,7 @@ function SwitchRig() {
     count?: number;
     vary?: boolean;
   };
-  const { count = 12, vary = false, ...props } = config;
+  const { count = 12, vary = false, wide = false, ...props } = config;
 
   return (
     <MorphScroll {...props} onScrollPosition={onScrollPosition}>
@@ -1662,8 +1668,10 @@ function SwitchRig() {
           style={
             vary
               ? {
-                  width: CRASH_SIZES[i % CRASH_SIZES.length],
-                  height: CRASH_SIZES[(i + 3) % CRASH_SIZES.length],
+                  width: (wide ? WIDE_SIZES : CRASH_SIZES)[i % CRASH_SIZES.length],
+                  height: (wide ? WIDE_SIZES : CRASH_SIZES)[
+                    (i + 3) % CRASH_SIZES.length
+                  ],
                 }
               : undefined
           }
