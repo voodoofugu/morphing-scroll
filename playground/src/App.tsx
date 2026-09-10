@@ -2168,6 +2168,13 @@ function App() {
               onChange={(value) => update("barThumbMinSize", value)}
               value={settings.barThumbMinSize}
             />
+            {settings.direction === "hybrid" && (
+              <p className="sub-note">
+                у каждой оси свой бар и своя половина пары. Бар существует,
+                пока его оси есть куда ехать — если содержимое по ней
+                помещается в окно, переключатель этой оси двигать нечего
+              </p>
+            )}
             {/* половина пары действует на бар своей оси — при одной оси
                 второй бар не существует, и поле только путало */}
             {settings.direction !== "y" && (
