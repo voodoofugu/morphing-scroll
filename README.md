@@ -560,12 +560,23 @@ size: 100; // or [100, 70] | [100, null] | "full" | "firstChild" | "auto"
 ```
 
 <b>Default:</b><br />
-the sizing is left to your CSS<br />
+an unnamed <code>size</code> does not stand aside — it answers for the objects, and the answer follows the scroll: across it an object takes all the room there is, along it the size is its own.<br />
+
+<ul>
+  <li><code>direction="y"</code> — <b>["full", "auto"]</b>: a row the width of the scroll, as tall as its own content.</li><br />
+  <li><code>direction="x"</code> — <b>["auto", "full"]</b>: a column the height of the scroll, as wide as its own content.</li><br />
+  <li><code>direction="hybrid"</code> — <b>"auto"</b>: both sides are the object's own, because both axes move and neither bounds a line. That leaves the count to <code>lines</code>, which is <b>1</b> there unless you raise it.</li><br />
+  <li><code>mode="slider"</code> or <b>"sliderMenu"</b> — <b>"full"</b>: a page is the window, so the object is too. The mode answers before the direction does.</li>
+</ul>
+
+Every one of those can be counted, so <code>render</code>, <code>loop</code> and <code>render.trackVisibility</code> work with nothing named at all.<br />
+<br />
+One case is left alone: <code>lines</code> above <b>1</b> on a single axis. That is a grid of as many tracks as you named, each as wide as its content — your CSS decides those widths, nothing can count them, and <code>render</code> stays off until you name a size.<br />
 <br />
 <b>Description:</b><em><br />
 defines the <b>[width, height]</b> of cells for each of your objects.<br />
 <br />
-<code>number</code>:<br />
+<code><b>number</b></code>:<br />
 sets a fixed size for your custom objects.<br />
 <br />
 <code><b>"full"</b></code>:<br />
@@ -578,26 +589,12 @@ This can be useful if you want to change the size of objects in your list dynami
 <code><b>"auto"</b></code>:<br />
 every object gets the size it asks for, and the library measures it. Which side you hand over settles how the objects are then arranged: the side along the scroll is a <b>masonry</b> — fixed columns, each object into the shortest one; the side across it, or both, is a <b>flow</b> — objects fill a line one after another, and a new line starts when the room runs out or when <code>lines</code> says it is full.<br />
 <br />
-<code>"auto"</code> on its own says it about both sides at once — the same as <code>["auto", "auto"]</code>.<br />
-<br />
 One observer measures the whole scroll, and an object is watched while it is on screen: a picture that arrives late moves its neighbours instead of leaving the layout wrong. Sizes are remembered by the child's <code>key</code>, so they survive virtualization, and unmeasured objects are drawn a batch at a time.<br />
 <br />
 <b>a side left to your CSS</b>:<br />
 cells are still created, but not measured — they wrap your objects and the sizing is left to your CSS. The side is named <code>null</code>: <code>[100, null]</code> is a fixed width with the height decided by the content.<br />
 <br />
 Lines still work here, because <code>lines</code> counts objects rather than pixels: it is the one thing that can end a line when the width is not ours to know.<br />
-<br />
-<b>nothing at all</b>:<br />
-leaving <code>size</code> out does not stand aside — it answers for the objects, and the answer follows the scroll. Across it an object takes the whole window; along it the size is its own:<br />
-
-<ul>
-  <li><code>direction="y"</code>: a row the width of the scroll, as tall as its content — the same as <code>size: ["full", "auto"]</code>.</li><br />
-  <li><code>direction="x"</code>: a column the height of the scroll, as wide as its content — <code>["auto", "full"]</code>.</li><br />
-  <li><code>direction="hybrid"</code>: both sides are the object's own — <code>"auto"</code>.</li><br />
-  <li><code>mode="slider"</code> and <code>"sliderMenu"</code>: a page is the window, so the object is too — <code>"full"</code>.</li>
-</ul>
-
-All of those can be counted, so <code>render</code>, <code>loop</code> and <code>trackVisibility</code> work with nothing named at all. The one exception is <code>lines</code> above one without a size: that is the grid above, whose track widths your CSS decides — nothing can count them, and the default leaves it alone.<br />
 <br />
 ✦ Note:<br />
 
@@ -629,6 +626,9 @@ All of those can be counted, so <code>render</code>, <code>loop</code> and <code
 lines: 2;
 ```
 
+<b>Default:</b><br />
+as many as the room across allows — and <b>1</b> under <code>direction="hybrid"</code>, where there is no room to ask<br />
+<br />
 <b>Description:</b><em><br />
 how many lines the objects run in, across the scroll — columns on a vertical scroll, rows on a horizontal one.<br />
 <br />
@@ -662,7 +662,7 @@ gap: 10; // or [20, 10]
 ```
 
 <b>Description:</b><em><br />
-allows you to set spacing in pixels between list items for rows and columns.</em><br />
+space between the objects, in pixels. One number holds both ways; a pair is <b>[x, y]</b> — sideways first, as everywhere else in the library.</em><br />
 <br />
 <b>Example:</b>
 
