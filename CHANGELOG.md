@@ -723,6 +723,17 @@ themselves are no longer transformed and can be positioned from CSS.
   `react/jsx-runtime` — an entry point React did not have before 16.14. The
   package promised to work from 16.8 and could not be imported at all there.
   It is built with the classic transform now, for about a hundred bytes.
+- **the gap between objects held on one side only where the layout searches
+  for a place rather than taking the next one in turn.** With
+  `objects.size: "auto"` and no `lines` the objects are packed into the room
+  they leave each other, and the gap was reserved past an object once it was
+  placed — so one placed later and further back could come right up against
+  it, a card standing four pixels from its neighbour where twenty-four were
+  asked for. Choosing a place now asks for the room the gap needs too.
+  Pushing objects toward the far edge for `objects.align: "center"` and
+  `"end"` had the same hole from the other side: it counted only the ones it
+  overlapped along the scroll, and pressed together those the packing had
+  parted by a hair.
 - `objects.lines` grew the list sideways instead of limiting it when the side
   across was the objects' own. With a size named in numbers the count has
   always been a ceiling — ask for eight columns where three fit and you get

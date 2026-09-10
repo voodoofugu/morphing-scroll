@@ -491,6 +491,7 @@ const createSkyline = (limit: number) => {
 const compactFill = (
   items: Placed[],
   isX: boolean,
+  gapMain: number,
   gapCross: number,
   crossLimit: number,
   align: "center" | "end",
@@ -506,8 +507,15 @@ const compactFill = (
     let bound = crossLimit;
 
     for (const [other, otherStart] of pushedTo) {
-      if (mainEnd(item, isX) <= mainStart(other, isX)) continue;
-      if (mainEnd(other, isX) <= mainStart(item, isX)) continue;
+      /*
+       * Мешает не только тот, кто пересекается по главной оси, но и тот, кто
+       * разошёлся с нами меньше чем на зазор: укладка держит ровно это —
+       * пересеклись поперёк, значит вдоль между вами не меньше зазора. Спросив
+       * про одно пересечение, толкание сводило вплотную тех, кого укладка
+       * развела на волосок.
+       */
+      if (mainEnd(item, isX) + gapMain <= mainStart(other, isX)) continue;
+      if (mainEnd(other, isX) + gapMain <= mainStart(item, isX)) continue;
 
       bound = Math.min(bound, otherStart - gapCross);
     }
@@ -618,7 +626,17 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
         const at = part.at;
         if (at + across > crossLimit) continue;
 
-        const top = restingAt(at, across);
+        /*
+         * Место просим вместе с зазором за объектом — тем же, что оставляет
+         * за собой уже поставленный. Иначе зазор держался только с одной
+         * стороны: вставший позже и левее соседа подходил к нему вплотную,
+         * потому что о своём правом крае не спрашивал.
+         *
+         * У края отведённого зазору стоять не с чем, и там просим по себе.
+         */
+        const want = Math.min(across + gapCross, Math.max(crossLimit - at, across));
+
+        const top = restingAt(at, want);
         if (top === null) continue;
 
         if (!found || top < bestTop || (top === bestTop && at < bestAt)) {
@@ -659,7 +677,7 @@ const fill = (a: PackArgs, measuredPrefix: number): PackResult => {
   }
 
   if (a.align !== "start" && ready)
-    compactFill(items, isX, gapCross, crossLimit, a.align);
+    compactFill(items, isX, gapMain, gapCross, crossLimit, a.align);
 
   const alongSize = items.reduce(
     (max, i) => Math.max(max, isX ? i.right : i.bottom),
