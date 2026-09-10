@@ -109,21 +109,27 @@ the group it was always about.
 
 #### One way to fill an empty object
 
-`emptyObjects` accepted a placeholder three ways — a bare node, the word
-`"fallback"` plus the `fallback` prop, and `mode: { fallback }` — and the
-type could not tell them apart, because `React.ReactNode` in the union
-swallowed the string literals: `emptyObjects="clearr"` compiled, with no
-completion for `"clear"` anywhere. One shape now:
+`emptyObjects` accepted a placeholder four ways — a bare node, the word
+`"fallback"` plus the `fallback` prop, `mode: { fallback }`, and the `fallback`
+prop again as the one the others fell back to. The type could not tell the
+first ones apart either, because `React.ReactNode` in the union swallowed the
+string literals: `emptyObjects="clearr"` compiled, with no completion for
+`"clear"` anywhere.
+
+`objects.empty` now says only what to do with an empty object, and `fallback`
+says what to show — in one place, for every occasion there is:
 
 ```tsx
 objects={{ empty: "clear" }}
-objects={{ empty: "fallback" }}                                  // uses the fallback prop
-objects={{ empty: { mode: "fallback", fallback: <Empty /> } }}   // its own placeholder
+objects={{ empty: "fallback" }}
 objects={{ empty: { mode: "clear", clickTrigger: ".btn" } }}
+
+fallback={<Skeleton />}                                  // stands in everywhere
+fallback={{ loading: <Skeleton />, empty: <p>none</p> }} // told apart by name
 ```
 
-`emptyObjects={<Empty />}` and `mode: { fallback: <Empty /> }` are gone;
-both become `{ mode: "fallback", fallback: <Empty /> }`.
+`emptyObjects={<Empty />}` and `mode: { fallback: <Empty /> }` are gone; both
+become `objects={{ empty: "fallback" }}` with `fallback={{ empty: <Empty /> }}`.
 
 #### Names that described something else
 
@@ -702,6 +708,10 @@ themselves are no longer transformed and can be positioned from CSS.
   `react/jsx-runtime` — an entry point React did not have before 16.14. The
   package promised to work from 16.8 and could not be imported at all there.
   It is built with the classic transform now, for about a hundred bytes.
+- **`fallback` takes `{ loading, empty }`**, and `objects.empty.fallback` is
+  gone. Both were a node for an object that is not showing, in two places
+  with a rule about which one won; the occasions are told apart by name now
+  instead. A node on its own still stands in for both.
 - `objects.size: "full"` took the whole window and paid no attention to
   `wrapper.margin`, though the objects live inside those margins: the object
   came out wider than the room it had by exactly them, so a vertical list

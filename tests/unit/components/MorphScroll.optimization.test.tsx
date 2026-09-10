@@ -32,9 +32,34 @@ describe("MorphScroll — emptyObjects", () => {
     expect(boxes(container)).toHaveLength(3);
   });
 
-  it("takes its own fallback over the shared one", async () => {
+  /*
+   * Заглушка одна, и различаются два случая её именами: `empty` встаёт там,
+   * где объект оказался пуст, `loading` — пока он в пути. Раньше их было две
+   * — общий проп и своя внутри `empty`, — с правилом, которая главнее.
+   */
+  it("tells the empty stand-in from the one that waits", async () => {
     const { container } = render(
-      <MorphScroll objects={{ size: OBJ, empty: { mode: "fallback", fallback: <b className="mine" /> } }}
+      <MorphScroll
+        objects={{ size: OBJ, empty: "fallback" }}
+        size={SIZE}
+        render="virtual"
+        fallback={{ empty: <b className="mine" />, loading: <i className="waits" /> }}
+      >
+        {mixed()}
+      </MorphScroll>,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector("b.mine")).toBeInTheDocument();
+    });
+    expect(container.querySelector("i.waits")).toBeNull();
+  });
+
+  /* а голый узел встаёт в обоих случаях — это простая форма того же */
+  it("a bare node stands in for both", async () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: OBJ, empty: "fallback" }}
         size={SIZE}
         render="virtual"
         fallback={<i className="shared" />}
@@ -44,12 +69,12 @@ describe("MorphScroll — emptyObjects", () => {
     );
 
     await waitFor(() => {
-      expect(container.querySelector("b.mine")).toBeInTheDocument();
+      expect(container.querySelector("i.shared")).toBeInTheDocument();
     });
-    expect(container.querySelector("i.shared")).toBeNull();
   });
 
-  it("falls back to the shared fallback when it has none of its own", async () => {
+  /* та же заглушка и при объектной форме `empty` — она про режим, не про узел */
+  it("the object form of empty asks for the same stand-in", async () => {
     const { container } = render(
       <MorphScroll objects={{ size: OBJ, empty: { mode: "fallback" } }}
         size={SIZE}

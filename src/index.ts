@@ -31,6 +31,7 @@ export type {
   KeysConfig,
   WheelConfig,
   EmptyObjectsConfig,
+  FallbackConfig,
   ObjectsConfig,
   Align,
   NavigateEvent,

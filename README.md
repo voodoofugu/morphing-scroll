@@ -755,7 +755,6 @@ empty: "clear" // or "fallback"
 ```tsx
 empty: {
   mode: "clear", // or "fallback" (required)
-  fallback: <YourEmptyPlaceholder />, // optional, wins over the fallback prop
   clickTrigger: ".btn-class", // or { selector: ".btn-class"; delay: 100 };
 }
 ```
@@ -770,11 +769,8 @@ this option allows you to remove or replace empty list items during the initial 
 
 <ul>
   <li><b>"clear"</b> – automatically removes empty objects.</li>
-  <li><b>"fallback"</b> – replaces empty objects with a placeholder.</li>
+  <li><b>"fallback"</b> – replaces empty objects with <code>fallback.empty</code>.</li>
 </ul>
-<br />
-<code><b>fallback</b></code>:<br />
-the placeholder for this scroll. Without it the <code>fallback</code> prop is used, so you only need this when one scroll should show something different from the rest.<br />
 <br />
 <code><b>clickTrigger</b></code>:<br />
 use this option if removal should be triggered by a click action.<br />
@@ -1671,7 +1667,7 @@ wraps every cell in a React <code>Suspense</code> boundary, so a child that susp
   <li><code>suspending</code> decides <b>what happens while a mounted child is not ready</b>. That is React's decision, and MorphScroll only provides the boundary.</li>
 </ul>
 
-They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, which both use as the placeholder.</em><br />
+They are unrelated and combine freely — <code>render="virtual"</code> with <code>suspending</code> means only the visible cards are mounted, and each of those shows the fallback until its own data arrives. The one thing they share is <code>fallback</code>, whose <code>loading</code> half both use.</em><br />
 <br />
 <b>Example:</b>
 
@@ -1686,22 +1682,38 @@ They are unrelated and combine freely — <code>render="virtual"</code> with <co
 <h2></h2>
 
 <details><summary><b><code>fallback</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+fallback: <div>Loading...</div>; // or { loading, empty }
+```
+
 <b>Description:</b><em><br />
-sets the fallback element to display during loading or placeholder.<br />
-<br />
-It will be used when:
+what stands in for an object that is not showing. There are two such occasions, and a node passed on its own stands in for both:<br />
 
 <ul>
-  <li><code>suspending</code> is set to <b>true</b>.</li>
-  <li><code>render.deferLoadOnScroll</code> is set to <b>true</b>.</li>
-  <li><code>objects.empty.mode</code> is set to <b>"fallback"</b> and it carries no <code>fallback</code> of its own.</li> 
+  <li><b>an object on its way</b> — <code>suspending</code> while a child suspends, and <code>render.deferLoadOnScroll</code> while the scroll is moving.</li><br />
+  <li><b>an object that rendered nothing</b> — under <code>objects.empty: "fallback"</code>.</li>
 </ul>
-</em><br />
+
+Tell them apart by naming them: <code>{ loading, empty }</code>. A spinner where the data is on its way and a word where there is none to come reads better than one node doing both jobs.<br />
+<br />
+✦ Note:<br />
+named, it is the whole set — <code>{ empty }</code> on its own leaves nothing to show while an object loads. Under <code>objects.empty: "fallback"</code> with <code>render</code> the library keeps an empty <code>.ms-empty-object</code> in place of a missing <code>empty</code>: the window counts objects by the piece, and one dropping out would pull everything below it up.</em><br />
 <br />
 <b>Example:</b>
 
 ```tsx
-<MorphScroll {...props} fallback={<div>Loading...</div>}>
+<MorphScroll {...props} suspending fallback={<div>Loading...</div>}>
+  {children}
+</MorphScroll>;
+
+<MorphScroll
+  {...props}
+  suspending
+  objects={{ empty: "fallback" }}
+  fallback={{ loading: <Skeleton />, empty: <p>Nothing here</p> }}
+>
   {children}
 </MorphScroll>
 ```

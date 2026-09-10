@@ -3,6 +3,7 @@ import React from "react";
 import type {
   Align,
   BarConfig,
+  FallbackConfig,
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
   NavigateReason,
@@ -403,6 +404,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       controlsST,
       objectsKeysEmptyST,
       edgeST,
+      fallbackST,
     ] = stabilize(
       stickToEnd,
       initialPosition,
@@ -415,6 +417,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       controls,
       objectsKeys.current.empty,
       edge,
+      fallback,
     );
 
     /*
@@ -469,24 +472,18 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     );
 
     /*
-     * Заглушку раньше можно было задать тремя способами — голым узлом,
-     * словом "fallback" плюс общий проп, и `mode: { fallback }`, — и разбор
-     * этих форм расползался лесенкой тернарников по всему компоненту.
-     * Форма теперь одна, разбирается здесь.
+     * `objects.empty` говорит, что делать с пустым объектом, а чем его
+     * заменить — `fallback`: заглушка живёт в одном месте, а не в двух с
+     * правилом, которая из них главнее.
      */
     const emptyObjectsLocal = React.useMemo(() => {
       if (!emptyObjects) return null;
 
       if (typeof emptyObjects === "string")
-        return {
-          mode: emptyObjects,
-          fallback: undefined,
-          clickTrigger: undefined,
-        };
+        return { mode: emptyObjects, clickTrigger: undefined };
 
       return {
         mode: emptyObjects.mode,
-        fallback: emptyObjects.fallback,
         clickTrigger: emptyObjects.clickTrigger,
       };
     }, [emptyObjectsST]);
@@ -1021,13 +1018,33 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       !receivedChildSizeRef.current.width &&
       !receivedChildSizeRef.current.height;
 
+    /*
+     * Заглушка одна на обе беды — объект ещё не пришёл и объект оказался
+     * пуст, — и голый узел встаёт в обеих. Названные врозь, они и
+     * различаются: `loading` и `empty`.
+     */
     const fallbackLocal = React.useMemo(() => {
-      // делаем заглушку что бы не удалять всё подряд при emptyObjects
-      if (render && emptyObjectsLocal && !fallback)
-        return <div className="ms-empty-object"></div>;
+      const named =
+        !!fallback &&
+        typeof fallback === "object" &&
+        !Array.isArray(fallback) &&
+        !React.isValidElement(fallback)
+          ? (fallback as FallbackConfig)
+          : { loading: fallback, empty: fallback };
 
-      return fallback;
-    }, [!!fallback, renderST, emptyObjectsST]);
+      return {
+        loading: named.loading,
+        /*
+         * Место в окне считается по штукам, и пустой объект должен чем-то
+         * остаться: выпав, он утянул бы за собой всех, кто ниже.
+         */
+        empty:
+          named.empty ??
+          (render && emptyObjectsLocal ? (
+            <div className="ms-empty-object"></div>
+          ) : undefined),
+      };
+    }, [fallbackST, renderST, emptyObjectsST]);
 
     // ♦ calculations
     const objectsPerDirection = React.useMemo(() => {
@@ -4354,7 +4371,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         };
 
         const content = suspending ? (
-          <React.Suspense fallback={fallbackLocal}>{children}</React.Suspense>
+          <React.Suspense fallback={fallbackLocal.loading}>
+            {children}
+          </React.Suspense>
         ) : (
           children
         );
@@ -4389,7 +4408,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       },
       [
         suspending,
-        !!fallbackLocal, // просто проверка на наличие, но не на изменение, думаю этого достаточно
+        !!fallbackLocal.loading, // проверка на наличие, а не на изменение
         objectsSizeLocal[0],
         objectsSizeLocal[1],
         renderST,
@@ -4463,9 +4482,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         renderLocal.deferLoadOnScroll &&
         isScrollingRef.current &&
         !objectsKeys.current.loaded.has(domKey)
-          ? fallbackLocal
+          ? fallbackLocal.loading
           : objectsKeys.current.empty?.has(key)
-            ? (emptyObjectsLocal?.fallback ?? fallbackLocal)
+            ? fallbackLocal.empty
             : child;
 
       // доп обработка для ResizeTracker

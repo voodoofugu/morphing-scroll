@@ -903,9 +903,8 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
       : settings.emptyMode === "clear"
         ? "clear"
         : settings.emptyMode === "fallback"
-          ? { fallback: raw("<YourEmptyFallback />"), mode: "fallback" }
+          ? "fallback"
           : {
-              fallback: raw("<YourEmptyFallback />"),
               mode: "fallback",
               clickTrigger: { selector: ".item-action", delay: 220 },
             };
@@ -955,7 +954,12 @@ function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     [
       "fallback",
       settings.fallbackText
-        ? raw(`<div>${settings.fallbackText}</div>`)
+        ? settings.emptyMode === "off"
+          ? raw(`<div>${settings.fallbackText}</div>`)
+          : {
+              loading: raw(`<div>${settings.fallbackText}</div>`),
+              empty: raw("<YourEmptyFallback />"),
+            }
         : undefined,
       "value",
     ],
@@ -1358,14 +1362,9 @@ function App() {
   >(() => {
     if (settings.emptyMode === "off") return undefined;
     if (settings.emptyMode === "clear") return "clear";
-    if (settings.emptyMode === "fallback")
-      return {
-        fallback: <div className="empty-fallback">empty</div>,
-        mode: "fallback",
-      };
+    if (settings.emptyMode === "fallback") return "fallback";
     return {
       clickTrigger: { delay: 220, selector: ".item-action" },
-      fallback: <div className="empty-fallback">empty</div>,
       mode: "fallback",
     };
   }, [settings.emptyMode]);
@@ -1381,7 +1380,13 @@ function App() {
       autoScrollOnDrag: settings.autoScrollOnDrag,
       edge,
 
-      fallback: <div className="cell-fallback">{settings.fallbackText}</div>,
+      fallback:
+        settings.emptyMode === "off"
+          ? <div className="cell-fallback">{settings.fallbackText}</div>
+          : {
+              loading: <div className="cell-fallback">{settings.fallbackText}</div>,
+              empty: <div className="empty-fallback">empty</div>,
+            },
 
       onScrollingChange: settings.enableIsScrolling
         ? setIsScrolling

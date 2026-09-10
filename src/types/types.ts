@@ -159,13 +159,19 @@ export type WrapperConfig = {
   align?: Align | Pair<Align>;
 };
 
-/** the object form of `emptyObjects` */
+/** the object form of `objects.empty` */
 export type EmptyObjectsConfig = {
   mode: "clear" | "fallback";
-  /** what stands in for an empty object; the `fallback` prop when omitted */
-  fallback?: React.ReactNode;
   /** start clearing when something matching this selector is clicked */
   clickTrigger?: string | { selector: string; delay?: number };
+};
+
+/** the object form of `fallback` */
+export type FallbackConfig = {
+  /** stands in while an object is on its way */
+  loading?: React.ReactNode;
+  /** stands in where an object rendered nothing */
+  empty?: React.ReactNode;
 };
 
 /** a value understood by both `initialPosition` and `scrollTo` */
@@ -434,7 +440,7 @@ export type MorphScroll = {
    * - `order`: *which way the list runs through the lines — `"row"` fills a
    * row and moves down, `"column"` fills a column and moves right*
    * - `empty`: *`"clear"` removes objects that render nothing, `"fallback"`
-   * replaces them with a placeholder*
+   * replaces them with `fallback.empty`*
    * @note *which side you hand over with `"auto"` arranges them: along the
    * scroll is a masonry — fixed columns, each object into the shortest one;
    * across it, or both, is a flow — a line at a time, ended by the room or by
@@ -518,11 +524,16 @@ export type MorphScroll = {
   /** wrap the objects in React Suspense */
   suspending?: boolean;
   /**
-   * what stands in for an object that is not there yet.
-   * @note *used by `suspending`, `render.deferLoadOnScroll` and
-   * `objects.empty: "fallback"`*
+   * what stands in for an object that is not showing.
+   * @description
+   * A node stands in wherever that happens. The two occasions can be told
+   * apart by name: `loading` while an object is on its way — `suspending`
+   * and `render.deferLoadOnScroll` — and `empty` where one rendered nothing,
+   * under `objects.empty: "fallback"`.
+   * @note *named, it is the whole set: `{ empty }` alone leaves nothing to
+   * show while an object loads*
    */
-  fallback?: React.ReactNode;
+  fallback?: React.ReactNode | FallbackConfig;
 
   // — EVENTS —
   /**
