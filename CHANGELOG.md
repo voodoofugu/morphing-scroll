@@ -69,12 +69,12 @@ controls={{
 `{ wheel: true }` and `{ wheel: true, drag: true }`. The object form is
 unchanged.
 
-What you write **replaces** the default rather than adding to it.
-`{ wheel: true, keys: true }` is what an unwritten prop means; write anything
-and that is the whole set, so `{ bar: <Thumb /> }` is a bar and nothing else.
-`progressTrigger` merged, and in the slider modes that made the wheel
-impossible to leave out — where one notch turns a whole page, an unasked-for
-wheel is in the way.
+What you write **replaces** the default rather than adding to it, the way
+`progressTrigger` did: `{ wheel: true, keys: true }` is what an unwritten prop
+means, and writing anything makes that the whole set — `{ bar: <Thumb /> }` is
+a bar and nothing else. The list it replaces is longer now, so name what you
+want: a 2.x scroll that leant on `progressTrigger` being absent had the wheel,
+and one that named a bar never did.
 
 #### IntersectionTracker only watches now
 
