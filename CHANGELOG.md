@@ -1,3 +1,31 @@
+## [3.0.1] - 2026-09-11
+
+### Fixed
+
+- **a scroll that moves one way took every drag and threw away the part
+  going across it.** A horizontal strip inside a vertical list stopped the
+  list: a mouse drag or a finger going down over the strip was taken by the
+  strip, which cannot go down, and the list around it stood still. The first
+  few pixels now decide whose gesture it is — along the axis it stays, across
+  it goes to whoever outside can move that way, the way nested native
+  scrolling divides it. With nobody there it stays where it started.
+- **a finger on a plain page could not get past a horizontal strip.** With
+  no MorphScroll around it there was nobody for the library to hand a
+  vertical swipe to, and the browser was told to pan nothing itself — so
+  neither the strip nor the page moved. A scroll that moves one way, sitting
+  outside any other MorphScroll, now leaves the pan across it to the browser.
+  Nested ones do not: the library hands their swipe to the MorphScroll
+  around them, and where that one shows the browser's own scrollbar
+  (`bar: true`) the browser would take the swipe over halfway and drive it
+  natively, past its momentum and its logic.
+- **the wheel had the same trap on a trackpad.** A diagonal going mostly down
+  over a horizontal strip moved the strip by a couple of pixels and
+  swallowed the rest, because any sideways delta at all silenced the
+  vertical one. Such a diagonal now goes outward when something outside can
+  scroll that way. A mouse, having no sideways channel, still drives a
+  horizontal list with the vertical wheel, and a list with nothing around it
+  to scroll keeps the whole diagonal.
+
 ## [3.0.0] - 2026-09-10
 
 A rewrite of the whole library: instance isolation, an API cleanup, new

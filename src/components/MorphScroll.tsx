@@ -25,7 +25,10 @@ import ScrollBar from "./ScrollBar";
 import Edge from "./Edge";
 import Arrow from "./Arrow";
 
-import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
+import handleWheel, {
+  ScrollStateRefT,
+  alongOwn,
+} from "../helpers/handleWheel";
 import focusStep from "../helpers/focusStep";
 import handleMouseOrTouch, { hasOwnDrag } from "../helpers/handleMouseOrTouch";
 import {
@@ -58,7 +61,7 @@ import {
   calculateThumbSpace,
 } from "../helpers/calculateThumbSize";
 import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
-import { registerTaker, findTaker } from "../helpers/gestureRelay";
+import { registerTaker, findTaker, canTakeOutside } from "../helpers/gestureRelay";
 
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import filterValidChildren from "../helpers/filterValidChildren";
@@ -342,6 +345,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const isTouchedRef = React.useRef<boolean>(isTouchDevice());
     /* то же самое, но для разметки: см. `touchAction` ниже */
     const [isTouch, setIsTouch] = React.useState(false);
+
+    /* внутри другого MorphScroll — тогда поперечный жест отдаёт он сам, а не браузер */
+    const [nested, setNested] = React.useState(false);
     const firstRender = React.useRef<boolean>(true);
     const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | null>(
       null,
@@ -2660,7 +2666,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const wheelHeldAt = React.useRef(0);
 
     const pageByWheel = React.useCallback(
-      (event: WheelEvent, axis: "x" | "y" | "hybrid", handedOver: boolean) => {
+      (
+        event: WheelEvent,
+        axis: "x" | "y" | "hybrid",
+        handedOver: boolean,
+        acrossTaken = false,
+      ) => {
         const now = performance.now();
 
         // замок держим «съевшим»: жест наш, наружу его отдавать не за что
@@ -2671,11 +2682,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           axis === "x" ||
           (axis === "hybrid" && Math.abs(deltaX) > Math.abs(deltaY));
 
-        const along = isX
-          ? deltaX || deltaY
-          : handedOver
-            ? deltaY || deltaX
-            : deltaY;
+        const along =
+          axis === "x"
+            ? alongOwn(deltaX, deltaY, acrossTaken, true)
+            : axis === "y" && !handedOver
+              ? alongOwn(deltaY, deltaX, acrossTaken, false)
+              : isX
+                ? deltaX || deltaY
+                : handedOver
+                  ? deltaY || deltaX
+                  : deltaY;
 
         if (!along) return false;
 
@@ -3102,7 +3118,17 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, []);
 
     React.useLayoutEffect(() => {
-      if (isTouchDevice()) setIsTouch(true);
+      if (!isTouchDevice()) return;
+
+      /*
+       * `nested` нужен только тачу, поэтому и считаем его только здесь: два
+       * обновления в одном эффекте сливаются в один рендер. Отдельный вызов
+       * стоил каждому скроллу без тача лишнего коммита при монтировании.
+       */
+      setIsTouch(true);
+      setNested(
+        !!customScrollRef.current?.parentElement?.closest("[morph-scroll]"),
+      );
     }, []);
 
     // ♦ effects
@@ -3282,6 +3308,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
               : "y"
             : directionWithPriority;
 
+        /*
+         * Поперечную часть колеса отдаём наружу, только если снаружи есть
+         * кому ехать. Спрашиваем лишь у скролла одной оси и лишь когда у
+         * колеса есть оба сдвига — это трекпадная диагональ, редкий случай, а
+         * обход предков не бесплатен. У мыши второго сдвига нет, и над
+         * горизонтальным списком её колесо всё равно подменяет ось.
+         */
+        const single = directionWithPriority !== "hybrid" && !handedOver;
+        const acrossAxis = directionWithPriority === "x" ? "y" : "x";
+        const acrossDelta = acrossAxis === "y" ? e.deltaY : e.deltaX;
+        const acrossTaken =
+          single &&
+          e.deltaX !== 0 &&
+          e.deltaY !== 0 &&
+          canTakeOutside(
+            customScrollRef.current,
+            acrossAxis,
+            acrossDelta > 0 ? 1 : -1,
+          );
+
         const other = preferredDirection === "x" ? "y" : "x";
         const directionForWheel =
           preferredDirection !== "hybrid" &&
@@ -3304,8 +3350,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 scrollStateRef.current,
                 directionForWheel,
                 handedOver,
+                acrossTaken,
               )
-            : pageByWheel(e, directionForWheel, handedOver);
+            : pageByWheel(e, directionForWheel, handedOver, acrossTaken);
 
         const now = performance.now();
 
@@ -5036,7 +5083,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
              * гидрация расходилась на первом же скролле в SSR-приложении.
              * Правку вносим до отрисовки, так что промежуточного кадра нет.
              */
-            ...(isTouch && { touchAction: "pinch-zoom" }),
+            /*
+             * Скролл одной оси отдаёт браузеру пан поперёк себя: лента на
+             * обычной странице иначе глотала вертикальный свайп — ни она, ни
+             * страница под ней не ехали, потому что поперечный жест некому
+             * было передать. Вложенный так не делает: снаружи у него
+             * MorphScroll, и жест ему передаёт сама библиотека. Если у того
+             * нативный бар (`bar: true`), его окно — настоящий скроллер, и
+             * браузер отнял бы свайп на полпути: отменил бы указатель и повёл
+             * внешний сам, мимо его инерции и логики.
+             */
+            ...(isTouch && {
+              touchAction:
+                nested || direction === "hybrid"
+                  ? "pinch-zoom"
+                  : direction === "x"
+                    ? "pan-y pinch-zoom"
+                    : "pan-x pinch-zoom",
+            }),
           }}
         >
           <div

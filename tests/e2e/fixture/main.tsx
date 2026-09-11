@@ -1445,6 +1445,95 @@ scenarios.loopUnmeasured = (
  * себе, пока ему есть куда ехать, — а упёршись, обязан отдать наружу вместе
  * со скоростью, как это делает нативный тач.
  */
+/*
+ * Горизонтальная лента внутри вертикального списка — самая частая вложенность
+ * на деле: карусель посреди ленты. Жест, идущий поперёк ленты, принадлежит
+ * списку снаружи.
+ */
+const crossNest = (nativeBar = false) => (
+  <MorphScroll
+    objects={{ size: [280, 100], gap: 10 }}
+    size={[300, 400]}
+    controls={{ drag: true, wheel: true, ...(nativeBar && { bar: true }) }}
+  >
+    <div key="head" className="box">
+      head
+    </div>
+    <div key="strip" data-testid="strip-host" style={{ height: 120 }}>
+      <MorphScroll
+        direction="x"
+        objects={{ size: [120, 100], gap: 10 }}
+        size={[280, 120]}
+        controls={{ drag: true, wheel: true }}
+      >
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={`s-${i}`} className="box">
+            s{i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+    {Array.from({ length: 8 }, (_, i) => (
+      <div key={`o-${i}`} className="box">
+        o{i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.nestedCross = crossNest();
+
+/*
+ * Та же вложенность, но у внешнего нативный бар (`bar: true`): его окно —
+ * настоящий скроллер, и браузер мог бы отнять свайп у библиотеки.
+ */
+scenarios.nestedCrossNative = crossNest(true);
+
+/* та же лента, но прямо на обычной высокой странице — снаружи только сама страница */
+scenarios.pageStrip = (
+  <div style={{ height: 3000, paddingTop: 200 }}>
+    <div data-testid="page-strip-host" style={{ width: 280 }}>
+      <MorphScroll
+        direction="x"
+        objects={{ size: [120, 100], gap: 10 }}
+        size={[280, 120]}
+        controls={{ drag: true, wheel: true }}
+      >
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={`p-${i}`} className="box">
+            p{i}
+          </div>
+        ))}
+      </MorphScroll>
+    </div>
+  </div>
+);
+
+/* та же лента в обычном блоке с прокруткой — снаружи не страница, а свой div */
+scenarios.boxStrip = (
+  <div
+    data-testid="strip-box"
+    style={{ width: 320, height: 300, overflow: "auto" }}
+  >
+    <div style={{ height: 1500, paddingTop: 60 }}>
+      <div data-testid="box-strip-host" style={{ width: 280 }}>
+        <MorphScroll
+          direction="x"
+          objects={{ size: [120, 100], gap: 10 }}
+          size={[280, 120]}
+          controls={{ drag: true, wheel: true }}
+        >
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={`b-${i}`} className="box">
+              b{i}
+            </div>
+          ))}
+        </MorphScroll>
+      </div>
+    </div>
+  </div>
+);
+
 scenarios.nestedHandOff = (
   <MorphScroll
     objects={{ size: 120, gap: 10 }}

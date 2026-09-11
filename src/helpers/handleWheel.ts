@@ -32,6 +32,30 @@ const deltaOf = (e: WheelEvent, scrollEl: HTMLElement): Vec2 => {
   return [e.deltaX * scale, e.deltaY * scale];
 };
 
+/*
+ * Сколько из этого колеса принадлежит оси скролла, который едет по одной оси.
+ *
+ * У мыши поперечного канала нет вовсе — `across` у неё ноль, и тогда колесо
+ * подменяет ось: иначе горизонтальный список ей не прокрутить. Трекпад шлёт
+ * оба сдвига, и тогда решает, какой сильнее: жест, идущий поперёк, принадлежит
+ * тому, кто снаружи. Раньше любой ненулевой `own` глушил `across` целиком —
+ * диагональ вниз над лентой сдвигала ленту на пару пикселей, а страница под
+ * ней вставала.
+ */
+export const alongOwn = (
+  own: number,
+  across: number,
+  /** someone outside can move across — a gesture going that way is theirs */
+  acrossTaken: boolean,
+  /** a mouse has no sideways channel: a horizontal list takes its vertical wheel */
+  substitute: boolean,
+) =>
+  own === 0 && substitute
+    ? across
+    : Math.abs(across) > Math.abs(own) && acrossTaken
+      ? 0
+      : own;
+
 export default function handleWheel(
   e: WheelEvent,
   scrollEl: HTMLElement,
@@ -44,6 +68,8 @@ export default function handleWheel(
    * axis we were asked for would otherwise see nothing at all.
    */
   handedOver = false,
+  /** someone outside can still move across — a gesture going that way is theirs */
+  acrossTaken = false,
 ) {
   /*
    * Фокус нужен для клавиатурной навигации (changeDirectionBtn слушается на
@@ -89,12 +115,18 @@ export default function handleWheel(
    */
   const moveX =
     direction === "x"
-      ? deltaX || deltaY
+      ? alongOwn(deltaX, deltaY, acrossTaken, true)
       : direction === "hybrid"
         ? deltaX
         : 0;
   const moveY =
-    direction === "x" ? 0 : handedOver ? deltaY || deltaX : deltaY;
+    direction === "x"
+      ? 0
+      : handedOver
+        ? deltaY || deltaX
+        : direction === "y"
+          ? alongOwn(deltaY, deltaX, acrossTaken, false)
+          : deltaY;
 
   /*
    * Съел ли этот скролл движение.

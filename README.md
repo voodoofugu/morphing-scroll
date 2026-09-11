@@ -983,7 +983,7 @@ Both settings below are for <code>direction="hybrid"</code>, where one wheel has
 ✦ Note:<br />
 
 <ul>
-  <li>a wheel notch is reported in pixels, lines or pages depending on the browser, and all three are converted, so one notch travels the same distance everywhere. A sideways gesture on a trackpad drives a horizontal list directly, and a mouse, which has no sideways to give, still drives it with the vertical wheel.</li><br />
+  <li>a wheel notch is reported in pixels, lines or pages depending on the browser, and all three are converted, so one notch travels the same distance everywhere. A sideways gesture on a trackpad drives a horizontal list directly, and a mouse, which has no sideways to give, still drives it with the vertical wheel. A trackpad diagonal going mostly down over a horizontal list is left to whatever outside scrolls down — a strip in a feed does not stop the feed — and a list with nothing around it to scroll keeps the whole diagonal.</li><br />
   <li>a list that has nowhere left to go hands the wheel outward, to whatever scrolls around it — the same way a native one does, so a list inside a page is not a trap.</li><br />
   <li>the wheel takes focus for the keys to work on, but never from a field being typed in — over an <code>input</code>, <code>textarea</code>, <code>select</code> or anything <code>contenteditable</code> it scrolls and leaves the caret where it is.</li>
 </ul>
@@ -1141,7 +1141,7 @@ A tap is told from a scroll by distance, not by what is under the pointer: below
 <br />
 While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code> — that is the hook for a grabbing cursor.<br />
 <br />
-A list inside a list takes its own gesture: the drag belongs to the innermost one under the pointer, and the outer stays where it is.<br />
+A list inside a list takes its own gesture: the drag belongs to the innermost one under the pointer, and the outer stays where it is — as long as the gesture runs along the inner one's axis. A scroll that moves one way takes only drags going that way: the first few pixels show the direction, and one going across it — a vertical drag over a horizontal strip in a feed — goes to whoever outside can move that way. With nobody there, it stays where it started. A finger follows the same rule.<br />
 <br />
 The drag does not start only where the element has a drag or a caret of its own:<br />
 

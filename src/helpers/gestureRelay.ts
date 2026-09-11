@@ -46,5 +46,45 @@ const findTaker = (from: Element | null, axis: "x" | "y", toward: 1 | -1) => {
   return null;
 };
 
-export { registerTaker, findTaker };
+/*
+ * Может ли кто-то снаружи ехать в эту сторону — внешний MorphScroll с запасом
+ * или обычный прокручиваемый предок, вплоть до самой страницы.
+ *
+ * Поперечный жест отдают наружу только тогда, когда его есть кому взять.
+ * Отдав его в пустоту, скролл просто терял ввод: одиночная горизонтальная
+ * лента на неподвижной странице переставала слышать диагональ колеса вовсе.
+ */
+const canTakeOutside = (
+  from: Element | null,
+  axis: "x" | "y",
+  toward: 1 | -1,
+) => {
+  if (findTaker(from, axis, toward)) return true;
+
+  const isX = axis === "x";
+  const room = (el: Element) => {
+    const at = isX ? el.scrollLeft : el.scrollTop;
+    const most = isX
+      ? el.scrollWidth - el.clientWidth
+      : el.scrollHeight - el.clientHeight;
+
+    return most > 1 && (toward > 0 ? at < most - 1 : at > 1);
+  };
+
+  for (let node = from?.parentElement; node; node = node.parentElement) {
+    /*
+     * Окно MorphScroll вокруг уже спросили через `findTaker` — у него свой
+     * счёт запаса, с кольцом и страницами слайдера.
+     */
+    if (node.classList.contains("ms-viewport")) continue;
+
+    const flow = getComputedStyle(node)[isX ? "overflowX" : "overflowY"];
+    if ((flow === "auto" || flow === "scroll") && room(node)) return true;
+  }
+
+  const page = document.scrollingElement;
+  return !!page && room(page);
+};
+
+export { registerTaker, findTaker, canTakeOutside };
 export type { Taker };

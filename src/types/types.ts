@@ -471,7 +471,9 @@ export type MorphScroll = {
    * @description
    * - `wheel`: *allow to scroll by mouse wheel; in the slider modes one notch
    * turns one page*
-   * - `drag`: *allow to scroll by dragging the content*
+   * - `drag`: *allow to scroll by dragging the content. A scroll moving one
+   * way takes only drags going that way; one going across it is handed to
+   * whoever outside can move that way*
    * - `keys`: *arrow keys move the scroll while it has focus*
    * - `bar`: *the progress element, plus everything about how it sits*
    * - `arrows`: *add custom arrows*

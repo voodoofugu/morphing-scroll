@@ -27,6 +27,10 @@ type Velocity = {
 type PointerRuntime = CursorHolder & {
   /** travel so far — what tells a tap from a scroll */
   checkMove: { x: number; y: number };
+  /** travel on both axes since the press, until the gesture's axis is decided */
+  travel: { x: number; y: number };
+  /** whether the gesture has shown which way it goes */
+  axisDecided: boolean;
   /** travel so far, for a slider step */
   checkSliderThumbSize: { x: number; y: number };
   /** the bar element the current gesture aims at — one per axis */
@@ -55,6 +59,8 @@ const emptyVelocity = (): Velocity => ({
 function createPointerRuntime(): PointerRuntime {
   const runtime: PointerRuntime = {
     checkMove: { x: 0, y: 0 },
+    travel: { x: 0, y: 0 },
+    axisDecided: false,
     checkSliderThumbSize: { x: 0, y: 0 },
     sliderAim: { x: null, y: null },
     velocity: emptyVelocity(),
@@ -67,6 +73,8 @@ function createPointerRuntime(): PointerRuntime {
       runtime.prevCoords = null;
       runtime.velocity = emptyVelocity();
       runtime.checkMove = { x: 0, y: 0 };
+      runtime.travel = { x: 0, y: 0 };
+      runtime.axisDecided = false;
       runtime.checkSliderThumbSize = { x: 0, y: 0 };
       runtime.sliderAim = { x: null, y: null };
     },

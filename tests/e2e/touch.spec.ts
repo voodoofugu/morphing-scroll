@@ -204,3 +204,116 @@ test("a flick handed outward coasts in the scroll that took it", async ({
   // палец отпустили на ходу — внешний обязан докатиться сам
   expect(await outerAt()).toBeGreaterThan(onRelease + 40);
 });
+
+/*
+ * То же правило для пальца: лента посреди вертикального списка берёт только
+ * горизонтальный свайп, а вертикальный уходит списку снаружи.
+ */
+test.describe("ось жеста: палец", () => {
+  const openStrip = async (page: Page, scenario = "nestedCross") => {
+    await page.goto(`/?scenario=${scenario}`);
+    await expect(page.locator(".ms-viewport").nth(1)).toBeVisible();
+    await page.waitForTimeout(350);
+
+    const b = (await page.locator('[data-testid="strip-host"]').boundingBox())!;
+    return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  };
+
+  const at = (page: Page) =>
+    page.evaluate(() => {
+      const [outer, strip] = [...document.querySelectorAll<HTMLElement>(".ms-viewport")];
+      return { outer: outer.scrollTop, strip: strip.scrollLeft };
+    });
+
+  test("вертикальный свайп над лентой ведёт внешний список", async ({ page }) => {
+    const c = await openStrip(page);
+
+    await swipe(page, { x: c.x, y: c.y + 40 }, { x: c.x + 3, y: c.y - 80 }, { steps: 10, stepDelay: 30 });
+    await page.waitForTimeout(500);
+
+    const got = await at(page);
+    expect(got.outer).toBeGreaterThan(30);
+    expect(got.strip).toBe(0);
+  });
+
+  test("горизонтальный свайп по-прежнему ведёт ленту", async ({ page }) => {
+    const c = await openStrip(page);
+
+    await swipe(page, { x: c.x + 100, y: c.y }, { x: c.x - 100, y: c.y + 3 }, { steps: 10, stepDelay: 30 });
+    await page.waitForTimeout(500);
+
+    const got = await at(page);
+    expect(got.strip).toBeGreaterThan(30);
+    expect(got.outer).toBe(0);
+  });
+
+  /*
+   * С нативным баром окно внешнего — настоящий скроллер. Отдай вложенная
+   * лента пан браузеру, он отнял бы свайп на полпути: отменил бы указатель и
+   * повёл внешний сам, мимо его инерции. Поэтому вложенная пан не отдаёт.
+   */
+  test("внешний с нативным баром не теряет свайп", async ({ page }) => {
+    const c = await openStrip(page, "nestedCrossNative");
+    await page.evaluate(() => {
+      const w = window as Window & { cancels?: number };
+      w.cancels = 0;
+      document.addEventListener("pointercancel", () => w.cancels!++, true);
+    });
+
+    await swipe(page, { x: c.x, y: c.y + 40 }, { x: c.x + 3, y: c.y - 80 }, { steps: 10, stepDelay: 30 });
+    await page.waitForTimeout(500);
+
+    const got = await at(page);
+    const cancels = await page.evaluate(
+      () => (window as Window & { cancels?: number }).cancels,
+    );
+    expect(cancels).toBe(0);
+    expect(got.outer).toBeGreaterThan(30);
+    expect(got.strip).toBe(0);
+  });
+});
+
+/*
+ * Лента прямо на обычной странице. Снаружи у неё нет MorphScroll, которому
+ * библиотека могла бы передать поперечный жест, и вертикальный свайп над ней
+ * был мёртв целиком: не ехала ни лента, ни страница. Такой скролл отдаёт пан
+ * поперёк себя браузеру.
+ */
+test.describe("лента на обычной странице", () => {
+  const openPageStrip = async (page: Page) => {
+    await page.goto("/?scenario=pageStrip");
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(350);
+
+    const b = (await page.locator('[data-testid="page-strip-host"]').boundingBox())!;
+    return { x: Math.round(b.x + b.width / 2), y: Math.round(b.y + 60) };
+  };
+
+  const at = (page: Page) =>
+    page.evaluate(() => ({
+      page: window.scrollY,
+      strip: document.querySelector<HTMLElement>(".ms-viewport")!.scrollLeft,
+    }));
+
+  test("вертикальный свайп над лентой листает страницу", async ({ page }) => {
+    const c = await openPageStrip(page);
+
+    await swipe(page, { x: c.x, y: c.y }, { x: c.x + 3, y: c.y - 120 }, { steps: 10, stepDelay: 30 });
+    await page.waitForTimeout(500);
+
+    const got = await at(page);
+    expect(got.page).toBeGreaterThan(30);
+    expect(got.strip).toBe(0);
+  });
+
+  test("горизонтальный свайп ведёт ленту, а не страницу", async ({ page }) => {
+    const c = await openPageStrip(page);
+
+    await swipe(page, { x: c.x + 100, y: c.y }, { x: c.x - 100, y: c.y + 3 }, { steps: 10, stepDelay: 30 });
+    await page.waitForTimeout(500);
+
+    const got = await at(page);
+    expect(got.strip).toBeGreaterThan(30);
+    expect(got.page).toBe(0);
+  });
+});

@@ -621,8 +621,76 @@ function handleMouseOrTouch(args: HandleMouseT) {
   document.addEventListener("pointercancel", endHandler, { signal });
 }
 
+/*
+ * Чей это жест — решается в начале, по тому, куда он пошёл.
+ *
+ * Скролл, который едет по одной оси, раньше брал любую тягу и вёл её вдоль
+ * своей оси, а поперечную часть выбрасывал. Лента посреди вертикальной ленты
+ * становилась ловушкой: палец ведёт вниз, а внешний список стоит, потому что
+ * жест забрала лента. Нативная вложенная прокрутка делит так же: первые
+ * пиксели показывают направление, и поперечный жест уходит тому, кто снаружи.
+ *
+ * Пока направление не видно, не двигаем ничего — иначе, отдавая жест, мы
+ * оставили бы у себя сдвиг в пару пикселей. Если снаружи ехать некуда,
+ * жест остаётся нашим, как прежде.
+ */
+const decideAxis = (args: HandleMoveT, dir: "x" | "y"): "wait" | "gone" | "ours" => {
+  const rt = args.runtime;
+  if (rt.axisDecided) return "ours";
+
+  const prev = rt.prevCoords;
+  if (!prev) return "ours"; // первое движение только заводит отсчёт
+
+  rt.travel.x += args.event.clientX - prev.x.value;
+  rt.travel.y += args.event.clientY - prev.y.value;
+
+  if (Math.hypot(rt.travel.x, rt.travel.y) < CONST.AXIS_DECIDE_PX) return "wait";
+
+  rt.axisDecided = true;
+
+  const across = dir === "x" ? "y" : "x";
+  if (Math.abs(rt.travel[across]) <= Math.abs(rt.travel[dir])) return "ours";
+
+  /*
+   * Палец идёт вниз, а содержимое при этом едет вверх — поэтому «куда» для
+   * внешнего считаем обратным движению пальца.
+   */
+  const toward: 1 | -1 = rt.travel[across] > 0 ? -1 : 1;
+  const taken = args.handOff?.(across, toward, args.event, {
+    x: rt.velocity.x,
+    y: rt.velocity.y,
+  });
+  if (!taken) return "ours";
+
+  rt.controller?.abort();
+  rt.controller = undefined;
+  rt.resetGesture();
+
+  args.clickedObject.current = null;
+  args.isDraggingRef.current = false;
+  args.triggerUpdate();
+
+  return "gone";
+};
+
 function handleMove(args: HandleMoveT) {
   const dir = args.direction || "y";
+
+  /* делим только тягу содержимого: бар и бегунок ведут свою ось по праву */
+  if (dir !== "hybrid" && args.clickedObject.current === "wrapp" && !args.axisFromAtr) {
+    const verdict = decideAxis(args, dir);
+
+    if (verdict === "gone") return;
+
+    if (verdict === "wait") {
+      const { prevCoords } = args.runtime;
+      if (prevCoords) {
+        prevCoords.x.value = args.event.clientX;
+        prevCoords.y.value = args.event.clientY;
+      }
+      return;
+    }
+  }
 
   if (dir === "hybrid") {
     if (["wrapp", "slider"].includes(args.clickedObject.current!)) {

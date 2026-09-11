@@ -24,6 +24,11 @@ const CONST = {
    * насквозь — у него на один жест приходятся десятки событий.
    */
   SLIDER_WHEEL_LOCK: 180, // ms
+  /*
+   * Сколько должен пройти палец или мышь, прежде чем решено, чей это жест:
+   * вдоль оси — наш, поперёк — того, кто снаружи.
+   */
+  AXIS_DECIDE_PX: 6,
   END_STICK_THRESHOLD: 16, // px — на таком расстоянии от конца скролл всё ещё «внизу»
   SCROLL_READY_MAX_FRAMES: 60, // Frames to wait for the content to become scrollable
   SCROLL_READY_STILL_FRAMES: 5, // Frames of an unchanged range that end that wait
