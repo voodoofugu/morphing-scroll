@@ -619,6 +619,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const heldKeys = React.useRef<Set<string>>(new Set());
 
+    /* куда уже едет стрелка — повтор клавиши прибавляется к этой цели */
+    const keyAimRef = React.useRef<{
+      x: number | null;
+      y: number | null;
+      at: number;
+    }>({ x: null, y: null, at: 0 });
+
     /* сочетание сложилось: модификаторы — по событию, остальное — по нажатию */
     const flipsWheel = (event: WheelEvent) =>
       !!flipKeys?.some((combo) =>
@@ -3090,16 +3097,40 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         if (!scrollEl) return;
 
         const axis = isVertical ? "y" : "x";
-        const from = axis === "y" ? scrollEl.scrollTop : scrollEl.scrollLeft;
         const delta =
           side === "top" || side === "left" ? -keysLocal.step : keysLocal.step;
+
+        /*
+         * Удержанная клавиша повторяется раз в тридцать миллисекунд, а шаг
+         * едет дольше. Каждый повтор начинал заново от середины пути, и цель
+         * никогда не убегала вперёд: за секунду удержания выходило в шесть раз
+         * меньше, чем у нативной прокрутки. Пока прошлый шаг в пути, новый
+         * прибавляется к его цели — как у натива.
+         *
+         * И едет не дольше натива, но и не дольше `duration`: нулевой просит
+         * не анимировать вовсе.
+         */
+        const moveFor = Math.min(duration, CONST.KEY_PAN_DURATION);
+        const now = performance.now();
+        const aim = keyAimRef.current;
+        const inFlight = aim[axis] !== null && now - aim.at < moveFor;
+        const from = inFlight
+          ? aim[axis]!
+          : axis === "y"
+            ? scrollEl.scrollTop
+            : scrollEl.scrollLeft;
+        const most = maxScrollSize[axis === "y" ? 1 : 0];
+        const target = Math.min(most, Math.max(0, from + delta));
+
+        aim[axis] = target;
+        aim.at = now;
 
         /*
          * Метку не ставим: `pan` — это непрерывное движение, такое же как
          * колесо или перетаскивание. Если оно доедет до новой страницы
          * слайдера, это и есть "scroll".
          */
-        smoothScrollLocal(from + delta, axis, duration);
+        smoothScrollLocal(target, axis, moveFor);
       },
 
       [
@@ -3110,6 +3141,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         moveFocusLocal,
         smoothScrollLocal,
         duration,
+        maxScrollSize.join(),
       ],
     );
     const onKeyUp = React.useCallback((e: KeyboardEvent) => {

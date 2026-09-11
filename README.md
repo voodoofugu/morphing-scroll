@@ -1075,7 +1075,7 @@ mode: "focus"; // or "step" | "pan"
 <br />
 <b>Description:</b><em><br />
 <b>"step"</b> turns a page, the same move the arrow buttons make and reported through <code>onNavigate</code> as <b>"keys"</b>;<br />
-<b>"pan"</b> nudges the content along by <code>step</code> pixels;<br />
+<b>"pan"</b> nudges the content along by <code>step</code> pixels, at the pace of a native scroll — a held key keeps adding to where it is going instead of starting each step over;<br />
 <b>"focus"</b> walks the objects.<br />
 <br />
 <b>"focus"</b> is Tab, but aimed: an arrow moves focus to the neighbouring object — picked by geometry, so a grid walks its row and drops to the next one — and the scroll follows, far enough to bring it into view and no further, leaving the <code>objects.gap</code> or the <code>wrapper.margin</code> that is there.<br />

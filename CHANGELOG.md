@@ -25,6 +25,11 @@
   scroll that way. A mouse, having no sideways channel, still drives a
   horizontal list with the vertical wheel, and a list with nothing around it
   to scroll keeps the whole diagonal.
+- **a held arrow key crawled.** Each repeat started the step over from the
+  middle of the previous one, so the target never ran ahead of the scroll: a
+  second of holding travelled about a sixth of what a native scroll does.
+  Repeats now add to where the step is going, and a step takes about as long
+  as a native one — never longer than `duration`, so `0` still jumps.
 
 ## [3.0.0] - 2026-09-10
 

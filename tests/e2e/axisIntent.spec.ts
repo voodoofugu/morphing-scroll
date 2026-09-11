@@ -48,6 +48,53 @@ test.describe("ось жеста: тяга мышью", () => {
 });
 
 /*
+ * Удержанная стрелка повторяется раз в тридцать миллисекунд, а шаг едет
+ * дольше. Каждый повтор начинал заново от середины пути, и за секунду
+ * удержания выходило в шесть раз меньше, чем у нативной прокрутки.
+ * Сравниваем с нативным div в том же браузере: headless не повторяет
+ * удержанную клавишу сам, поэтому повтор изображаем серией нажатий.
+ */
+test("удержанная стрелка едет со скоростью натива", async ({ page }) => {
+  const hold = async (selector: string) => {
+    await page.locator(selector).focus();
+    const read = () =>
+      page.locator(selector).evaluate((el) => (el as HTMLElement).scrollTop);
+    const start = await read();
+
+    for (let i = 0; i < 30; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(33);
+    }
+    await page.waitForTimeout(400);
+
+    return (await read()) - start;
+  };
+
+  await page.goto("/?scenario=wheel");
+  await page.evaluate(() => {
+    document.body.innerHTML = `<div id="native" tabindex="0" style="width:300px;height:300px;overflow:auto"><div style="height:20000px"></div></div>`;
+  });
+  const native = await hold("#native");
+
+  await page.goto(
+    `/?scenario=crash&props=${encodeURIComponent(
+      JSON.stringify({
+        count: 300,
+        size: [300, 300],
+        objects: { size: [280, 60], gap: 10 },
+        controls: { keys: { mode: "pan" } },
+      }),
+    )}`,
+  );
+  await expect(page.locator(".ms-viewport")).toBeVisible();
+  await page.waitForTimeout(350);
+  const ours = await hold(".ms-viewport");
+
+  expect(native).toBeGreaterThan(600); // эталон и правда уехал
+  expect(ours).toBeGreaterThan(native * 0.8);
+});
+
+/*
  * У колеса то же правило. Трекпадная диагональ вниз над лентой в вертикальном
  * списке сдвигала ленту на пару пикселей и глотала остальное: любой ненулевой
  * поперечный сдвиг глушил вертикальный целиком. Отдаём её наружу — но только
