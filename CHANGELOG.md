@@ -25,6 +25,11 @@
   scroll that way. A mouse, having no sideways channel, still drives a
   horizontal list with the vertical wheel, and a list with nothing around it
   to scroll keeps the whole diagonal.
+- **the thumb of a nested scroll dragged the scroll around it too.** The bar
+  sits outside its own scroll's viewport but inside the outer one's, so a
+  press on it reached the outer as a drag of its content: the thumb moved its
+  list, and every wobble of the hand moved the one around it. The press a bar
+  starts its gesture with now stays with that bar.
 - **a held arrow key crawled.** Each repeat started the step over from the
   middle of the previous one, so the target never ran ahead of the scroll: a
   second of holding travelled about a sixth of what a native scroll does.

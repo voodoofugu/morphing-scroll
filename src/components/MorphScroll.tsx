@@ -61,7 +61,12 @@ import {
   calculateThumbSpace,
 } from "../helpers/calculateThumbSize";
 import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
-import { registerTaker, findTaker, canTakeOutside } from "../helpers/gestureRelay";
+import {
+  registerTaker,
+  findTaker,
+  canTakeOutside,
+  isGestureClaimed,
+} from "../helpers/gestureRelay";
 
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import filterValidChildren from "../helpers/filterValidChildren";
@@ -4327,6 +4332,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       const handler = (event: PointerEvent) => {
         if (isOnNativeBar(event)) return;
+
+        // жест уже начал бар вложенного скролла — см. `claimGesture`
+        if (isGestureClaimed(event)) return;
 
         /*
          * Жест забирает себе самый внутренний скролл — но только тот, которому

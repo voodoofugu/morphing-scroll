@@ -1450,7 +1450,7 @@ scenarios.loopUnmeasured = (
  * на деле: карусель посреди ленты. Жест, идущий поперёк ленты, принадлежит
  * списку снаружи.
  */
-const crossNest = (nativeBar = false) => (
+const crossNest = (nativeBar = false, innerBar = false) => (
   <MorphScroll
     objects={{ size: [280, 100], gap: 10 }}
     size={[300, 400]}
@@ -1464,7 +1464,11 @@ const crossNest = (nativeBar = false) => (
         direction="x"
         objects={{ size: [120, 100], gap: 10 }}
         size={[280, 120]}
-        controls={{ drag: true, wheel: true }}
+        controls={{
+          drag: true,
+          wheel: true,
+          ...(innerBar && { bar: <div className="thumb" /> }),
+        }}
       >
         {Array.from({ length: 8 }, (_, i) => (
           <div key={`s-${i}`} className="box">
@@ -1488,6 +1492,9 @@ scenarios.nestedCross = crossNest();
  * настоящий скроллер, и браузер мог бы отнять свайп у библиотеки.
  */
 scenarios.nestedCrossNative = crossNest(true);
+
+/* у ленты свой бегунок: его жест — её, внешний тут ни при чём */
+scenarios.nestedCrossBar = crossNest(false, true);
 
 /* та же лента, но прямо на обычной высокой странице — снаружи только сама страница */
 scenarios.pageStrip = (

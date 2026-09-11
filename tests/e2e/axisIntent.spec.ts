@@ -45,6 +45,33 @@ test.describe("ось жеста: тяга мышью", () => {
     expect(got.strip).toBeGreaterThan(40);
     expect(got.outer).toBe(0);
   });
+
+  /*
+   * Бар лежит вне окна ленты, но внутри окна внешнего, и нажатие на бегунок
+   * доходило до внешнего как тяга содержимого: бегунок вёл ленту, а дрожь
+   * руки — внешний список. Дрожь вверх: вниз стоящему наверху ехать некуда.
+   */
+  test("бегунок ленты не тянет внешний список", async ({ page }) => {
+    await page.goto("/?scenario=nestedCrossBar");
+    const thumb = page.locator('[data-testid="strip-host"] .ms-thumb');
+    await expect(thumb).toBeVisible();
+    await page.waitForTimeout(350);
+
+    const b = (await thumb.boundingBox())!;
+    const x = b.x + b.width / 2;
+    const y = b.y + b.height / 2;
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let i = 1; i <= 12; i++)
+      await page.mouse.move(x + (120 * i) / 12, y - (20 * i) / 12);
+    await page.mouse.up();
+    await page.waitForTimeout(450);
+
+    const got = await positions(page);
+    expect(got.strip).toBeGreaterThan(40);
+    expect(got.outer).toBe(0);
+  });
 });
 
 /*

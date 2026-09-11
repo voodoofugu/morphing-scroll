@@ -271,6 +271,23 @@ test.describe("ось жеста: палец", () => {
     expect(got.outer).toBeGreaterThan(30);
     expect(got.strip).toBe(0);
   });
+
+  /* бегунок ленты — её: палец на нём не тянет внешний список */
+  test("бегунок ленты не тянет внешний список", async ({ page }) => {
+    await page.goto("/?scenario=nestedCrossBar");
+    const thumb = page.locator('[data-testid="strip-host"] .ms-thumb');
+    await expect(thumb).toBeVisible();
+    await page.waitForTimeout(350);
+
+    const b = (await thumb.boundingBox())!;
+    const t = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    await swipe(page, t, { x: t.x + 120, y: t.y - 20 }, { steps: 10, stepDelay: 30 });
+    await page.waitForTimeout(500);
+
+    const got = await at(page);
+    expect(got.strip).toBeGreaterThan(40);
+    expect(got.outer).toBe(0);
+  });
 });
 
 /*

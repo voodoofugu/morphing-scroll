@@ -8,6 +8,7 @@ import type {
 
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
+import { claimGesture } from "../helpers/gestureRelay";
 
 type ModifiedProps = Pick<MorphScroll, "mode"> & {
   /** the bar configuration, already parsed, for one axis */
@@ -203,6 +204,9 @@ const ScrollBar = ({
     if (!el || mode === "sliderMenu") return;
 
     const handleStart = (e: PointerEvent) => {
+      // жест наш — внешний скролл не должен принять нажатие за свою тягу
+      claimGesture(e);
+
       // страницу перелистнёт снап после отпускания, но начал её бар
       if (mode === "slider") markNavigate("bar");
       (scrollBarEvent as (e: PointerEvent) => void)(e);

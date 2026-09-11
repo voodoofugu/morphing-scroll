@@ -86,5 +86,27 @@ const canTakeOutside = (
   return !!page && room(page);
 };
 
-export { registerTaker, findTaker, canTakeOutside };
+/*
+ * Нажатия, с которых жест уже начал какой-то скролл.
+ *
+ * Бар лежит вне окна своего скролла, но внутри окна внешнего, и нажатие на
+ * бегунок вложенного доходило до внешнего как тяга его содержимого: бегунок
+ * вёл свой список, а дрожь руки — внешний. Гасить всплытие нельзя — выше
+ * слушают и свои, показ бара при касании, и приложение. Поэтому отмечаем.
+ */
+const claimed = new WeakSet<Event>();
+
+const claimGesture = (event: Event) => {
+  claimed.add(event);
+};
+
+const isGestureClaimed = (event: Event) => claimed.has(event);
+
+export {
+  registerTaker,
+  findTaker,
+  canTakeOutside,
+  claimGesture,
+  isGestureClaimed,
+};
 export type { Taker };
