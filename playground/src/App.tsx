@@ -437,14 +437,16 @@ function App() {
           ))}
         </div>
 
-        <ControlGroup defaultOpen hint="className · children" title="general">
-          <Field label="className">
-            <input
-              onChange={(event) => update("className", event.target.value)}
-              placeholder="custom class"
-              value={settings.className}
-            />
-          </Field>
+        {/*
+         * Стенд и API разведены: здесь всё, чего в пропсах нет вовсе, —
+         * сколько объектов, какие они и чем по ним ездить. Ниже идут группы,
+         * повторяющие дерево пропсов.
+         */}
+        <ControlGroup
+          defaultOpen
+          hint="the stand itself, not the API"
+          title="demo"
+        >
           <NumberField
             label="children count"
             max={1200}
@@ -488,11 +490,48 @@ function App() {
               the edges follow
             </div>
           )}
+
+          <SubGroup
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("gamepad", value)}
+                value={settings.gamepad}
+              />
+            }
+            label="gamepad"
+            enabled={settings.gamepad}
+          >
+            <p className="sub-note">
+              the README recipe, running live on the same <code>ref</code>:
+              right stick pans, d-pad steps — or walks the objects, when{" "}
+              <code>keys</code> is set to <code>focus</code>.
+            </p>
+            <p className="sub-note">
+              browsers hide a pad until it sends something: press any button
+              once. What it sends — every axis by index, and the buttons held —
+              shows in the <code>gamepad</code> meter under the surface.
+            </p>
+          </SubGroup>
+        </ControlGroup>
+
+        <ControlGroup hint="className · children" title="general">
+          <Field label="className">
+            <input
+              onChange={(event) => update("className", event.target.value)}
+              placeholder="custom class"
+              value={settings.className}
+            />
+          </Field>
+          <p className="sub-note">
+            <code>children</code> are the objects themselves — this stand
+            builds them, see <b>demo</b> above
+          </p>
         </ControlGroup>
 
         <ControlGroup
           defaultOpen
-          hint="mode · direction · stickToEnd · loop · scrollTo"
+          hint="mode · direction · loop · duration"
           title="scroll"
         >
           <SelectField
@@ -533,8 +572,18 @@ function App() {
             onChange={(value) => update("autoScrollOnDrag", value)}
             value={settings.autoScrollOnDrag}
           />
+          <NumberField
+            label="duration"
+            max={5000}
+            onChange={setScrollDuration}
+            value={scrollDuration}
+          />
+          <p className="sub-note">
+            how long a move of the library&apos;s own takes; the{" "}
+            <code>ref</code> commands below take it too
+          </p>
 
-          <SubGroup label="scrollTo (ref)">
+          <SubGroup label="ref.scrollTo">
             <div className="two-col">
               {settings.direction !== "y" && (
                 <NumberField
@@ -553,12 +602,6 @@ function App() {
                 />
               )}
             </div>
-            <NumberField
-              label="duration"
-              max={5000}
-              onChange={setScrollDuration}
-              value={scrollDuration}
-            />
             <div className="scroll-command-row">
               <button onClick={() => applyScroll("value")} type="button">
                 value
@@ -631,7 +674,7 @@ function App() {
             </p>
           </SubGroup>
 
-          <SubGroup label="scrollToObject (ref)">
+          <SubGroup label="ref.scrollToObject">
             <TextField
               label="target"
               onChange={setObjectTarget}
@@ -691,29 +734,6 @@ function App() {
               brackets: <code>item-12[s2]</code>
             </p>
           </SubGroup>
-
-          <SubGroup
-            control={
-              <ToggleField
-                label=""
-                onChange={(value) => update("gamepad", value)}
-                value={settings.gamepad}
-              />
-            }
-            label="gamepad"
-            enabled={settings.gamepad}
-          >
-            <p className="sub-note">
-              the README recipe, running live on the same <code>ref</code>:
-              right stick pans, d-pad steps — or walks the objects, when{" "}
-              <code>keys</code> is set to <code>focus</code>.
-            </p>
-            <p className="sub-note">
-              browsers hide a pad until it sends something: press any button
-              once. What it sends — every axis by index, and the buttons held —
-              shows in the <code>gamepad</code> meter under the surface.
-            </p>
-          </SubGroup>
         </ControlGroup>
 
         <ControlGroup hint="size · objects · wrapper" title="layout">
@@ -750,8 +770,9 @@ function App() {
               value={settings.squareSize}
             />
           )}
+
           <SelectField
-            label="objectsSize"
+            label="objects.size"
             onChange={(value) => update("objectsSizeMode", value)}
             options={
               [
@@ -846,26 +867,66 @@ function App() {
                   reshuffle
                 </button>
               </div>
+              <p className="sub-note">
+                the three above are the stand&apos;s own: they give the demo
+                objects their sizes, so that <code>&quot;auto&quot;</code> has
+                something to measure
+              </p>
             </>
           )}
-          <NumberField
-            label="lines"
-            max={20}
-            onChange={(value) => update("lines", value)}
-            value={settings.lines}
-          />
           <div className="two-col">
             <NumberField
-              label="gap x"
+              label="objects.gap x"
               max={80}
               onChange={(value) => update("gapX", value)}
               value={settings.gapX}
             />
             <NumberField
-              label="gap y"
+              label="objects.gap y"
               max={80}
               onChange={(value) => update("gapY", value)}
               value={settings.gapY}
+            />
+          </div>
+          <NumberField
+            label="objects.lines"
+            max={20}
+            onChange={(value) => update("lines", value)}
+            value={settings.lines}
+          />
+          <div className="two-col">
+            <SelectField
+              label="objects.align"
+              onChange={(value) => update("objectsAlign", value)}
+              options={alignOptions}
+              value={settings.objectsAlign}
+            />
+            <SelectField
+              label="objects.order"
+              onChange={(value) => update("objectsOrder", value)}
+              options={["row", "column"] as const}
+              value={settings.objectsOrder}
+            />
+          </div>
+          <SelectField
+            label="objects.empty"
+            onChange={(value) => update("emptyMode", value)}
+            options={["off", "clear", "fallback", "fallbackWithClick"] as const}
+            value={settings.emptyMode}
+          />
+
+          <div className="two-col">
+            <SelectField
+              label="wrapper.align x"
+              onChange={(value) => update("wrapperAlignX", value)}
+              options={alignOptions}
+              value={settings.wrapperAlignX}
+            />
+            <SelectField
+              label="wrapper.align y"
+              onChange={(value) => update("wrapperAlignY", value)}
+              options={alignOptions}
+              value={settings.wrapperAlignY}
             />
           </div>
 
@@ -927,45 +988,7 @@ function App() {
           </SubGroup>
         </ControlGroup>
 
-        <ControlGroup
-          hint="wrapper.align · objects.align · objects.order"
-          title="layout"
-        >
-          <div className="two-col">
-            <SelectField
-              label="wrapper.align x"
-              onChange={(value) => update("wrapperAlignX", value)}
-              options={alignOptions}
-              value={settings.wrapperAlignX}
-            />
-            <SelectField
-              label="wrapper.align y"
-              onChange={(value) => update("wrapperAlignY", value)}
-              options={alignOptions}
-              value={settings.wrapperAlignY}
-            />
-          </div>
-          <div className="two-col">
-            <SelectField
-              label="objectsAlign"
-              onChange={(value) => update("objectsAlign", value)}
-              options={alignOptions}
-              value={settings.objectsAlign}
-            />
-            <SelectField
-              label="objects.order"
-              onChange={(value) => update("objectsOrder", value)}
-              options={["row", "column"] as const}
-              value={settings.objectsOrder}
-            />
-          </div>
-        </ControlGroup>
-
-        <ControlGroup
-          defaultOpen
-          hint="controls · edge"
-          title="progress"
-        >
+        <ControlGroup defaultOpen hint="controls · edge" title="progress">
           <SubGroup
             control={
               <ToggleField
@@ -974,7 +997,7 @@ function App() {
                 value={settings.wheel}
               />
             }
-            label="wheel"
+            label="controls.wheel"
             enabled={settings.wheel && settings.direction === "hybrid"}
           >
             <ToggleField
@@ -1001,7 +1024,7 @@ function App() {
                 value={settings.contentDrag}
               />
             }
-            label="drag"
+            label="controls.drag"
           />
 
           <SubGroup
@@ -1012,7 +1035,7 @@ function App() {
                 value={settings.keys}
               />
             }
-            label="keys"
+            label="controls.keys"
             enabled={settings.keys}
           >
             <SelectField
@@ -1047,7 +1070,7 @@ function App() {
                 value={settings.progressElementMode}
               />
             }
-            label="bar"
+            label="controls.bar"
             enabled={settings.progressElementMode === "custom"}
           >
             <ToggleField
@@ -1135,7 +1158,7 @@ function App() {
                 value={settings.arrows}
               />
             }
-            label="arrows"
+            label="controls.arrows"
             enabled={settings.arrows}
           >
             <NumberField
@@ -1184,7 +1207,7 @@ function App() {
         </ControlGroup>
 
         <ControlGroup
-          hint="render · emptyObjects · suspending · fallback"
+          hint="render · trackVisibility · suspending · fallback"
           title="optimization"
         >
           <SubGroup
@@ -1205,25 +1228,17 @@ function App() {
               onChange={(value) => update("rootMargin", value)}
               value={settings.rootMargin}
             />
-            <div className="two-col">
-              <ToggleField
-                label="deferLoadOnScroll"
-                onChange={(value) => update("deferLoadOnScroll", value)}
-                value={settings.deferLoadOnScroll}
-              />
-              <ToggleField
-                label="trackVisibility"
-                onChange={(value) => update("trackVisibility", value)}
-                value={settings.trackVisibility}
-              />
-            </div>
+            <ToggleField
+              label="deferLoadOnScroll"
+              onChange={(value) => update("deferLoadOnScroll", value)}
+              value={settings.deferLoadOnScroll}
+            />
           </SubGroup>
 
-          <SelectField
-            label="emptyObjects"
-            onChange={(value) => update("emptyMode", value)}
-            options={["off", "clear", "fallback", "fallbackWithClick"] as const}
-            value={settings.emptyMode}
+          <ToggleField
+            label="trackVisibility"
+            onChange={(value) => update("trackVisibility", value)}
+            value={settings.trackVisibility}
           />
           <ToggleField
             label="suspending"
