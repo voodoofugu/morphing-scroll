@@ -133,6 +133,7 @@ const MODIFIER_FLAG: Record<
  * ##### — SCROLL —
  * - `mode`
  * - `direction`
+ * - `fromRight`
  * - `initialPosition`
  * - `stickToEnd`
  * - `loop`
