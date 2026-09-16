@@ -13,10 +13,10 @@ import stabilize from "../helpers/stabilize";
  * - `style`
  * - `measure`
  * - `onResize`
- *
- * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  * ### Links:
  * [ResizeTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
+ *
+ * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  */
 const ResizeTracker: React.FC<ResizeTrackerProps> = ({
   className,

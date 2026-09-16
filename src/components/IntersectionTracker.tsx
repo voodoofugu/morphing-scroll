@@ -22,10 +22,10 @@ import stabilize from "../helpers/stabilize";
  * - `rootMargin`
  * - `threshold`
  * - `onIntersection`
- *
- * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  * ### Links:
  * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
+ *
+ * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  */
 const IntersectionTracker: React.FC<IntersectionTrackerProps> = ({
   className,

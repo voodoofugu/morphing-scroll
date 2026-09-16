@@ -101,6 +101,26 @@ const isTextEntry = (target: EventTarget | null) => {
   return ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 };
 
+/*
+ * Состояние модификатора приходит с самим событием колеса, и это единственный
+ * надёжный источник: нажатие ловится на элементе прокрутки, а фокуса на нём в
+ * этот момент может и не быть — модификатор зажимают до того, как коснулись
+ * списка. Остальные клавиши в событии не отражены, их приходится сторожить.
+ */
+const MODIFIER_FLAG: Record<
+  string,
+  "shiftKey" | "altKey" | "ctrlKey" | "metaKey"
+> = {
+  ShiftLeft: "shiftKey",
+  ShiftRight: "shiftKey",
+  AltLeft: "altKey",
+  AltRight: "altKey",
+  ControlLeft: "ctrlKey",
+  ControlRight: "ctrlKey",
+  MetaLeft: "metaKey",
+  MetaRight: "metaKey",
+};
+
 /**---
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***MorphScroll***:
@@ -143,26 +163,6 @@ const isTextEntry = (target: EventTarget | null) => {
  * ### Links:
  * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */
-/*
- * Состояние модификатора приходит с самим событием колеса, и это единственный
- * надёжный источник: нажатие ловится на элементе прокрутки, а фокуса на нём в
- * этот момент может и не быть — модификатор зажимают до того, как коснулись
- * списка. Остальные клавиши в событии не отражены, их приходится сторожить.
- */
-const MODIFIER_FLAG: Record<
-  string,
-  "shiftKey" | "altKey" | "ctrlKey" | "metaKey"
-> = {
-  ShiftLeft: "shiftKey",
-  ShiftRight: "shiftKey",
-  AltLeft: "altKey",
-  AltRight: "altKey",
-  ControlLeft: "ctrlKey",
-  ControlRight: "ctrlKey",
-  MetaLeft: "metaKey",
-  MetaRight: "metaKey",
-};
-
 const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
   function MorphScroll(
     {

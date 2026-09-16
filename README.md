@@ -54,7 +54,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Two things are done for you: content loading **above** the reader does not push them down, and a system request for less motion turns the library's own animations into jumps.
 > - A combination that cannot work is reported once as a `[MS n]` warning and the scroll keeps running; only a missing `size` throws. The `n` tells one scroll from another, and the same number stands on its root as `morph-scroll="n"` — that is how you find the one being talked about.
 > - DevTools makes it feel slower — the DOM keeps changing and every change is reported to the panel. Closed, that cost does not exist.
-> - The API is final: **3.0** is what it will stay.
+> - The API is final: **3** is what it will stay.
 
 <h2></h2>
 
