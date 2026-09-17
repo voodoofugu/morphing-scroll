@@ -15,9 +15,9 @@
   --ink-faint: #8d9a96;
   --line: #d8e0dc;
   --line-soft: #ebefed;
-  --accent: #0b8c92;
-  --accent-soft: #dff3ef;
-  --accent-ink: #075a60;
+  --accent: #2563eb;
+  --accent-soft: #e6edfd;
+  --accent-ink: #1d4ed8;
   --code-bg: #17201f;
   --code-ink: #eef7f4;
   --grid: rgba(24, 32, 31, 0.05);
@@ -37,9 +37,9 @@
     --ink-faint: #71807b;
     --line: #2a3533;
     --line-soft: #222c2a;
-    --accent: #2bb7bd;
-    --accent-soft: #10312f;
-    --accent-ink: #8ce0e3;
+    --accent: #5b9bf8;
+    --accent-soft: #16233d;
+    --accent-ink: #a9c8ff;
     --code-bg: #0b1211;
     --code-ink: #dff0ec;
     --grid: rgba(255, 255, 255, 0.05);
@@ -59,9 +59,9 @@
   --ink-faint: #71807b;
   --line: #2a3533;
   --line-soft: #222c2a;
-  --accent: #2bb7bd;
-  --accent-soft: #10312f;
-  --accent-ink: #8ce0e3;
+  --accent: #5b9bf8;
+  --accent-soft: #16233d;
+  --accent-ink: #a9c8ff;
   --code-bg: #0b1211;
   --code-ink: #dff0ec;
   --grid: rgba(255, 255, 255, 0.05);
@@ -325,7 +325,7 @@ input[type="color"] {
 }
 
 .prop-note {
-  margin: -2px 10px 8px;
+  padding: 0 10px 9px;
 }
 
 .prop-body {
@@ -453,7 +453,7 @@ input[type="color"] {
 
 .workbench {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 10px;
   min-width: 0;
   height: 100vh;
@@ -466,6 +466,20 @@ input[type="color"] {
   gap: 8px 14px;
   align-items: baseline;
   justify-content: space-between;
+}
+
+.surface-title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.app-shell.is-expanded {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.is-expanded .control-panel {
+  display: none;
 }
 
 .workbench-header h2 {
@@ -528,18 +542,6 @@ input[type="color"] {
   justify-items: stretch;
 }
 
-.intersection-probe {
-  display: flex;
-  align-items: center;
-  min-height: 30px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  padding: 0 11px;
-  color: var(--ink-soft);
-  font-size: 11px;
-  font-weight: 700;
-}
 
 .code-panel {
   min-width: 0;

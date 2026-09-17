@@ -96,6 +96,33 @@ body.no-select {
   color: var(--item-ink);
 }
 
+/*
+ * Объект появился — это видно. Анимируем карточку, а не бокс вокруг неё:
+ * место боксу библиотека задаёт через transform, и своя анимация на нём
+ * в каскаде сильнее — все объекты сошлись бы в одну точку.
+ */
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.demo-item {
+  animation: item-in 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-item {
+    animation: none;
+  }
+}
+
 .demo-item header {
   display: flex;
   gap: 8px;
@@ -198,39 +225,30 @@ body.no-select {
   background: var(--accent-soft);
 }
 
+/* форму рисует сам элемент бегунка, здесь только место под него */
 .playground-scroll .ms-thumb {
   width: 14px;
   min-height: 28px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 1px 6px var(--shadow);
-  transition: background 0.18s ease;
 }
 
-.playground-scroll .ms-bar:hover .ms-thumb,
-.playground-scroll .ms-thumb.ms-grabbing {
-  background: var(--accent-ink);
-}
-
-.thumb-content {
+.scroll-thumb,
+.scroll-thumb-frame,
+.scroll-thumb-shape {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: inherit;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 42%,
-      rgba(255, 255, 255, 0.85) 42% 48%,
-      transparent 48%
-    ),
-    linear-gradient(
-      90deg,
-      transparent 54%,
-      rgba(255, 255, 255, 0.85) 54% 60%,
-      transparent 60%
-    );
 }
+
+.scroll-thumb {
+  color: var(--accent);
+  transition: color 0.18s ease;
+}
+
+.playground-scroll .ms-bar:hover .scroll-thumb,
+.playground-scroll .ms-thumb.ms-grabbing .scroll-thumb {
+  color: var(--accent-ink);
+}
+
 
 .playground-scroll .ms-slider {
   gap: 6px;
@@ -265,9 +283,10 @@ body.no-select {
   display: block;
   width: 7px;
   height: 7px;
-  border-radius: 999px;
+  border-radius: 1px;
   background: currentColor;
   opacity: 0.55;
+  transform: rotate(45deg);
   transition:
     opacity 140ms ease,
     transform 140ms ease;
@@ -276,7 +295,7 @@ body.no-select {
 /* страница, на которой стоим: точка в активном пункте */
 .playground-scroll .ms-slider-item.ms-active .slider-progress-dot {
   opacity: 1;
-  transform: scale(1.35);
+  transform: rotate(45deg) scale(1.35);
 }
 
 .slider-menu-button {

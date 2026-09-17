@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  IntersectionTracker,
-  MorphScroll,
-  ResizeTracker,
-} from "@morphing-scroll/src";
+import { MorphScroll, ResizeTracker } from "@morphing-scroll/src";
 import logo from "@morphing-scroll/src/assets/morphing-scroll-logo.png";
 import type {
   MorphScroll as MorphScrollProps,
@@ -40,6 +36,7 @@ import { buildSnippet } from "./dashboard/snippet";
 import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
 import { useGamepadScroll } from "./custom/gamepad";
+import ScrollThumb from "./custom/ScrollThumb";
 
 function App() {
   const [settings, setSettings, update] = useStoredSettings();
@@ -51,11 +48,12 @@ function App() {
   );
   const [renderedKeys, setRenderedKeys] = React.useState<string[]>([]);
   const [resizeRect, setResizeRect] = React.useState({ width: 0, height: 0 });
-  const [isProbeVisible, setIsProbeVisible] = React.useState(false);
   const [scrollXInput, setScrollXInput] = React.useState(0);
   const [scrollYInput, setScrollYInput] = React.useState(0);
   const [scrollDuration, setScrollDuration] = React.useState(220);
   const [pad, setPad] = React.useState<PadSample | null>(null);
+  /* панель уезжает, и в окно можно вписать размеры больше самой панели */
+  const [expanded, setExpanded] = React.useState(false);
   const scrollRef = React.useRef<MorphScrollHandle>(null);
 
   useGamepadScroll(
@@ -247,7 +245,7 @@ function App() {
     if (settings.progressElementMode === "native") return true;
     if (settings.mode === "slider")
       return <span className="slider-progress-dot" />;
-    return <span className="thumb-content" />;
+    return <ScrollThumb />;
   }, [progressMenu, settings.progressElementMode, settings.mode]);
 
   const render = React.useMemo<MorphScrollProps["render"]>(() => {
@@ -384,13 +382,6 @@ function App() {
     });
   }, []);
 
-  const handleIntersection = React.useCallback(
-    (entry: IntersectionObserverEntry) => {
-      setIsProbeVisible(entry.isIntersecting);
-    },
-    [],
-  );
-
   const applyScroll = React.useCallback(
     (mode: "clear" | "end" | "start" | "value") => {
       /*
@@ -441,7 +432,7 @@ function App() {
   }, [settings.theme]);
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell${expanded ? " is-expanded" : ""}`}>
       <aside className="control-panel">
         <div className="brand-row">
           <img alt="" src={logo} />
@@ -1415,7 +1406,16 @@ function App() {
 
       <section className="workbench">
         <header className="workbench-header">
-          <h2>Live surface</h2>
+          <div className="surface-title">
+            <button
+              className="ghost-btn"
+              onClick={() => setExpanded((current) => !current)}
+              type="button"
+            >
+              {expanded ? "settings" : "expand"}
+            </button>
+            <h2>Live surface</h2>
+          </div>
           {/*
            * Живые показания, а не повтор настроек: где стоим, едем ли, что
            * последним сказал onNavigate, сколько намерено окно и сколько
@@ -1446,7 +1446,15 @@ function App() {
               </b>
             </span>
             <span>
-              rendered <b>{renderedKeys.length}</b>
+              rendered{" "}
+              <b>
+                {/* без `render` в документе стоят все объекты, а не ноль */}
+                {!settings.enableOnRenderedKeysChange
+                  ? "—"
+                  : settings.renderMode === "off"
+                    ? settings.itemCount
+                    : renderedKeys.length}
+              </b>
             </span>
           </div>
         </header>
@@ -1467,15 +1475,6 @@ function App() {
             </MorphScroll>
           </div>
         </ResizeTracker>
-
-        <IntersectionTracker
-          className="intersection-probe"
-          onIntersection={handleIntersection}
-        >
-          <span>
-            IntersectionTracker: {isProbeVisible ? "visible" : "hidden"}
-          </span>
-        </IntersectionTracker>
 
         <section className="code-panel">
           <header>
