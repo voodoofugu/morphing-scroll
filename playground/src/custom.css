@@ -1,0 +1,344 @@
+/*
+ * Всё, что посетитель меняет под себя: сам скролл, объекты в нём, бегунок,
+ * стрелки, край и заглушки. Библиотека этого не навязывает — здесь показано,
+ * как это выглядит, когда оформляешь сам.
+ */
+:root {
+  --item-ink: #17201f;
+  --tone-0: #dff3ef;
+  --tone-1: #f7e5bf;
+  --tone-2: #e8e3fb;
+  --tone-3: #f5d6cf;
+  --tone-4: #dceafb;
+  --tone-5: #e8f0ce;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --item-ink: #e6efec;
+    --tone-0: #14403d;
+    --tone-1: #43371c;
+    --tone-2: #322c4c;
+    --tone-3: #452c27;
+    --tone-4: #1e3348;
+    --tone-5: #2f3a1f;
+  }
+}
+
+:root[data-theme="dark"] {
+  --item-ink: #e6efec;
+  --tone-0: #14403d;
+  --tone-1: #43371c;
+  --tone-2: #322c4c;
+  --tone-3: #452c27;
+  --tone-4: #1e3348;
+  --tone-5: #2f3a1f;
+}
+
+[morph-scroll].playground-scroll {
+  isolation: isolate;
+  border-radius: 10px;
+  background: var(--card);
+  box-shadow: 0 10px 28px var(--shadow);
+}
+
+.playground-scroll .ms-content,
+.playground-scroll .ms-viewport {
+  border-radius: 10px;
+}
+
+.playground-scroll .ms-objects-wrapper {
+  align-content: flex-start;
+}
+
+.playground-scroll .ms-object-box {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+/* keys: focus — видно, куда ушёл фокус; фокус берёт сам объект */
+.playground-scroll .ms-object-box:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.playground-scroll .ms-object-box.remove {
+  opacity: 0.28;
+  transform: scale(0.96);
+}
+
+/* на время перетаскивания карточки: текст под курсором иначе выделяется */
+body.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.demo-item {
+  /*
+   * Долю видимости библиотека кладёт переменной на бокс объекта — карточка
+   * внутри его наследует. Без trackVisibility переменной нет, и запасная
+   * единица держит карточку видимой.
+   */
+  opacity: var(--ms-content-visibility, 1);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  min-width: 82px;
+  min-height: 68px;
+  overflow: hidden;
+  border: 1px solid rgba(127, 140, 137, 0.25);
+  border-radius: 8px;
+  padding: 11px;
+  color: var(--item-ink);
+}
+
+.demo-item header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.demo-item b {
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+.demo-item span {
+  overflow: hidden;
+  opacity: 0.7;
+  font-size: 11px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.demo-item p {
+  margin: 8px 0 0;
+  opacity: 0.66;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.demo-item.is-wide {
+  padding-inline: 14px;
+}
+
+.demo-item[ms-custom-drag] {
+  cursor: grab;
+}
+
+.demo-item[ms-custom-drag]:active {
+  cursor: grabbing;
+}
+
+/* объект, который сейчас несут: приподнят и не мешает попасть по соседям */
+.demo-item.is-dragging {
+  z-index: 2;
+  opacity: 0.65;
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.tone-0 {
+  background: var(--tone-0);
+}
+
+.tone-1 {
+  background: var(--tone-1);
+}
+
+.tone-2 {
+  background: var(--tone-2);
+}
+
+.tone-3 {
+  background: var(--tone-3);
+}
+
+.tone-4 {
+  background: var(--tone-4);
+}
+
+.tone-5 {
+  background: var(--tone-5);
+}
+
+/* мишень clickTrigger у objects.empty — и проверка тяги по кнопкам */
+.item-action {
+  align-self: flex-start;
+  min-height: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(127, 140, 137, 0.2);
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+}
+
+.playground-scroll .ms-bar {
+  width: 14px;
+  border-radius: 999px;
+  background: rgba(127, 140, 137, 0.16);
+  /* showOnHover сообщает состояние переменной, оформляем сами */
+  opacity: var(--ms-bar-visibility, 1);
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease;
+}
+
+.playground-scroll .ms-bar.ms-hover,
+.playground-scroll .ms-slider.ms-hover {
+  background: var(--accent-soft);
+}
+
+.playground-scroll .ms-thumb {
+  width: 14px;
+  min-height: 28px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 1px 6px var(--shadow);
+  transition: background 0.18s ease;
+}
+
+.playground-scroll .ms-bar:hover .ms-thumb,
+.playground-scroll .ms-thumb.ms-grabbing {
+  background: var(--accent-ink);
+}
+
+.thumb-content {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 42%,
+      rgba(255, 255, 255, 0.85) 42% 48%,
+      transparent 48%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 54%,
+      rgba(255, 255, 255, 0.85) 54% 60%,
+      transparent 60%
+    );
+}
+
+.playground-scroll .ms-slider {
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px;
+  background: rgba(127, 140, 137, 0.18);
+  opacity: var(--ms-bar-visibility, 1);
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease;
+}
+
+.playground-scroll .ms-slider-item {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* класс из 2.x назывался `active`; в 3.0 у всех классов есть префикс */
+.playground-scroll .ms-slider-item.ms-active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.slider-progress-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.55;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+/* страница, на которой стоим: точка в активном пункте */
+.playground-scroll .ms-slider-item.ms-active .slider-progress-dot {
+  opacity: 1;
+  transform: scale(1.35);
+}
+
+.slider-menu-button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  min-height: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 0;
+}
+
+.arrow-mark {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--accent-ink);
+  font-weight: 900;
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: opacity 180ms ease;
+}
+
+/* стрелка в конце пути — библиотека говорит это классом */
+.playground-scroll .ms-arrow-box.ms-disabled .arrow-mark {
+  opacity: 0.25;
+}
+
+/*
+ * Край гаснет, когда обрезать нечего. Библиотека говорит это дважды: классом
+ * `ms-disabled` на слоте и переменной. Переменная ведёт плавность, класс
+ * добивает до нуля — если переменную переопределят, край всё равно уйдёт.
+ */
+.playground-scroll .playground-edge {
+  width: 100%;
+  height: 100%;
+  opacity: var(--ms-edge-visibility, 1);
+  transition: opacity 180ms ease;
+}
+
+.playground-scroll .ms-edge.ms-disabled .playground-edge {
+  opacity: 0;
+}
+
+.empty-fallback,
+.cell-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 56px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 750;
+}

@@ -1,48 +1,45 @@
 import React from "react";
 
-export function ControlGroup({
+/** заголовок раздела: demo, scroll, layout — дальше идут плашки пропсов */
+export function Section({
   children,
-  defaultOpen = false,
-  hint,
   title,
 }: {
   children: React.ReactNode;
-  defaultOpen?: boolean;
-  hint?: string;
   title: string;
 }) {
   return (
-    <details className="control-group" open={defaultOpen}>
-      <summary>
-        <span className="group-title">{title}</span>
-        {hint ? <span className="group-hint">{hint}</span> : null}
-      </summary>
-      <div className="control-group-body">{children}</div>
-    </details>
+    <section className="section">
+      <h2 className="section-title">{title}</h2>
+      <div className="section-body">{children}</div>
+    </section>
   );
 }
 
 /**
- * Вложенный параметр: настройки живут под своим ключом и появляются только
- * когда родитель включён — иначе панель предлагает крутить то, что сейчас
- * ни на что не влияет.
+ * Один проп — одна плашка: слева имя, справа его значение. Параметры внутри
+ * открываются по имени, и открываются сами, когда проп только что включили —
+ * его затем и включают, чтобы настроить.
  */
-export function SubGroup({
+export function PropCard({
   children,
   control,
-  label,
+  defaultOpen = false,
   enabled = true,
+  name,
+  note,
 }: {
   children?: React.ReactNode;
   control?: React.ReactNode;
-  label: string;
-  /** выключенная настройка своих подпараметров не показывает */
+  defaultOpen?: boolean;
+  /** выключенный проп своих параметров не показывает */
   enabled?: boolean;
+  name: string;
+  note?: string;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(defaultOpen);
   const canOpen = enabled && !!children;
 
-  // включили настройку — значит собираются её настраивать
   const wasEnabled = React.useRef(enabled);
   React.useEffect(() => {
     if (enabled && !wasEnabled.current) setOpen(true);
@@ -51,25 +48,24 @@ export function SubGroup({
 
   return (
     <div
-      className={`sub-group${enabled ? "" : " is-off"}${
+      className={`prop-card${enabled ? "" : " is-off"}${
         canOpen && open ? " is-open" : ""
       }`}
     >
-      <div className="sub-group-head">
+      <div className="prop-head">
         <button
           aria-expanded={canOpen && open}
-          className="sub-group-toggle"
+          className={`prop-name${canOpen ? " can-open" : ""}`}
           disabled={!canOpen}
           onClick={() => setOpen((current) => !current)}
           type="button"
         >
-          <span className="sub-group-label">{label}</span>
+          {name}
         </button>
-        {control}
+        {control ? <div className="prop-control">{control}</div> : null}
       </div>
-      {canOpen && open ? (
-        <div className="sub-group-body">{children}</div>
-      ) : null}
+      {note ? <p className="sub-note prop-note">{note}</p> : null}
+      {canOpen && open ? <div className="prop-body">{children}</div> : null}
     </div>
   );
 }
@@ -109,7 +105,17 @@ export function NumberField({
       <input
         max={max}
         min={min}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={(event) => {
+          /*
+           * «05» — это ноль, к которому дописали пятёрку. React не перепишет
+           * поле сам: для числового input он сравнивает значения нестрого, а
+           * «05» и 5 для него равны. Убираем ведущие нули на месте.
+           */
+          const text = event.target.value.replace(/^0+(?=\d)/, "");
+          if (text !== event.target.value) event.target.value = text;
+
+          onChange(text === "" ? 0 : Number(text));
+        }}
         step={step}
         type="number"
         value={value}

@@ -15,9 +15,27 @@ import type {
 } from "@morphing-scroll/src/types/types";
 
 import type { Align, ScrollCommand } from "./dashboard/settings";
-import { alignOptions, directionOptions, eachHint, eachPair, modeOptions, presets, renderOptions, useStoredSettings } from "./dashboard/settings";
+import {
+  alignOptions,
+  defaultSettings,
+  directionOptions,
+  eachHint,
+  eachPair,
+  modeOptions,
+  renderOptions,
+  useStoredSettings,
+} from "./dashboard/settings";
 import { numberOrUndefined } from "./utils";
-import { ControlGroup, Field, NumberField, SegmentedField, SelectField, SubGroup, TextField, ToggleField } from "./dashboard/fields";
+import {
+  Field,
+  NumberField,
+  PropCard,
+  Section,
+  SegmentedField,
+  SelectField,
+  TextField,
+  ToggleField,
+} from "./dashboard/fields";
 import { buildSnippet } from "./dashboard/snippet";
 import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
@@ -415,46 +433,59 @@ function App() {
     window.setTimeout(() => setCopyState("idle"), 1200);
   }, [generatedCode]);
 
+  /* системная тема ничего не ставит — её решает сам браузер */
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === "system") root.removeAttribute("data-theme");
+    else root.dataset.theme = settings.theme;
+  }, [settings.theme]);
+
   return (
     <main className="app-shell">
       <aside className="control-panel">
         <div className="brand-row">
           <img alt="" src={logo} />
-          <p>Playground</p>
-        </div>
-
-        <div className="preset-row">
-          {Object.keys(presets).map((name) => (
+          <div className="brand-actions">
+            <div className="theme-switch">
+              {(["system", "light", "dark"] as const).map((name) => (
+                <button
+                  aria-pressed={settings.theme === name}
+                  key={name}
+                  onClick={() => update("theme", name)}
+                  type="button"
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
             <button
-              key={name}
-              onClick={() =>
-                setSettings((current) => ({ ...current, ...presets[name] }))
-              }
+              className="ghost-btn"
+              onClick={() => setSettings(defaultSettings)}
               type="button"
             >
-              {name}
+              reset
             </button>
-          ))}
+          </div>
         </div>
 
         {/*
-         * Стенд и API разведены: здесь всё, чего в пропсах нет вовсе, —
-         * сколько объектов, какие они и чем по ним ездить. Ниже идут группы,
-         * повторяющие дерево пропсов.
+         * Стенд отдельно, API отдельно: здесь то, чего в пропсах нет вовсе.
+         * Дальше — по плашке на проп, вложенные пропсы вложенными плашками.
          */}
-        <ControlGroup
-          defaultOpen
-          hint="the stand itself, not the API"
-          title="demo"
-        >
-          <NumberField
-            label="children count"
-            max={1200}
-            min={1}
-            onChange={(value) => update("itemCount", value)}
-            value={settings.itemCount}
-          />
-          <div className="two-col">
+        <Section title="demo">
+          <PropCard
+            control={
+              <NumberField
+                label=""
+                max={1200}
+                min={1}
+                onChange={(value) => update("itemCount", value)}
+                value={settings.itemCount}
+              />
+            }
+            defaultOpen
+            name="children"
+          >
             <ToggleField
               label="mixed sizes"
               onChange={(value) => update("variableItems", value)}
@@ -465,33 +496,38 @@ function App() {
               onChange={(value) => update("interactiveItems", value)}
               value={settings.interactiveItems}
             />
-          </div>
-          <NumberField
-            label="section size"
-            max={200}
-            min={0}
-            onChange={(value) => update("sectionSize", value)}
-            value={settings.sectionSize}
-          />
-          <p className="sub-note">
-            sections are cut into equal runs and named on each child itself:
-            <code>ms-group=&quot;s2&quot;</code>. That is
-            the name <code>scrollToObject</code> takes. 0 turns them off.
-          </p>
-          <ToggleField
-            label="drag to reorder"
-            onChange={(value) => update("reorder", value)}
-            value={settings.reorder}
-          />
-          {settings.reorder && (
-            <div className="hint-line">
-              objects carry <code>ms-custom-drag</code>, so the scroll leaves
-              the gesture alone — turn on <code>autoScrollOnDrag</code> to have
-              the edges follow
-            </div>
-          )}
+            <p className="sub-note">
+              a button in every object: the target of{" "}
+              <code>objects.empty</code> → <code>clickTrigger</code>, and a
+              list made of buttons still drags from any point
+            </p>
+            <NumberField
+              label="section size"
+              max={200}
+              min={0}
+              onChange={(value) => update("sectionSize", value)}
+              value={settings.sectionSize}
+            />
+            <p className="sub-note">
+              sections are cut into equal runs and named on each child itself:
+              <code>ms-group=&quot;s2&quot;</code>. That is the name{" "}
+              <code>scrollToObject</code> takes. 0 turns them off.
+            </p>
+            <ToggleField
+              label="drag to reorder"
+              onChange={(value) => update("reorder", value)}
+              value={settings.reorder}
+            />
+            {settings.reorder && (
+              <div className="hint-line">
+                objects carry <code>ms-custom-drag</code>, so the scroll leaves
+                the gesture alone — turn on <code>autoScrollOnDrag</code> to
+                have the edges follow
+              </div>
+            )}
+          </PropCard>
 
-          <SubGroup
+          <PropCard
             control={
               <ToggleField
                 label=""
@@ -499,92 +535,125 @@ function App() {
                 value={settings.gamepad}
               />
             }
-            label="gamepad"
             enabled={settings.gamepad}
+            name="gamepad"
           >
             <p className="sub-note">
               the README recipe, running live on the same <code>ref</code>:
               right stick pans, d-pad steps — or walks the objects, when{" "}
-              <code>keys</code> is set to <code>focus</code>.
+              <code>keys</code> is set to <code>focus</code>. Browsers hide a
+              pad until it sends something: press any button once.
             </p>
-            <p className="sub-note">
-              browsers hide a pad until it sends something: press any button
-              once. What it sends — every axis by index, and the buttons held —
-              shows in the <code>gamepad</code> meter under the surface.
-            </p>
-          </SubGroup>
-        </ControlGroup>
+            <div className="pad-meter">
+              <b>{!pad ? "waiting" : "connected"}</b>
+              {pad && (
+                <code>
+                  {[
+                    pad.axes.map(([i, v]) => `${i}:${v}`).join(" "),
+                    pad.buttons.length ? `btn ${pad.buttons.join(" ")}` : "",
+                  ]
+                    .filter(Boolean)
+                    .join("  ·  ") || "idle"}
+                </code>
+              )}
+            </div>
+          </PropCard>
+        </Section>
 
-        <ControlGroup hint="className · children" title="general">
-          <Field label="className">
-            <input
-              onChange={(event) => update("className", event.target.value)}
-              placeholder="custom class"
-              value={settings.className}
-            />
-          </Field>
-          <p className="sub-note">
-            <code>children</code> are the objects themselves — this stand
-            builds them, see <b>demo</b> above
-          </p>
-        </ControlGroup>
+        <Section title="general">
+          <PropCard
+            control={
+              <input
+                onChange={(event) => update("className", event.target.value)}
+                placeholder="custom class"
+                value={settings.className}
+              />
+            }
+            name="className"
+            note="children are the objects themselves — the stand builds them, see demo"
+          />
+        </Section>
 
-        <ControlGroup
-          defaultOpen
-          hint="mode · direction · loop · duration"
-          title="scroll"
-        >
-          <SelectField
-            label="mode"
-            onChange={(value) => update("mode", value)}
-            options={modeOptions}
-            value={settings.mode}
+        <Section title="scroll">
+          <PropCard
+            control={
+              <SelectField
+                label=""
+                onChange={(value) => update("mode", value)}
+                options={modeOptions}
+                value={settings.mode}
+              />
+            }
+            name="mode"
           />
-          <SegmentedField
-            label="direction"
-            onChange={(value) => update("direction", value)}
-            options={directionOptions}
-            value={settings.direction}
+          <PropCard
+            control={
+              <SelectField
+                label=""
+                onChange={(value) => update("direction", value)}
+                options={directionOptions}
+                value={settings.direction}
+              />
+            }
+            name="direction"
+            note="hybrid gives both axes — the props below start asking for two values"
           />
-          <ToggleField
-            label="fromRight"
-            onChange={(value) => update("fromRight", value)}
-            value={settings.fromRight}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("fromRight", value)}
+                value={settings.fromRight}
+              />
+            }
+            name="fromRight"
+            note="the list begins at the right and runs leftwards; the objects themselves are left alone"
           />
-          <p className="sub-note">
-            the list begins at the right and runs leftwards — the first
-            object stands there, and a horizontal scroll opens there with its
-            bar. The objects themselves are left alone: how they look is
-            yours.
-          </p>
-          <ToggleField
-            label="stickToEnd"
-            onChange={(value) => update("stickToEnd", value)}
-            value={settings.stickToEnd}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("stickToEnd", value)}
+                value={settings.stickToEnd}
+              />
+            }
+            name="stickToEnd"
           />
-          <ToggleField
-            label="loop"
-            onChange={(value) => update("loop", value)}
-            value={settings.loop}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("loop", value)}
+                value={settings.loop}
+              />
+            }
+            name="loop"
           />
-          <ToggleField
-            label="autoScrollOnDrag"
-            onChange={(value) => update("autoScrollOnDrag", value)}
-            value={settings.autoScrollOnDrag}
+          <PropCard
+            control={
+              <NumberField
+                label=""
+                max={5000}
+                onChange={setScrollDuration}
+                value={scrollDuration}
+              />
+            }
+            name="duration"
+            note="how long a move of the library's own takes; the ref commands take it too"
           />
-          <NumberField
-            label="duration"
-            max={5000}
-            onChange={setScrollDuration}
-            value={scrollDuration}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("autoScrollOnDrag", value)}
+                value={settings.autoScrollOnDrag}
+              />
+            }
+            name="autoScrollOnDrag"
           />
-          <p className="sub-note">
-            how long a move of the library&apos;s own takes; the{" "}
-            <code>ref</code> commands below take it too
-          </p>
 
-          <SubGroup label="ref.scrollTo">
-            <div className="two-col">
+          <PropCard name="ref">
+            <PropCard defaultOpen name="scrollTo">
               {settings.direction !== "y" && (
                 <NumberField
                   label="value x"
@@ -601,122 +670,106 @@ function App() {
                   value={scrollYInput}
                 />
               )}
-            </div>
-            <div className="scroll-command-row">
-              <button onClick={() => applyScroll("value")} type="button">
-                value
-              </button>
-              <button onClick={() => applyScroll("start")} type="button">
-                0
-              </button>
-              <button onClick={() => applyScroll("end")} type="button">
-                end
-              </button>
-              <button onClick={() => applyScroll("clear")} type="button">
-                null
-              </button>
-            </div>
-            <p className="sub-note">
-              buttons call <code>ref.scrollTo()</code> — the same target twice
-              works
-            </p>
+              <div className="scroll-command-row">
+                <button onClick={() => applyScroll("value")} type="button">
+                  value
+                </button>
+                <button onClick={() => applyScroll("start")} type="button">
+                  0
+                </button>
+                <button onClick={() => applyScroll("end")} type="button">
+                  end
+                </button>
+                <button onClick={() => applyScroll("clear")} type="button">
+                  null
+                </button>
+              </div>
+              <p className="sub-note">
+                the same target twice works — a command does something now
+              </p>
+            </PropCard>
 
-            <div className="scroll-command-row">
-              <button
-                onClick={() =>
-                  scrollRef.current?.step(
-                    settings.direction === "x" ? "left" : "top",
-                    { reason: "playground" },
-                  )
-                }
-                type="button"
-              >
-                step ←
-              </button>
-              <button
-                onClick={() =>
-                  scrollRef.current?.step(
-                    settings.direction === "x" ? "right" : "bottom",
-                    { reason: "playground" },
-                  )
-                }
-                type="button"
-              >
-                step →
-              </button>
-              <button
-                onClick={() =>
-                  scrollRef.current?.pan(
-                    settings.direction === "x" ? { x: -80 } : { y: -80 },
-                    { reason: "playground" },
-                  )
-                }
-                type="button"
-              >
-                pan ←
-              </button>
-              <button
-                onClick={() =>
-                  scrollRef.current?.pan(
-                    settings.direction === "x" ? { x: 80 } : { y: 80 },
-                    { reason: "playground" },
-                  )
-                }
-                type="button"
-              >
-                pan →
-              </button>
-            </div>
-            <p className="sub-note">
-              <code>ref.step()</code> / <code>ref.pan()</code> — how any other
-              device connects; the reason reaches <code>onNavigate</code> as
-              given
-            </p>
-          </SubGroup>
-
-          <SubGroup label="ref.scrollToObject">
-            <TextField
-              label="target"
-              onChange={setObjectTarget}
-              placeholder="12, item-12 or s3"
-              value={objectTarget}
-            />
-            <SegmentedField
-              label="align"
-              onChange={setObjectAlign}
-              options={alignOptions}
-              value={objectAlign}
-            />
-            <div className="scroll-command-row">
-              <button
-                onClick={() => {
-                  /*
-                   * Целью может быть и место в списке, и ключ, и имя группы —
-                   * число отличаем от имени здесь, а не заставляем это делать
-                   * библиотеку.
-                   */
-                  const asNumber = Number(objectTarget);
-                  const target =
-                    objectTarget.trim() !== "" && !Number.isNaN(asNumber)
-                      ? asNumber
-                      : objectTarget;
-
-                  scrollRef.current?.scrollToObject(target, {
-                    align: objectAlign,
-                    duration: scrollDuration,
-                    reason: "playground",
-                  });
-                }}
-                type="button"
-              >
-                go
-              </button>
-              {sectionNames.map((name) => (
+            <PropCard name="step · pan">
+              <div className="scroll-command-row">
                 <button
-                  key={name}
+                  onClick={() =>
+                    scrollRef.current?.step(
+                      settings.direction === "x" ? "left" : "top",
+                      { reason: "playground" },
+                    )
+                  }
+                  type="button"
+                >
+                  step ←
+                </button>
+                <button
+                  onClick={() =>
+                    scrollRef.current?.step(
+                      settings.direction === "x" ? "right" : "bottom",
+                      { reason: "playground" },
+                    )
+                  }
+                  type="button"
+                >
+                  step →
+                </button>
+                <button
+                  onClick={() =>
+                    scrollRef.current?.pan(
+                      settings.direction === "x" ? { x: -80 } : { y: -80 },
+                      { reason: "playground" },
+                    )
+                  }
+                  type="button"
+                >
+                  pan ←
+                </button>
+                <button
+                  onClick={() =>
+                    scrollRef.current?.pan(
+                      settings.direction === "x" ? { x: 80 } : { y: 80 },
+                      { reason: "playground" },
+                    )
+                  }
+                  type="button"
+                >
+                  pan →
+                </button>
+              </div>
+              <p className="sub-note">
+                how any other device connects; the reason reaches{" "}
+                <code>onNavigate</code> as given
+              </p>
+            </PropCard>
+
+            <PropCard name="scrollToObject">
+              <TextField
+                label="target"
+                onChange={setObjectTarget}
+                placeholder="12, item-12 or s3"
+                value={objectTarget}
+              />
+              <SegmentedField
+                label="align"
+                onChange={setObjectAlign}
+                options={alignOptions}
+                value={objectAlign}
+              />
+              <div className="scroll-command-row">
+                <button
                   onClick={() => {
-                    setObjectTarget(name);
-                    scrollRef.current?.scrollToObject(name, {
+                    /*
+                     * Целью может быть и место в списке, и ключ, и имя группы
+                     * — число отличаем от имени здесь, а не заставляем это
+                     * делать библиотеку.
+                     */
+                    const asNumber = Number(objectTarget);
+                    const target =
+                      objectTarget.trim() !== "" && !Number.isNaN(asNumber)
+                        ? asNumber
+                        : objectTarget;
+
+                    scrollRef.current?.scrollToObject(target, {
                       align: objectAlign,
                       duration: scrollDuration,
                       reason: "playground",
@@ -724,242 +777,281 @@ function App() {
                   }}
                   type="button"
                 >
-                  {name}
+                  go
                 </button>
-              ))}
-            </div>
-            <p className="sub-note">
-              a place in the list, a child&apos;s <code>key</code>, or the name
-              of a section — sections are written into the keys themselves, in
-              brackets: <code>item-12[s2]</code>
-            </p>
-          </SubGroup>
-        </ControlGroup>
-
-        <ControlGroup hint="size · objects · wrapper" title="layout">
-          <SelectField
-            label="size"
-            onChange={(value) => update("sizeMode", value)}
-            options={["fixed", "square", "auto"] as const}
-            value={settings.sizeMode}
-          />
-          {settings.sizeMode === "fixed" && (
-            <div className="two-col">
-              <NumberField
-                label="width"
-                max={1400}
-                min={120}
-                onChange={(value) => update("width", value)}
-                value={settings.width}
-              />
-              <NumberField
-                label="height"
-                max={1000}
-                min={120}
-                onChange={(value) => update("height", value)}
-                value={settings.height}
-              />
-            </div>
-          )}
-          {settings.sizeMode === "square" && (
-            <NumberField
-              label="square"
-              max={1000}
-              min={120}
-              onChange={(value) => update("squareSize", value)}
-              value={settings.squareSize}
-            />
-          )}
-
-          <SelectField
-            label="objects.size"
-            onChange={(value) => update("objectsSizeMode", value)}
-            options={
-              [
-                "default",
-                "number",
-                "pair",
-                "full",
-                "firstChild",
-                "auto",
-              ] as const
-            }
-            value={settings.objectsSizeMode}
-          />
-          {["number", "pair"].includes(settings.objectsSizeMode) && (
-            <div className="two-col">
-              <NumberField
-                label="object w"
-                max={600}
-                min={20}
-                onChange={(value) => update("objectWidth", value)}
-                value={settings.objectWidth}
-              />
-              <NumberField
-                label="object h"
-                max={600}
-                min={20}
-                onChange={(value) => update("objectHeight", value)}
-                value={settings.objectHeight}
-              />
-            </div>
-          )}
-          {settings.objectsSizeMode === "auto" && (
-            <>
-              <SegmentedField
-                label="each side"
-                onChange={(value) => update("eachSide", value)}
-                options={["main", "cross", "both"] as const}
-                value={settings.eachSide}
-              />
-              <div className="hint-line">{eachHint(settings)}</div>
-              {settings.eachSide !== "both" && (
-                <NumberField
-                  label={eachPair(settings)[0] === "auto" ? "fixed h" : "fixed w"}
-                  max={600}
-                  min={20}
-                  onChange={(value) =>
-                    update(
-                      eachPair(settings)[0] === "auto"
-                        ? "objectHeight"
-                        : "objectWidth",
-                      value,
-                    )
-                  }
-                  value={
-                    eachPair(settings)[0] === "auto"
-                      ? settings.objectHeight
-                      : settings.objectWidth
-                  }
-                />
-              )}
-              <div className="two-col">
-                <NumberField
-                  label="min"
-                  max={600}
-                  min={20}
-                  onChange={(value) => update("eachMin", value)}
-                  step={10}
-                  value={settings.eachMin}
-                />
-                <NumberField
-                  label="max"
-                  max={600}
-                  min={20}
-                  onChange={(value) => update("eachMax", value)}
-                  step={10}
-                  value={settings.eachMax}
-                />
-              </div>
-              <div className="two-col">
-                <NumberField
-                  label="round to"
-                  max={100}
-                  min={1}
-                  onChange={(value) => update("eachStep", value)}
-                  value={settings.eachStep}
-                />
-                <button
-                  className="ghost-btn"
-                  onClick={() => update("eachSeed", settings.eachSeed + 1)}
-                  type="button"
-                >
-                  reshuffle
-                </button>
+                {sectionNames.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => {
+                      setObjectTarget(name);
+                      scrollRef.current?.scrollToObject(name, {
+                        align: objectAlign,
+                        duration: scrollDuration,
+                        reason: "playground",
+                      });
+                    }}
+                    type="button"
+                  >
+                    {name}
+                  </button>
+                ))}
               </div>
               <p className="sub-note">
-                the three above are the stand&apos;s own: they give the demo
-                objects their sizes, so that <code>&quot;auto&quot;</code> has
-                something to measure
+                a place in the list, a child&apos;s <code>key</code>, or the
+                name of a section
               </p>
-            </>
-          )}
-          <div className="two-col">
-            <NumberField
-              label="objects.gap x"
-              max={80}
-              onChange={(value) => update("gapX", value)}
-              value={settings.gapX}
-            />
-            <NumberField
-              label="objects.gap y"
-              max={80}
-              onChange={(value) => update("gapY", value)}
-              value={settings.gapY}
-            />
-          </div>
-          <NumberField
-            label="objects.lines"
-            max={20}
-            onChange={(value) => update("lines", value)}
-            value={settings.lines}
-          />
-          <div className="two-col">
-            <SelectField
-              label="objects.align"
-              onChange={(value) => update("objectsAlign", value)}
-              options={alignOptions}
-              value={settings.objectsAlign}
-            />
-            <SelectField
-              label="objects.order"
-              onChange={(value) => update("objectsOrder", value)}
-              options={["row", "column"] as const}
-              value={settings.objectsOrder}
-            />
-          </div>
-          <SelectField
-            label="objects.empty"
-            onChange={(value) => update("emptyMode", value)}
-            options={["off", "clear", "fallback", "fallbackWithClick"] as const}
-            value={settings.emptyMode}
-          />
+            </PropCard>
+          </PropCard>
+        </Section>
 
-          <div className="two-col">
-            <SelectField
-              label="wrapper.align x"
-              onChange={(value) => update("wrapperAlignX", value)}
-              options={alignOptions}
-              value={settings.wrapperAlignX}
-            />
-            <SelectField
-              label="wrapper.align y"
-              onChange={(value) => update("wrapperAlignY", value)}
-              options={alignOptions}
-              value={settings.wrapperAlignY}
-            />
-          </div>
-
-          <SubGroup
+        <Section title="layout">
+          <PropCard
             control={
               <SelectField
                 label=""
-                onChange={(value) => update("wrapperMinMode", value)}
-                options={["off", "number", "pair", "full"] as const}
-                value={settings.wrapperMinMode}
+                onChange={(value) => update("sizeMode", value)}
+                options={["fixed", "square", "auto"] as const}
+                value={settings.sizeMode}
               />
             }
-            label="wrapper.minSize"
-            enabled={["number", "pair"].includes(settings.wrapperMinMode)}
+            defaultOpen
+            enabled={settings.sizeMode !== "auto"}
+            name="size"
           >
-            <div className="two-col">
+            {settings.sizeMode === "fixed" && (
+              <>
+                <NumberField
+                  label="x"
+                  max={1400}
+                  min={120}
+                  onChange={(value) => update("width", value)}
+                  value={settings.width}
+                />
+                <NumberField
+                  label="y"
+                  max={1000}
+                  min={120}
+                  onChange={(value) => update("height", value)}
+                  value={settings.height}
+                />
+              </>
+            )}
+            {settings.sizeMode === "square" && (
+              <NumberField
+                label="side"
+                max={1000}
+                min={120}
+                onChange={(value) => update("squareSize", value)}
+                value={settings.squareSize}
+              />
+            )}
+          </PropCard>
+
+          <PropCard defaultOpen name="objects">
+            <PropCard
+              control={
+                <SelectField
+                  label=""
+                  onChange={(value) => update("objectsSizeMode", value)}
+                  options={
+                    [
+                      "default",
+                      "number",
+                      "pair",
+                      "full",
+                      "firstChild",
+                      "auto",
+                    ] as const
+                  }
+                  value={settings.objectsSizeMode}
+                />
+              }
+              enabled={["number", "pair", "auto"].includes(
+                settings.objectsSizeMode,
+              )}
+              name="size"
+            >
+              {settings.objectsSizeMode === "number" && (
+                <NumberField
+                  label="both sides"
+                  max={600}
+                  min={20}
+                  onChange={(value) => update("objectWidth", value)}
+                  value={settings.objectWidth}
+                />
+              )}
+              {settings.objectsSizeMode === "pair" && (
+                <>
+                  <NumberField
+                    label="x"
+                    max={600}
+                    min={20}
+                    onChange={(value) => update("objectWidth", value)}
+                    value={settings.objectWidth}
+                  />
+                  <NumberField
+                    label="y"
+                    max={600}
+                    min={20}
+                    onChange={(value) => update("objectHeight", value)}
+                    value={settings.objectHeight}
+                  />
+                </>
+              )}
+              {settings.objectsSizeMode === "auto" && (
+                <>
+                  <SegmentedField
+                    label="each side"
+                    onChange={(value) => update("eachSide", value)}
+                    options={["main", "cross", "both"] as const}
+                    value={settings.eachSide}
+                  />
+                  <div className="hint-line">{eachHint(settings)}</div>
+                  {settings.eachSide !== "both" && (
+                    <NumberField
+                      label={
+                        eachPair(settings)[0] === "auto" ? "fixed y" : "fixed x"
+                      }
+                      max={600}
+                      min={20}
+                      onChange={(value) =>
+                        update(
+                          eachPair(settings)[0] === "auto"
+                            ? "objectHeight"
+                            : "objectWidth",
+                          value,
+                        )
+                      }
+                      value={
+                        eachPair(settings)[0] === "auto"
+                          ? settings.objectHeight
+                          : settings.objectWidth
+                      }
+                    />
+                  )}
+                  <div className="two-col">
+                    <NumberField
+                      label="min"
+                      max={600}
+                      min={20}
+                      onChange={(value) => update("eachMin", value)}
+                      step={10}
+                      value={settings.eachMin}
+                    />
+                    <NumberField
+                      label="max"
+                      max={600}
+                      min={20}
+                      onChange={(value) => update("eachMax", value)}
+                      step={10}
+                      value={settings.eachMax}
+                    />
+                  </div>
+                  <div className="two-col">
+                    <NumberField
+                      label="round to"
+                      max={100}
+                      min={1}
+                      onChange={(value) => update("eachStep", value)}
+                      value={settings.eachStep}
+                    />
+                    <button
+                      className="ghost-btn"
+                      onClick={() => update("eachSeed", settings.eachSeed + 1)}
+                      type="button"
+                    >
+                      reshuffle
+                    </button>
+                  </div>
+                  <p className="sub-note">
+                    min, max and round to are the stand&apos;s own: they give
+                    the demo objects their sizes, so that{" "}
+                    <code>&quot;auto&quot;</code> has something to measure
+                  </p>
+                </>
+              )}
+            </PropCard>
+
+            <PropCard defaultOpen name="gap">
               <NumberField
                 label="x"
-                max={1600}
-                onChange={(value) => update("wrapperMinWidth", value)}
-                value={settings.wrapperMinWidth}
+                max={80}
+                onChange={(value) => update("gapX", value)}
+                value={settings.gapX}
               />
               <NumberField
                 label="y"
-                max={1600}
-                onChange={(value) => update("wrapperMinHeight", value)}
-                value={settings.wrapperMinHeight}
+                max={80}
+                onChange={(value) => update("gapY", value)}
+                value={settings.gapY}
               />
-            </div>
-          </SubGroup>
+            </PropCard>
 
-          <SubGroup label="wrapper.margin">
-            <div className="quad-grid">
+            <PropCard
+              control={
+                <NumberField
+                  label=""
+                  max={20}
+                  onChange={(value) => update("lines", value)}
+                  value={settings.lines}
+                />
+              }
+              name="lines"
+            />
+            <PropCard
+              control={
+                <SelectField
+                  label=""
+                  onChange={(value) => update("objectsAlign", value)}
+                  options={alignOptions}
+                  value={settings.objectsAlign}
+                />
+              }
+              name="align"
+            />
+            <PropCard
+              control={
+                <SelectField
+                  label=""
+                  onChange={(value) => update("objectsOrder", value)}
+                  options={["row", "column"] as const}
+                  value={settings.objectsOrder}
+                />
+              }
+              name="order"
+            />
+            <PropCard
+              control={
+                <SelectField
+                  label=""
+                  onChange={(value) => update("emptyMode", value)}
+                  options={
+                    ["off", "clear", "fallback", "fallbackWithClick"] as const
+                  }
+                  value={settings.emptyMode}
+                />
+              }
+              name="empty"
+            />
+          </PropCard>
+
+          <PropCard name="wrapper">
+            <PropCard defaultOpen name="align">
+              <SelectField
+                label="x"
+                onChange={(value) => update("wrapperAlignX", value)}
+                options={alignOptions}
+                value={settings.wrapperAlignX}
+              />
+              <SelectField
+                label="y"
+                onChange={(value) => update("wrapperAlignY", value)}
+                options={alignOptions}
+                value={settings.wrapperAlignY}
+              />
+            </PropCard>
+
+            <PropCard name="margin">
               <NumberField
                 label="top"
                 max={200}
@@ -984,127 +1076,142 @@ function App() {
                 onChange={(value) => update("wrapperMarginLeft", value)}
                 value={settings.wrapperMarginLeft}
               />
-            </div>
-          </SubGroup>
-        </ControlGroup>
+            </PropCard>
 
-        <ControlGroup defaultOpen hint="controls · edge" title="progress">
-          <SubGroup
-            control={
-              <ToggleField
-                label=""
-                onChange={(value) => update("wheel", value)}
-                value={settings.wheel}
-              />
-            }
-            label="controls.wheel"
-            enabled={settings.wheel && settings.direction === "hybrid"}
-          >
-            <ToggleField
-              label="changeDirection"
-              onChange={(value) => update("wheelChangeDirection", value)}
-              value={settings.wheelChangeDirection}
-            />
-            <Field label="changeDirectionBtn">
-              <input
-                onChange={(event) =>
-                  update("wheelChangeDirectionBtn", event.target.value)
-                }
-                placeholder="Shift"
-                value={settings.wheelChangeDirectionBtn}
-              />
-            </Field>
-          </SubGroup>
-
-          <SubGroup
-            control={
-              <ToggleField
-                label=""
-                onChange={(value) => update("contentDrag", value)}
-                value={settings.contentDrag}
-              />
-            }
-            label="controls.drag"
-          />
-
-          <SubGroup
-            control={
-              <ToggleField
-                label=""
-                onChange={(value) => update("keys", value)}
-                value={settings.keys}
-              />
-            }
-            label="controls.keys"
-            enabled={settings.keys}
-          >
-            <SelectField
-              label="mode"
-              onChange={(value) => update("keysMode", value)}
-              options={["pan", "step", "focus"] as const}
-              value={settings.keysMode}
-            />
-            {settings.keysMode === "pan" && (
+            <PropCard
+              control={
+                <SelectField
+                  label=""
+                  onChange={(value) => update("wrapperMinMode", value)}
+                  options={["off", "number", "pair", "full"] as const}
+                  value={settings.wrapperMinMode}
+                />
+              }
+              enabled={["number", "pair"].includes(settings.wrapperMinMode)}
+              name="minSize"
+            >
               <NumberField
-                label="step"
-                max={400}
-                min={4}
-                onChange={(value) => update("keysStep", value)}
-                value={settings.keysStep}
+                label="x"
+                max={1600}
+                onChange={(value) => update("wrapperMinWidth", value)}
+                value={settings.wrapperMinWidth}
               />
-            )}
-            <p className="sub-note">
-              the arrows work while the scroll has focus — click it, or Tab to
-              it. <code>pan</code> and <code>step</code> take only the keys of
-              the scrolling axis; <code>focus</code> walks the objects and takes
-              all four
-            </p>
-          </SubGroup>
+              {settings.wrapperMinMode === "pair" && (
+                <NumberField
+                  label="y"
+                  max={1600}
+                  onChange={(value) => update("wrapperMinHeight", value)}
+                  value={settings.wrapperMinHeight}
+                />
+              )}
+            </PropCard>
+          </PropCard>
+        </Section>
 
-          <SubGroup
-            control={
-              <SelectField
-                label=""
-                onChange={(value) => update("progressElementMode", value)}
-                options={["custom", "native", "off"] as const}
-                value={settings.progressElementMode}
+        <Section title="progress">
+          <PropCard defaultOpen name="controls">
+            <PropCard
+              control={
+                <ToggleField
+                  label=""
+                  onChange={(value) => update("wheel", value)}
+                  value={settings.wheel}
+                />
+              }
+              enabled={settings.wheel && settings.direction === "hybrid"}
+              name="wheel"
+            >
+              <ToggleField
+                label="changeDirection"
+                onChange={(value) => update("wheelChangeDirection", value)}
+                value={settings.wheelChangeDirection}
               />
-            }
-            label="controls.bar"
-            enabled={settings.progressElementMode === "custom"}
-          >
-            <ToggleField
-              label="showOnHover"
-              onChange={(value) => update("barShowOnHover", value)}
-              value={settings.barShowOnHover}
+              <Field label="changeDirectionBtn">
+                <input
+                  onChange={(event) =>
+                    update("wheelChangeDirectionBtn", event.target.value)
+                  }
+                  placeholder="Shift"
+                  value={settings.wheelChangeDirectionBtn}
+                />
+              </Field>
+            </PropCard>
+
+            <PropCard
+              control={
+                <ToggleField
+                  label=""
+                  onChange={(value) => update("contentDrag", value)}
+                  value={settings.contentDrag}
+                />
+              }
+              name="drag"
             />
-            <NumberField
-              label="thumbMinSize"
-              max={400}
-              min={8}
-              onChange={(value) => update("barThumbMinSize", value)}
-              value={settings.barThumbMinSize}
-            />
-            {settings.direction === "hybrid" && (
+
+            <PropCard
+              control={
+                <ToggleField
+                  label=""
+                  onChange={(value) => update("keys", value)}
+                  value={settings.keys}
+                />
+              }
+              enabled={settings.keys}
+              name="keys"
+            >
+              <SelectField
+                label="mode"
+                onChange={(value) => update("keysMode", value)}
+                options={["pan", "step", "focus"] as const}
+                value={settings.keysMode}
+              />
+              {settings.keysMode === "pan" && (
+                <NumberField
+                  label="step"
+                  max={400}
+                  min={4}
+                  onChange={(value) => update("keysStep", value)}
+                  value={settings.keysStep}
+                />
+              )}
               <p className="sub-note">
-                у каждой оси свой бар и своя половина пары. Бар существует,
-                пока его оси есть куда ехать — если содержимое по ней
-                помещается в окно, переключатель этой оси двигать нечего
+                the arrows work while the scroll has focus — click it, or Tab
+                to it
               </p>
-            )}
-            {/* половина пары действует на бар своей оси — при одной оси
-                второй бар не существует, и поле только путало */}
-            {settings.direction !== "y" && (
-              <div className="axis-block">
-                <div className="axis-head">
-                  <span className="axis-tag">x bar</span>
+            </PropCard>
+
+            <PropCard
+              control={
+                <SelectField
+                  label=""
+                  onChange={(value) => update("progressElementMode", value)}
+                  options={["custom", "native", "off"] as const}
+                  value={settings.progressElementMode}
+                />
+              }
+              enabled={settings.progressElementMode === "custom"}
+              name="bar"
+            >
+              <ToggleField
+                label="showOnHover"
+                onChange={(value) => update("barShowOnHover", value)}
+                value={settings.barShowOnHover}
+              />
+              <NumberField
+                label="thumbMinSize"
+                max={400}
+                min={8}
+                onChange={(value) => update("barThumbMinSize", value)}
+                value={settings.barThumbMinSize}
+              />
+              {settings.direction !== "y" && (
+                <div className="axis-block">
+                  <span className="axis-tag">x</span>
                   <ToggleField
                     label="reverse"
                     onChange={(value) => update("barReverseX", value)}
                     value={settings.barReverseX}
                   />
-                </div>
-                <div className="two-col">
                   <NumberField
                     label="trackGap"
                     max={100}
@@ -1119,19 +1226,15 @@ function App() {
                     value={settings.barEdgeGapX}
                   />
                 </div>
-              </div>
-            )}
-            {settings.direction !== "x" && (
-              <div className="axis-block">
-                <div className="axis-head">
-                  <span className="axis-tag">y bar</span>
+              )}
+              {settings.direction !== "x" && (
+                <div className="axis-block">
+                  <span className="axis-tag">y</span>
                   <ToggleField
                     label="reverse"
                     onChange={(value) => update("barReverseY", value)}
                     value={settings.barReverseY}
                   />
-                </div>
-                <div className="two-col">
                   <NumberField
                     label="trackGap"
                     max={100}
@@ -1146,38 +1249,42 @@ function App() {
                     value={settings.barEdgeGapY}
                   />
                 </div>
-              </div>
-            )}
-          </SubGroup>
+              )}
+              {settings.direction === "hybrid" && (
+                <p className="sub-note">
+                  each axis has its own bar, and a bar exists while its axis
+                  has room to go
+                </p>
+              )}
+            </PropCard>
 
-          <SubGroup
-            control={
-              <ToggleField
-                label=""
-                onChange={(value) => update("arrows", value)}
-                value={settings.arrows}
+            <PropCard
+              control={
+                <ToggleField
+                  label=""
+                  onChange={(value) => update("arrows", value)}
+                  value={settings.arrows}
+                />
+              }
+              enabled={settings.arrows}
+              name="arrows"
+            >
+              <NumberField
+                label="size"
+                max={120}
+                min={16}
+                onChange={(value) => update("arrowSize", value)}
+                value={settings.arrowSize}
               />
-            }
-            label="controls.arrows"
-            enabled={settings.arrows}
-          >
-            <NumberField
-              label="size"
-              max={120}
-              min={16}
-              onChange={(value) => update("arrowSize", value)}
-              value={settings.arrowSize}
-            />
-            <div className="two-col">
               <ToggleField
                 label="reserveSpace"
                 onChange={(value) => update("arrowContentReduce", value)}
                 value={settings.arrowContentReduce}
               />
-            </div>
-          </SubGroup>
+            </PropCard>
+          </PropCard>
 
-          <SubGroup
+          <PropCard
             control={
               <ToggleField
                 label=""
@@ -1185,32 +1292,27 @@ function App() {
                 value={settings.edge}
               />
             }
-            label="edge"
             enabled={settings.edge}
+            name="edge"
           >
-            <div className="two-col">
-              <Field label="color">
-                <input
-                  onChange={(event) => update("edgeColor", event.target.value)}
-                  type="color"
-                  value={settings.edgeColor}
-                />
-              </Field>
-              <NumberField
-                label="size"
-                max={180}
-                onChange={(value) => update("edgeSize", value)}
-                value={settings.edgeSize}
+            <Field label="color">
+              <input
+                onChange={(event) => update("edgeColor", event.target.value)}
+                type="color"
+                value={settings.edgeColor}
               />
-            </div>
-          </SubGroup>
-        </ControlGroup>
+            </Field>
+            <NumberField
+              label="size"
+              max={180}
+              onChange={(value) => update("edgeSize", value)}
+              value={settings.edgeSize}
+            />
+          </PropCard>
+        </Section>
 
-        <ControlGroup
-          hint="render · trackVisibility · suspending · fallback"
-          title="optimization"
-        >
-          <SubGroup
+        <Section title="optimization">
+          <PropCard
             control={
               <SelectField
                 label=""
@@ -1219,8 +1321,8 @@ function App() {
                 value={settings.renderMode}
               />
             }
-            label="render"
             enabled={settings.renderMode !== "off"}
+            name="render"
           >
             <NumberField
               label="rootMargin"
@@ -1233,65 +1335,120 @@ function App() {
               onChange={(value) => update("deferLoadOnScroll", value)}
               value={settings.deferLoadOnScroll}
             />
-          </SubGroup>
+          </PropCard>
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("trackVisibility", value)}
+                value={settings.trackVisibility}
+              />
+            }
+            name="trackVisibility"
+          />
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("suspending", value)}
+                value={settings.suspending}
+              />
+            }
+            name="suspending"
+          />
+          <PropCard
+            control={
+              <input
+                onChange={(event) => update("fallbackText", event.target.value)}
+                value={settings.fallbackText}
+              />
+            }
+            name="fallback"
+          />
+        </Section>
 
-          <ToggleField
-            label="trackVisibility"
-            onChange={(value) => update("trackVisibility", value)}
-            value={settings.trackVisibility}
+        <Section title="events">
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("enableOnScrollValue", value)}
+                value={settings.enableOnScrollValue}
+              />
+            }
+            name="onScrollPosition"
           />
-          <ToggleField
-            label="suspending"
-            onChange={(value) => update("suspending", value)}
-            value={settings.suspending}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("enableIsScrolling", value)}
+                value={settings.enableIsScrolling}
+              />
+            }
+            name="onScrollingChange"
           />
-          <Field label="fallback">
-            <input
-              onChange={(event) => update("fallbackText", event.target.value)}
-              value={settings.fallbackText}
-            />
-          </Field>
-        </ControlGroup>
-
-        <ControlGroup
-          hint="onScrollPosition · onScrollingChange · onNavigate · onRenderedKeysChange"
-          title="events"
-        >
-          <ToggleField
-            label="onScrollPosition"
-            onChange={(value) => update("enableOnScrollValue", value)}
-            value={settings.enableOnScrollValue}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) => update("enableOnNavigate", value)}
+                value={settings.enableOnNavigate}
+              />
+            }
+            name="onNavigate"
           />
-          <ToggleField
-            label="onScrollingChange"
-            onChange={(value) => update("enableIsScrolling", value)}
-            value={settings.enableIsScrolling}
+          <PropCard
+            control={
+              <ToggleField
+                label=""
+                onChange={(value) =>
+                  update("enableOnRenderedKeysChange", value)
+                }
+                value={settings.enableOnRenderedKeysChange}
+              />
+            }
+            name="onRenderedKeysChange"
           />
-          <ToggleField
-            label="onNavigate"
-            onChange={(value) => update("enableOnNavigate", value)}
-            value={settings.enableOnNavigate}
-          />
-          <ToggleField
-            label="onRenderedKeysChange"
-            onChange={(value) => update("enableOnRenderedKeysChange", value)}
-            value={settings.enableOnRenderedKeysChange}
-          />
-        </ControlGroup>
+        </Section>
       </aside>
 
       <section className="workbench">
         <header className="workbench-header">
-          <div>
-            <h2>Live Surface</h2>
-            <p>
-              {settings.itemCount} items · {settings.direction} ·{" "}
-              {settings.mode}
-            </p>
+          <h2>Live surface</h2>
+          {/*
+           * Живые показания, а не повтор настроек: где стоим, едем ли, что
+           * последним сказал onNavigate, сколько намерено окно и сколько
+           * объектов сейчас отрисовано.
+           */}
+          <div className="readouts">
+            <span>
+              scroll{" "}
+              <b>
+                {Math.round(scrollLeft)}, {Math.round(scrollTop)}
+              </b>
+            </span>
+            <span>
+              motion <b>{isScrolling ? "yes" : "no"}</b>
+            </span>
+            <span>
+              navigate{" "}
+              <b>
+                {lastNavigate
+                  ? `${lastNavigate.reason} ${lastNavigate.from}→${lastNavigate.to}`
+                  : "—"}
+              </b>
+            </span>
+            <span>
+              surface{" "}
+              <b>
+                {resizeRect.width} × {resizeRect.height}
+              </b>
+            </span>
+            <span>
+              rendered <b>{renderedKeys.length}</b>
+            </span>
           </div>
-          <code className="prop-pill">
-            scrollTo: {JSON.stringify(scrollCommand.value)}
-          </code>
         </header>
 
         <ResizeTracker
@@ -1322,10 +1479,7 @@ function App() {
 
         <section className="code-panel">
           <header>
-            <div>
-              <h3>Generated MorphScroll</h3>
-              <p>Current props as JSX</p>
-            </div>
+            <h3>Generated MorphScroll</h3>
             <button onClick={copyGeneratedCode} type="button">
               {copyState === "copied" ? "copied" : "copy"}
             </button>
@@ -1334,53 +1488,8 @@ function App() {
             <code>{generatedCode}</code>
           </pre>
         </section>
-
-        <footer className="metrics">
-          <div>
-            <span>scroll</span>
-            <b>
-              {Math.round(scrollLeft)}, {Math.round(scrollTop)}
-            </b>
-          </div>
-          <div>
-            <span>motion</span>
-            <b>{isScrolling ? "yes" : "no"}</b>
-          </div>
-          <div>
-            <span>navigate</span>
-            <b>
-              {lastNavigate
-                ? `${lastNavigate.reason} ${lastNavigate.from}→${lastNavigate.to}`
-                : "—"}
-            </b>
-          </div>
-          <div>
-            <span>surface</span>
-            <b>
-              {resizeRect.width} x {resizeRect.height}
-            </b>
-          </div>
-          <div className="keys-meter">
-            <span>gamepad</span>
-            <b>{!settings.gamepad ? "off" : !pad ? "waiting" : "connected"}</b>
-            {pad && (
-              <code>
-                {[
-                  pad.axes.map(([i, v]) => `${i}:${v}`).join(" "),
-                  pad.buttons.length ? `btn ${pad.buttons.join(" ")}` : "",
-                ]
-                  .filter(Boolean)
-                  .join("  ·  ") || "idle"}
-              </code>
-            )}
-          </div>
-          <div className="keys-meter">
-            <span>rendered keys</span>
-            <b>{renderedKeys.length}</b>
-            <code>{renderedKeys.slice(0, 18).join(", ") || "none"}</code>
-          </div>
-        </footer>
       </section>
+
     </main>
   );
 }

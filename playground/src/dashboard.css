@@ -1,0 +1,620 @@
+/*
+ * Цвета живут в токенах: светлая тема стоит на `:root`, тёмная приходит либо
+ * системной настройкой, либо переключателем — он ставит `data-theme` на
+ * корень, и тогда его слово последнее.
+ */
+:root {
+  color-scheme: light;
+
+  --bg: #f4f5f1;
+  --panel: #fbfcf9;
+  --card: #ffffff;
+  --card-soft: #f7faf8;
+  --ink: #18201f;
+  --ink-soft: #55635f;
+  --ink-faint: #8d9a96;
+  --line: #d8e0dc;
+  --line-soft: #ebefed;
+  --accent: #0b8c92;
+  --accent-soft: #dff3ef;
+  --accent-ink: #075a60;
+  --code-bg: #17201f;
+  --code-ink: #eef7f4;
+  --grid: rgba(24, 32, 31, 0.05);
+  --shadow: rgba(18, 32, 28, 0.13);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #101615;
+    --panel: #151d1b;
+    --card: #1a2321;
+    --card-soft: #1e2826;
+    --ink: #e6efec;
+    --ink-soft: #9fada9;
+    --ink-faint: #71807b;
+    --line: #2a3533;
+    --line-soft: #222c2a;
+    --accent: #2bb7bd;
+    --accent-soft: #10312f;
+    --accent-ink: #8ce0e3;
+    --code-bg: #0b1211;
+    --code-ink: #dff0ec;
+    --grid: rgba(255, 255, 255, 0.05);
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #101615;
+  --panel: #151d1b;
+  --card: #1a2321;
+  --card-soft: #1e2826;
+  --ink: #e6efec;
+  --ink-soft: #9fada9;
+  --ink-faint: #71807b;
+  --line: #2a3533;
+  --line-soft: #222c2a;
+  --accent: #2bb7bd;
+  --accent-soft: #10312f;
+  --accent-ink: #8ce0e3;
+  --code-bg: #0b1211;
+  --code-ink: #dff0ec;
+  --grid: rgba(255, 255, 255, 0.05);
+  --shadow: rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.35;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 30px;
+  padding: 4px 8px;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+button:active:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+input,
+select {
+  min-width: 0;
+  width: 100%;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  padding: 4px 8px;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  min-height: 16px;
+  accent-color: var(--accent);
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+input[type="color"] {
+  padding: 2px;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  height: 100vh;
+}
+
+/* ── панель ─────────────────────────────────────────────────────────── */
+
+.control-panel {
+  height: 100vh;
+  overflow: auto;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  padding: 14px;
+}
+
+.brand-row {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.brand-row img {
+  width: min(200px, 100%);
+  height: auto;
+  object-fit: contain;
+}
+
+.brand-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-switch {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 2px;
+}
+
+.theme-switch button {
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 700;
+  min-height: 24px;
+  padding: 2px 8px;
+}
+
+.theme-switch button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.ghost-btn {
+  align-self: end;
+  color: var(--ink-soft);
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  margin: 0 0 7px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-body {
+  display: grid;
+  gap: 6px;
+}
+
+/* ── плашка пропса ──────────────────────────────────────────────────── */
+
+.prop-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.prop-card.is-open {
+  border-color: var(--accent);
+}
+
+.prop-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 5px 10px;
+}
+
+.prop-name {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: default;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.prop-name.can-open {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.prop-name.can-open::before {
+  content: "";
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--ink-faint);
+  transition: transform 0.15s ease;
+}
+
+.prop-card.is-open > .prop-head > .prop-name::before {
+  transform: rotate(90deg);
+}
+
+.prop-card.is-off .prop-name {
+  color: var(--ink-faint);
+}
+
+.prop-control {
+  flex: 1;
+  min-width: 0;
+  max-width: 190px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* в шапке у поля своей подписи нет — остаётся один элемент ввода */
+.prop-control .field,
+.prop-control .toggle-field {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  min-height: 0;
+}
+
+.prop-control .field > span:empty,
+.prop-control .toggle-field span:empty {
+  display: none;
+}
+
+.prop-control .toggle-field {
+  justify-content: flex-end;
+}
+
+.prop-note {
+  margin: -2px 10px 8px;
+}
+
+.prop-body {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--line-soft);
+  padding: 9px 10px;
+}
+
+/* вложенные пропсы: своя плашка потише, чтобы читалась вложенность */
+.prop-body .prop-card {
+  background: var(--card-soft);
+}
+
+/* ── поля ───────────────────────────────────────────────────────────── */
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(84px, 0.8fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.field > span,
+.segmented-field > span,
+.toggle-field span {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+}
+
+.segmented-field {
+  display: grid;
+  gap: 6px;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+
+.scroll-command-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* настройки одной оси: тег слева, поля под ним */
+.axis-block {
+  display: grid;
+  gap: 7px;
+  border-left: 2px solid var(--line);
+  padding-left: 9px;
+}
+
+.axis-tag {
+  color: var(--ink-faint);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hint-line {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.sub-note {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.sub-note code {
+  font-size: 11px;
+}
+
+.pad-meter {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--card);
+  padding: 7px 9px;
+}
+
+.pad-meter b {
+  font-size: 13px;
+}
+
+.pad-meter code {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── правая часть ───────────────────────────────────────────────────── */
+
+.workbench {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 10px;
+  min-width: 0;
+  height: 100vh;
+  padding: 14px;
+}
+
+.workbench-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.workbench-header h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: 0;
+}
+
+.readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.readouts span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: baseline;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  text-transform: uppercase;
+}
+
+.readouts b {
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.resize-probe {
+  min-width: 0;
+  min-height: 0;
+}
+
+.preview-shell {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    linear-gradient(0deg, var(--grid) 1px, transparent 1px), var(--panel);
+  background-size: 24px 24px;
+  padding: 16px;
+}
+
+.preview-shell.auto-size {
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.intersection-probe {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 0 11px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.code-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.code-panel header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line-soft);
+  padding: 8px 11px;
+}
+
+.code-panel h3 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.code-panel button {
+  min-width: 70px;
+}
+
+.code-panel pre {
+  max-height: min(30vh, 340px);
+  overflow: auto;
+  margin: 0;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 12px;
+}
+
+.code-panel code {
+  display: block;
+  min-width: max-content;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+@media (max-width: 1080px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .control-panel {
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .workbench {
+    min-height: 720px;
+  }
+}
+
+@media (max-width: 680px) {
+  .control-panel,
+  .workbench {
+    padding: 10px;
+  }
+
+  .two-col,
+  .scroll-command-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field {
+    grid-template-columns: 1fr;
+  }
+}

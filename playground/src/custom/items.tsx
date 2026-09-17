@@ -89,11 +89,12 @@ export function buildItems(
                   : "task")}
           </span>
         </header>
-        <p>
-          {index % 2 === 0
-            ? "Resize, scroll and render behavior"
-            : "Useful for lazy and virtual checks"}
-        </p>
+        {/* в режиме "auto" размер объекту даёт стенд — его и показываем */}
+        {eachSize && (
+          <p>
+            {eachSize.width ?? "auto"} × {eachSize.height ?? "auto"}
+          </p>
+        )}
         {settings.interactiveItems && (
           <button className="item-action" type="button">
             action

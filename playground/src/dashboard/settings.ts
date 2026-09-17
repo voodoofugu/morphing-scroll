@@ -26,7 +26,10 @@ export type SizeMode = "fixed" | "square" | "auto";
 
 export type WrapperMinMode = "off" | "number" | "pair" | "full";
 
+export type Theme = "system" | "light" | "dark";
+
 export type Settings = {
+  theme: Theme;
   className: string;
   itemCount: number;
   variableItems: boolean;
@@ -109,6 +112,7 @@ export type ScrollCommand = {
 export const STORAGE_KEY = "morphing-scroll-playground-settings";
 
 export const defaultSettings: Settings = {
+  theme: "system",
   className: "",
   itemCount: 72,
   variableItems: true,
@@ -182,117 +186,6 @@ export const defaultSettings: Settings = {
   stickToEnd: false,
   loop: false,
 };
-
-export const presets: Record<string, Partial<Settings>> = {
-  vertical: {
-    itemCount: 96,
-    mode: "scroll",
-    direction: "y",
-    sizeMode: "fixed",
-    width: 680,
-    height: 430,
-    objectsSizeMode: "pair",
-    objectWidth: 170,
-    objectHeight: 118,
-    lines: 2,
-    renderMode: "off",
-    progressElementMode: "custom",
-    contentDrag: false,
-    autoScrollOnDrag: false,
-  },
-  masonry: {
-    itemCount: 120,
-    mode: "scroll",
-    direction: "y",
-    sizeMode: "fixed",
-    width: 680,
-    height: 430,
-    objectsSizeMode: "auto",
-    reorder: false,
-  eachSide: "main",
-    objectWidth: 170,
-    eachMin: 60,
-    eachMax: 240,
-    eachStep: 20,
-    lines: 3,
-    gapX: 12,
-    gapY: 12,
-    renderMode: "virtual",
-    rootMargin: 200,
-    progressElementMode: "custom",
-    contentDrag: true,
-    autoScrollOnDrag: false,
-  },
-  flow: {
-    itemCount: 80,
-    mode: "scroll",
-    direction: "y",
-    sizeMode: "fixed",
-    width: 680,
-    height: 430,
-    objectsSizeMode: "auto",
-    eachSide: "both",
-    eachMin: 80,
-    eachMax: 220,
-    eachStep: 20,
-    lines: 0, // перенос по месту, а не по счёту
-    gapX: 12,
-    gapY: 12,
-    renderMode: "off",
-    progressElementMode: "custom",
-    contentDrag: true,
-    autoScrollOnDrag: false,
-  },
-  virtual: {
-    itemCount: 420,
-    mode: "scroll",
-    direction: "hybrid",
-    sizeMode: "fixed",
-    width: 720,
-    height: 460,
-    objectsSizeMode: "pair",
-    objectWidth: 150,
-    objectHeight: 112,
-    lines: 0,
-    renderMode: "virtual",
-    rootMargin: 160,
-    progressElementMode: "custom",
-    contentDrag: true,
-    autoScrollOnDrag: true,
-  },
-  menu: {
-    itemCount: 24,
-    mode: "sliderMenu",
-    direction: "x",
-    sizeMode: "fixed",
-    width: 760,
-    height: 360,
-    objectsSizeMode: "pair",
-    objectWidth: 240,
-    objectHeight: 220,
-    lines: 1,
-    renderMode: "off",
-    progressElementMode: "custom",
-    arrows: true,
-    edge: true,
-  },
-  auto: {
-    itemCount: 60,
-    mode: "slider",
-    direction: "hybrid",
-    sizeMode: "auto",
-    objectsSizeMode: "pair",
-    objectWidth: 155,
-    objectHeight: 112,
-    lines: 3,
-    renderMode: "lazy",
-    rootMargin: 100,
-    progressElementMode: "custom",
-    wrapperAlignX: "center",
-    wrapperAlignY: "center",
-  },
-};
-
 export const alignOptions: Align[] = ["start", "center", "end"];
 
 export const directionOptions: Direction[] = ["y", "x", "hybrid"];
