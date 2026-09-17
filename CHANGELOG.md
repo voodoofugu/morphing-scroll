@@ -1,22 +1,10 @@
-## [3.0.2] - 2026-09-16
-
-### Fixed
-
-- **hovering `<MorphScroll>` said nothing.** Its description sat above a
-  constant that happened to stand next to it rather than above the component
-  itself, so the editor had nothing to show for the main component of the
-  library. The description is where it belongs now.
-- **`fromRight` was missing from the list of props** inside the component's
-  own hint. The prop works and is typed; it simply could not be found by
-  reading the list.
+## [3.0.2] - 2026-09-17
 
 ### Changed
 
-- **the hints look the same everywhere.** Separator, logo, name, description,
-  list, links — the shape `ResizeTracker` and `IntersectionTracker` already
-  had now reaches the props types, `MorphScrollHandle` and all 35 props of
-  the three components, the ones hovered most often. The trackers' links to
-  MDN moved out of their props list into the links, where the rest are.
+- **the documentation was updated.** The editor hints of the public API were
+  fixed and brought to one shape: `<MorphScroll>` had none of its own at all,
+  and `fromRight` was missing from the list of props.
 
 ## [3.0.1] - 2026-09-11
 
