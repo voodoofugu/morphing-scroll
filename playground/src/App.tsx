@@ -1,7 +1,7 @@
 import React from "react";
 
 import { MorphScroll, ResizeTracker } from "@morphing-scroll/src";
-import logo from "@morphing-scroll/src/assets/morphing-scroll-logo.png";
+import logo from "@morphing-scroll/src/assets/morphing-scroll.svg";
 import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
@@ -66,12 +66,74 @@ function App() {
   );
 
   /* имена секций — те же, что уходят в ключи объектов */
-  /* подсветка плашки: в пропе стоит не то, что по умолчанию */
-  const changed = React.useCallback(
-    (...keys: (keyof typeof defaultSettings)[]) =>
-      keys.some((key) => settings[key] !== defaultSettings[key]),
-    [settings],
-  );
+  /*
+   * Плашка отмечена, когда проп и правда уходит в компонент со своим
+   * значением. Сверяем с умолчаниями библиотеки, а не стенда: поля обёртки,
+   * зазоры и бегунок стенд ставит сам, и это ровно то, что компонент
+   * получает сверх своего умолчания. Список читается как код в панели ниже.
+   */
+  const touched = React.useMemo(() => {
+    const objectsSize = settings.objectsSizeMode !== "default";
+    const gap = settings.gapX > 0 || settings.gapY > 0;
+    const lines = settings.lines > 0;
+    const objectsAlign = settings.objectsAlign !== "start";
+    const order = settings.objectsOrder !== "row";
+    const empty = settings.emptyMode !== "off";
+
+    const wrapperAlign =
+      settings.wrapperAlignX !== "start" || settings.wrapperAlignY !== "start";
+    const margin = [
+      settings.wrapperMarginTop,
+      settings.wrapperMarginRight,
+      settings.wrapperMarginBottom,
+      settings.wrapperMarginLeft,
+    ].some((value) => value > 0);
+    const minSize = settings.wrapperMinMode !== "off";
+
+    // умолчание библиотеки — `{ wheel: true, keys: true }`, остальное молчит
+    const wheel =
+      !settings.wheel ||
+      settings.wheelChangeDirection ||
+      settings.wheelChangeDirectionBtn !== "";
+    const keys = !settings.keys || settings.keysMode !== "pan";
+    const bar = settings.progressElementMode !== "off";
+
+    return {
+      className: settings.className !== "",
+      mode: settings.mode !== "scroll",
+      direction: settings.direction !== "y",
+      fromRight: settings.fromRight,
+      stickToEnd: settings.stickToEnd,
+      loop: settings.loop,
+      autoScrollOnDrag: settings.autoScrollOnDrag,
+      objectsSize,
+      gap,
+      lines,
+      objectsAlign,
+      order,
+      empty,
+      objects: objectsSize || gap || lines || objectsAlign || order || empty,
+      wrapperAlign,
+      margin,
+      minSize,
+      wrapper: wrapperAlign || margin || minSize,
+      wheel,
+      drag: settings.contentDrag,
+      keys,
+      bar,
+      arrows: settings.arrows,
+      controls: wheel || settings.contentDrag || keys || bar || settings.arrows,
+      edge: settings.edge,
+      render: settings.renderMode !== "off",
+      trackVisibility: settings.trackVisibility,
+      suspending: settings.suspending,
+      fallback: settings.fallbackText !== "",
+      onScrollPosition: settings.enableOnScrollValue,
+      onScrollingChange: settings.enableIsScrolling,
+      onNavigate: settings.enableOnNavigate,
+      onRenderedKeysChange: settings.enableOnRenderedKeysChange,
+    };
+  }, [settings]);
 
   const sectionNames = React.useMemo(
     () =>
@@ -437,7 +499,8 @@ function App() {
     <main className={`app-shell${panelOpen ? "" : " is-folded"}`}>
       <aside className="control-panel">
         <div className="brand-row">
-          <img alt="" src={logo} />
+          <img alt="" className="brand-mark" src={logo} />
+          <span className="brand-name">morphing-scroll</span>
           <button
             aria-label={panelOpen ? "collapse" : "expand"}
             className="panel-fold"
@@ -485,7 +548,6 @@ function App() {
               />
             }
             defaultOpen
-            active={changed("itemCount", "variableItems", "interactiveItems", "sectionSize", "reorder")}
             name="children"
           >
             <ToggleField
@@ -538,7 +600,6 @@ function App() {
               />
             }
             enabled={settings.gamepad}
-            active={changed("gamepad")}
             name="gamepad"
           >
             <p className="sub-note">
@@ -572,7 +633,7 @@ function App() {
                 value={settings.className}
               />
             }
-            active={changed("className")}
+            active={touched.className}
             name="className"
             note="children are the objects themselves — the stand builds them, see demo"
           />
@@ -588,7 +649,7 @@ function App() {
                 value={settings.mode}
               />
             }
-            active={changed("mode")}
+            active={touched.mode}
             name="mode"
           />
           <PropCard
@@ -600,7 +661,7 @@ function App() {
                 value={settings.direction}
               />
             }
-            active={changed("direction")}
+            active={touched.direction}
             name="direction"
             note="hybrid gives both axes — the props below start asking for two values"
           />
@@ -612,7 +673,7 @@ function App() {
                 value={settings.fromRight}
               />
             }
-            active={changed("fromRight")}
+            active={touched.fromRight}
             name="fromRight"
             note="the list begins at the right and runs leftwards; the objects themselves are left alone"
           />
@@ -624,7 +685,7 @@ function App() {
                 value={settings.stickToEnd}
               />
             }
-            active={changed("stickToEnd")}
+            active={touched.stickToEnd}
             name="stickToEnd"
           />
           <PropCard
@@ -635,7 +696,7 @@ function App() {
                 value={settings.loop}
               />
             }
-            active={changed("loop")}
+            active={touched.loop}
             name="loop"
           />
           <PropCard
@@ -647,6 +708,7 @@ function App() {
                 value={scrollDuration}
               />
             }
+            active={scrollDuration !== 200}
             name="duration"
             note="how long a move of the library's own takes; the ref commands take it too"
           />
@@ -658,7 +720,7 @@ function App() {
                 value={settings.autoScrollOnDrag}
               />
             }
-            active={changed("autoScrollOnDrag")}
+            active={touched.autoScrollOnDrag}
             name="autoScrollOnDrag"
           />
 
@@ -826,7 +888,7 @@ function App() {
             }
             defaultOpen
             enabled={settings.sizeMode !== "auto"}
-            active={changed("sizeMode", "width", "height", "squareSize")}
+            active={true}
             name="size"
           >
             {settings.sizeMode === "fixed" && (
@@ -858,7 +920,7 @@ function App() {
             )}
           </PropCard>
 
-          <PropCard defaultOpen active={changed("objectsSizeMode", "objectWidth", "objectHeight", "eachSide", "eachMin", "eachMax", "eachStep", "gapX", "gapY", "lines", "objectsAlign", "objectsOrder", "emptyMode")}
+          <PropCard defaultOpen active={touched.objects}
             name="objects">
             <PropCard
               control={
@@ -881,7 +943,7 @@ function App() {
               enabled={["number", "pair", "auto"].includes(
                 settings.objectsSizeMode,
               )}
-              active={changed("objectsSizeMode", "objectWidth", "objectHeight", "eachSide", "eachMin", "eachMax", "eachStep")}
+              active={touched.objectsSize}
             name="size"
             >
               {settings.objectsSizeMode === "number" && (
@@ -985,7 +1047,7 @@ function App() {
               )}
             </PropCard>
 
-            <PropCard defaultOpen active={changed("gapX", "gapY")}
+            <PropCard defaultOpen active={touched.gap}
             name="gap">
               <NumberField
                 label="x"
@@ -1010,7 +1072,7 @@ function App() {
                   value={settings.lines}
                 />
               }
-              active={changed("lines")}
+              active={touched.lines}
             name="lines"
             />
             <PropCard
@@ -1022,7 +1084,7 @@ function App() {
                   value={settings.objectsAlign}
                 />
               }
-              active={changed("objectsAlign")}
+              active={touched.objectsAlign}
             name="align"
             />
             <PropCard
@@ -1034,7 +1096,7 @@ function App() {
                   value={settings.objectsOrder}
                 />
               }
-              active={changed("objectsOrder")}
+              active={touched.order}
             name="order"
             />
             <PropCard
@@ -1048,14 +1110,14 @@ function App() {
                   value={settings.emptyMode}
                 />
               }
-              active={changed("emptyMode")}
+              active={touched.empty}
             name="empty"
             />
           </PropCard>
 
-          <PropCard active={changed("wrapperAlignX", "wrapperAlignY", "wrapperMarginTop", "wrapperMarginRight", "wrapperMarginBottom", "wrapperMarginLeft", "wrapperMinMode", "wrapperMinWidth", "wrapperMinHeight")}
+          <PropCard active={touched.wrapper}
             name="wrapper">
-            <PropCard defaultOpen active={changed("wrapperAlignX", "wrapperAlignY")}
+            <PropCard defaultOpen active={touched.wrapperAlign}
             name="align">
               <SelectField
                 label="x"
@@ -1071,7 +1133,7 @@ function App() {
               />
             </PropCard>
 
-            <PropCard active={changed("wrapperMarginTop", "wrapperMarginRight", "wrapperMarginBottom", "wrapperMarginLeft")}
+            <PropCard active={touched.margin}
             name="margin">
               <NumberField
                 label="top"
@@ -1109,7 +1171,7 @@ function App() {
                 />
               }
               enabled={["number", "pair"].includes(settings.wrapperMinMode)}
-              active={changed("wrapperMinMode", "wrapperMinWidth", "wrapperMinHeight")}
+              active={touched.minSize}
             name="minSize"
             >
               <NumberField
@@ -1131,7 +1193,7 @@ function App() {
         </Section>
 
         <Section title="progress">
-          <PropCard defaultOpen active={changed("wheel", "wheelChangeDirection", "wheelChangeDirectionBtn", "contentDrag", "keys", "keysMode", "keysStep", "progressElementMode", "barShowOnHover", "barThumbMinSize", "barReverseX", "barReverseY", "barTrackGapX", "barTrackGapY", "barEdgeGapX", "barEdgeGapY", "arrows", "arrowSize", "arrowContentReduce")}
+          <PropCard defaultOpen active={touched.controls}
             name="controls">
             <PropCard
               control={
@@ -1142,7 +1204,7 @@ function App() {
                 />
               }
               enabled={settings.wheel && settings.direction === "hybrid"}
-              active={changed("wheel", "wheelChangeDirection", "wheelChangeDirectionBtn")}
+              active={touched.wheel}
             name="wheel"
             >
               <ToggleField
@@ -1169,7 +1231,7 @@ function App() {
                   value={settings.contentDrag}
                 />
               }
-              active={changed("contentDrag")}
+              active={touched.drag}
             name="drag"
             />
 
@@ -1182,7 +1244,7 @@ function App() {
                 />
               }
               enabled={settings.keys}
-              active={changed("keys", "keysMode", "keysStep")}
+              active={touched.keys}
             name="keys"
             >
               <SelectField
@@ -1216,7 +1278,7 @@ function App() {
                 />
               }
               enabled={settings.progressElementMode === "custom"}
-              active={changed("progressElementMode", "barShowOnHover", "barThumbMinSize", "barReverseX", "barReverseY", "barTrackGapX", "barTrackGapY", "barEdgeGapX", "barEdgeGapY")}
+              active={touched.bar}
             name="bar"
             >
               <ToggleField
@@ -1294,7 +1356,7 @@ function App() {
                 />
               }
               enabled={settings.arrows}
-              active={changed("arrows", "arrowSize", "arrowContentReduce")}
+              active={touched.arrows}
             name="arrows"
             >
               <NumberField
@@ -1321,7 +1383,7 @@ function App() {
               />
             }
             enabled={settings.edge}
-            active={changed("edge", "edgeSize")}
+            active={touched.edge}
             name="edge"
           >
             <NumberField
@@ -1344,7 +1406,7 @@ function App() {
               />
             }
             enabled={settings.renderMode !== "off"}
-            active={changed("renderMode", "rootMargin", "deferLoadOnScroll")}
+            active={touched.render}
             name="render"
           >
             <NumberField
@@ -1367,7 +1429,7 @@ function App() {
                 value={settings.trackVisibility}
               />
             }
-            active={changed("trackVisibility")}
+            active={touched.trackVisibility}
             name="trackVisibility"
           />
           <PropCard
@@ -1378,7 +1440,7 @@ function App() {
                 value={settings.suspending}
               />
             }
-            active={changed("suspending")}
+            active={touched.suspending}
             name="suspending"
           />
           <PropCard
@@ -1388,7 +1450,7 @@ function App() {
                 value={settings.fallbackText}
               />
             }
-            active={changed("fallbackText")}
+            active={touched.fallback}
             name="fallback"
           />
         </Section>
@@ -1402,7 +1464,7 @@ function App() {
                 value={settings.enableOnScrollValue}
               />
             }
-            active={changed("enableOnScrollValue")}
+            active={touched.onScrollPosition}
             name="onScrollPosition"
           />
           <PropCard
@@ -1413,7 +1475,7 @@ function App() {
                 value={settings.enableIsScrolling}
               />
             }
-            active={changed("enableIsScrolling")}
+            active={touched.onScrollingChange}
             name="onScrollingChange"
           />
           <PropCard
@@ -1424,7 +1486,7 @@ function App() {
                 value={settings.enableOnNavigate}
               />
             }
-            active={changed("enableOnNavigate")}
+            active={touched.onNavigate}
             name="onNavigate"
           />
           <PropCard
@@ -1437,7 +1499,7 @@ function App() {
                 value={settings.enableOnRenderedKeysChange}
               />
             }
-            active={changed("enableOnRenderedKeysChange")}
+            active={touched.onRenderedKeysChange}
             name="onRenderedKeysChange"
           />
         </Section>

@@ -37,7 +37,6 @@
 
 [morph-scroll].playground-scroll {
   isolation: isolate;
-  border-radius: 10px;
   background: var(--card);
   box-shadow: 0 10px 28px var(--shadow);
 }
@@ -114,7 +113,7 @@ body.no-select {
 }
 
 .demo-item {
-  animation: item-in 260ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation: item-in 260ms ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -210,7 +209,6 @@ body.no-select {
 }
 
 .playground-scroll .ms-bar {
-  width: 14px;
   border-radius: 999px;
   background: rgba(127, 140, 137, 0.16);
   /* showOnHover сообщает состояние переменной, оформляем сами */
@@ -231,12 +229,12 @@ body.no-select {
   min-height: 28px;
   margin-inline: 2px;
   transition:
-    width 0.16s ease,
-    margin 0.16s ease;
+    width 0.1s ease,
+    margin 0.1s ease;
 }
 
 /* под пальцем и под курсором бегунок прибавляет в ширине */
-.playground-scroll .ms-thumb.ms-grabbing {
+.playground-scroll .ms-thumb:active {
   width: 14px;
   margin-inline: 0;
 }
@@ -258,7 +256,6 @@ body.no-select {
 .playground-scroll .ms-thumb.ms-grabbing .scroll-thumb {
   color: var(--accent-ink);
 }
-
 
 .playground-scroll .ms-slider {
   gap: 6px;

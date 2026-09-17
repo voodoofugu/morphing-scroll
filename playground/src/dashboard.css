@@ -22,6 +22,7 @@
   --code-ink: #eef7f4;
   --grid: rgba(24, 32, 31, 0.05);
   --shadow: rgba(18, 32, 28, 0.13);
+  --mark-invert: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -44,6 +45,7 @@
     --code-ink: #dff0ec;
     --grid: rgba(255, 255, 255, 0.05);
     --shadow: rgba(0, 0, 0, 0.45);
+    --mark-invert: 1;
   }
 }
 
@@ -66,6 +68,7 @@
   --code-ink: #dff0ec;
   --grid: rgba(255, 255, 255, 0.05);
   --shadow: rgba(0, 0, 0, 0.45);
+  --mark-invert: 1;
 }
 
 * {
@@ -173,21 +176,31 @@ input[type="color"] {
 
 .brand-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px 9px;
   align-items: center;
   margin-bottom: 14px;
 }
 
-.brand-row img {
+.brand-mark {
   grid-column: 1;
-  width: min(200px, 100%);
-  height: auto;
-  object-fit: contain;
+  width: 30px;
+  height: 30px;
+  /* знак нарисован чёрным: на тёмной теме выворачиваем его в светлый */
+  filter: invert(var(--mark-invert));
+}
+
+.brand-name {
+  grid-column: 2;
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .panel-fold {
-  grid-column: 2;
+  grid-column: 3;
   width: 28px;
   min-height: 28px;
   color: var(--ink-faint);
@@ -199,10 +212,7 @@ input[type="color"] {
   grid-column: 1 / -1;
 }
 
-/*
- * Сложенная панель: остаётся полоска со знаком и стрелкой. Знак у логотипа
- * стоит слева, поэтому показываем его обрезкой, а не вторым файлом.
- */
+/* сложенная панель: остаются знак и стрелка, название прячется */
 .app-shell.is-folded {
   grid-template-columns: 60px minmax(0, 1fr);
 }
@@ -219,17 +229,12 @@ input[type="color"] {
   margin-bottom: 0;
 }
 
-.is-folded .brand-row img {
-  width: 34px;
-  height: 34px;
-  object-fit: cover;
-  object-position: left center;
-}
-
+.is-folded .brand-mark,
 .is-folded .panel-fold {
   grid-column: 1;
 }
 
+.is-folded .brand-name,
 .is-folded .brand-actions,
 .is-folded .section {
   display: none;
@@ -308,7 +313,7 @@ input[type="color"] {
 /* проп трогали — плашка отмечена; раскрытие само по себе ничего не значит */
 .prop-card.is-active {
   border-color: var(--accent);
-  box-shadow: inset 2px 0 0 var(--accent);
+  box-shadow: 1px 1px 0 var(--accent);
 }
 
 .prop-head {
@@ -602,7 +607,6 @@ input[type="color"] {
   align-items: stretch;
   justify-items: stretch;
 }
-
 
 .code-panel {
   min-width: 0;
