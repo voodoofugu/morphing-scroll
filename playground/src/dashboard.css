@@ -190,7 +190,7 @@ input[type="color"] {
 
 .brand-name {
   grid-column: 2;
-  color: var(--ink);
+  color: var(--accent);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
   font-weight: 800;
@@ -515,6 +515,26 @@ input[type="color"] {
 
 /* ── правая часть ───────────────────────────────────────────────────── */
 
+/* миниатюра едет за указателем; порядок меняется только на отпускании */
+.drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  pointer-events: none;
+  box-shadow: 0 8px 20px var(--shadow);
+}
+
 .workbench {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -695,6 +715,42 @@ input[type="color"] {
   background: var(--code-bg);
   color: var(--code-ink);
   padding: 12px;
+}
+
+/* подсветка: фон панели тёмный в обеих темах, поэтому цвета одни */
+.code-panel .token.comment {
+  color: #6f807c;
+}
+
+.code-panel .token.tag,
+.code-panel .token.keyword,
+.code-panel .token.selector {
+  color: #82b1ff;
+}
+
+.code-panel .token.attr-name,
+.code-panel .token.property {
+  color: #a5d6a7;
+}
+
+.code-panel .token.attr-value,
+.code-panel .token.string {
+  color: #ffd79a;
+}
+
+.code-panel .token.number,
+.code-panel .token.unit,
+.code-panel .token.boolean {
+  color: #ffab91;
+}
+
+.code-panel .token.function {
+  color: #c792ea;
+}
+
+.code-panel .token.punctuation,
+.code-panel .token.operator {
+  color: #93a29e;
 }
 
 .code-panel code {

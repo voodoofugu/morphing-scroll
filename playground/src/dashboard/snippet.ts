@@ -1,4 +1,4 @@
-import type { ScrollCommand, Settings } from "./settings";
+import type { Settings } from "./settings";
 import { eachPair } from "./settings";
 import { numberOrUndefined } from "../utils";
 
@@ -51,7 +51,7 @@ export function formatCodeValue(value: CodeValue, indent = 0): string {
     .join("\n")}\n${pad}}`;
 }
 
-export function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
+export function buildSnippet(settings: Settings, duration: number) {
   const needsMenu = settings.mode === "sliderMenu";
 
   const size: CodeValue =
@@ -229,7 +229,8 @@ export function buildSnippet(settings: Settings, scrollCommand: ScrollCommand) {
     ["loop", settings.loop || undefined, "boolean"],
     [
       "duration",
-      scrollCommand.duration === 200 ? undefined : scrollCommand.duration,
+      // 200 — умолчание библиотеки, его в разметку не пишем
+      duration === 200 ? undefined : duration,
       "value",
     ],
     [

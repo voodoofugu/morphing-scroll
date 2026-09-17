@@ -103,10 +103,6 @@ export type Settings = {
   loop: boolean;
 };
 
-export type ScrollCommand = {
-  value: null | number | "end" | [null | number | "end", null | number | "end"];
-  duration: number;
-};
 
 export const STORAGE_KEY = "morphing-scroll-playground-settings";
 

@@ -94,7 +94,8 @@ body.no-select {
   min-height: 68px;
   overflow: hidden;
   border: 1px solid rgba(127, 140, 137, 0.25);
-  border-radius: 8px;
+  border-radius: 2px 14px 2px 2px;
+  corner-shape: round bevel round round;
   padding: 11px;
   color: var(--item-ink);
 }
@@ -168,11 +169,15 @@ body.no-select {
   cursor: grabbing;
 }
 
-/* объект, который сейчас несут: приподнят и не мешает попасть по соседям */
+/* объект, который сейчас несут: сам остаётся на месте, но приглушён */
 .demo-item.is-dragging {
-  z-index: 2;
-  opacity: 0.65;
-  box-shadow: 0 6px 18px var(--shadow);
+  opacity: 0.4;
+}
+
+/* над кем держат — туда и встанет */
+.demo-item.is-drop-target {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .tone-0 {

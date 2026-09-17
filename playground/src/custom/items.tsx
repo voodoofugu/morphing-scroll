@@ -34,6 +34,8 @@ export function buildItems(
   order: number[],
   onGrab?: (id: number, event: React.PointerEvent) => void,
   dragging?: number | null,
+  /** над кем держат: сюда объект и встанет, когда отпустят */
+  over?: number | null,
 ) {
   const each = settings.objectsSizeMode === "auto";
   const pair = eachPair(settings) as ["auto" | number, "auto" | number];
@@ -70,6 +72,7 @@ export function buildItems(
           isTall ? "is-tall" : "",
           isWide ? "is-wide" : "",
           dragging === id ? "is-dragging" : "",
+          over === id && dragging !== id ? "is-drop-target" : "",
         ].join(" ")}
         data-item={id}
         key={`item-${number}`}

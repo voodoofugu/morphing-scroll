@@ -5,12 +5,13 @@ import logo from "@morphing-scroll/src/assets/morphing-scroll.svg";
 import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
+  ScrollTarget,
   NavigateEvent,
   ControlsConfig,
   WrapperConfig,
 } from "@morphing-scroll/src/types/types";
 
-import type { Align, ScrollCommand } from "./dashboard/settings";
+import type { Align } from "./dashboard/settings";
 import {
   alignOptions,
   defaultSettings,
@@ -34,6 +35,7 @@ import {
 } from "./dashboard/fields";
 import { buildSnippet } from "./dashboard/snippet";
 import buildStyles from "./dashboard/styles";
+import Code from "./dashboard/Code";
 import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
 import { useGamepadScroll } from "./custom/gamepad";
@@ -151,10 +153,6 @@ function App() {
   const [objectTarget, setObjectTarget] = React.useState("s3");
   const [objectAlign, setObjectAlign] = React.useState<Align>("start");
 
-  const [scrollCommand, setScrollCommand] = React.useState<ScrollCommand>({
-    duration: 220,
-    value: null,
-  });
   const [copyState, setCopyState] = React.useState<"copied" | "idle">("idle");
 
   /*
@@ -165,7 +163,18 @@ function App() {
   const [order, setOrder] = React.useState<number[]>(() =>
     Array.from({ length: settings.itemCount }, (_, i) => i),
   );
-  const [dragging, setDragging] = React.useState<number | null>(null);
+  /*
+   * Что несут и над кем держат. Порядок меняется на отпускании, а не на ходу:
+   * так видно, куда объект встанет, и список не пляшет под указателем.
+   */
+  const [drag, setDrag] = React.useState<{
+    id: number;
+    over: number | null;
+    x: number;
+    y: number;
+  } | null>(null);
+  const dragRef = React.useRef<{ id: number; over: number | null } | null>(null);
+  const ghostRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     setOrder(Array.from({ length: settings.itemCount }, (_, i) => i));
@@ -176,23 +185,34 @@ function App() {
 
     /*
      * Свой жест, свои последствия: библиотека блокирует выделение текста на
-     * время СВОЕГО перетаскивания (тот же приём, что и здесь — общий стиль
-     * на время жеста), но об этом жесте она не знает и знать не должна —
-     * `ms-custom-drag` просит её не лезть в него, не убирает браузерное
-     * выделение сама.
+     * время СВОЕГО перетаскивания, но об этом жесте она не знает и знать не
+     * должна — `ms-custom-drag` просит её не лезть в него.
      */
     event.preventDefault();
     document.body.classList.add("no-select");
 
     const from = event.currentTarget as HTMLElement;
-    from.setPointerCapture(event.pointerId);
-    setDragging(id);
+    // указатель мог уже отпуститься — тогда захват просто не нужен
+    try {
+      from.setPointerCapture(event.pointerId);
+    } catch {
+      /* пусто: жест и без захвата слушает документ */
+    }
+
+    dragRef.current = { id, over: null };
+    setDrag({ id, over: null, x: event.clientX, y: event.clientY });
 
     const move = (moveEvent: PointerEvent) => {
       /*
-       * Куда встать, спрашиваем у того, кто под указателем: считать по
-       * координатам нельзя — при `"auto"` объекты разного размера и сетки,
-       * по которой считать, просто нет.
+       * Миниатюру двигаем прямо по узлу: на каждый шаг указателя перерисовывать
+       * список из семидесяти объектов незачем.
+       */
+      if (ghostRef.current)
+        ghostRef.current.style.transform = `translate(${moveEvent.clientX}px, ${moveEvent.clientY}px)`;
+
+      /*
+       * Над кем держим, спрашиваем у документа: считать по координатам нельзя
+       * — при `"auto"` объекты разного размера, и сетки просто нет.
        */
       from.style.pointerEvents = "none";
       const under = document
@@ -200,28 +220,38 @@ function App() {
         ?.closest<HTMLElement>("[data-item]");
       from.style.pointerEvents = "";
 
-      const over = under && Number(under.dataset.item);
-      if (over === undefined || over === null || Number.isNaN(over)) return;
+      const found = under ? Number(under.dataset.item) : Number.NaN;
+      const over = Number.isNaN(found) ? null : found;
 
-      setOrder((current) => {
-        const at = current.indexOf(id);
-        const to = current.indexOf(over);
-        if (at === -1 || to === -1 || at === to) return current;
+      if (dragRef.current?.over === over) return;
 
-        const next = [...current];
-        next.splice(at, 1);
-        next.splice(to, 0, id);
-
-        return next;
-      });
+      dragRef.current = { id, over };
+      setDrag((current) => current && { ...current, over });
     };
 
     const drop = () => {
-      setDragging(null);
+      const held = dragRef.current;
+
+      dragRef.current = null;
+      setDrag(null);
       document.body.classList.remove("no-select");
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", drop);
       document.removeEventListener("pointercancel", drop);
+
+      if (!held || held.over === null || held.over === held.id) return;
+
+      setOrder((current) => {
+        const at = current.indexOf(held.id);
+        const to = current.indexOf(held.over!);
+        if (at === -1 || to === -1 || at === to) return current;
+
+        const next = [...current];
+        next.splice(at, 1);
+        next.splice(to, 0, held.id);
+
+        return next;
+      });
     };
 
     document.addEventListener("pointermove", move);
@@ -235,9 +265,10 @@ function App() {
         settings,
         order,
         settings.reorder ? onGrab : undefined,
-        dragging,
+        drag?.id ?? null,
+        drag?.over ?? null,
       ),
-    [settings, order, onGrab, dragging],
+    [settings, order, onGrab, drag],
   );
   const progressMenu = React.useMemo(
     () => buildProgressMenu(settings.itemCount),
@@ -415,7 +446,7 @@ function App() {
       trackVisibility: settings.trackVisibility,
       stickToEnd: settings.stickToEnd,
       loop: settings.loop,
-      duration: scrollCommand.duration,
+      duration: scrollDuration,
       size,
       suspending: settings.suspending,
       mode: settings.mode,
@@ -431,7 +462,7 @@ function App() {
       objectsSize,
       progressElement,
       render,
-      scrollCommand,
+      scrollDuration,
       settings,
       size,
       wrapperMargin,
@@ -450,12 +481,7 @@ function App() {
 
   const applyScroll = React.useCallback(
     (mode: "clear" | "end" | "start" | "value") => {
-      /*
-       * Считаем до, а не внутри апдейтера: React зовёт его когда сам решит, и
-       * к вызову `scrollTo` значение оттуда ещё не вернулось — уезжал `null`,
-       * то есть никуда.
-       */
-      let value: ScrollCommand["value"] = null;
+      let value: ScrollTarget = null;
 
       if (mode === "start") value = settings.direction === "hybrid" ? [0, 0] : 0;
       if (mode === "end")
@@ -468,7 +494,6 @@ function App() {
               ? scrollXInput
               : scrollYInput;
 
-      setScrollCommand({ duration: scrollDuration, value });
 
       /*
        * Единственный способ съездить куда-то по кнопке — команда: она
@@ -480,8 +505,8 @@ function App() {
   );
 
   const generatedCode = React.useMemo(
-    () => buildSnippet(settings, scrollCommand),
-    [scrollCommand, settings],
+    () => buildSnippet(settings, scrollDuration),
+    [scrollDuration, settings],
   );
 
   /*
@@ -542,7 +567,9 @@ function App() {
             </div>
             <button
               className="ghost-btn reset-btn"
-              onClick={() => setSettings(defaultSettings)}
+              onClick={() =>
+                setSettings({ ...defaultSettings, theme: settings.theme })
+              }
               type="button"
             >
               reset
@@ -565,6 +592,7 @@ function App() {
                 value={settings.itemCount}
               />
             }
+            active
             defaultOpen
             name="children"
           >
@@ -1618,12 +1646,22 @@ function App() {
           </header>
           {codeOpen && (
             <pre>
-              <code>{shownCode}</code>
+              <Code code={shownCode} lang={codeTab} />
             </pre>
           )}
         </section>
       </section>
 
+      {/* миниатюра под указателем: видно, что несут и куда оно встанет */}
+      {drag && (
+        <div
+          className="drag-ghost"
+          ref={ghostRef}
+          style={{ transform: `translate(${drag.x}px, ${drag.y}px)` }}
+        >
+          {String(drag.id + 1).padStart(2, "0")}
+        </div>
+      )}
     </main>
   );
 }
