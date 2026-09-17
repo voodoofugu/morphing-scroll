@@ -499,7 +499,11 @@ function App() {
     <main className={`app-shell${panelOpen ? "" : " is-folded"}`}>
       <aside className="control-panel">
         <div className="brand-row">
-          <img alt="" className="brand-mark" src={logo} />
+          {/* знак красим сами: форму берём маской, цвет — из темы */}
+          <span
+            className="brand-mark"
+            style={{ "--mark": `url("${logo}")` } as React.CSSProperties}
+          />
           <span className="brand-name">morphing-scroll</span>
           <button
             aria-label={panelOpen ? "collapse" : "expand"}

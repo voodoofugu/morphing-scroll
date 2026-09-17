@@ -22,7 +22,6 @@
   --code-ink: #eef7f4;
   --grid: rgba(24, 32, 31, 0.05);
   --shadow: rgba(18, 32, 28, 0.13);
-  --mark-invert: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,7 +44,6 @@
     --code-ink: #dff0ec;
     --grid: rgba(255, 255, 255, 0.05);
     --shadow: rgba(0, 0, 0, 0.45);
-    --mark-invert: 1;
   }
 }
 
@@ -68,7 +66,6 @@
   --code-ink: #dff0ec;
   --grid: rgba(255, 255, 255, 0.05);
   --shadow: rgba(0, 0, 0, 0.45);
-  --mark-invert: 1;
 }
 
 * {
@@ -186,8 +183,9 @@ input[type="color"] {
   grid-column: 1;
   width: 30px;
   height: 30px;
-  /* знак нарисован чёрным: на тёмной теме выворачиваем его в светлый */
-  filter: invert(var(--mark-invert));
+  background: var(--accent);
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
 }
 
 .brand-name {
