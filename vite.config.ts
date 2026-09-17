@@ -3,9 +3,11 @@ import { fileURLToPath, URL } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+import msDocs from "./playground/plugins/docs";
+
 export default defineConfig({
   root: "playground",
-  plugins: [react()],
+  plugins: [react(), msDocs()],
   resolve: {
     alias: {
       "@morphing-scroll/src": fileURLToPath(new URL("./src", import.meta.url)),

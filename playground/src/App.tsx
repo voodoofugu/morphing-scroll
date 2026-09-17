@@ -36,6 +36,7 @@ import {
 import { buildSnippet } from "./dashboard/snippet";
 import buildStyles from "./dashboard/styles";
 import Code from "./dashboard/Code";
+import DocTips from "./dashboard/DocTip";
 import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
 import { useGamepadScroll } from "./custom/gamepad";
@@ -808,7 +809,7 @@ function App() {
               </p>
             </PropCard>
 
-            <PropCard name="step · pan">
+            <PropCard doc="ref.step" name="step · pan">
               <div className="scroll-command-row">
                 <button
                   onClick={() =>
@@ -1652,6 +1653,9 @@ function App() {
           )}
         </section>
       </section>
+
+      {/* описание пропса из его же JSDoc, по наведению на имя */}
+      <DocTips />
 
       {/* миниатюра под указателем: видно, что несут и куда оно встанет */}
       {drag && (

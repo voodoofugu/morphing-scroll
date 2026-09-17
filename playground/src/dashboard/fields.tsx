@@ -1,5 +1,9 @@
 import React from "react";
 
+import docs from "virtual:ms-docs";
+
+import { DocLabel, DocPathContext } from "./DocTip";
+
 /** заголовок раздела: demo, scroll, layout — дальше идут плашки пропсов */
 export function Section({
   children,
@@ -26,6 +30,7 @@ export function PropCard({
   children,
   control,
   defaultOpen = false,
+  doc,
   enabled = true,
   name,
   note,
@@ -35,13 +40,20 @@ export function PropCard({
   children?: React.ReactNode;
   control?: React.ReactNode;
   defaultOpen?: boolean;
+  /** путь до описания, когда плашка названа не так, как проп */
+  doc?: string;
   /** выключенный проп своих параметров не показывает */
   enabled?: boolean;
   name: string;
   note?: string;
 }) {
+  const parent = React.useContext(DocPathContext);
+  // путь собирается из вложенности плашек: `controls` + `bar` = `controls.bar`
+  const path = doc ?? (parent ? `${parent}.${name}` : name);
+
   const [open, setOpen] = React.useState(defaultOpen);
   const canOpen = enabled && !!children;
+  const hasDoc = !!docs[path];
 
   const wasEnabled = React.useRef(enabled);
   React.useEffect(() => {
@@ -58,17 +70,33 @@ export function PropCard({
       <div className="prop-head">
         <button
           aria-expanded={canOpen && open}
-          className={`prop-name${canOpen ? " can-open" : ""}`}
-          disabled={!canOpen}
-          onClick={() => setOpen((current) => !current)}
+          className={`prop-name${canOpen ? " can-open" : ""}${
+            hasDoc ? " doc-trigger" : ""
+          }`}
+          data-doc={hasDoc ? path : undefined}
+          // имя с описанием остаётся в обходе по Tab: подсказка нужна и там
+          disabled={!canOpen && !hasDoc}
+          onClick={() => canOpen && setOpen((current) => !current)}
           type="button"
         >
           {name}
         </button>
-        {control ? <div className="prop-control">{control}</div> : null}
+        {control ? (
+          <div className="prop-control">
+            <DocPathContext.Provider value={path}>
+              {control}
+            </DocPathContext.Provider>
+          </div>
+        ) : null}
       </div>
       {note ? <p className="sub-note prop-note">{note}</p> : null}
-      {canOpen && open ? <div className="prop-body">{children}</div> : null}
+      {canOpen && open ? (
+        <div className="prop-body">
+          <DocPathContext.Provider value={path}>
+            {children}
+          </DocPathContext.Provider>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -82,7 +110,7 @@ export function Field({
 }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <DocLabel name={label} />
       {children}
     </label>
   );
@@ -166,7 +194,7 @@ export function ToggleField({
         onChange={(event) => onChange(event.target.checked)}
         type="checkbox"
       />
-      <span>{label}</span>
+      <DocLabel name={label} />
     </label>
   );
 }
@@ -211,7 +239,7 @@ export function SegmentedField<T extends string>({
 }) {
   return (
     <div className="segmented-field">
-      <span>{label}</span>
+      <DocLabel name={label} />
       <div className="segmented-control">
         {options.map((option) => (
           <button

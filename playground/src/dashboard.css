@@ -535,6 +535,86 @@ input[type="color"] {
   box-shadow: 0 8px 20px var(--shadow);
 }
 
+/*
+ * Описание пропса всплывает из его же JSDoc. Плашка одна на страницу и лежит
+ * в верхнем слое: панель настроек прокручивается, и обычный элемент внутри
+ * неё обрезало бы её же переполнение.
+ */
+.doc-trigger {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, var(--ink-faint) 60%, transparent);
+  text-underline-offset: 3px;
+}
+
+.doc-trigger:hover {
+  text-decoration-color: var(--accent);
+}
+
+.doc-tip {
+  position: fixed;
+  inset: auto;
+  z-index: 70;
+  width: max-content;
+  max-width: 300px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 9px 11px;
+  box-shadow: 0 12px 28px var(--shadow);
+  animation: tip-in 140ms ease-out;
+}
+
+/* браузер без поддержки popover прячет плашку сам, атрибутом */
+.doc-tip[hidden] {
+  display: none;
+}
+
+.doc-tip-path {
+  color: var(--accent-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.doc-tip p {
+  margin: 5px 0 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.doc-tip code {
+  font-size: 11.5px;
+}
+
+.doc-tip-default {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 5px;
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doc-tip {
+    animation: none;
+  }
+}
+
 .workbench {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;

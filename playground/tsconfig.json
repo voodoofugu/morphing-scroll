@@ -3,12 +3,12 @@
   "compilerOptions": {
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "baseUrl": "..",
     "paths": {
       "@morphing-scroll/src": ["src/index.ts"],
       "@morphing-scroll/src/*": ["src/*"]
     }
   },
-  "include": ["src", "../src"]
+  "include": ["src", "plugins", "../src"]
 }

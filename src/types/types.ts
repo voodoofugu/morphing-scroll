@@ -91,10 +91,27 @@ export type ArrowsConfig = {
 
 /** the object form of `controls` */
 export type ControlsConfig = {
+  /**
+   * the wheel over the content moves the scroll
+   * @default true, while `controls` is not written at all
+   */
   wheel?: boolean | WheelConfig;
+  /**
+   * the content follows the pointer, dragged from anywhere inside it — a
+   * finger too, where the browser does not scroll it itself
+   */
   drag?: boolean;
+  /**
+   * the arrow keys move the scroll while it has focus
+   * @default true, while `controls` is not written at all
+   */
   keys?: boolean | KeysConfig;
+  /**
+   * the progress element: a thumb of yours in `mode="scroll"`, the page strip
+   * in the slider modes. `true` leaves it to the browser's own bar
+   */
   bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
+  /** a strip along each side that turns a page; the icon in it is yours */
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
@@ -131,6 +148,7 @@ export type ObjectsConfig = {
    * same as `"auto"`: the object decides it and the library measures it
    */
   size?: ObjectSize | Pair<ObjectSize | undefined>;
+  /** space between the objects; a pair is `[x, y]`, sideways first */
   gap?: number | Vec2;
   /**
    * how many lines the objects run in, across the scroll.
@@ -146,6 +164,7 @@ export type ObjectsConfig = {
    * moves right
    */
   order?: "row" | "column";
+  /** what to do with an object that rendered nothing */
   empty?: "clear" | "fallback" | EmptyObjectsConfig;
 };
 
@@ -161,6 +180,7 @@ export type WrapperConfig = {
 
 /** the object form of `objects.empty` */
 export type EmptyObjectsConfig = {
+  /** `"clear"` drops the empty objects, `"fallback"` puts `fallback.empty` there */
   mode: "clear" | "fallback";
   /** start clearing when something matching this selector is clicked */
   clickTrigger?: string | { selector: string; delay?: number };
@@ -621,8 +641,14 @@ export type MorphScroll = {
     | "lazy"
     | "virtual"
     | {
+        /** `"lazy"` keeps the objects in place, `"virtual"` mounts only what shows */
         mode: "lazy" | "virtual";
+        /**
+         * how far beyond the viewport an object still counts as visible, in
+         * px — widen it to prepare objects before they are reached
+         */
         rootMargin?: SpacingValue;
+        /** new objects wait for the scrolling to stop before they load */
         deferLoadOnScroll?: boolean;
       };
   /**---
