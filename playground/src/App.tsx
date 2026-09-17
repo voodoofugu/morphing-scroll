@@ -645,6 +645,7 @@ function App() {
                 value={settings.gamepad}
               />
             }
+            active={settings.gamepad}
             enabled={settings.gamepad}
             name="gamepad"
           >

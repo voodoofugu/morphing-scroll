@@ -25,6 +25,7 @@
     "test:all": "vitest run && playwright test",
     "playground": "vite --config vite.config.ts --host 0.0.0.0",
     "playground:check": "tsc -p playground/tsconfig.json --noEmit",
+    "playground:build": "vite build --base=/morphing-scroll/",
     "build:types": "tsc -p tsconfig.types.json",
     "build": "npm run typecheck && rollup -c rollup.config.mjs && npm run build:types && node scripts/prepare-dist.mjs",
     "build:dev": "npm run typecheck && MORPHING_SCROLL_BUILD=development rollup -c rollup.config.mjs && npm run build:types && node scripts/prepare-dist.mjs",
