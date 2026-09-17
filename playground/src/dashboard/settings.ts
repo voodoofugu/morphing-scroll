@@ -70,7 +70,6 @@ export type Settings = {
   objectsOrder: "row" | "column";
   sectionSize: number;
   edge: boolean;
-  edgeColor: string;
   edgeSize: number;
   wheel: boolean;
   wheelChangeDirection: boolean;
@@ -140,20 +139,19 @@ export const defaultSettings: Settings = {
   lines: 2,
   gapX: 12,
   gapY: 12,
-  wrapperMarginTop: 0,
-  wrapperMarginRight: 0,
-  wrapperMarginBottom: 0,
-  wrapperMarginLeft: 0,
+  wrapperMarginTop: 12,
+  wrapperMarginRight: 12,
+  wrapperMarginBottom: 12,
+  wrapperMarginLeft: 12,
   wrapperMinMode: "off",
   wrapperMinWidth: 0,
   wrapperMinHeight: 0,
-  wrapperAlignX: "start",
+  wrapperAlignX: "center",
   wrapperAlignY: "start",
   objectsAlign: "start",
   objectsOrder: "row",
   sectionSize: 10,
   edge: true,
-  edgeColor: "#12a3a8",
   edgeSize: 42,
   wheel: true,
   wheelChangeDirection: false,
@@ -172,8 +170,8 @@ export const defaultSettings: Settings = {
   barShowOnHover: false,
   barTrackGapX: 8,
   barTrackGapY: 8,
-  barEdgeGapX: 0,
-  barEdgeGapY: 0,
+  barEdgeGapX: 8,
+  barEdgeGapY: 8,
   barThumbMinSize: 30,
   renderMode: "off",
   rootMargin: 120,

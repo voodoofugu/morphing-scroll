@@ -22,6 +22,7 @@ export function Section({
  * его затем и включают, чтобы настроить.
  */
 export function PropCard({
+  active = false,
   children,
   control,
   defaultOpen = false,
@@ -29,6 +30,8 @@ export function PropCard({
   name,
   note,
 }: {
+  /** в проп передали не то, что стоит по умолчанию — видно, чем правили */
+  active?: boolean;
   children?: React.ReactNode;
   control?: React.ReactNode;
   defaultOpen?: boolean;
@@ -50,7 +53,7 @@ export function PropCard({
     <div
       className={`prop-card${enabled ? "" : " is-off"}${
         canOpen && open ? " is-open" : ""
-      }`}
+      }${active ? " is-active" : ""}`}
     >
       <div className="prop-head">
         <button

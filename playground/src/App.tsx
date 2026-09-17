@@ -52,8 +52,10 @@ function App() {
   const [scrollYInput, setScrollYInput] = React.useState(0);
   const [scrollDuration, setScrollDuration] = React.useState(220);
   const [pad, setPad] = React.useState<PadSample | null>(null);
-  /* панель уезжает, и в окно можно вписать размеры больше самой панели */
-  const [expanded, setExpanded] = React.useState(false);
+  /* панель складывается до полоски — тогда в окно влезают любые размеры */
+  const [panelOpen, setPanelOpen] = React.useState(true);
+  /* код нужен не всегда: сначала собирают скролл, потом забирают JSX */
+  const [codeOpen, setCodeOpen] = React.useState(false);
   const scrollRef = React.useRef<MorphScrollHandle>(null);
 
   useGamepadScroll(
@@ -64,6 +66,13 @@ function App() {
   );
 
   /* имена секций — те же, что уходят в ключи объектов */
+  /* подсветка плашки: в пропе стоит не то, что по умолчанию */
+  const changed = React.useCallback(
+    (...keys: (keyof typeof defaultSettings)[]) =>
+      keys.some((key) => settings[key] !== defaultSettings[key]),
+    [settings],
+  );
+
   const sectionNames = React.useMemo(
     () =>
       settings.sectionSize > 0
@@ -226,16 +235,9 @@ function App() {
      */
     return {
       size: settings.edgeSize,
-      element: (
-        <div
-          className="playground-edge"
-          style={{
-            background: `linear-gradient(${settings.edgeColor}, transparent)`,
-          }}
-        />
-      ),
+      element: <div className="playground-edge" />,
     };
-  }, [settings.edgeColor, settings.edge, settings.edgeSize]);
+  }, [settings.edge, settings.edgeSize]);
 
   const progressElement = React.useMemo<
     React.ReactNode | React.ReactNode[] | boolean
@@ -432,10 +434,18 @@ function App() {
   }, [settings.theme]);
 
   return (
-    <main className={`app-shell${expanded ? " is-expanded" : ""}`}>
+    <main className={`app-shell${panelOpen ? "" : " is-folded"}`}>
       <aside className="control-panel">
         <div className="brand-row">
           <img alt="" src={logo} />
+          <button
+            aria-label={panelOpen ? "collapse" : "expand"}
+            className="panel-fold"
+            onClick={() => setPanelOpen((current) => !current)}
+            type="button"
+          >
+            {panelOpen ? "←" : "→"}
+          </button>
           <div className="brand-actions">
             <div className="theme-switch">
               {(["system", "light", "dark"] as const).map((name) => (
@@ -450,7 +460,7 @@ function App() {
               ))}
             </div>
             <button
-              className="ghost-btn"
+              className="ghost-btn reset-btn"
               onClick={() => setSettings(defaultSettings)}
               type="button"
             >
@@ -475,6 +485,7 @@ function App() {
               />
             }
             defaultOpen
+            active={changed("itemCount", "variableItems", "interactiveItems", "sectionSize", "reorder")}
             name="children"
           >
             <ToggleField
@@ -527,6 +538,7 @@ function App() {
               />
             }
             enabled={settings.gamepad}
+            active={changed("gamepad")}
             name="gamepad"
           >
             <p className="sub-note">
@@ -560,6 +572,7 @@ function App() {
                 value={settings.className}
               />
             }
+            active={changed("className")}
             name="className"
             note="children are the objects themselves — the stand builds them, see demo"
           />
@@ -575,6 +588,7 @@ function App() {
                 value={settings.mode}
               />
             }
+            active={changed("mode")}
             name="mode"
           />
           <PropCard
@@ -586,6 +600,7 @@ function App() {
                 value={settings.direction}
               />
             }
+            active={changed("direction")}
             name="direction"
             note="hybrid gives both axes — the props below start asking for two values"
           />
@@ -597,6 +612,7 @@ function App() {
                 value={settings.fromRight}
               />
             }
+            active={changed("fromRight")}
             name="fromRight"
             note="the list begins at the right and runs leftwards; the objects themselves are left alone"
           />
@@ -608,6 +624,7 @@ function App() {
                 value={settings.stickToEnd}
               />
             }
+            active={changed("stickToEnd")}
             name="stickToEnd"
           />
           <PropCard
@@ -618,6 +635,7 @@ function App() {
                 value={settings.loop}
               />
             }
+            active={changed("loop")}
             name="loop"
           />
           <PropCard
@@ -640,6 +658,7 @@ function App() {
                 value={settings.autoScrollOnDrag}
               />
             }
+            active={changed("autoScrollOnDrag")}
             name="autoScrollOnDrag"
           />
 
@@ -807,6 +826,7 @@ function App() {
             }
             defaultOpen
             enabled={settings.sizeMode !== "auto"}
+            active={changed("sizeMode", "width", "height", "squareSize")}
             name="size"
           >
             {settings.sizeMode === "fixed" && (
@@ -838,7 +858,8 @@ function App() {
             )}
           </PropCard>
 
-          <PropCard defaultOpen name="objects">
+          <PropCard defaultOpen active={changed("objectsSizeMode", "objectWidth", "objectHeight", "eachSide", "eachMin", "eachMax", "eachStep", "gapX", "gapY", "lines", "objectsAlign", "objectsOrder", "emptyMode")}
+            name="objects">
             <PropCard
               control={
                 <SelectField
@@ -860,7 +881,8 @@ function App() {
               enabled={["number", "pair", "auto"].includes(
                 settings.objectsSizeMode,
               )}
-              name="size"
+              active={changed("objectsSizeMode", "objectWidth", "objectHeight", "eachSide", "eachMin", "eachMax", "eachStep")}
+            name="size"
             >
               {settings.objectsSizeMode === "number" && (
                 <NumberField
@@ -963,7 +985,8 @@ function App() {
               )}
             </PropCard>
 
-            <PropCard defaultOpen name="gap">
+            <PropCard defaultOpen active={changed("gapX", "gapY")}
+            name="gap">
               <NumberField
                 label="x"
                 max={80}
@@ -987,7 +1010,8 @@ function App() {
                   value={settings.lines}
                 />
               }
-              name="lines"
+              active={changed("lines")}
+            name="lines"
             />
             <PropCard
               control={
@@ -998,7 +1022,8 @@ function App() {
                   value={settings.objectsAlign}
                 />
               }
-              name="align"
+              active={changed("objectsAlign")}
+            name="align"
             />
             <PropCard
               control={
@@ -1009,7 +1034,8 @@ function App() {
                   value={settings.objectsOrder}
                 />
               }
-              name="order"
+              active={changed("objectsOrder")}
+            name="order"
             />
             <PropCard
               control={
@@ -1022,12 +1048,15 @@ function App() {
                   value={settings.emptyMode}
                 />
               }
-              name="empty"
+              active={changed("emptyMode")}
+            name="empty"
             />
           </PropCard>
 
-          <PropCard name="wrapper">
-            <PropCard defaultOpen name="align">
+          <PropCard active={changed("wrapperAlignX", "wrapperAlignY", "wrapperMarginTop", "wrapperMarginRight", "wrapperMarginBottom", "wrapperMarginLeft", "wrapperMinMode", "wrapperMinWidth", "wrapperMinHeight")}
+            name="wrapper">
+            <PropCard defaultOpen active={changed("wrapperAlignX", "wrapperAlignY")}
+            name="align">
               <SelectField
                 label="x"
                 onChange={(value) => update("wrapperAlignX", value)}
@@ -1042,7 +1071,8 @@ function App() {
               />
             </PropCard>
 
-            <PropCard name="margin">
+            <PropCard active={changed("wrapperMarginTop", "wrapperMarginRight", "wrapperMarginBottom", "wrapperMarginLeft")}
+            name="margin">
               <NumberField
                 label="top"
                 max={200}
@@ -1079,7 +1109,8 @@ function App() {
                 />
               }
               enabled={["number", "pair"].includes(settings.wrapperMinMode)}
-              name="minSize"
+              active={changed("wrapperMinMode", "wrapperMinWidth", "wrapperMinHeight")}
+            name="minSize"
             >
               <NumberField
                 label="x"
@@ -1100,7 +1131,8 @@ function App() {
         </Section>
 
         <Section title="progress">
-          <PropCard defaultOpen name="controls">
+          <PropCard defaultOpen active={changed("wheel", "wheelChangeDirection", "wheelChangeDirectionBtn", "contentDrag", "keys", "keysMode", "keysStep", "progressElementMode", "barShowOnHover", "barThumbMinSize", "barReverseX", "barReverseY", "barTrackGapX", "barTrackGapY", "barEdgeGapX", "barEdgeGapY", "arrows", "arrowSize", "arrowContentReduce")}
+            name="controls">
             <PropCard
               control={
                 <ToggleField
@@ -1110,7 +1142,8 @@ function App() {
                 />
               }
               enabled={settings.wheel && settings.direction === "hybrid"}
-              name="wheel"
+              active={changed("wheel", "wheelChangeDirection", "wheelChangeDirectionBtn")}
+            name="wheel"
             >
               <ToggleField
                 label="changeDirection"
@@ -1136,7 +1169,8 @@ function App() {
                   value={settings.contentDrag}
                 />
               }
-              name="drag"
+              active={changed("contentDrag")}
+            name="drag"
             />
 
             <PropCard
@@ -1148,7 +1182,8 @@ function App() {
                 />
               }
               enabled={settings.keys}
-              name="keys"
+              active={changed("keys", "keysMode", "keysStep")}
+            name="keys"
             >
               <SelectField
                 label="mode"
@@ -1181,7 +1216,8 @@ function App() {
                 />
               }
               enabled={settings.progressElementMode === "custom"}
-              name="bar"
+              active={changed("progressElementMode", "barShowOnHover", "barThumbMinSize", "barReverseX", "barReverseY", "barTrackGapX", "barTrackGapY", "barEdgeGapX", "barEdgeGapY")}
+            name="bar"
             >
               <ToggleField
                 label="showOnHover"
@@ -1258,7 +1294,8 @@ function App() {
                 />
               }
               enabled={settings.arrows}
-              name="arrows"
+              active={changed("arrows", "arrowSize", "arrowContentReduce")}
+            name="arrows"
             >
               <NumberField
                 label="size"
@@ -1284,15 +1321,9 @@ function App() {
               />
             }
             enabled={settings.edge}
+            active={changed("edge", "edgeSize")}
             name="edge"
           >
-            <Field label="color">
-              <input
-                onChange={(event) => update("edgeColor", event.target.value)}
-                type="color"
-                value={settings.edgeColor}
-              />
-            </Field>
             <NumberField
               label="size"
               max={180}
@@ -1313,6 +1344,7 @@ function App() {
               />
             }
             enabled={settings.renderMode !== "off"}
+            active={changed("renderMode", "rootMargin", "deferLoadOnScroll")}
             name="render"
           >
             <NumberField
@@ -1335,6 +1367,7 @@ function App() {
                 value={settings.trackVisibility}
               />
             }
+            active={changed("trackVisibility")}
             name="trackVisibility"
           />
           <PropCard
@@ -1345,6 +1378,7 @@ function App() {
                 value={settings.suspending}
               />
             }
+            active={changed("suspending")}
             name="suspending"
           />
           <PropCard
@@ -1354,6 +1388,7 @@ function App() {
                 value={settings.fallbackText}
               />
             }
+            active={changed("fallbackText")}
             name="fallback"
           />
         </Section>
@@ -1367,6 +1402,7 @@ function App() {
                 value={settings.enableOnScrollValue}
               />
             }
+            active={changed("enableOnScrollValue")}
             name="onScrollPosition"
           />
           <PropCard
@@ -1377,6 +1413,7 @@ function App() {
                 value={settings.enableIsScrolling}
               />
             }
+            active={changed("enableIsScrolling")}
             name="onScrollingChange"
           />
           <PropCard
@@ -1387,6 +1424,7 @@ function App() {
                 value={settings.enableOnNavigate}
               />
             }
+            active={changed("enableOnNavigate")}
             name="onNavigate"
           />
           <PropCard
@@ -1399,6 +1437,7 @@ function App() {
                 value={settings.enableOnRenderedKeysChange}
               />
             }
+            active={changed("enableOnRenderedKeysChange")}
             name="onRenderedKeysChange"
           />
         </Section>
@@ -1406,16 +1445,7 @@ function App() {
 
       <section className="workbench">
         <header className="workbench-header">
-          <div className="surface-title">
-            <button
-              className="ghost-btn"
-              onClick={() => setExpanded((current) => !current)}
-              type="button"
-            >
-              {expanded ? "settings" : "expand"}
-            </button>
-            <h2>Live surface</h2>
-          </div>
+          <h2>Live surface</h2>
           {/*
            * Живые показания, а не повтор настроек: где стоим, едем ли, что
            * последним сказал onNavigate, сколько намерено окно и сколько
@@ -1476,16 +1506,27 @@ function App() {
           </div>
         </ResizeTracker>
 
-        <section className="code-panel">
+        <section className={`code-panel${codeOpen ? " is-open" : ""}`}>
           <header>
-            <h3>Generated MorphScroll</h3>
-            <button onClick={copyGeneratedCode} type="button">
-              {copyState === "copied" ? "copied" : "copy"}
+            <button
+              aria-expanded={codeOpen}
+              className="code-fold"
+              onClick={() => setCodeOpen((current) => !current)}
+              type="button"
+            >
+              Generated MorphScroll
             </button>
+            {codeOpen && (
+              <button onClick={copyGeneratedCode} type="button">
+                {copyState === "copied" ? "copied" : "copy"}
+              </button>
+            )}
           </header>
-          <pre>
-            <code>{generatedCode}</code>
-          </pre>
+          {codeOpen && (
+            <pre>
+              <code>{generatedCode}</code>
+            </pre>
+          )}
         </section>
       </section>
 

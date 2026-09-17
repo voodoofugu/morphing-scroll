@@ -173,14 +173,66 @@ input[type="color"] {
 
 .brand-row {
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  align-items: center;
   margin-bottom: 14px;
 }
 
 .brand-row img {
+  grid-column: 1;
   width: min(200px, 100%);
   height: auto;
   object-fit: contain;
+}
+
+.panel-fold {
+  grid-column: 2;
+  width: 28px;
+  min-height: 28px;
+  color: var(--ink-faint);
+  font-size: 13px;
+  padding: 0;
+}
+
+.brand-actions {
+  grid-column: 1 / -1;
+}
+
+/*
+ * Сложенная панель: остаётся полоска со знаком и стрелкой. Знак у логотипа
+ * стоит слева, поэтому показываем его обрезкой, а не вторым файлом.
+ */
+.app-shell.is-folded {
+  grid-template-columns: 60px minmax(0, 1fr);
+}
+
+.is-folded .control-panel {
+  overflow: hidden;
+  padding: 12px 8px;
+}
+
+.is-folded .brand-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  justify-items: center;
+  margin-bottom: 0;
+}
+
+.is-folded .brand-row img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  object-position: left center;
+}
+
+.is-folded .panel-fold {
+  grid-column: 1;
+}
+
+.is-folded .brand-actions,
+.is-folded .section {
+  display: none;
 }
 
 .brand-actions {
@@ -220,6 +272,13 @@ input[type="color"] {
   color: var(--ink-soft);
 }
 
+.reset-btn {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .section {
   margin-bottom: 16px;
 }
@@ -246,8 +305,10 @@ input[type="color"] {
   background: var(--card);
 }
 
-.prop-card.is-open {
+/* проп трогали — плашка отмечена; раскрытие само по себе ничего не значит */
+.prop-card.is-active {
   border-color: var(--accent);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .prop-head {
@@ -556,14 +617,38 @@ input[type="color"] {
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--line-soft);
   padding: 8px 11px;
 }
 
-.code-panel h3 {
-  margin: 0;
+.code-panel.is-open header {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.code-fold {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  border: 0;
+  background: none;
+  color: var(--ink);
   font-size: 14px;
-  letter-spacing: 0;
+  font-weight: 700;
+  padding: 0;
+}
+
+.code-fold::before {
+  content: "";
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--ink-faint);
+  transition: transform 0.15s ease;
+}
+
+.code-panel.is-open .code-fold::before {
+  transform: rotate(90deg);
 }
 
 .code-panel button {
