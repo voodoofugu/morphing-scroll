@@ -653,7 +653,38 @@ input[type="color"] {
   transform: rotate(90deg);
 }
 
-.code-panel button {
+.code-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.code-tabs {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.code-tabs button {
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 800;
+  min-height: 24px;
+  padding: 2px 10px;
+  text-transform: uppercase;
+}
+
+.code-tabs button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.code-panel > header > button {
   min-width: 70px;
 }
 

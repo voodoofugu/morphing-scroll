@@ -33,6 +33,7 @@ import {
   ToggleField,
 } from "./dashboard/fields";
 import { buildSnippet } from "./dashboard/snippet";
+import buildStyles from "./dashboard/styles";
 import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
 import { useGamepadScroll } from "./custom/gamepad";
@@ -56,6 +57,7 @@ function App() {
   const [panelOpen, setPanelOpen] = React.useState(true);
   /* код нужен не всегда: сначала собирают скролл, потом забирают JSX */
   const [codeOpen, setCodeOpen] = React.useState(false);
+  const [codeTab, setCodeTab] = React.useState<"css" | "jsx">("jsx");
   const scrollRef = React.useRef<MorphScrollHandle>(null);
 
   useGamepadScroll(
@@ -482,11 +484,23 @@ function App() {
     [scrollCommand, settings],
   );
 
+  /*
+   * Вторая вкладка — оформление: библиотека не несёт ни одного цвета, и
+   * первый вопрос у нового человека не про пропсы, а про то, за что
+   * цепляться в CSS. Текст вырезается из стилей самого стенда.
+   */
+  const generatedStyles = React.useMemo(
+    () => buildStyles(settings),
+    // тема меняет подставляемые значения токенов, поэтому она в зависимостях
+    [settings],
+  );
+  const shownCode = codeTab === "jsx" ? generatedCode : generatedStyles;
+
   const copyGeneratedCode = React.useCallback(async () => {
-    await navigator.clipboard.writeText(generatedCode);
+    await navigator.clipboard.writeText(shownCode);
     setCopyState("copied");
     window.setTimeout(() => setCopyState("idle"), 1200);
-  }, [generatedCode]);
+  }, [shownCode]);
 
   /* системная тема ничего не ставит — её решает сам браузер */
   React.useEffect(() => {
@@ -1583,14 +1597,28 @@ function App() {
               Generated MorphScroll
             </button>
             {codeOpen && (
-              <button onClick={copyGeneratedCode} type="button">
-                {copyState === "copied" ? "copied" : "copy"}
-              </button>
+              <div className="code-actions">
+                <div className="code-tabs">
+                  {(["jsx", "css"] as const).map((tab) => (
+                    <button
+                      aria-pressed={codeTab === tab}
+                      key={tab}
+                      onClick={() => setCodeTab(tab)}
+                      type="button"
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={copyGeneratedCode} type="button">
+                  {copyState === "copied" ? "copied" : "copy"}
+                </button>
+              </div>
             )}
           </header>
           {codeOpen && (
             <pre>
-              <code>{generatedCode}</code>
+              <code>{shownCode}</code>
             </pre>
           )}
         </section>
