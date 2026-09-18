@@ -1,6 +1,7 @@
 name: Pages
 
-# дашборд собирается из тех же исходников, что и библиотека: алиас ведёт в src
+# дашборд собирается из тех же исходников, что и библиотека: алиас ведёт в src;
+# примеры ложатся рядом, в подпапки
 on:
   push:
     branches: [main]
@@ -27,6 +28,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # пример ставит библиотеку из npm, как её получит читатель
+      - run: npm run examples:install
       - run: npm run playground:check
       - run: npm run playground:build
       - uses: actions/upload-pages-artifact@v3

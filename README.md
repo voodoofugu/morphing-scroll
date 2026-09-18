@@ -30,6 +30,8 @@ The library includes optimizations for large lists, improving performance and ov
 
 The library ships no styling of its own, so the dashboard hands over the other half too: the **CSS** tab holds the look you are seeing, with a line on every block saying what the library gives — sizes, the `ms-grabbing` and `ms-disabled` classes, the `--ms-bar-visibility`, `--ms-edge-visibility` and `--ms-content-visibility` variables — and what is yours to write.
 
+And what a thumb can be once it is an element of yours: [**a fireball**](https://voodoofugu.github.io/morphing-scroll/fireball/) that trails behind, flares when grabbed and throws sparks at the ends — [the code](https://github.com/voodoofugu/morphing-scroll/tree/main/examples/fireball) is one canvas and no tricks inside the library.
+
 <h2></h2>
 
 ### 〈 Installation 〉
