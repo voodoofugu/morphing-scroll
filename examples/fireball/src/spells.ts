@@ -1,8 +1,4 @@
-/*
- * The list is only something to scroll through — the fireball is the point.
- * It is long on purpose: the thumb takes its length from the ratio of window
- * to content, and a long book is what shrinks it down to the size of a ball.
- */
+// the list is only something to scroll through — the thumb is the point
 const names = [
   "Ember Step", "Cinder Veil", "Ash Whisper", "Kindle", "Pyre Lance",
   "Scorch Ward", "Blaze Crown", "Soot Bloom", "Spark Chain", "Char Mark",
@@ -11,7 +7,7 @@ const names = [
   "Lantern Eye", "Furnace Gate", "Candle Hex", "Phoenix Down",
 ];
 
-const ranks = ["I", "II", "III", "IV", "V"];
+const ranks = ["I", "II"];
 
 const schools = ["evocation", "conjuration", "abjuration", "illusion"];
 
