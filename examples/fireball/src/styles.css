@@ -101,62 +101,53 @@ body {
   );
 }
 
-/*
- * A bar of hot metal: shaded across like a rod, with a highlight running
- * along it. `--heat` comes from the canvas every frame — the faster the
- * scroll, the brighter the metal.
- */
-.hot-bar {
+.ember {
   --heat: 0.3;
 
-  width: 10px;
-  height: 100%;
-  margin-inline: 2px;
-  border-radius: 4px;
-  background:
-    linear-gradient(
-        transparent 40%,
-        rgba(255, 246, 220, 0.4) 50%,
-        transparent 60%
-      )
-      0 0 / 100% 90px repeat-y,
-    linear-gradient(
-      90deg,
-      #7a1a04,
-      #e0520c 18%,
-      #ffb347 38%,
-      #fff1c9 50%,
-      #ffb347 62%,
-      #e0520c 82%,
-      #7a1a04
-    );
-  box-shadow: 0 0 calc(6px + var(--heat) * 14px) calc(var(--heat) * 3px)
-    rgba(255, 110, 25, calc(0.35 + var(--heat) * 0.3));
-  filter: brightness(calc(0.85 + var(--heat) * 0.2));
+  /*
+   * The thumb box takes its length from the ratio of window to content and is
+   * longer than the ball; the ball keeps to its middle. Without this the
+   * library's own alignment would pin it to the top of the box for the first
+   * half of the track and to the bottom for the second.
+   */
+  align-self: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 42% 38%,
+    #fff4d6 0 10%,
+    #ffd36a 26%,
+    #ff8f24 52%,
+    #d8400b 78%,
+    #5a1203 100%
+  );
+  /* `--heat` comes from the canvas every frame: the faster the scroll, the wider the glow */
+  box-shadow: 0 0 calc(6px + var(--heat) * 12px) calc(var(--heat) * 2px)
+    rgba(255, 120, 30, calc(0.4 + var(--heat) * 0.25));
   cursor: grab;
-  transition:
-    width 120ms ease,
-    margin 120ms ease;
-  animation: shimmer 1.6s linear infinite;
+  transition: transform 160ms ease;
+  animation: ember-pulse 1.4s ease-in-out infinite alternate;
 }
 
 /* the library marks the held thumb with `ms-grabbing` */
-.ms-grabbing .hot-bar {
-  width: 14px;
-  margin-inline: 0;
+.ms-grabbing .ember {
   cursor: grabbing;
+  transform: scale(1.18);
 }
 
-@keyframes shimmer {
+@keyframes ember-pulse {
+  from {
+    filter: brightness(0.92);
+  }
+
   to {
-    background-position:
-      0 90px,
-      0 0;
+    filter: brightness(1.12);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hot-bar {
+  .ember {
     animation: none;
   }
 }

@@ -5,7 +5,7 @@ import { useFire } from "./fire";
 import { spells } from "./spells";
 
 /** the thumb itself: an ordinary element — the canvas sets it on fire */
-const HotBar = () => <span className="hot-bar" />;
+const Ember = () => <span className="ember" />;
 
 export default function App() {
   const frameRef = React.useRef<HTMLDivElement>(null);
@@ -17,7 +17,7 @@ export default function App() {
       <header className="title">
         <h1>Scroll of Fire</h1>
         <p>
-          a thumb of hot metal, built with{" "}
+          a fireball for a thumb, built with{" "}
           <a href="https://www.npmjs.com/package/morphing-scroll">
             morphing-scroll
           </a>
@@ -35,7 +35,7 @@ export default function App() {
             drag: true,
             keys: true,
             bar: {
-              element: <HotBar />,
+              element: <Ember />,
               edgeGap: 14,
               trackGap: 18,
               thumbMinSize: 40,
@@ -59,7 +59,7 @@ export default function App() {
         <canvas aria-hidden className="fire" ref={canvasRef} />
       </div>
 
-      <p className="hint">wheel · drag the thumb · drag the list · arrow keys</p>
+      <p className="hint">wheel · drag the fireball · drag the list · arrow keys</p>
     </main>
   );
 }

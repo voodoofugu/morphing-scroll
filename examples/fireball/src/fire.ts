@@ -1,8 +1,9 @@
 import React from "react";
 
 /*
- * The thumb is a bar of hot metal, and the canvas laid over the scroll sets it
- * on fire: flames from one end, sparks off its sides. Every frame the canvas
+ * The thumb is a ball of fire: the ball itself is an ordinary element, and the
+ * canvas laid over the scroll sets it burning — flames around it, sparks off
+ * its rim. Every frame the canvas
  * asks the thumb where it is: how fast it travels, whether it is held, whether
  * it just hit an end. None of that is possible with `::-webkit-scrollbar`: a
  * pseudo-element has no position you can read and nothing you can hang a
@@ -97,8 +98,6 @@ const drop = (list: Particle[], index: number) => {
 };
 
 const GRAVITY = 520;
-/** how wide a tongue of flame is — the bar is too thin to measure it by */
-const FLAME = 13;
 
 export function useFire(
   frameRef: React.RefObject<HTMLElement | null>,
@@ -141,11 +140,11 @@ export function useFire(
 
     let last = performance.now();
     let previous: number | null = null;
-    /** px/s of the bar along the track, smoothed: the pointer arrives in uneven steps */
+    /** px/s of the ball along the track, smoothed: the pointer arrives in uneven steps */
     let velocity = 0;
     /**
-     * px/s of the content. On a long list the bar crawls while the content
-     * flies — the wheel should still make it spark.
+     * px/s of the content. On a long list the ball crawls while the content
+     * flies — the wheel should still fan the fire.
      */
     let flow = 0;
     let lastTop = scroll.current.top;
@@ -181,15 +180,19 @@ export function useFire(
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const thumb = frame.querySelector<HTMLElement>(".ms-thumb");
-      const bar = thumb?.querySelector<HTMLElement>(".hot-bar");
-      if (!thumb || !bar || dt <= 0) return;
+      const ember = thumb?.querySelector<HTMLElement>(".ember");
+      if (!thumb || !ember || dt <= 0) return;
 
       const origin = canvas.getBoundingClientRect();
-      const box = bar.getBoundingClientRect();
-      const left = box.left - origin.left;
-      const top = box.top - origin.top;
-      const cx = left + box.width / 2;
-      const cy = top + box.height / 2;
+      const ball = ember.getBoundingClientRect();
+      const cx = ball.left + ball.width / 2 - origin.left;
+      const cy = ball.top + ball.height / 2 - origin.top;
+      const radius = ball.width / 2;
+      /** a point on the ball at that angle, `depth` of the way to its rim */
+      const rim = (angle: number, depth = 1) => [
+        cx + Math.cos(angle) * radius * depth,
+        cy + Math.sin(angle) * radius * depth,
+      ];
 
       const dy = previous === null ? 0 : cy - previous;
       previous = cy;
@@ -208,26 +211,28 @@ export function useFire(
       // heats up at once, cools down slowly — like the real thing
       heat += (target - heat) * (1 - Math.exp(-dt * (target > heat ? 8 : 2.5)));
 
-      // the bar glows with its heat: the CSS reads it from a variable
+      // the ball glows with its heat: the CSS reads it from a variable
       if (Math.abs(heat - shownHeat) > 0.01) {
-        bar.style.setProperty("--heat", heat.toFixed(2));
+        ember.style.setProperty("--heat", heat.toFixed(2));
         shownHeat = heat;
       }
 
       const quiet = calm.matches ? 0.35 : 1;
       const moving = Math.abs(velocity) > 60;
-      // sparks leave from the end the bar is moving away from
-      const trailing = velocity > 0 ? top : top + box.height;
+      // sparks leave from the side the ball is moving away from
+      const behind = velocity > 0 ? -Math.PI / 2 : Math.PI / 2;
       const back = velocity > 0 ? -1 : 1;
 
-      // a grab strikes the metal
+      // a grab strikes the ball
       if (held && !wasHeld) {
         for (let index = 0; index < 22 * quiet; index++) {
+          const angle = Math.random() * TAU;
+          const [x, y] = rim(angle, 0.8);
           throwSpark(
-            left + Math.random() * box.width,
-            top + Math.random() * box.height,
-            (Math.random() - 0.5) * 420,
-            -(80 + Math.random() * 280),
+            x,
+            y,
+            Math.cos(angle) * (120 + Math.random() * 260),
+            Math.sin(angle) * 160 - (80 + Math.random() * 200),
           );
         }
       }
@@ -238,12 +243,12 @@ export function useFire(
       if (edge && edge !== lastEdge && Math.abs(velocity) > 350) {
         const force = Math.min(Math.abs(velocity) / 1500, 1);
         const away = edge === "end" ? -1 : 1;
-        const rim = edge === "end" ? top + box.height : top;
+        const [, y] = rim(edge === "end" ? Math.PI / 2 : -Math.PI / 2);
 
         for (let index = 0; index < (20 + force * 50) * quiet; index++) {
           throwSpark(
-            cx + (Math.random() - 0.5) * box.width,
-            rim,
+            cx + (Math.random() - 0.5) * radius * 1.4,
+            y,
             (Math.random() - 0.5) * 560 * (0.4 + force),
             away * (160 + Math.random() * 520) * (0.5 + force),
           );
@@ -253,29 +258,31 @@ export function useFire(
       lastEdge = edge;
 
       /*
-       * Where the flame streams: up on its own, and away from where the bar
-       * is heading. It burns from that end of the bar.
+       * Where the flame streams: up on its own, and away from where the ball
+       * is heading. It is born on that side of the ball, so the ball keeps its
+       * own colour instead of drowning in a crowd of particles.
        */
       const stream =
         -90 * (0.7 + heat * 0.5) -
         (velocity * 0.22 + Math.sign(flow) * rush * 70) * quiet;
-      const upward = stream < 0;
-      const burning = upward ? top : top + box.height;
+      const side = stream < 0 ? -Math.PI / 2 : Math.PI / 2;
 
       flameDebt += dt * (30 + heat * 130 + speed * 220) * quiet;
       while (flameDebt >= 1) {
         flameDebt -= 1;
+        // spread along this frame's path, so a fast ball leaves no gaps
         const along = Math.random() * dy;
+        const angle = side + (Math.random() - 0.5) * Math.PI;
+        const [x, y] = rim(angle, 0.35 + Math.random() * 0.5);
 
         flames.push({
-          x: cx + (Math.random() - 0.5) * box.width * 0.9,
-          // born just inside the end, so the flame grows out of the metal
-          y: burning + (upward ? 1 : -1) * Math.random() * FLAME * 0.6 - along,
-          vx: (Math.random() - 0.5) * 30,
+          x,
+          y: y - along,
+          vx: (Math.random() - 0.5) * 30 + Math.cos(angle) * 20,
           vy: stream * (0.6 + Math.random() * 0.8),
           age: 0,
           life: (0.4 + Math.random() * 0.4) * (0.85 + heat * 0.35),
-          size: FLAME * (0.6 + Math.random() * 0.45) * (0.8 + heat * 0.3),
+          size: radius * (0.6 + Math.random() * 0.45) * (0.8 + heat * 0.3),
           seed: Math.random() * TAU,
         });
       }
@@ -283,24 +290,25 @@ export function useFire(
       sparkDebt += dt * (2 + heat * heat * 26 + speed * 160 + rush * 40) * quiet;
       while (sparkDebt >= 1) {
         sparkDebt -= 1;
-        // spread along this frame's path, so a fast bar leaves no gaps
         const along = Math.random() * dy;
 
         if (moving && Math.random() < 0.7) {
+          const [x, y] = rim(behind + (Math.random() - 0.5) * Math.PI * 0.8);
           throwSpark(
-            left + Math.random() * box.width,
-            trailing - along,
+            x,
+            y - along,
             (Math.random() - 0.5) * 240,
             back * (80 + Math.random() * 260) * (0.6 + speed) - velocity * 0.35,
           );
         } else {
-          // at rest the metal only crackles: a spark off one of its sides
-          const side = Math.random() < 0.5 ? -1 : 1;
+          // at rest the ball only crackles: a spark off its rim, flung outwards
+          const angle = Math.random() * TAU;
+          const [x, y] = rim(angle);
           throwSpark(
-            cx + (side * box.width) / 2,
-            top + Math.random() * box.height - along,
-            side * (50 + Math.random() * 170),
-            -(40 + Math.random() * 180),
+            x,
+            y - along,
+            Math.cos(angle) * (50 + Math.random() * 170),
+            Math.sin(angle) * 60 - (40 + Math.random() * 180),
           );
         }
       }
@@ -308,18 +316,13 @@ export function useFire(
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalCompositeOperation = "lighter";
 
-      // the warm light the bar throws on the cards around it
-      const reach = 22 + heat * 26;
-      const span = box.height / 2 + reach;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.scale(1, span / reach);
-      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, reach);
-      glow.addColorStop(0, `rgba(255, 110, 30, ${0.1 + heat * 0.12})`);
+      // the warm light the ball throws on the cards around it
+      const reach = radius * (4 + heat * 3);
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, reach);
+      glow.addColorStop(0, `rgba(255, 120, 30, ${0.14 + heat * 0.12})`);
       glow.addColorStop(1, "rgba(255, 60, 10, 0)");
       ctx.fillStyle = glow;
-      ctx.fillRect(-reach, -reach, reach * 2, reach * 2);
-      ctx.restore();
+      ctx.fillRect(cx - reach, cy - reach, reach * 2, reach * 2);
 
       for (let index = flames.length - 1; index >= 0; index--) {
         const p = flames[index];
@@ -354,7 +357,7 @@ export function useFire(
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.translate(p.x, p.y);
         ctx.rotate(Math.atan2(p.vy, p.vx));
-        // white heat is the metal's own; the flame starts at yellow and keeps it a while
+        // white heat is the ball's own; the flame starts at yellow and keeps it a while
         ctx.drawImage(
           sprites[Math.min(STEPS - 1, Math.floor((0.08 + Math.pow(k, 1.4) * 0.9) * STEPS))],
           -size * stretch,
