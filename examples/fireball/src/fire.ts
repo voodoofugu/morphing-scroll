@@ -163,7 +163,7 @@ export function useFire(
         vx,
         vy,
         age: 0,
-        life: 0.45 + Math.random() * 0.75,
+        life: 0.35 + Math.random() * 0.5,
         size: 0.8 + Math.random() * 1.3,
         seed: 0,
       });
@@ -207,7 +207,7 @@ export function useFire(
       const speed = Math.min(Math.abs(velocity) / 1400, 1.2);
       const rush = Math.min(Math.abs(flow) / 4000, 1);
       const target =
-        0.3 + speed * 0.9 + rush * 0.5 + (held ? 0.45 : 0) + (hovered ? 0.15 : 0);
+        0.3 + speed * 0.6 + rush * 0.35 + (held ? 0.45 : 0) + (hovered ? 0.15 : 0);
       // heats up at once, cools down slowly — like the real thing
       heat += (target - heat) * (1 - Math.exp(-dt * (target > heat ? 8 : 2.5)));
 
@@ -225,14 +225,14 @@ export function useFire(
 
       // a grab strikes the ball
       if (held && !wasHeld) {
-        for (let index = 0; index < 22 * quiet; index++) {
+        for (let index = 0; index < 14 * quiet; index++) {
           const angle = Math.random() * TAU;
           const [x, y] = rim(angle, 0.8);
           throwSpark(
             x,
             y,
-            Math.cos(angle) * (120 + Math.random() * 260),
-            Math.sin(angle) * 160 - (80 + Math.random() * 200),
+            Math.cos(angle) * (60 + Math.random() * 140),
+            Math.sin(angle) * 80 - (60 + Math.random() * 140),
           );
         }
       }
@@ -245,12 +245,12 @@ export function useFire(
         const away = edge === "end" ? -1 : 1;
         const [, y] = rim(edge === "end" ? Math.PI / 2 : -Math.PI / 2);
 
-        for (let index = 0; index < (20 + force * 50) * quiet; index++) {
+        for (let index = 0; index < (12 + force * 28) * quiet; index++) {
           throwSpark(
             cx + (Math.random() - 0.5) * radius * 1.4,
             y,
-            (Math.random() - 0.5) * 560 * (0.4 + force),
-            away * (160 + Math.random() * 520) * (0.5 + force),
+            (Math.random() - 0.5) * 260 * (0.4 + force),
+            away * (120 + Math.random() * 360) * (0.5 + force),
           );
         }
         heat = Math.min(heat + force * 0.6, 2);
@@ -264,10 +264,10 @@ export function useFire(
        */
       const stream =
         -90 * (0.7 + heat * 0.5) -
-        (velocity * 0.22 + Math.sign(flow) * rush * 70) * quiet;
+        (velocity * 0.15 + Math.sign(flow) * rush * 50) * quiet;
       const side = stream < 0 ? -Math.PI / 2 : Math.PI / 2;
 
-      flameDebt += dt * (30 + heat * 130 + speed * 220) * quiet;
+      flameDebt += dt * (24 + heat * 90 + speed * 110) * quiet;
       while (flameDebt >= 1) {
         flameDebt -= 1;
         // spread along this frame's path, so a fast ball leaves no gaps
@@ -282,12 +282,12 @@ export function useFire(
           vy: stream * (0.6 + Math.random() * 0.8),
           age: 0,
           life: (0.4 + Math.random() * 0.4) * (0.85 + heat * 0.35),
-          size: radius * (0.6 + Math.random() * 0.45) * (0.8 + heat * 0.3),
+          size: radius * (0.55 + Math.random() * 0.4) * (0.8 + heat * 0.25),
           seed: Math.random() * TAU,
         });
       }
 
-      sparkDebt += dt * (2 + heat * heat * 26 + speed * 160 + rush * 40) * quiet;
+      sparkDebt += dt * (1.5 + heat * heat * 12 + speed * 60 + rush * 16) * quiet;
       while (sparkDebt >= 1) {
         sparkDebt -= 1;
         const along = Math.random() * dy;
@@ -297,18 +297,22 @@ export function useFire(
           throwSpark(
             x,
             y - along,
-            (Math.random() - 0.5) * 240,
-            back * (80 + Math.random() * 260) * (0.6 + speed) - velocity * 0.35,
+            (Math.random() - 0.5) * 110,
+            back * (60 + Math.random() * 180) * (0.6 + speed * 0.6) - velocity * 0.2,
           );
         } else {
-          // at rest the ball only crackles: a spark off its rim, flung outwards
-          const angle = Math.random() * TAU;
+          /*
+           * At rest the ball only crackles: a spark off its rim, flung mostly
+           * outwards — past the edge of the frame rather than onto the cards.
+           */
+          const angle =
+            (Math.random() < 0.75 ? 0 : Math.PI) + (Math.random() - 0.5) * Math.PI;
           const [x, y] = rim(angle);
           throwSpark(
             x,
             y - along,
-            Math.cos(angle) * (50 + Math.random() * 170),
-            Math.sin(angle) * 60 - (40 + Math.random() * 180),
+            Math.cos(angle) * (30 + Math.random() * 110),
+            Math.sin(angle) * 40 - (30 + Math.random() * 120),
           );
         }
       }

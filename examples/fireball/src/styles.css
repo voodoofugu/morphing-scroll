@@ -103,6 +103,8 @@ body {
 
 .ember {
   --heat: 0.3;
+  /* how much lighter the ball is under the pointer */
+  --lift: 1;
 
   /*
    * The thumb box takes its length from the ratio of window to content and is
@@ -111,8 +113,8 @@ body {
    * half of the track and to the bottom for the second.
    */
   align-self: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: radial-gradient(
     circle at 42% 38%,
@@ -125,24 +127,44 @@ body {
   /* `--heat` comes from the canvas every frame: the faster the scroll, the wider the glow */
   box-shadow: 0 0 calc(6px + var(--heat) * 12px) calc(var(--heat) * 2px)
     rgba(255, 120, 30, calc(0.4 + var(--heat) * 0.25));
+  filter: brightness(var(--lift));
   cursor: grab;
-  transition: transform 160ms ease;
+  transition:
+    width 140ms ease,
+    height 140ms ease,
+    margin 140ms ease;
   animation: ember-pulse 1.4s ease-in-out infinite alternate;
 }
 
-/* the library marks the held thumb with `ms-grabbing` */
-.ms-grabbing .ember {
-  cursor: grabbing;
-  transform: scale(1.18);
+/*
+ * The whole thumb box can be grabbed, not only the ball, so the ball answers
+ * to a pointer anywhere on it.
+ */
+.ms-thumb:hover .ember {
+  --lift: 1.15;
 }
 
+/*
+ * The library marks the held thumb with `ms-grabbing`. The ball grows to
+ * 28px, and the negative margin keeps its box at 26: the bar does not shift.
+ */
+.ms-grabbing .ember {
+  --lift: 1.15;
+
+  width: 28px;
+  height: 28px;
+  margin: -1px;
+  cursor: grabbing;
+}
+
+/* the pulse multiplies the lift, so hovering lightens a ball that is already breathing */
 @keyframes ember-pulse {
   from {
-    filter: brightness(0.92);
+    filter: brightness(calc(var(--lift) * 0.92));
   }
 
   to {
-    filter: brightness(1.12);
+    filter: brightness(calc(var(--lift) * 1.12));
   }
 }
 
