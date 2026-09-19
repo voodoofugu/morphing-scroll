@@ -1,4 +1,4 @@
-## [3.0.2] - 2026-09-17
+## [3.0.2] - 2026-09-19
 
 ### Changed
 
@@ -55,41 +55,41 @@ to change.
 
 #### Props
 
-| 2.x                                                           | 3.0                                                        |
-| ------------------------------------------------------------- | ---------------------------------------------------------- |
-| `type="slider"`                                               | `mode="slider"`                                            |
-| `render={{ type: "virtual" }}`                                | `render={{ mode: "virtual" }}`                             |
-| `render={{ stopLoadOnScroll: true }}`                         | `render={{ deferLoadOnScroll: true }}`                     |
-| `wheel: { changeDirectionKey: "KeyX" }`                       | `wheel: { changeDirectionBtn: "KeyX" }`                     |
-| `scrollPosition={{ value, updater }}`                         | `ref.current.scrollTo(value)` — see below                  |
-| `scrollPosition={10}`                                         | `initialPosition={10}`, or `scrollTo(10)` for a later move |
-| `scrollPosition="end"`                                        | `stickToEnd`                                               |
-| `scrollPosition={{ duration: 400 }}`                          | `duration={400}`                                           |
-| `edgeGradient="#fff"`                                         | `edge` + your CSS                                          |
-| `edgeGradient={{ color, size }}`                              | `edge` + your CSS, or `edge={<Node />}`                    |
-| `controls={{ progressElement: X }}`                    | `controls={{ bar: X }}`                             |
-| `progressReverse={true}`                                      | `controls={{ bar: { reverse: true } }}`             |
-| `scrollBarOnHover={true}`                                     | `controls={{ bar: { showOnHover: true } }}`         |
-| `scrollBarEdge={10}`                                          | `controls={{ bar: { trackGap: 10 } }}`              |
-| `thumbMinSize={24}`                                           | `controls={{ bar: { thumbMinSize: 24 } }}`          |
-| `elementsAlign="center"`                                      | `objects={{ align: "center" }}`                             |
-| `elementsDirection="column"`                                  | `objects={{ order: "column" }}`                             |
-| `emptyElements="clear"`                                       | `objects={{ empty: "clear" }}`                              |
-| `objectsSize={100}`                                           | `objects={{ size: 100 }}`                                  |
-| `gap={10}`                                                    | `objects={{ gap: 10 }}`                                    |
-| `crossCount={2}`                                              | `objects={{ lines: 2 }}`                                   |
-| `objectsSize="size"`                                          | `objects={{ size: "full" }}`                               |
-| `dragScroll`                                                  | `autoScrollOnDrag`                                         |
-| `wrapperMargin={10}`                                          | `wrapper={{ margin: 10 }}`                                 |
-| `wrapperMinSize="full"`                                       | `wrapper={{ minSize: "full" }}`                            |
-| `wrapperAlign="center"`                                       | `wrapper={{ align: "center" }}`                            |
-| `onScrollValue`                                               | `onScrollPosition`                                         |
-| `isScrolling`                                                 | `onScrollingChange`                                        |
-| `arrows: { contentReduce: true }`                             | `arrows: { reserveSpace: true }`                           |
-| `arrows: { loop: true }`                                      | `loop` — see below                                         |
-| `<IntersectionTracker visibleContent>`                        | `<IntersectionTracker>` — that is the only behaviour now   |
-| `progressTrigger={{ … }}`                                     | `controls={{ … }}`                                         |
-| `progressTrigger={{ content: true }}`                          | `controls={{ drag: true }}`                                |
+| 2.x                                     | 3.0                                                        |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `type="slider"`                         | `mode="slider"`                                            |
+| `render={{ type: "virtual" }}`          | `render={{ mode: "virtual" }}`                             |
+| `render={{ stopLoadOnScroll: true }}`   | `render={{ deferLoadOnScroll: true }}`                     |
+| `wheel: { changeDirectionKey: "KeyX" }` | `wheel: { changeDirectionBtn: "KeyX" }`                    |
+| `scrollPosition={{ value, updater }}`   | `ref.current.scrollTo(value)` — see below                  |
+| `scrollPosition={10}`                   | `initialPosition={10}`, or `scrollTo(10)` for a later move |
+| `scrollPosition="end"`                  | `stickToEnd`                                               |
+| `scrollPosition={{ duration: 400 }}`    | `duration={400}`                                           |
+| `edgeGradient="#fff"`                   | `edge` + your CSS                                          |
+| `edgeGradient={{ color, size }}`        | `edge` + your CSS, or `edge={<Node />}`                    |
+| `controls={{ progressElement: X }}`     | `controls={{ bar: X }}`                                    |
+| `progressReverse={true}`                | `controls={{ bar: { reverse: true } }}`                    |
+| `scrollBarOnHover={true}`               | `controls={{ bar: { showOnHover: true } }}`                |
+| `scrollBarEdge={10}`                    | `controls={{ bar: { trackGap: 10 } }}`                     |
+| `thumbMinSize={24}`                     | `controls={{ bar: { thumbMinSize: 24 } }}`                 |
+| `elementsAlign="center"`                | `objects={{ align: "center" }}`                            |
+| `elementsDirection="column"`            | `objects={{ order: "column" }}`                            |
+| `emptyElements="clear"`                 | `objects={{ empty: "clear" }}`                             |
+| `objectsSize={100}`                     | `objects={{ size: 100 }}`                                  |
+| `gap={10}`                              | `objects={{ gap: 10 }}`                                    |
+| `crossCount={2}`                        | `objects={{ lines: 2 }}`                                   |
+| `objectsSize="size"`                    | `objects={{ size: "full" }}`                               |
+| `dragScroll`                            | `autoScrollOnDrag`                                         |
+| `wrapperMargin={10}`                    | `wrapper={{ margin: 10 }}`                                 |
+| `wrapperMinSize="full"`                 | `wrapper={{ minSize: "full" }}`                            |
+| `wrapperAlign="center"`                 | `wrapper={{ align: "center" }}`                            |
+| `onScrollValue`                         | `onScrollPosition`                                         |
+| `isScrolling`                           | `onScrollingChange`                                        |
+| `arrows: { contentReduce: true }`       | `arrows: { reserveSpace: true }`                           |
+| `arrows: { loop: true }`                | `loop` — see below                                         |
+| `<IntersectionTracker visibleContent>`  | `<IntersectionTracker>` — that is the only behaviour now   |
+| `progressTrigger={{ … }}`               | `controls={{ … }}`                                         |
+| `progressTrigger={{ content: true }}`   | `controls={{ drag: true }}`                                |
 
 Everything about the scrollbar now lives inside `controls.bar`, the
 same way everything about the arrows already lived inside
@@ -273,18 +273,18 @@ dependency array then says out loud what the prop used to do silently.
 
 #### Classes and attributes
 
-| 2.x                                     | 3.0                                                                                                                     |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 2.x                                     | 3.0                                                                                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `.ms-arrow-box.active`                  | `.ms-arrow-box.ms-disabled` — **opposite meaning**: it marks the arrow with nowhere to go, and under `loop` there is always somewhere |
-| `.ms-slider-element.active`             | `.ms-slider-item.ms-active`                                                                                             |
-| `.active` while dragging                | `.ms-grabbing`                                                                                                          |
-| `.hover` / `.leave` / `.remove`         | `.ms-hover` / `.ms-leave` / `.ms-remove`                                                                                |
-| `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom`                                                                           |
-| arrows wrapped in `.ms-arrows`          | arrows are direct children of the root again                                                                            |
-| `[wrap-id=".$profile"]`                 | `[ms-wrap-id="profile"]` — the attribute carries your key, not React's path                                             |
-| `[data-direction]` on a bar             | `[ms-direction]`                                                                                                        |
-| `--edge-visibility`                     | `--ms-edge-visibility`                                                                                                  |
-| `--content-visibility`                  | `--ms-content-visibility`                                                                                               |
+| `.ms-slider-element.active`             | `.ms-slider-item.ms-active`                                                                                                           |
+| `.active` while dragging                | `.ms-grabbing`                                                                                                                        |
+| `.hover` / `.leave` / `.remove`         | `.ms-hover` / `.ms-leave` / `.ms-remove`                                                                                              |
+| `.ms-edge.top` / `.ms-arrow-box.bottom` | `.ms-edge.ms-top` / `.ms-arrow-box.ms-bottom`                                                                                         |
+| arrows wrapped in `.ms-arrows`          | arrows are direct children of the root again                                                                                          |
+| `[wrap-id=".$profile"]`                 | `[ms-wrap-id="profile"]` — the attribute carries your key, not React's path                                                           |
+| `[data-direction]` on a bar             | `[ms-direction]`                                                                                                                      |
+| `--edge-visibility`                     | `--ms-edge-visibility`                                                                                                                |
+| `--content-visibility`                  | `--ms-content-visibility`                                                                                                             |
 
 New: a scroll that is running marks its root with `ms-scrolling`, and a
 scrollbar under `bar.showOnHover` carries `--ms-bar-visibility`.
@@ -333,7 +333,7 @@ themselves are no longer transformed and can be positioned from CSS.
 ### Added
 
 - **a gesture handed outward mid-move.** Passing it on was only ever done by a
-  scroll with nothing to scroll at all; one that ran out of room *during* the
+  scroll with nothing to scroll at all; one that ran out of room _during_ the
   gesture kept it and sprang back instead, so the finger kept moving and
   nothing did. It now offers the gesture to whoever is outside the moment its
   own edge is reached, and hands over the speed with it, so a flick released
@@ -516,7 +516,7 @@ themselves are no longer transformed and can be positioned from CSS.
   argument, `max`, which turns the callback into a "load more" signal without
   a prop for it: the distance to the end is a subtraction, and nothing outside
   the component has to know the length of the content — with `render` or a
-  measured size, nothing outside *can* know it.
+  measured size, nothing outside _can_ know it.
 - **right-to-left pages no longer invert the arithmetic.** A scrolling box
   counts `scrollLeft` from whichever side its own `direction` says, and on an
   `rtl` page that side is the right, with the numbers running negative. Every
@@ -636,6 +636,7 @@ themselves are no longer transformed and can be positioned from CSS.
   a time, so five hundred cards do not arrive in one frame. `render` works on
   top of all of it — once the sizes are known there is nothing left to guess.
   Pages need one size for all, so `"auto"` is for `mode="scroll"`.
+
 - `onNavigate` reports a page turn when it is asked for, not when the ride
   ends. Three quick presses of an arrow share one ride and used to arrive as
   one event; now they arrive as three, and a drag along the slider reports
@@ -826,7 +827,7 @@ themselves are no longer transformed and can be positioned from CSS.
   out as the gap alone — so the strip needed as many copies as gaps fit in the
   window, and a grid of hundreds of them was mounted for one frame and taken
   apart again. Measured sizes were already waited for under `objects.size:
-  "auto"`; the wait now covers every size, since a length of zero has nothing
+"auto"`; the wait now covers every size, since a length of zero has nothing
   to repeat whatever asked for it.
 - a handle kept from mount stopped working once sizes were measured. The
   handle was rebuilt whenever the sizes changed, and anyone holding the earlier
@@ -1014,11 +1015,11 @@ themselves are no longer transformed and can be positioned from CSS.
 Measured over thirty scroll frames in jsdom, so the absolute numbers are
 inflated and the scaling is the point.
 
-| what                                    | before   | after    |
-| --------------------------------------- | -------- | -------- |
-| `render="virtual"`, 10 000 objects      | 1.25 ms  | 0.38 ms  |
-| `render="virtual"`, 50 000 objects      | ~6 ms    | 0.23 ms  |
-| a list with nothing derived from scroll | 60.3 ms  | 0.03 ms  |
+| what                                    | before  | after   |
+| --------------------------------------- | ------- | ------- |
+| `render="virtual"`, 10 000 objects      | 1.25 ms | 0.38 ms |
+| `render="virtual"`, 50 000 objects      | ~6 ms   | 0.23 ms |
+| a list with nothing derived from scroll | 60.3 ms | 0.03 ms |
 
 - **a scroll frame that changes nothing no longer renders.** Rendering per
   frame is worth it because the bar, the edges, the arrows and virtualising
