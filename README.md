@@ -1150,7 +1150,7 @@ enables interaction by clicking and dragging anywhere within the scrollable cont
 <br />
 A tap is told from a scroll by distance, not by what is under the pointer: below 2px it stays a click and the click lands, above it the wrapper drops <code>pointer-events</code> and it does not. So anything can be dragged from — buttons, links, a card with a picture. The native drag of links and images is suppressed while the gesture runs.<br />
 <br />
-While the content, a thumb or a slider is being dragged, the element under the pointer carries <code>ms-grabbing</code> — that is the hook for a grabbing cursor.<br />
+While something is being dragged, the library's own element carries <code>ms-grabbing</code> — <b>.ms-viewport</b> for the content, <b>.ms-thumb</b> for a thumb, <b>.ms-slider</b> for a slider. That is the hook for a grabbing cursor, and it never lands on whatever you drew inside them.<br />
 <br />
 A list inside a list takes its own gesture: the drag belongs to the innermost one under the pointer, and the outer stays where it is — as long as the gesture runs along the inner one's axis. A scroll that moves one way takes only drags going that way: the first few pixels show the direction, and one going across it — a vertical drag over a horizontal strip in a feed — goes to whoever outside can move that way. With nobody there, it stays where it started. A finger follows the same rule, and a thumb belongs to its own scroll: dragging it never moves the list around.<br />
 <br />

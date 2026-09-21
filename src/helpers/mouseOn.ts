@@ -26,6 +26,7 @@ const lockCursor = () => {
   style.textContent = `
       * {
         cursor: grabbing !important;
+        -webkit-user-select: none;
         user-select: none;
       }
     `;

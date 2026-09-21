@@ -1516,6 +1516,43 @@ scenarios.pageStrip = (
   </div>
 );
 
+/*
+ * Содержимое дробной высоты — так его и меряет раскладка на живой странице.
+ * Браузер отдаёт `scrollTop` целым и режет его по своему целому пределу, и в
+ * самом низу между ним и мерой содержимого остаётся остаток меньше пикселя.
+ */
+scenarios.edgeFraction = (
+  <MorphScroll size={300}
+    controls={{ wheel: true }}
+    edge={{ size: 20 }}
+    onScrollPosition={onScrollPosition}
+  >
+    <div className="box" style={{ height: 720.4375, width: 200 }}>
+      высокий блок
+    </div>
+  </MorphScroll>
+);
+
+/*
+ * Вертикальный список на обычной высокой странице: снаружи только она, и
+ * едет она сама, браузером. Отступ сверху такой, что низ списка уходит за
+ * край окна: список, видный не полностью, — это случай, в котором браузер
+ * так и норовит подтянуть страницу к нему сам.
+ */
+scenarios.pageColumn = (
+  <div style={{ height: 3000, paddingTop: 600 }}>
+    <div data-testid="page-column-host">
+      <MorphScroll objects={{ size: OBJ }}
+        size={300}
+        controls={{ wheel: true, drag: true, bar: thumb }}
+        onScrollPosition={onScrollPosition}
+      >
+        {makeItems()}
+      </MorphScroll>
+    </div>
+  </div>
+);
+
 /* та же лента в обычном блоке с прокруткой — снаружи не страница, а свой div */
 scenarios.boxStrip = (
   <div

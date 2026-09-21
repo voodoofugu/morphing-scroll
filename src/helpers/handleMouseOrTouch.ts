@@ -118,11 +118,15 @@ const cursorClassChange = (
   if (!clicked) return;
   let elem: HTMLElement | null = null;
 
-  // уточняем elem
+  /*
+   * Класс достаётся элементу библиотеки, а не тому, во что попал указатель:
+   * что лежит внутри бегунка — дело автора разметки, и стилизовать по классу
+   * он смог бы только угадывая. У слайдера и содержимого так было всегда.
+   */
   if (["thumb", "slider"].includes(clicked)) {
-    if (clicked === "slider")
-      elem = target?.closest(".ms-slider") as HTMLDivElement | null;
-    else elem = target;
+    elem = target?.closest(
+      clicked === "slider" ? ".ms-slider" : ".ms-thumb",
+    ) as HTMLElement | null;
   } else if (clicked === "wrapp") elem = scrollElement;
 
   mouseOnEl(elem, mode, runtime);
@@ -595,6 +599,17 @@ function handleMouseOrTouch(args: HandleMouseT) {
    * жест на них не начинается вовсе.
    */
   document.addEventListener("dragstart", (e) => e.preventDefault(), { signal });
+
+  /*
+   * Выделение гасит курсорный замок — но замок это стиль, а WebKit решает
+   * судьбу выделения по тому, что уже посчитано, и стиль, поставленный в
+   * том же pointerdown, туда не успевает. Поэтому отказываем и самому
+   * событию: пока тащим, выделять нечего. Живёт до конца жеста, как и
+   * замок, так что обычное выделение текста остаётся на месте.
+   */
+  document.addEventListener("selectstart", (e) => e.preventDefault(), {
+    signal,
+  });
 
   document.addEventListener(
     "pointermove",

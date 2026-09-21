@@ -23,6 +23,13 @@ export default defineConfig({
       use: { ...devices["Pixel 5"] },
       testMatch: /touch\.spec\.ts/,
     },
+    {
+      // WebKit keeps extending a selection it has already started, so the
+      // block on it is the one thing that has to be checked in Safari too
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+      testMatch: /selection\.spec\.ts/,
+    },
   ],
   webServer: {
     command: "vite --config vite.e2e.config.ts",

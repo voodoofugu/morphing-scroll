@@ -1598,17 +1598,29 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         ? scrollElementRef.current?.scrollLeft || 0
         : scrollElementRef.current?.scrollTop || 0;
 
-    const isNotAtStart = scrollSpaceFromRef > 1;
+    /*
+     * Пиксель допуска с обеих сторон.
+     *
+     * Содержимое меряется дробным, а `scrollTop` браузер отдаёт целым и сам
+     * же обрезает его по своему целому пределу. В самом низу между ними
+     * остаётся остаток меньше пикселя — и без допуска конец не наступал
+     * никогда: край не гас, а стрелка вперёд оставалась живой, хотя ехать
+     * уже некуда. У начала такой допуск был с самого начала.
+     */
+    const EDGE_SLACK = 1;
+
+    const isNotAtStart = scrollSpaceFromRef > EDGE_SLACK;
     const isNotAtEnd =
-      Math.round(scrollSpaceFromRef + xySize) < fullHeightOrWidth;
+      scrollSpaceFromRef + xySize < fullHeightOrWidth - EDGE_SLACK;
 
     let isNotAtStartX = false;
     let isNotAtEndX = false;
     if (direction === "hybrid") {
-      isNotAtStartX = (scrollElementRef.current?.scrollLeft || 0) > 1;
+      const leftFrom = scrollElementRef.current?.scrollLeft || 0;
+
+      isNotAtStartX = leftFrom > EDGE_SLACK;
       isNotAtEndX =
-        Math.round((scrollElementRef.current?.scrollLeft || 0) + sizeLocal[0]) <
-        objectsWrapperWidthFull;
+        leftFrom + sizeLocal[0] < objectsWrapperWidthFull - EDGE_SLACK;
     }
 
     /*

@@ -76,6 +76,10 @@ export default function handleWheel(
    * самом элементе прокрутки). Но забирать его у поля, в котором пользователь
    * печатает, нельзя: прокрутка колесом над списком выбивала каретку из
    * инпута.
+   *
+   * И берём его молча: иначе браузер подтягивает страницу, чтобы показать
+   * список целиком. Список, видный не полностью, дёргал страницу на каждом
+   * шаге колеса — вниз от показа, вверх от самой прокрутки.
    */
   const active = document.activeElement;
   const isTyping =
@@ -83,7 +87,8 @@ export default function handleWheel(
     (active.matches("input, textarea, select") ||
       !!active.closest("[contenteditable]"));
 
-  if (!isTyping && !scrollEl.matches(":focus")) scrollEl.focus();
+  if (!isTyping && !scrollEl.matches(":focus"))
+    scrollEl.focus({ preventScroll: true });
 
   const [deltaX, deltaY] = deltaOf(e, scrollEl);
 

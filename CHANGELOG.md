@@ -1,5 +1,31 @@
 ## [3.0.2] - 2026-09-19
 
+### Fixed
+
+- **`ms-grabbing` landed inside a dragged thumb instead of on it.** The class
+  went to whatever element the pointer happened to hit, so a thumb filled with
+  your own element got the class on that element, and `.ms-thumb` — the part
+  the library moves, and the one worth styling — got nothing. It now marks the
+  library's own element, the way it always did for a slider and for the
+  content: `.ms-thumb`, `.ms-slider`, `.ms-viewport`.
+- **the end of a scroll never quite arrived.** An edge went on glowing at the
+  very bottom, and an arrow pointing that way stayed alive with nowhere left
+  to go. The content is measured in fractions of a pixel, while the browser
+  reports a whole `scrollTop` and clamps it to a whole limit of its own — so a
+  leftover of under a pixel stood between them, and the end never counted as
+  reached. Both ends now allow for that pixel, as the start always did.
+- **the wheel over a partly visible scroll made the page twitch.** The scroll
+  takes focus on a wheel so the keys work, and the browser answered by pulling
+  the page far enough to show the whole of it. Every notch of the wheel moved
+  the page down to reveal the scroll and back up as the scrolling went on, and
+  once the scroll had nowhere left to go, that shudder was all that happened.
+  Focus is now taken quietly, and the page stays where the reader put it.
+- **Safari selected the page text under a drag.** A drag turns text selection
+  off for as long as it lasts, but it did so through a style, and WebKit had
+  already decided the selection was on its way by the time that style was
+  read. The drag now turns the selection down at the event as well, so the
+  text stays untouched wherever the gesture goes.
+
 ### Changed
 
 - **the documentation was updated.** The editor hints of the public API were
