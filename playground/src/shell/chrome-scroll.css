@@ -1,0 +1,34 @@
+/*
+ * Вид служебных прокруток — один на дашборд и документацию. Бегунок тихий:
+ * он оснастка, а не пример. Растворы по краям берут цвет страницы, а на
+ * тёмной подложке — её: коробка вокруг говорит свой цвет через `--fade`.
+ */
+.chrome-scroll .ms-bar {
+  border-radius: 999px;
+}
+
+.chrome-scroll .ms-thumb .scroll-thumb:not(.playground-thumb) {
+  width: 8px;
+  height: 100%;
+  border-radius: 20px;
+  corner-shape: bevel;
+}
+
+.chrome-scroll .ms-thumb.ms-grabbing .scroll-thumb:not(.playground-thumb) {
+  width: 10px;
+  margin: 0 -1px;
+}
+
+.chrome-scroll .scroll-thumb:not(.playground-thumb) {
+  color: var(--ink-faint-soft);
+}
+
+.chrome-scroll .ms-bar:hover .scroll-thumb:not(.playground-thumb),
+.chrome-scroll .ms-thumb.ms-grabbing .scroll-thumb:not(.playground-thumb) {
+  color: var(--ink-faint);
+}
+
+.chrome-scroll .ms-edge:not(.ms-disabled) .ms-edge-inner {
+  background: linear-gradient(var(--fade, var(--bg)) 0%, transparent 100%);
+  width: 20px;
+}

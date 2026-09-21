@@ -1,95 +1,3 @@
-/*
- * Цвета живут в токенах: светлая тема стоит на `:root`, тёмная приходит либо
- * системной настройкой, либо переключателем — он ставит `data-theme` на
- * корень, и тогда его слово последнее.
- */
-:root {
-  color-scheme: light;
-
-  --bg: #f4f5f1;
-  --panel: #fbfcf9;
-  --card: #ffffff;
-  --card-soft: #f7faf8;
-  --ink: #18201f;
-  --ink-soft: #55635f;
-  --ink-faint: #8d9a96;
-  --line: #d8e0dc;
-  --line-soft: #ebefed;
-  --accent: #2563eb;
-  --accent-soft: #e6edfd;
-  --accent-ink: #1d4ed8;
-  --code-bg: #17201f;
-  --code-ink: #eef7f4;
-  --grid: rgba(24, 32, 31, 0.05);
-  --shadow: rgba(18, 32, 28, 0.13);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --bg: #101615;
-    --panel: #151d1b;
-    --card: #1a2321;
-    --card-soft: #1e2826;
-    --ink: #e6efec;
-    --ink-soft: #9fada9;
-    --ink-faint: #71807b;
-    --line: #2a3533;
-    --line-soft: #222c2a;
-    --accent: #5b9bf8;
-    --accent-soft: #16233d;
-    --accent-ink: #a9c8ff;
-    --code-bg: #0b1211;
-    --code-ink: #dff0ec;
-    --grid: rgba(255, 255, 255, 0.05);
-    --shadow: rgba(0, 0, 0, 0.45);
-  }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --bg: #101615;
-  --panel: #151d1b;
-  --card: #1a2321;
-  --card-soft: #1e2826;
-  --ink: #e6efec;
-  --ink-soft: #9fada9;
-  --ink-faint: #71807b;
-  --line: #2a3533;
-  --line-soft: #222c2a;
-  --accent: #5b9bf8;
-  --accent-soft: #16233d;
-  --accent-ink: #a9c8ff;
-  --code-bg: #0b1211;
-  --code-ink: #dff0ec;
-  --grid: rgba(255, 255, 255, 0.05);
-  --shadow: rgba(0, 0, 0, 0.45);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--bg);
-  color: var(--ink);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  line-height: 1.35;
-}
-
-body {
-  margin: 0;
-}
-
 button,
 input,
 select {
@@ -155,50 +63,54 @@ input[type="color"] {
   padding: 2px;
 }
 
+/* шапка сверху, стенд под ней — высоту окна делят они двое */
+/*
+ * Страница ровно в окно, не больше: высоту частей считают от неё, и если бы
+ * она подрастала под содержимое, стенд не смог бы сжаться обратно — он мерит
+ * то, что сам же и раздул. В узкой раскладке колонок нет, и страница
+ * вытягивается под содержимое: там её везёт браузер, как обычную.
+ */
+.page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+}
+
 .app-shell {
   display: grid;
+  /*
+   * Строка ровно в высоту окна, а не в высоту того, что в ней лежит: иначе
+   * колонка, выросшая под своё содержимое, уже не вернулась бы обратно.
+   */
+  grid-template-rows: minmax(0, 1fr);
   grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-  height: 100vh;
+  min-height: 0;
 }
 
 /* ── панель ─────────────────────────────────────────────────────────── */
 
 .control-panel {
-  height: 100vh;
-  overflow: auto;
+  min-height: 0;
+  height: 100%;
   border-right: 1px solid var(--line);
   background: var(--panel);
   padding: 14px;
 }
 
+/* когда панель едет сама, отступы держит её же обёртка содержимого */
+.control-panel.is-scrolled {
+  padding: 0;
+}
+
 .brand-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 8px 9px;
+  display: flex;
+  gap: 9px;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 14px;
 }
 
-.brand-mark {
-  grid-column: 1;
-  width: 30px;
-  height: 30px;
-  background: var(--accent);
-  -webkit-mask: var(--mark) center / contain no-repeat;
-  mask: var(--mark) center / contain no-repeat;
-}
-
-.brand-name {
-  grid-column: 2;
-  color: var(--accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-}
-
 .panel-fold {
-  grid-column: 3;
   width: 28px;
   min-height: 28px;
   color: var(--ink-faint);
@@ -206,11 +118,7 @@ input[type="color"] {
   padding: 0;
 }
 
-.brand-actions {
-  grid-column: 1 / -1;
-}
-
-/* сложенная панель: остаются знак и стрелка, название прячется */
+/* сложенная панель: остаётся одна стрелка */
 .app-shell.is-folded {
   grid-template-columns: 60px minmax(0, 1fr);
 }
@@ -220,54 +128,18 @@ input[type="color"] {
   padding: 12px 8px;
 }
 
+.is-folded .control-panel.is-scrolled {
+  padding: 0;
+}
+
 .is-folded .brand-row {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  justify-items: center;
+  justify-content: center;
   margin-bottom: 0;
 }
 
-.is-folded .brand-mark,
-.is-folded .panel-fold {
-  grid-column: 1;
-}
-
-.is-folded .brand-name,
 .is-folded .brand-actions,
 .is-folded .section {
   display: none;
-}
-
-.brand-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.theme-switch {
-  display: flex;
-  gap: 2px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  padding: 2px;
-}
-
-.theme-switch button {
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 700;
-  min-height: 24px;
-  padding: 2px 8px;
-}
-
-.theme-switch button[aria-pressed="true"] {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
 }
 
 .ghost-btn {
@@ -616,12 +488,27 @@ input[type="color"] {
 }
 
 .workbench {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 10px;
   min-width: 0;
-  height: 100vh;
-  padding: 14px;
+  /* колонка не растёт под то, что в ней едет: иначе не сожмётся обратно */
+  min-height: 0;
+  height: 100%;
+}
+
+/*
+ * Стенд занимает ровно то, что ему отвели, пока там помещается поле с
+ * объектами; ниже этого он не сжимается, а едет. Меру задаёт окно самой
+ * прокрутки — оно и есть контейнер, по которому считаются `cqh` и `cqw`.
+ */
+.workbench-scroll .ms-viewport {
+  container-type: size;
+}
+
+.workbench-inner {
+  display: grid;
+  grid-template-rows: auto minmax(280px, 1fr) auto;
+  gap: 10px;
+  min-width: calc(100cqw - 28px);
+  min-height: calc(100cqh - 28px);
 }
 
 .workbench-header {
@@ -788,49 +675,19 @@ input[type="color"] {
   min-width: 70px;
 }
 
-.code-panel pre {
-  max-height: min(30vh, 340px);
-  overflow: auto;
-  margin: 0;
+/*
+ * Коробке с кодом высота нужна своя: прокрутка внутри меряет её, а не
+ * наоборот. Отступы ушли в обёртку содержимого, чтобы полоса шла по краю.
+ */
+.code-view {
+  --fade: var(--code-bg);
+  height: min(30vh, 340px);
   background: var(--code-bg);
   color: var(--code-ink);
-  padding: 12px;
 }
 
-/* подсветка: фон панели тёмный в обеих темах, поэтому цвета одни */
-.code-panel .token.comment {
-  color: #6f807c;
-}
-
-.code-panel .token.tag,
-.code-panel .token.keyword,
-.code-panel .token.selector {
-  color: #82b1ff;
-}
-
-.code-panel .token.attr-name,
-.code-panel .token.property {
-  color: #a5d6a7;
-}
-
-.code-panel .token.attr-value,
-.code-panel .token.string {
-  color: #ffd79a;
-}
-
-.code-panel .token.number,
-.code-panel .token.unit,
-.code-panel .token.boolean {
-  color: #ffab91;
-}
-
-.code-panel .token.function {
-  color: #c792ea;
-}
-
-.code-panel .token.punctuation,
-.code-panel .token.operator {
-  color: #93a29e;
+.code-panel pre {
+  margin: 0;
 }
 
 .code-panel code {
@@ -843,6 +700,12 @@ input[type="color"] {
 }
 
 @media (max-width: 1080px) {
+  /* колонок нет: страница вытягивается под содержимое и едет целиком */
+  .page {
+    height: auto;
+    min-height: 100dvh;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
     height: auto;

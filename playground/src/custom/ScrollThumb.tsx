@@ -16,7 +16,7 @@ const round = (value: number) => Math.round(value * 100) / 100;
  * пиксель, и остриё не растягивается ни при какой длине. Горизонтальную
  * полосу библиотека разворачивает целиком, так что второй фигуры не нужно.
  */
-function ScrollThumb() {
+function ScrollThumb({ className }: { className?: string }) {
   const [box, setBox] = React.useState({ width: 0, height: 0 });
 
   const onResize = React.useCallback((rect: Partial<DOMRectReadOnly>) => {
@@ -36,7 +36,7 @@ function ScrollThumb() {
   const middle = round(width / 2);
 
   return (
-    <span aria-hidden="true" className="scroll-thumb">
+    <span aria-hidden="true" className={`scroll-thumb ${className || ""}`}>
       <ResizeTracker
         className="scroll-thumb-frame"
         measure="outer"

@@ -3,36 +3,15 @@
  * стрелки, край и заглушки. Библиотека этого не навязывает — здесь показано,
  * как это выглядит, когда оформляешь сам.
  */
+/* обе темы — в одной строке на токен, как и в `theme.css` */
 :root {
-  --item-ink: #17201f;
-  --tone-0: #dff3ef;
-  --tone-1: #f7e5bf;
-  --tone-2: #e8e3fb;
-  --tone-3: #f5d6cf;
-  --tone-4: #dceafb;
-  --tone-5: #e8f0ce;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --item-ink: #e6efec;
-    --tone-0: #14403d;
-    --tone-1: #43371c;
-    --tone-2: #322c4c;
-    --tone-3: #452c27;
-    --tone-4: #1e3348;
-    --tone-5: #2f3a1f;
-  }
-}
-
-:root[data-theme="dark"] {
-  --item-ink: #e6efec;
-  --tone-0: #14403d;
-  --tone-1: #43371c;
-  --tone-2: #322c4c;
-  --tone-3: #452c27;
-  --tone-4: #1e3348;
-  --tone-5: #2f3a1f;
+  --item-ink: light-dark(#17201f, #e6efec);
+  --tone-0: light-dark(#dff3ef, #14403d);
+  --tone-1: light-dark(#f7e5bf, #43371c);
+  --tone-2: light-dark(#e8e3fb, #322c4c);
+  --tone-3: light-dark(#f5d6cf, #452c27);
+  --tone-4: light-dark(#dceafb, #1e3348);
+  --tone-5: light-dark(#e8f0ce, #2f3a1f);
 }
 
 /* #region scroll */
@@ -286,7 +265,7 @@ body.no-select {
 .playground-scroll .ms-slider-item {
   display: grid;
   place-items: center;
-  width: 18px;
+  width: 28px;
   height: 18px;
   border-radius: 999px;
   background: var(--card);

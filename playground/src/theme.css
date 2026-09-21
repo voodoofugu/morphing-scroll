@@ -1,0 +1,104 @@
+/*
+ * Общее у дашборда и документации: токены темы, основа страницы и подсветка
+ * кода. Каждая страница подключает этот файл первым, а своё — поверх.
+ */
+
+/*
+ * Цвета живут в токенах, и у каждого обе темы записаны рядом: `light-dark`
+ * берёт ту, что сейчас в силе. Раньше тёмный список лежал отдельной копией —
+ * дважды, для системной настройки и для переключателя, — и стоило добавить
+ * токен, как в копиях его недоставало.
+ *
+ * Чем считать «сейчас», решает `color-scheme`: по умолчанию слово за
+ * системой, а переключатель ставит на корень `data-theme`, и тогда за ним.
+ */
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#f4f5f1, #101615);
+  --panel: light-dark(#fbfcf9, #151d1b);
+  --card: light-dark(#ffffff, #1a2321);
+  --card-soft: light-dark(#f7faf8, #1e2826);
+  --ink: light-dark(#18201f, #e6efec);
+  --ink-soft: light-dark(#55635f, #9fada9);
+  --ink-faint: light-dark(#8d9a96, #71807b);
+  --ink-faint-soft: light-dark(#b6c7c3, #505b57);
+  --line: light-dark(#d8e0dc, #2a3533);
+  --line-soft: light-dark(#dadedc, #222c2a);
+  --accent: light-dark(#2563eb, #5b9bf8);
+  --accent-soft: light-dark(#e6edfd, #16233d);
+  --accent-ink: light-dark(#1d4ed8, #a9c8ff);
+  --code-bg: light-dark(#17201f, #0b1211);
+  --code-ink: light-dark(#eef7f4, #dff0ec);
+  --grid: light-dark(rgba(24, 32, 31, 0.05), rgba(255, 255, 255, 0.05));
+  --shadow: light-dark(rgba(18, 32, 28, 0.13), rgba(0, 0, 0, 0.45));
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.35;
+}
+
+body {
+  margin: 0;
+}
+
+/*
+ * Подсветка кода: фон у панелей тёмный в обеих темах, поэтому цвета одни.
+ * Панель кода есть у дашборда и у документации.
+ */
+:is(.code-panel, .doc-body, .doc-demo) .token.comment {
+  color: #6f807c;
+}
+
+:is(.code-panel, .doc-body, .doc-demo) .token.tag,
+:is(.code-panel, .doc-body, .doc-demo) .token.keyword,
+:is(.code-panel, .doc-body, .doc-demo) .token.selector {
+  color: #82b1ff;
+}
+
+:is(.code-panel, .doc-body, .doc-demo) .token.attr-name,
+:is(.code-panel, .doc-body, .doc-demo) .token.property {
+  color: #a5d6a7;
+}
+
+:is(.code-panel, .doc-body, .doc-demo) .token.attr-value,
+:is(.code-panel, .doc-body, .doc-demo) .token.string {
+  color: #ffd79a;
+}
+
+:is(.code-panel, .doc-body, .doc-demo) .token.number,
+:is(.code-panel, .doc-body, .doc-demo) .token.unit,
+:is(.code-panel, .doc-body, .doc-demo) .token.boolean {
+  color: #ffab91;
+}
+
+:is(.code-panel, .doc-body, .doc-demo) .token.function {
+  color: #c792ea;
+}
+
+:is(.code-panel, .doc-body, .doc-demo) .token.punctuation,
+:is(.code-panel, .doc-body, .doc-demo) .token.operator {
+  color: #93a29e;
+}
