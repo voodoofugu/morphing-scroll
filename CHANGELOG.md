@@ -1,4 +1,4 @@
-## [3.0.2] - 2026-09-19
+## [3.0.3] - 2026-09-21
 
 ### Fixed
 
@@ -25,6 +25,8 @@
   already decided the selection was on its way by the time that style was
   read. The drag now turns the selection down at the event as well, so the
   text stays untouched wherever the gesture goes.
+
+## [3.0.2] - 2026-09-19
 
 ### Changed
 
