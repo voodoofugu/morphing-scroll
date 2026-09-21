@@ -2,7 +2,7 @@
 
 A fireball for a scrollbar thumb — a demo for [morphing-scroll](https://www.npmjs.com/package/morphing-scroll).
 
-[**See it live**](https://voodoofugu.github.io/morphing-scroll/fireball/) · [Edit the code on StackBlitz](https://stackblitz.com/github/voodoofugu/morphing-scroll/tree/main/examples/fireball?file=src%2Ffire.ts)
+[**See it live**](https://voodoofugu.github.io/morphing-scroll/fireball/)
 
 Scroll it with the wheel, drag the fireball, drag the list or use the arrow keys. The flame trails behind the ball and it sparks as it moves; it flares when you grab it, burns brighter the faster the list moves, and throws a shower of sparks when it hits an end.
 
