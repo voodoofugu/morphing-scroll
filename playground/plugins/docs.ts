@@ -1,3 +1,4 @@
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import ts from "typescript";
@@ -11,8 +12,13 @@ import type { Plugin } from "vite";
 const VIRTUAL_ID = "virtual:ms-docs";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
 
-const TYPES_FILE = fileURLToPath(
-  new URL("../../src/types/types.ts", import.meta.url),
+/*
+ * Путь считаем от самого файла, без `new URL(путь, import.meta.url)`: эту связку
+ * Vite принимает за ассет и в тестах под jsdom превращает в адрес dev-сервера.
+ */
+const TYPES_FILE = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../src/types/types.ts",
 );
 
 /** откуда начинаем обход: тип в types.ts → путь, которым его зовёт дашборд */
@@ -103,7 +109,8 @@ const children = (node: ts.TypeNode | undefined, known: Set<string>) => {
   return found;
 };
 
-const collect = (): Record<string, PropDoc> => {
+/** все описания из типов: путь пропса → первый абзац и `@default` */
+export const collectDocs = (): Record<string, PropDoc> => {
   const source = ts.createSourceFile(
     TYPES_FILE,
     ts.sys.readFile(TYPES_FILE) ?? "",
@@ -160,7 +167,7 @@ export default function msDocs(): Plugin {
 
     load(id) {
       return id === RESOLVED_ID
-        ? `export default ${JSON.stringify(collect())};`
+        ? `export default ${JSON.stringify(collectDocs())};`
         : null;
     },
 

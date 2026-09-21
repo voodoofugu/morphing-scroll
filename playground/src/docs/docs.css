@@ -1,0 +1,415 @@
+/*
+ * Документация: навигация слева, раздел README справа. Цвета — токены из
+ * `theme.css`, те же, что у дашборда, поэтому и тема у них общая.
+ */
+:root {
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* #region shell */
+/*
+ * Страница держит высоту окна: прокручиваются не она, а два `MorphScroll` —
+ * дерево слева и текст справа. Библиотека о прокрутке, так что и здесь она
+ * своя, с тем же бегунком, что в примерах.
+ */
+.docs {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+}
+
+.docs-shell {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 40px;
+  width: 100%;
+  max-width: 1180px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.docs-nav {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  padding: 18px 0 16px;
+}
+
+.docs-nav-scroll,
+.docs-main {
+  min-height: 0;
+}
+
+.docs-search {
+  width: 100%;
+  min-height: 34px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+}
+
+.docs-search:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.docs-tree ul,
+.docs-found {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-tree ul ul {
+  margin-left: 12px;
+  border-left: 1px solid var(--line-soft);
+  padding-left: 6px;
+}
+
+.docs-tree a,
+.docs-found a {
+  display: block;
+  overflow: hidden;
+  border-radius: 14px 6px 6px 14px;
+  corner-shape: bevel round round bevel;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 4px 8px 4px 16px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* компоненты — ступень выше пропсов */
+.docs-tree > ul > li > a,
+.docs-tree > a {
+  margin-top: 10px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.docs-tree > a {
+  margin-top: 0;
+}
+
+.docs-tree a:hover,
+.docs-found a:hover {
+  background: var(--card);
+  color: var(--ink);
+}
+
+.docs-tree a[aria-current] {
+  color: var(--accent-ink);
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.docs-tree a[aria-current="page"] {
+  background: var(--accent-soft);
+  box-shadow:
+    inset 0 0 0 1px var(--accent-ink),
+    1px 1px 0 var(--accent-ink);
+}
+
+.docs-found small {
+  margin-left: 8px;
+  color: var(--ink-faint);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.docs-none {
+  color: var(--ink-faint);
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+/* #endregion */
+
+/* #region page */
+.doc-page {
+  max-width: 760px;
+}
+
+.doc-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.doc-crumbs a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.doc-crumbs a:hover {
+  color: var(--accent-ink);
+}
+
+.doc-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0 14px;
+  font-family: var(--mono);
+  font-size: 30px;
+  letter-spacing: -0.01em;
+}
+
+.doc-badge {
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 9px;
+}
+
+.doc-lead {
+  margin: 0 0 20px;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.doc-card-lead code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.doc-group h2 {
+  margin: 36px 0 12px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.doc-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.doc-card {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  padding: 12px 14px;
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.doc-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.doc-card-name {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.doc-card-lead {
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.doc-live {
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+
+/* #endregion */
+
+/* #region readme */
+/*
+ * Текст раздела приходит из README как есть. Там описание целиком обёрнуто
+ * в `<em>` — на GitHub это отличает его от меток, а здесь курсив на абзац
+ * только мешает читать.
+ */
+.doc-body {
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.doc-body em {
+  font-style: normal;
+}
+
+.doc-body a {
+  color: var(--accent-ink);
+}
+
+.doc-body :not(pre) > code {
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-family: var(--mono);
+  font-size: 0.86em;
+  padding: 1px 5px;
+}
+
+.doc-body pre {
+  overflow: auto;
+  margin: 10px 0 18px;
+  border-radius: 10px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 12px 14px;
+}
+
+.doc-body pre code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.doc-body img {
+  max-width: 100%;
+  border-radius: 10px;
+}
+
+/* живой пример уже стоит выше — картинка из README ему не нужна */
+.doc-body.has-demo img[alt="banner"] {
+  display: none;
+}
+
+.doc-body ul {
+  padding-left: 20px;
+}
+
+.doc-body table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.doc-body th,
+.doc-body td {
+  border-bottom: 1px solid var(--line-soft);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+/* #endregion */
+
+/* #region demo */
+.doc-demo {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 16px;
+}
+
+.doc-demo-stage {
+  border-radius: 10px;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+  padding: 24px;
+}
+
+.doc-demo-box {
+  height: 240px;
+}
+
+.doc-demo-control {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.doc-demo-control input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.doc-demo-control output {
+  min-width: 3ch;
+  color: var(--accent-ink);
+  text-align: right;
+}
+
+.doc-demo-code {
+  overflow: auto;
+  margin: 0;
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 10px 12px;
+}
+
+.doc-demo-code code {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+/* #endregion */
+
+@media (max-width: 860px) {
+  .docs-shell {
+    grid-template-rows: 32dvh minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 0 16px;
+  }
+
+  /* на телефоне навигация — сверху, короткой прокручиваемой полосой */
+  .docs-nav {
+    border-bottom: 1px solid var(--line-soft);
+    padding: 12px 0;
+  }
+
+  .doc-title {
+    font-size: 24px;
+  }
+}
