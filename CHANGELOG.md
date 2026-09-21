@@ -1,3 +1,14 @@
+## [3.0.4] - 2026-09-21
+
+### Changed
+
+- **the description was corrected.** It claimed the library ships no styling
+  of its own, which is untrue: it styles what it cannot work without — sizes,
+  places, the parts it moves — inline, and goes no further. The playground
+  section now opens with the documentation, where the dashboard and the rest
+  are a click away, and the flaming thumb, which belongs to an article and not
+  to a readme, is gone from it.
+
 ## [3.0.3] - 2026-09-21
 
 ### Fixed

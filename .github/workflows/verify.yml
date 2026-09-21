@@ -15,5 +15,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # webkit — ради проверки выделения: там оно гасится иначе, чем в chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run release:check
