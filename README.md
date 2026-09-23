@@ -59,6 +59,7 @@ Start using the `MorphScroll` component by defining the required `size` prop. Fo
 > - Ships **ESM** and **CommonJS** builds.
 > - Style the container as you like, but leave properties that size or position the internals alone.
 > - Internals carry the `ms-` prefix. A moving scroll marks its root with `ms-scrolling` — nested scrolls read it to decide about the wheel, and so can your CSS.
+> - Every object box carries `ms-child`, its place in the list — the same number `scrollToObject` takes, counted from **one**, as `:nth-child()` counts. `:nth-child()` itself cannot be used for it: it counts the boxes in the document, and under `render` only a handful of them are there, so the fifth in the DOM can be the hundredth in the list.
 > - Props are compared by content, so inline objects, arrays and elements need no `useMemo`; callbacks are held in refs.
 > - Two things are done for you: content loading **above** the reader does not push them down, and a system request for less motion turns the library's own animations into jumps.
 > - A combination that cannot work is reported once as a `[MS n]` warning and the scroll keeps running; only a missing `size` throws. The `n` tells one scroll from another, and the same number stands on its root as `morph-scroll="n"` — that is how you find the one being talked about.
@@ -1632,13 +1633,29 @@ trackVisibility: true;
 false<br />
 <br />
 <b>Description:</b><em><br />
-reports how much of every object shows, through <code>--ms-content-visibility</code> on its <code>.ms-object-box</code> — <b>0</b> out of sight, <b>1</b> whole, a fraction in between. That is what a fade is styled with: <code>opacity: var(--ms-content-visibility);</code><br />
+reports how much of every object shows, through <code>--ms-content-visibility</code> on its <code>.ms-object-box</code> — <b>0</b> out of sight, <b>1</b> whole, a hundredth of it at a time in between. That is what a fade is styled with: <code>opacity: var(--ms-content-visibility);</code><br />
+<br />
+Which way it leaves comes with it: the box takes the class of the side cutting it — <code>ms-outside-top</code>, <code>ms-outside-right</code>, <code>ms-outside-bottom</code> or <code>ms-outside-left</code>. Only a side that cuts is named, so a rule reaches the objects it is about and nobody else — the ratio says how much, the class says where:<br />
+<br />
+
+```css
+.ms-object-box.ms-outside-top .card { --y: -1; }
+.ms-object-box.ms-outside-bottom .card { --y: 1; }
+
+.card {
+  opacity: var(--ms-content-visibility, 1);
+  translate: 0 calc(var(--y, 0) * (1 - var(--ms-content-visibility, 1)) * 10px);
+}
+```
+
 <br />
 Nothing is styled for you and nothing is dropped: the objects stay mounted and simply know where they are. It goes with <code>render</code> and without it alike — the two are different questions, which is why they are different props.<br />
 <br />
 ✦ Note:<br />
 
 <ul>
+  <li>only the axes the scroll moves along are named: a <code>y</code> scroll never speaks of left or right.</li>
+  <li>an object the window cannot fit is outside on both of its sides at once, and says so.</li>
   <li>the ratio is counted against the window itself, so <code>render.rootMargin</code> does not widen it: an object preloaded past the edge reports <b>0</b> until it truly shows.</li>
   <li>counted by place, so it needs an <code>objects.size</code> that can be counted — the same one <code>render</code> needs.</li>
 </ul>

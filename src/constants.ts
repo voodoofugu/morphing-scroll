@@ -6,8 +6,27 @@ const CONST = {
   // отличает копию контента в круге от оригинала; наружу не выходит
   LOOP_KEY_SEP: "\u0000loop\u0000",
   CONTENT_VISIBILITY_VAR: "--ms-content-visibility", // 0..1 while trackVisibility is on
+  /*
+   * Шагов у доли видимости. Сотая — мельче глаза, но крупнее пикселя: число
+   * меняется не на каждый сдвиг, а стиль пересчитывается только когда оно и
+   * правда сменилось.
+   */
+  VISIBILITY_STEPS: 100,
+  /*
+   * За какую сторону окна объект уходит — тоже при trackVisibility. Стоит
+   * только та сторона, которая его режет: сколько именно срезано, говорит
+   * доля видимости, а это — куда.
+   */
+  OUTSIDE_CLASS: "ms-outside-", // + top | right | bottom | left
   /** the group a child names on itself; `scrollToObject` takes that name */
   GROUP_ATR: "ms-group",
+  /*
+   * Место объекта в списке — то же число, которое берёт `scrollToObject`, и
+   * считается оно так же, с единицы, как и `:nth-child()`. Сам `:nth-child()`
+   * тут не помощник: он считает боксы в документе, а при виртуализации их
+   * горстка, и пятый по счёту может быть сотым в списке.
+   */
+  CHILD_ATR: "ms-child",
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)

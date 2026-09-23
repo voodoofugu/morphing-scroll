@@ -21,7 +21,7 @@ const BLOCKS: Block[] = [
   },
   {
     name: "objects",
-    note: "Your own card inside every object. `--ms-content-visibility` lands on the box when trackVisibility is on. The appearing animation sits on the card and never on .ms-object-box: the library places that box with transform, and an animation touching transform there outranks it — every object would collapse into one point.",
+    note: "Your own card inside every object. With trackVisibility on, the box carries `--ms-content-visibility` — how much of it shows — and the class of the side cutting it — ms-outside-top, ms-outside-right, ms-outside-bottom, ms-outside-left. The variable says how much, the class says where. The appearing animation sits on the card and never on .ms-object-box: the library places that box with transform, and an animation touching transform there outranks it — every object would collapse into one point.",
     when: () => true,
   },
   {
@@ -122,7 +122,7 @@ function buildStyles(settings: Settings) {
     ),
     " *",
     wrap(
-      'Give the scroll className="my-scroll" to use it as it stands. The hooks the library offers are classes — ms-grabbing, ms-disabled, ms-hover, ms-active — and variables: --ms-bar-visibility, --ms-edge-visibility, --ms-content-visibility.',
+      'Give the scroll className="my-scroll" to use it as it stands. The hooks the library offers are classes — ms-grabbing, ms-disabled, ms-hover, ms-active — and variables: --ms-bar-visibility, --ms-edge-visibility, --ms-content-visibility; ms-outside-top/right/bottom/left on an object leaving the window; and ms-child on every object box, its place in the list — the number scrollToObject takes.',
     ),
     " */",
   ].join("\n");

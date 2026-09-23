@@ -284,6 +284,24 @@ test.describe("content visibility without a render mode", () => {
     expect(values[11]).toBe(0);
   });
 
+  /*
+   * Шаг доли — сотая. По десятой было видно, как объект появляется
+   * ступенями: то же место дало бы ровно 0.9, то есть мимо на шесть
+   * сотых, и на привязанном свойстве этот скачок заметен.
+   */
+  test("доля считается сотыми", async ({ page }) => {
+    await open(page, "visibilityPlain");
+    await page.waitForTimeout(300);
+
+    await page.locator(".ms-viewport").evaluate((el) => (el.scrollTop = 5));
+    await page.waitForTimeout(300);
+
+    const values = await seen(page);
+
+    // карточка высотой 60, за краем осталось 5 — это 55/60
+    expect(values[0]).toBe(0.92);
+  });
+
   test("после прокрутки числа переезжают вместе с окном", async ({ page }) => {
     await open(page, "visibilityPlain");
     await page.waitForTimeout(300);
@@ -296,6 +314,63 @@ test.describe("content visibility without a render mode", () => {
 
     expect(values[0]).toBe(0);
     expect(values[11]).toBe(1);
+  });
+});
+
+/*
+ * Растяжение у края — это сдвиг самой обёртки: прокрутка стоит на нуле, а
+ * содержимое идёт за пальцем. Доля видимости считается от окна, и без поправки
+ * на этот сдвиг объект, наполовину ушедший за край под пальцем, продолжал
+ * считаться целым.
+ */
+test.describe("растяжение у края", () => {
+  const look = (page: Page) =>
+    page.evaluate(() => {
+      const wrap = document.querySelector<HTMLElement>(".ms-objects-wrapper")!;
+      const boxes = [...document.querySelectorAll<HTMLElement>(".ms-object-box")];
+
+      return {
+        shift: wrap.style.transform,
+        third: boxes[2].style.getPropertyValue("--ms-content-visibility"),
+        thirdSides: [...boxes[2].classList].filter((c) =>
+          c.startsWith("ms-outside"),
+        ),
+      };
+    });
+
+  test("видимость идёт за содержимым, а не за прокруткой", async ({ page }) => {
+    await open(page, "overscrollVisibility");
+    await expect(page.locator(".ms-viewport")).toBeVisible();
+    await page.waitForTimeout(350);
+
+    // окно 200 при шаге 70: третий объект помещается ровно, до края
+    expect(await look(page)).toMatchObject({ shift: "", third: "1" });
+
+    const box = (await page.locator(".ms-viewport").boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let step = 1; step <= 8; step += 1) {
+      await page.mouse.move(x, y + step * 12);
+      await page.waitForTimeout(16);
+    }
+    await page.waitForTimeout(200);
+
+    const held = await look(page);
+
+    // содержимое ушло вниз, и третий объект теперь срезан низом окна
+    expect(held.shift).not.toBe("");
+    expect(Number(held.third)).toBeGreaterThan(0);
+    expect(Number(held.third)).toBeLessThan(1);
+    expect(held.thirdSides).toEqual(["ms-outside-bottom"]);
+
+    await page.mouse.up();
+    await page.waitForTimeout(700);
+
+    // отпустили — содержимое вернулось, и с ним доля
+    expect(await look(page)).toMatchObject({ shift: "", third: "1" });
   });
 });
 

@@ -4470,7 +4470,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         elementTop?: number,
         left?: number,
         children?: React.ReactNode,
-        visibility?: number | null,
+        /** где объект относительно окна — только при `trackVisibility` */
+        place?: { ratio: number; outside: string[] } | null,
         domKey?: string,
         index?: number,
       ) => {
@@ -4492,8 +4493,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             position: "absolute",
             transform: `translate(${left}px, ${elementTop}px)`,
           }),
-          ...(typeof visibility === "number" && {
-            [CONST.CONTENT_VISIBILITY_VAR]: visibility,
+          ...(place && {
+            [CONST.CONTENT_VISIBILITY_VAR]: place.ratio,
           }),
           // разворот — дело раскладки; объект остаётся таким, каким его написали
           ...(flippedByDirection && { direction: "ltr" }),
@@ -4515,8 +4516,20 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                   [CONST.WRAP_ATR]: `${key}`,
                 }
               : {})}
+            {...(index !== undefined ? { [CONST.CHILD_ATR]: index + 1 } : {})}
             ref={isEach ? sizes.refFor(key) : undefined}
-            className="ms-object-box"
+            /*
+             * Сторона, за которую объект уходит, — состояние, а состояние на
+             * своих элементах библиотека говорит классом, как `ms-grabbing` и
+             * `ms-disabled`. Стоят только те стороны, которые режут: класса,
+             * которого нет, и в селекторе нет.
+             */
+            className={[
+              "ms-object-box",
+              ...(place?.outside ?? []).map(
+                (side) => `${CONST.OUTSIDE_CLASS}${side}`,
+              ),
+            ].join(" ")}
             /*
              * Номер и общее число читаются только внутри роли, которая их
              * поддерживает, — поэтому роль и счёт идут вместе.
@@ -4701,6 +4714,59 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       }
 
       /*
+       * Где объект относительно окна: сколько его видно и какие стороны окна
+       * его режут. Обе величины из одной геометрии, поэтому считаются разом.
+       */
+      const axisPlace = (dir: "x" | "y", rootMarginLocal: number[]) => {
+        /*
+         * Растяжение у края сдвигает саму обёртку, а прокрутка при этом стоит:
+         * дальше ей некуда. Для видимости это то же самое, как если бы окно
+         * уехало в другую сторону, — без этой поправки объект, наполовину
+         * ушедший за край под пальцем, продолжал считаться целым.
+         */
+        const stretch =
+          dir === "x" ? overscrollRef.current.x : overscrollRef.current.y;
+
+        const viewportStart = (dir === "x" ? scrollLeft : scrollTop) - stretch;
+        const viewportEnd =
+          viewportStart + (dir === "x" ? sizeLocal[0] : sizeLocal[1]);
+
+        /*
+         * rootMargin приходит в CSS-порядке [top, right, bottom, left], но
+         * растягиваем мы бокс элемента, а не вьюпорт, поэтому стороны идут
+         * крест-накрест: что бы дотянуться до того, что ниже/правее, надо
+         * растянуть начало бокса — туда уходит bottom/right, а в конец
+         * top/left. По оси x стороны были перепутаны местами.
+         */
+        const [marginBefore, marginAfter] =
+          dir === "x"
+            ? [rootMarginLocal[3], rootMarginLocal[1]]
+            : [rootMarginLocal[0], rootMarginLocal[2]];
+
+        const elStart = (dir === "x" ? left : top) - marginAfter;
+        const elEnd = (dir === "x" ? right : bottom) + marginBefore;
+
+        const elementSize = elEnd - elStart;
+
+        if (elementSize <= 0)
+          return { ratio: 0, cutStart: false, cutEnd: false };
+
+        const visible =
+          Math.min(elEnd, viewportEnd) - Math.max(elStart, viewportStart);
+
+        return {
+          ratio: visible <= 0 ? 0 : Math.min(1, visible / elementSize),
+          /*
+           * Сторона режет, если объект за неё заходит. Ушедший вверх режет
+           * начало, ушедший вниз — конец, а тот, что в окно не помещается,
+           * режет обе: это та же геометрия, а не особый случай.
+           */
+          cutStart: elStart < viewportStart,
+          cutEnd: elEnd > viewportEnd,
+        };
+      };
+
+      /*
        * Доля видимости объекта.
        *
        * Округление здесь нужно переменной `--ms-content-visibility`: без него
@@ -4710,6 +4776,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * округлялся в ноль и не рисовался — у края окна оставалась пустая
        * полоса в те самые проценты. Решение теперь по настоящей доле,
        * округление осталось переменной.
+       *
+       * Шаг — сотая доля. Десятой хватало, чтобы гасить лишние пересчёты, но
+       * по ней же было видно, как объект появляется рывками: десять ступеней
+       * на весь путь заметны на любом свойстве, которое к ней привязано.
+       * Сотая для глаза непрерывна, а пересчёт всё так же случается только
+       * когда число и правда сменилось.
        */
       const getVisibilityRatio = (
         withRootMargin: boolean = true,
@@ -4717,49 +4789,57 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ): number => {
         const rootMarginLocal = withRootMargin ? mRootLocal : [0, 0, 0, 0];
 
-        const checkAxis = (dir: "x" | "y") => {
-          const viewportStart = dir === "x" ? scrollLeft : scrollTop;
-          const viewportEnd =
-            viewportStart + (dir === "x" ? sizeLocal[0] : sizeLocal[1]);
+        const ratioOf = (dir: "x" | "y") => {
+          const { ratio } = axisPlace(dir, rootMarginLocal);
 
-          /*
-           * rootMargin приходит в CSS-порядке [top, right, bottom, left], но
-           * растягиваем мы бокс элемента, а не вьюпорт, поэтому стороны идут
-           * крест-накрест: что бы дотянуться до того, что ниже/правее, надо
-           * растянуть начало бокса — туда уходит bottom/right, а в конец
-           * top/left. По оси x стороны были перепутаны местами.
-           */
-          const [marginBefore, marginAfter] =
-            dir === "x"
-              ? [rootMarginLocal[3], rootMarginLocal[1]]
-              : [rootMarginLocal[0], rootMarginLocal[2]];
-
-          const elStart = (dir === "x" ? left : top) - marginAfter;
-          const elEnd = (dir === "x" ? right : bottom) + marginBefore;
-
-          const elementSize = elEnd - elStart;
-          if (elementSize <= 0) return 0;
-
-          const visible =
-            Math.min(elEnd, viewportEnd) - Math.max(elStart, viewportStart);
-
-          if (visible <= 0) return 0;
-
-          const ratio = Math.min(1, visible / elementSize);
-
-          return round ? Math.round(ratio * 10) / 10 : ratio;
+          return round
+            ? Math.round(ratio * CONST.VISIBILITY_STEPS) /
+                CONST.VISIBILITY_STEPS
+            : ratio;
         };
 
-        if (direction === "hybrid") {
-          const x = checkAxis("x");
-          const y = checkAxis("y");
-          return Math.min(x, y);
+        if (direction === "hybrid") return Math.min(ratioOf("x"), ratioOf("y"));
+
+        return direction === "x" ? ratioOf("x") : ratioOf("y");
+      };
+
+      /*
+       * За какие стороны окна объект уходит.
+       *
+       * Спрашиваем только те оси, по которым скролл ездит: объект шире окна в
+       * вертикальном списке иначе носил бы обе боковые всегда, а сказать ими
+       * нечего. Счёт — по самому окну, как и доля: `render.rootMargin`
+       * расширяет отрисовку, а не видимость.
+       */
+      const getOutsideSides = (): string[] => {
+        const noMargin = [0, 0, 0, 0];
+        const sides: string[] = [];
+
+        if (direction !== "x") {
+          const { cutStart, cutEnd } = axisPlace("y", noMargin);
+
+          if (cutStart) sides.push("top");
+          if (cutEnd) sides.push("bottom");
         }
 
-        return direction === "x" ? checkAxis("x") : checkAxis("y");
+        if (direction !== "y") {
+          const { cutStart, cutEnd } = axisPlace("x", noMargin);
+
+          /*
+           * Стороны — те, что видит глаз, и переворачивать их не нужно даже в
+           * развёрнутом списке. Отражение меняет, какой объект где лежит, а не
+           * куда растёт координата: числа, по которым объект ставится на
+           * место, те же самые, что и в этом счёте, — меньшее x всегда слева.
+           */
+          if (cutStart) sides.push("left");
+          if (cutEnd) sides.push("right");
+        }
+
+        return sides;
       };
-      const visibilityRatioWithoutMargin = tracking
-        ? getVisibilityRatio(false, true)
+
+      const trackPlace = tracking
+        ? { ratio: getVisibilityRatio(false, true), outside: getOutsideSides() }
         : null;
 
       if (isEach) {
@@ -4776,7 +4856,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                 top,
                 left,
                 childLocal,
-                visibilityRatioWithoutMargin,
+                trackPlace,
                 domKey,
                 index,
               )
@@ -4794,7 +4874,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           top,
           left,
           childLocal,
-          visibilityRatioWithoutMargin,
+          trackPlace,
           domKey,
           index,
         );
@@ -4824,7 +4904,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           top,
           left,
           childLocal,
-          visibilityRatioWithoutMargin,
+          trackPlace,
           domKey,
           index,
         );
@@ -4841,7 +4921,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         top,
         left,
         childLocal,
-        visibilityRatioWithoutMargin,
+        trackPlace,
         domKey,
         index,
       );

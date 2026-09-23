@@ -655,12 +655,32 @@ export type MorphScroll = {
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***trackVisibility***:
    * report how much of every object shows, through `--ms-content-visibility`
-   * on its `.ms-object-box` — `0` out of sight, `1` whole, a fraction in
-   * between.
+   * on its `.ms-object-box` — `0` out of sight, `1` whole, a hundredth of it
+   * at a time in between.
    * @description
    * Nothing is styled and nothing is dropped: the objects stay mounted and
    * simply know where they are, so a card can fade or shrink as it leaves.
    * It goes with `render` and without it alike.
+   *
+   * Which way it leaves comes with it: the box takes the class of the side
+   * cutting it — `ms-outside-top`, `ms-outside-right`, `ms-outside-bottom`
+   * or `ms-outside-left`. Only a side that cuts is named, so a rule reaches
+   * the objects it is about and nobody else. How much is cut is the ratio
+   * above; this is where.
+   * @example
+   * ```css
+   * .ms-object-box.ms-outside-top .card { --y: -1; }
+   * .ms-object-box.ms-outside-bottom .card { --y: 1; }
+   *
+   * .card {
+   *   opacity: var(--ms-content-visibility, 1);
+   *   translate: 0 calc(var(--y, 0) * (1 - var(--ms-content-visibility, 1)) * 10px);
+   * }
+   * ```
+   * @note *only the axes the scroll moves along are named: a `y` scroll never
+   * speaks of left or right*
+   * @note *an object the window cannot fit is outside on both of its sides at
+   * once, and says so*
    * @note *the ratio is counted against the window itself, so
    * `render.rootMargin` does not widen it — an object preloaded past the
    * edge reports `0` until it truly shows*

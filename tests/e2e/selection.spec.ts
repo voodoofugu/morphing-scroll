@@ -67,6 +67,9 @@ test.describe("a drag does not select the page", () => {
 
     const thumb = page.locator(".ms-thumb");
     await dragFrom(page, (await thumb.boundingBox()) as DOMRect, 80);
+
+    // спрашиваем, когда жест уже начался, а не когда мы просто нажали
+    await expect(thumb).toHaveClass(/ms-grabbing/);
     expect(await ask()).toBe(false);
 
     await page.mouse.up();

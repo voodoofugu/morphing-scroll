@@ -1,3 +1,52 @@
+## [3.1.0] - 2026-09-22
+
+### Added
+
+- **`trackVisibility` now also says which way an object is leaving.** The box
+  takes the class of the side cutting it — `ms-outside-top`,
+  `ms-outside-right`, `ms-outside-bottom` or `ms-outside-left`. A side that
+  cuts nothing is not named, so a rule reaches the objects it is about and
+  nobody else. How much is cut was already known —
+  `--ms-content-visibility` — and the two go together, the class saying
+  where, the variable how far:
+
+  ```css
+  .ms-object-box.ms-outside-top .card { --y: -1; }
+  .ms-object-box.ms-outside-bottom .card { --y: 1; }
+
+  .card {
+    opacity: var(--ms-content-visibility, 1);
+    translate: 0 calc(var(--y, 0) * (1 - var(--ms-content-visibility, 1)) * 12px);
+  }
+  ```
+
+  Only the axes the scroll moves along are named, so a `y` scroll never
+  speaks of left or right; an object the window cannot fit is outside on both
+  of its sides and says so; and the sides are the ones the eye sees, which a
+  list running from the right does not change.
+- **every object box carries `ms-child`, its place in the list.** It is the
+  same number `scrollToObject` takes, counted from one, as `:nth-child()`
+  counts — so neither the library nor a stylesheet has to think twice about
+  it. `:nth-child()` itself cannot stand in: it counts the boxes in the
+  document, and under `render` only a handful of them are there, so the fifth
+  in the DOM can be the hundredth in the list.
+
+### Fixed
+
+- **the rubber band at an edge went unreported.** Pulling the content past an
+  edge moves the content itself, while the scroll stays where it is — it has
+  nowhere left to go. The ratio was counted from the scroll alone, so an
+  object dragged half out from under the window went on calling itself whole,
+  and the side it was leaving by went unnamed. Both now follow the content.
+
+### Changed
+
+- **`trackVisibility` now reports in hundredths.** The ratio moved in tenths,
+  and ten steps over the whole way are plain to see on anything tied to them —
+  an object did not appear so much as arrive in stages. It moves a hundredth
+  at a time now, which the eye reads as continuous, while the style is still
+  recalculated only when the number really changed.
+
 ## [3.0.4] - 2026-09-21
 
 ### Changed

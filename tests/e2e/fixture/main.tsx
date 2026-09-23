@@ -1062,6 +1062,149 @@ scenarios.loopSliderDrag = (
   </MorphScroll>
 );
 
+/*
+ * Растяжение у края: тянем содержимое за край, и оно идёт за пальцем, хотя
+ * прокрутке дальше некуда. Объекты при этом видно иначе, чем до тяги.
+ */
+scenarios.overscrollVisibility = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 200]}
+    trackVisibility
+    controls={{ wheel: true, drag: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div key={`ov-${i}`} className="box" data-testid={`ov-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Номер объекта в списке при виртуализации: в документе лежит горстка боксов,
+ * и первый из них — вовсе не первый в списке.
+ */
+scenarios.indexVirtual = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 200]}
+    render={{ mode: "virtual" }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 40 }, (_, i) => (
+      <div key={`card-${i}`} className="box" data-testid={`card-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Стороны ухода: по какой стороне окна объект срезан. Ряд, столбец, гибрид и
+ * развёрнутый ряд — в последнем начало оси лежит справа, и это ровно то
+ * место, где сторону легко назвать наоборот.
+ */
+scenarios.outsideColumn = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 200]}
+    trackVisibility
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div key={`o-${i}`} className="box" data-testid={`o-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/*
+ * Отрисовка с запасом: `rootMargin` рисует объекты за краем окна заранее.
+ * Доля видимости при этом считается по самому окну, а не по запасу.
+ */
+scenarios.visibilityPreloaded = (
+  <MorphScroll
+    objects={{ size: [180, 60], gap: 10 }}
+    size={[200, 200]}
+    trackVisibility
+    render={{ mode: "virtual", rootMargin: 300 }}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 20 }, (_, i) => (
+      <div key={`pl-${i}`} className="box" data-testid={`pl-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* объект выше окна: его режет и верх, и низ разом */
+scenarios.outsideTall = (
+  <MorphScroll
+    objects={{ size: [180, 300], gap: 10 }}
+    size={[200, 200]}
+    trackVisibility
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 4 }, (_, i) => (
+      <div key={`t-${i}`} className="box" data-testid={`t-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.outsideRow = (
+  <MorphScroll
+    objects={{ size: [60, 180], gap: 10 }}
+    size={[200, 200]}
+    direction="x"
+    trackVisibility
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div key={`o-${i}`} className="box" data-testid={`o-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.outsideHybrid = (
+  <MorphScroll
+    objects={{ size: [60, 60], gap: 10, lines: 4 }}
+    size={[200, 200]}
+    direction="hybrid"
+    trackVisibility
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 16 }, (_, i) => (
+      <div key={`o-${i}`} className="box" data-testid={`o-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.outsideFromRight = (
+  <MorphScroll
+    objects={{ size: [60, 180], gap: 10 }}
+    size={[200, 200]}
+    direction="x"
+    fromRight
+    trackVisibility
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 12 }, (_, i) => (
+      <div key={`o-${i}`} className="box" data-testid={`o-${i}`}>
+        {i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
 /* доля видимости без всякой виртуализации: рисуем всех, но каждый знает своё */
 scenarios.visibilityPlain = (
   <MorphScroll
