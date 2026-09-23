@@ -996,7 +996,7 @@ function App() {
                       ] as const
                     ).map(([axis, kindKey, numberKey]) => (
                       <React.Fragment key={axis}>
-                        <SegmentedField
+                        <SelectField
                           label={axis}
                           onChange={(value) => update(kindKey, value)}
                           options={
