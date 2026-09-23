@@ -56,11 +56,6 @@ body.no-select {
   -webkit-user-select: none;
 }
 
-.ms-object-box.ms-outside-bottom,
-.ms-object-box.ms-outside-right {
-  z-index: calc(attr(ms-child type(<integer>), 0) * -1);
-}
-
 .demo-item {
   /*
    * Долю видимости библиотека кладёт переменной на бокс объекта — карточка
@@ -68,7 +63,7 @@ body.no-select {
    * единица держит карточку видимой.
    */
   opacity: var(--ms-content-visibility, 1);
-  transform: scale(calc(1 - (1 - var(--ms-content-visibility, 1)) * 2));
+  transform: scale(calc(1 - (1 - var(--ms-content-visibility, 1)) * 0.08));
 
   display: flex;
   flex-direction: column;
@@ -83,23 +78,6 @@ body.no-select {
   corner-shape: round bevel round round;
   padding: 11px;
   color: var(--item-ink);
-}
-
-/* сторону ухода библиотека говорит классом — вот он и разбирается тут */
-.ms-object-box.ms-outside-top .demo-item {
-  --slip-y: -1;
-}
-
-.ms-object-box.ms-outside-bottom .demo-item {
-  --slip-y: 1;
-}
-
-.ms-object-box.ms-outside-left .demo-item {
-  --slip-x: -1;
-}
-
-.ms-object-box.ms-outside-right .demo-item {
-  --slip-x: 1;
 }
 
 /*
