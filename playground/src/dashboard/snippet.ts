@@ -1,5 +1,5 @@
 import type { Settings } from "./settings";
-import { eachPair } from "./settings";
+import { objectsSizeValue } from "./settings";
 import { numberOrUndefined } from "../utils";
 
 export type RawCode = { __raw: string };
@@ -61,16 +61,7 @@ export function buildSnippet(settings: Settings, duration: number) {
         ? settings.squareSize
         : [settings.width, settings.height];
 
-  const objectsSize: CodeValue | undefined =
-    settings.objectsSizeMode === "default"
-      ? undefined
-      : settings.objectsSizeMode === "number"
-        ? settings.objectWidth
-        : settings.objectsSizeMode === "pair"
-          ? [settings.objectWidth, settings.objectHeight]
-          : settings.objectsSizeMode === "auto"
-            ? eachPair(settings, true)
-            : settings.objectsSizeMode;
+  const objectsSize = objectsSizeValue(settings) as CodeValue | undefined;
 
   const wrapperMargin: CodeValue | undefined = [
     settings.wrapperMarginTop,

@@ -1,7 +1,7 @@
 import React from "react";
 
 import type { Settings } from "../dashboard/settings";
-import { eachPair } from "../dashboard/settings";
+import { sidesOf } from "../dashboard/settings";
 import { clamp } from "../utils";
 
 export function sizeFor(index: number, settings: Settings) {
@@ -37,8 +37,8 @@ export function buildItems(
   /** над кем держат: сюда объект и встанет, когда отпустят */
   over?: number | null,
 ) {
-  const each = settings.objectsSizeMode === "auto";
-  const pair = eachPair(settings) as ["auto" | number, "auto" | number];
+  // свой размер объект выбирает у той стороны, которую отдали ему: `auto`
+  const pair = sidesOf(settings);
 
   /*
    * Группу объект называет на себе, атрибутом: по этому имени к ней ходит
@@ -57,10 +57,12 @@ export function buildItems(
     const tone = index % 6;
     const isTall = settings.variableItems && index % 7 === 0;
     const isWide = settings.variableItems && index % 11 === 0;
-    const eachSize = each
+    const eachSize = pair
       ? {
           ...(pair[0] === "auto" && { width: sizeFor(index, settings) }),
-          ...(pair[1] === "auto" && { height: sizeFor(index * 31 + 7, settings) }),
+          ...(pair[1] === "auto" && {
+            height: sizeFor(index * 31 + 7, settings),
+          }),
         }
       : undefined;
 

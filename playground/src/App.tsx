@@ -16,7 +16,8 @@ import {
   defaultSettings,
   directionOptions,
   eachHint,
-  eachPair,
+  objectsSizeValue,
+  sidesOf,
   modeOptions,
   renderOptions,
   useStoredSettings,
@@ -43,6 +44,27 @@ import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
 import { useGamepadScroll } from "./custom/gamepad";
 import ScrollThumb from "./custom/ScrollThumb";
+
+/**
+ * Живое показание стенда. Пока событие выключено, библиотека о нём молчит, и
+ * показание молчит тоже: прочерк вместо числа и приглушённый вид — чтобы
+ * прежнее значение не выдавало себя за свежее.
+ */
+function Readout({
+  name,
+  on,
+  children,
+}: {
+  name: string;
+  on: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <span className={on ? undefined : "is-off"}>
+      {name} <b>{on ? children : "—"}</b>
+    </span>
+  );
+}
 
 function App() {
   const [settings, setSettings, update] = useStoredSettings();
@@ -289,14 +311,9 @@ function App() {
   const objectsSize = React.useMemo<
     NonNullable<MorphScrollProps["objects"]>["size"]
   >(() => {
-    if (settings.objectsSizeMode === "default") return undefined;
-    if (settings.objectsSizeMode === "number") return settings.objectWidth;
-    if (settings.objectsSizeMode === "pair")
-      return [settings.objectWidth, settings.objectHeight];
-
-    if (settings.objectsSizeMode === "auto") return eachPair(settings);
-
-    return settings.objectsSizeMode;
+    return objectsSizeValue(settings) as NonNullable<
+      MorphScrollProps["objects"]
+    >["size"];
   }, [settings]);
 
   const wrapperMargin = React.useMemo<WrapperConfig["margin"]>(() => {
@@ -964,57 +981,52 @@ function App() {
                     value={settings.objectWidth}
                   />
                 )}
+                {/*
+                 * Пара — это две стороны, и у каждой свой вид: своё число или
+                 * слово. Так набирается и `["auto", 60]` — сторона по
+                 * содержимому и заданная поперёк неё, — чего парой из двух
+                 * чисел сказать было нельзя.
+                 */}
                 {settings.objectsSizeMode === "pair" && (
                   <>
-                    <NumberField
-                      label="x"
-                      max={600}
-                      min={20}
-                      onChange={(value) => update("objectWidth", value)}
-                      value={settings.objectWidth}
-                    />
-                    <NumberField
-                      label="y"
-                      max={600}
-                      min={20}
-                      onChange={(value) => update("objectHeight", value)}
-                      value={settings.objectHeight}
-                    />
+                    {(
+                      [
+                        ["x", "objectsSizeX", "objectWidth"],
+                        ["y", "objectsSizeY", "objectHeight"],
+                      ] as const
+                    ).map(([axis, kindKey, numberKey]) => (
+                      <React.Fragment key={axis}>
+                        <SegmentedField
+                          label={axis}
+                          onChange={(value) => update(kindKey, value)}
+                          options={
+                            ["number", "auto", "full", "firstChild"] as const
+                          }
+                          value={settings[kindKey]}
+                        />
+                        {settings[kindKey] === "number" && (
+                          <NumberField
+                            label={`${axis} size`}
+                            max={600}
+                            min={20}
+                            onChange={(value) => update(numberKey, value)}
+                            value={settings[numberKey]}
+                          />
+                        )}
+                      </React.Fragment>
+                    ))}
                   </>
                 )}
-                {settings.objectsSizeMode === "auto" && (
+
+                {/*
+                 * Измеряемая сторона есть — значит есть и раскладка, которая
+                 * из неё выходит, и размеры, которые стенду надо чем-то
+                 * заполнить. Откуда взялся `auto` — из пары или из слова на
+                 * обе стороны, — здесь уже неважно.
+                 */}
+                {sidesOf(settings)?.includes("auto") && (
                   <>
-                    <SegmentedField
-                      label="each side"
-                      onChange={(value) => update("eachSide", value)}
-                      options={["main", "cross", "both"] as const}
-                      value={settings.eachSide}
-                    />
                     <div className="hint-line">{eachHint(settings)}</div>
-                    {settings.eachSide !== "both" && (
-                      <NumberField
-                        label={
-                          eachPair(settings)[0] === "auto"
-                            ? "fixed y"
-                            : "fixed x"
-                        }
-                        max={600}
-                        min={20}
-                        onChange={(value) =>
-                          update(
-                            eachPair(settings)[0] === "auto"
-                              ? "objectHeight"
-                              : "objectWidth",
-                            value,
-                          )
-                        }
-                        value={
-                          eachPair(settings)[0] === "auto"
-                            ? settings.objectHeight
-                            : settings.objectWidth
-                        }
-                      />
-                    )}
                     <div className="two-col">
                       <NumberField
                         label="min"
@@ -1569,41 +1581,36 @@ function App() {
                  * последним сказал onNavigate, сколько намерено окно и сколько
                  * объектов сейчас отрисовано.
                  */}
+                {/*
+                 * Показание живёт ровно до тех пор, пока включено событие, из
+                 * которого оно приходит. Выключили — число не остаётся висеть
+                 * последним значением, а гаснет вместе с самим показанием:
+                 * иначе стенд показывает то, чего библиотека уже не говорит.
+                 */}
                 <div className="readouts">
-                  <span>
-                    scroll{" "}
-                    <b>
-                      {Math.round(scrollLeft)}, {Math.round(scrollTop)}
-                    </b>
-                  </span>
-                  <span>
-                    motion <b>{isScrolling ? "yes" : "no"}</b>
-                  </span>
-                  <span>
-                    navigate{" "}
-                    <b>
-                      {lastNavigate
-                        ? `${lastNavigate.reason} ${lastNavigate.from}→${lastNavigate.to}`
-                        : "—"}
-                    </b>
-                  </span>
-                  <span>
-                    surface{" "}
-                    <b>
-                      {resizeRect.width} × {resizeRect.height}
-                    </b>
-                  </span>
-                  <span>
-                    rendered{" "}
-                    <b>
-                      {/* без `render` в документе стоят все объекты, а не ноль */}
-                      {!settings.enableOnRenderedKeysChange
-                        ? "—"
-                        : settings.renderMode === "off"
-                          ? settings.itemCount
-                          : renderedKeys.length}
-                    </b>
-                  </span>
+                  <Readout name="scroll" on={settings.enableOnScrollValue}>
+                    {Math.round(scrollLeft)}, {Math.round(scrollTop)}
+                  </Readout>
+                  <Readout name="motion" on={settings.enableIsScrolling}>
+                    {isScrolling ? "yes" : "no"}
+                  </Readout>
+                  <Readout name="navigate" on={settings.enableOnNavigate}>
+                    {lastNavigate
+                      ? `${lastNavigate.reason} ${lastNavigate.from}→${lastNavigate.to}`
+                      : "—"}
+                  </Readout>
+                  <Readout name="surface" on>
+                    {resizeRect.width} × {resizeRect.height}
+                  </Readout>
+                  <Readout
+                    name="rendered"
+                    on={settings.enableOnRenderedKeysChange}
+                  >
+                    {/* без `render` в документе стоят все объекты, а не ноль */}
+                    {settings.renderMode === "off"
+                      ? settings.itemCount
+                      : renderedKeys.length}
+                  </Readout>
                 </div>
               </header>
 

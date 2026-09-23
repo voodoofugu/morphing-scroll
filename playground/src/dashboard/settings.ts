@@ -6,7 +6,11 @@ export type Direction = "x" | "y" | "hybrid";
 
 export type EmptyMode = "off" | "clear" | "fallback" | "fallbackWithClick";
 
-export type EachSide = "main" | "cross" | "both";
+/** чем названа сторона в `objects.size`: своим числом или словом */
+export type SideKind = "number" | "auto" | "full" | "firstChild";
+
+/** сторона в том виде, в каком её принимает библиотека */
+export type Side = number | "auto" | "full" | "firstChild";
 
 export type ObjectsSizeMode =
   | "default"
@@ -46,8 +50,9 @@ export type Settings = {
   height: number;
   squareSize: number;
   objectsSizeMode: ObjectsSizeMode;
+  objectsSizeX: SideKind;
+  objectsSizeY: SideKind;
   reorder: boolean;
-  eachSide: EachSide;
   eachMin: number;
   eachMax: number;
   eachStep: number;
@@ -124,10 +129,11 @@ export const defaultSettings: Settings = {
   height: 420,
   squareSize: 520,
   objectsSizeMode: "pair",
+  objectsSizeX: "number",
+  objectsSizeY: "number",
   objectWidth: 170,
   objectHeight: 118,
   reorder: false,
-  eachSide: "main",
   eachMin: 60,
   eachMax: 240,
   eachStep: 20,
@@ -224,23 +230,38 @@ export function useStoredSettings() {
  * Какая сторона достаётся объектам. Вдоль прокрутки — кладка, поперёк —
  * поток, обе — поток по обеим (а при hybrid — сетка по lines).
  */
-export function eachPair(
+/**
+ * Что уходит в `objects.size` — ровно в той форме, в какой пишется в пропс:
+ * одно число, одно слово или пара, у которой каждая сторона своя.
+ */
+export function objectsSizeValue(
   settings: Settings,
-  short = false,
-): "auto" | ["auto" | number, "auto" | number] {
-  const { eachSide, objectWidth, objectHeight } = settings;
+): Side | [Side, Side] | undefined {
+  const { objectsSizeMode: mode, objectWidth, objectHeight } = settings;
 
-  // обе стороны — это просто "auto"; в сниппете так и пишем
-  if (eachSide === "both") return short ? "auto" : ["auto", "auto"];
+  if (mode === "default") return undefined;
+  if (mode === "number") return objectWidth;
 
-  // при hybrid главную ось выбирает objects.order — как и в библиотеке
-  const mainIsX =
-    settings.direction === "hybrid"
-      ? settings.objectsOrder === "column"
-      : settings.direction === "x";
-  const eachOnX = eachSide === "main" ? mainIsX : !mainIsX;
+  if (mode === "pair")
+    return [
+      settings.objectsSizeX === "number" ? objectWidth : settings.objectsSizeX,
+      settings.objectsSizeY === "number" ? objectHeight : settings.objectsSizeY,
+    ];
 
-  return eachOnX ? ["auto", objectHeight] : [objectWidth, "auto"];
+  // одно слово на обе стороны
+  return mode;
+}
+
+/**
+ * То же самое, но всегда парой: о сторонах так удобнее рассуждать. `null` —
+ * размера нет вовсе, стороны решает CSS.
+ */
+export function sidesOf(settings: Settings): [Side, Side] | null {
+  const value = objectsSizeValue(settings);
+
+  if (value === undefined) return null;
+
+  return Array.isArray(value) ? value : [value, value];
 }
 
 /** какое правило укладки выйдет из выбранных сторон и в каком порядке */
@@ -250,7 +271,7 @@ export function eachHint(settings: Settings) {
   const mainIsX = isHybrid ? objectsOrder === "column" : direction === "x";
   const byColumn = objectsOrder === "column";
 
-  const pair = eachPair(settings) as ["auto" | number, "auto" | number];
+  const pair = sidesOf(settings) ?? ["auto", "auto"];
   const mainEach = pair[mainIsX ? 0 : 1] === "auto";
   const crossEach = pair[mainIsX ? 1 : 0] === "auto";
 

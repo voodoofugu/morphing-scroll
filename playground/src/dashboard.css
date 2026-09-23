@@ -559,6 +559,13 @@ input[type="color"] {
   text-transform: uppercase;
 }
 
+/* событие выключено — показание гаснет, но место своё держит */
+.readouts span.is-off {
+  border-style: dashed;
+  background: none;
+  opacity: 0.55;
+}
+
 .readouts b {
   color: var(--ink);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
