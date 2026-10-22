@@ -12,8 +12,13 @@ const positions = (page: Page) =>
     return { outer: Math.round(outer.scrollTop), strip: Math.round(strip.scrollLeft) };
   });
 
-const dragOverStrip = async (page: Page, dx: number, dy: number) => {
-  await page.goto("/?scenario=nestedCross");
+const dragOverStrip = async (
+  page: Page,
+  dx: number,
+  dy: number,
+  scenario = "nestedCross",
+) => {
+  await page.goto(`/?scenario=${scenario}`);
   await expect(page.locator(".ms-viewport").nth(1)).toBeVisible();
   await page.waitForTimeout(350);
 
@@ -37,6 +42,22 @@ test.describe("ось жеста: тяга мышью", () => {
 
     expect(got.outer).toBeGreaterThan(40);
     expect(got.strip).toBe(0);
+    await expect(page.locator(".ms-grabbing")).toHaveCount(0);
+    await expect(page.locator("#ms-cursor-lock")).toHaveCount(0);
+  });
+
+  test("внешний список без drag не принимает тягу мышью", async ({ page }) => {
+    const got = await dragOverStrip(
+      page,
+      4,
+      -120,
+      "nestedCrossWheelOnly",
+    );
+
+    expect(got.outer).toBe(0);
+    expect(got.strip).toBe(0);
+    await expect(page.locator(".ms-grabbing")).toHaveCount(0);
+    await expect(page.locator("#ms-cursor-lock")).toHaveCount(0);
   });
 
   test("горизонтальная тяга по-прежнему ведёт ленту", async ({ page }) => {
@@ -128,8 +149,13 @@ test("удержанная стрелка едет со скоростью на�
  * если снаружи есть кому ехать. Иначе ввод просто пропадал бы.
  */
 test.describe("ось жеста: колесо", () => {
-  const wheelOverStrip = async (page: Page, dx: number, dy: number) => {
-    await page.goto("/?scenario=nestedCross");
+  const wheelOverStrip = async (
+    page: Page,
+    dx: number,
+    dy: number,
+    scenario = "nestedCross",
+  ) => {
+    await page.goto(`/?scenario=${scenario}`);
     await expect(page.locator(".ms-viewport").nth(1)).toBeVisible();
     await page.waitForTimeout(350);
 
@@ -167,6 +193,18 @@ test.describe("ось жеста: колесо", () => {
 
   test("диагональ вниз над лентой листает внешний список", async ({ page }) => {
     const got = await wheelOverStrip(page, 12, 150);
+
+    expect(got.outer).toBeGreaterThan(40);
+    expect(got.strip).toBe(0);
+  });
+
+  test("wheel-only внешний список принимает диагональ", async ({ page }) => {
+    const got = await wheelOverStrip(
+      page,
+      12,
+      150,
+      "nestedCrossWheelOnly",
+    );
 
     expect(got.outer).toBeGreaterThan(40);
     expect(got.strip).toBe(0);
@@ -231,5 +269,87 @@ test.describe("ось жеста: колесо", () => {
     const got = await alone(page, "y", 150, 0);
 
     expect(got.top).toBe(0);
+  });
+
+  test("вложенный native scroll получает колесо раньше MorphScroll", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=nativeInsideMorphWheel");
+    await page.waitForTimeout(350);
+
+    const native = page.getByTestId("native-inside");
+    const box = (await native.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 160);
+    await page.waitForTimeout(500);
+
+    const first = await page.evaluate(() => ({
+      outer: document.querySelector<HTMLElement>(".ms-viewport")!.scrollTop,
+      native: document.querySelector<HTMLElement>(
+        '[data-testid="native-inside"]',
+      )!.scrollTop,
+    }));
+    expect(first.native).toBeGreaterThan(40);
+    expect(first.outer).toBe(0);
+
+    await native.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await page.waitForTimeout(250);
+    await page.mouse.wheel(0, 160);
+    await page.waitForTimeout(500);
+
+    expect(
+      await page.locator(".ms-viewport").evaluate((element) => element.scrollTop),
+    ).toBeGreaterThan(40);
+  });
+
+  test("колесо проходит цепочку MorphScroll → native → MorphScroll по краям", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=mixedWheelChain");
+    await page.waitForTimeout(350);
+
+    const native = page.getByTestId("mixed-wheel-native");
+    const box = (await page.locator(".ms-viewport").nth(1).boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+
+    const positions = () =>
+      page.evaluate(() => {
+        const [outer, inside] = [
+          ...document.querySelectorAll<HTMLElement>(".ms-viewport"),
+        ];
+        return {
+          outer: Math.round(outer.scrollTop),
+          native: Math.round(
+            document.querySelector<HTMLElement>(
+              '[data-testid="mixed-wheel-native"]',
+            )!.scrollTop,
+          ),
+          inside: Math.round(inside.scrollTop),
+        };
+      });
+
+    await page.mouse.wheel(0, 160);
+    await page.waitForTimeout(500);
+    const first = await positions();
+    expect(first.inside).toBeGreaterThan(40);
+    expect(first.native).toBe(0);
+    expect(first.outer).toBe(0);
+
+    await page.waitForTimeout(250);
+    await page.mouse.wheel(0, 160);
+    await page.waitForTimeout(500);
+    const second = await positions();
+    expect(second.native).toBeGreaterThan(40);
+    expect(second.outer).toBe(0);
+
+    await native.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await page.waitForTimeout(250);
+    await page.mouse.wheel(0, 160);
+    await page.waitForTimeout(500);
+    expect((await positions()).outer).toBeGreaterThan(40);
   });
 });

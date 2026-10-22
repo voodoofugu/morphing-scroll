@@ -78,6 +78,8 @@ type HandleMouseT = {
   ) => void;
   /** the pointer that started the gesture — the rest are ignored */
   pointerId: number;
+  /** coordinates of pointerdown, before the browser can choose native pan */
+  startPoint: { x: number; y: number };
   /** the pointer state of this instance */
   runtime: PointerRuntime;
   /** the task manager of this instance */
@@ -127,9 +129,34 @@ const cursorClassChange = (
     elem = target?.closest(
       clicked === "slider" ? ".ms-slider" : ".ms-thumb",
     ) as HTMLElement | null;
-  } else if (clicked === "wrapp") elem = scrollElement;
+  } else elem = scrollElement; // clicked = "wrapp"
 
   mouseOnEl(elem, mode, runtime);
+};
+
+/*
+ * Получатель жеста держит свой cursor lock и снимает только его. Поэтому
+ * отдающий скролл обязан освободить свой viewport до того, как забудет, что
+ * именно он тянул: иначе ms-grabbing и одна доля общего lock остаются навсегда.
+ */
+const releaseHandedOffGesture = (args: HandleMoveT) => {
+  const rt = args.runtime;
+
+  cursorClassChange(
+    args.clickedObject.current,
+    args.target,
+    args.scrollElement,
+    "end",
+    rt,
+  );
+
+  rt.controller?.abort();
+  rt.controller = undefined;
+  rt.resetGesture();
+
+  args.clickedObject.current = null;
+  args.isDraggingRef.current = false;
+  args.triggerUpdate();
 };
 
 const setScrollValue = (
@@ -316,36 +343,10 @@ const motionHandler = (
     // сначала только доводим scroll до границы. Резиновость начинается
     // только следующим движением, когда scroll уже стоит на start/end.
     /*
-     * Упёрлись на ходу. Прежде отсюда начиналась резинка — палец продолжает
-     * вести, а не едет никто. Сперва предлагаем жест наружу: если там есть
-     * куда ехать, тянуть резинку неправильно, надо отдать.
+     * После выбора оси жест уже принадлежит этому MorphScroll. На краю не
+     * меняем владельца: передача посреди drag конфликтует с резиновостью и
+     * делает результат зависимым от типа внешнего scroll.
      */
-    if (
-      shouldStartOverscroll &&
-      args.clickedObject.current === "wrapp" &&
-      args.handOff?.(
-        axis,
-        isMovingAfterEnd ? 1 : -1,
-        args.event,
-        { x: rt.velocity.x, y: rt.velocity.y },
-      )
-    ) {
-      /*
-       * Отдали — значит отпускаем совсем: слушатели снимаем, иначе тот же
-       * палец продолжит вести и нас. Замок курсора и класс снимает тот, кто
-       * жест принял, — он же его и держит дальше.
-       */
-      rt.controller?.abort();
-      rt.controller = undefined;
-      rt.resetGesture();
-
-      args.clickedObject.current = null;
-      args.isDraggingRef.current = false;
-      args.triggerUpdate();
-
-      return;
-    }
-
     if (shouldStartOverscroll) {
       state.raw += rawDelta;
 
@@ -406,9 +407,7 @@ const motionHandler = (
    * прицел по ней читается оттуда же: у правого края её первая страница.
    */
   const along = (point[axis] - barStart) / barSize;
-  const reach = Math.floor(
-    (isX && args.flipX ? 1 - along : along) * pages,
-  );
+  const reach = Math.floor((isX && args.flipX ? 1 - along : along) * pages);
 
   /*
    * За краем бара обычный слайдер упирается: дальше первого и последнего
@@ -512,6 +511,21 @@ function handleMouseOrTouch(args: HandleMouseT) {
 
   // reset inertia state for new gesture
   rt.resetGesture();
+  rt.startPoint = args.startPoint;
+
+  /*
+   * Бегунок и полоса slider уже называют свою ось самим местом нажатия.
+   * Им нечего определять по первым пикселям движения: с pointerdown жест
+   * целиком их. Это также даёт заранее установленный признак корневому
+   * touchmove-listener — нативный overflow снаружи не успевает забрать pan и
+   * прислать pointercancel до первого сдвига control.
+   */
+  if (args.clickedObject.current !== "wrapp") {
+    rt.axisDecided = true;
+    rt.axisOwned = true;
+    rt.gestureAxis =
+      args.axisFromAtr ?? (args.direction === "x" ? "x" : "y");
+  }
 
   // получение некоторых данных заранее при клике
   const wrapElWH = [el.scrollWidth, el.scrollHeight];
@@ -616,8 +630,17 @@ function handleMouseOrTouch(args: HandleMouseT) {
     (e) => {
       if (!isOwnPointer(e)) return;
       onMoveLocal(e);
+
+      /*
+       * `pan-y`/`pan-x` оставляет браузеру поперечный жест. Некоторые
+       * мобильные браузеры готовы забрать его и после того, как первые
+       * пиксели уже однозначно выбрали нашу ось. После выбора удерживаем
+       * жест до отпускания; до выбора preventDefault не вызывается, поэтому
+       * изначально поперечный свайп по-прежнему уходит наружу.
+       */
+      if (rt.axisOwned && e.cancelable) e.preventDefault();
     },
-    { signal },
+    { signal, passive: false },
   );
 
   const endHandler = (e: PointerEvent) => {
@@ -649,22 +672,72 @@ function handleMouseOrTouch(args: HandleMouseT) {
  * оставили бы у себя сдвиг в пару пикселей. Если снаружи ехать некуда,
  * жест остаётся нашим, как прежде.
  */
-const decideAxis = (args: HandleMoveT, dir: "x" | "y"): "wait" | "gone" | "ours" => {
+const decideAxis = (
+  args: HandleMoveT,
+  dir: "x" | "y" | "hybrid",
+): "wait" | "gone" | "ours" => {
   const rt = args.runtime;
   if (rt.axisDecided) return "ours";
 
   const prev = rt.prevCoords;
-  if (!prev) return "ours"; // первое движение только заводит отсчёт
+  if (prev) {
+    rt.travel.x += args.event.clientX - prev.x.value;
+    rt.travel.y += args.event.clientY - prev.y.value;
+  } else if (rt.startPoint) {
+    /*
+     * Первое движение уже может пересечь browser slop и вызвать
+     * pointercancel. Поэтому направление считаем от pointerdown сразу, а не
+     * тратим первый pointermove только на инициализацию предыдущей точки.
+     */
+    rt.travel.x = args.event.clientX - rt.startPoint.x;
+    rt.travel.y = args.event.clientY - rt.startPoint.y;
+  } else return "ours";
 
-  rt.travel.x += args.event.clientX - prev.x.value;
-  rt.travel.y += args.event.clientY - prev.y.value;
-
-  if (Math.hypot(rt.travel.x, rt.travel.y) < CONST.AXIS_DECIDE_PX) return "wait";
+  if (Math.hypot(rt.travel.x, rt.travel.y) < CONST.AXIS_DECIDE_PX)
+    return "wait";
 
   rt.axisDecided = true;
 
+  const chosen: "x" | "y" =
+    Math.abs(rt.travel.x) >= Math.abs(rt.travel.y) ? "x" : "y";
+  rt.gestureAxis = chosen;
+
+  if (dir === "hybrid") {
+    const toward: 1 | -1 = rt.travel[chosen] > 0 ? -1 : 1;
+    const index = chosen === "x" ? 0 : 1;
+    const position =
+      args.scrollElement?.[
+        chosen === "x" ? "scrollLeft" : "scrollTop"
+      ] ?? 0;
+    const most = args.maxScrollSize[index];
+    const localRoom =
+      !!args.loopPeriods?.[index] ||
+      (toward > 0 ? position < most - 1 : position > 1);
+
+    if (localRoom) {
+      rt.axisOwned = true;
+      return "ours";
+    }
+
+    const taken = args.handOff?.(chosen, toward, args.event, {
+      x: rt.velocity.x,
+      y: rt.velocity.y,
+    });
+    if (taken || args.isTouched) {
+      releaseHandedOffGesture(args);
+      return "gone";
+    }
+
+    /* мыши без внешнего drag оставляем прежнюю возможность передумать */
+    rt.axisOwned = true;
+    return "ours";
+  }
+
   const across = dir === "x" ? "y" : "x";
-  if (Math.abs(rt.travel[across]) <= Math.abs(rt.travel[dir])) return "ours";
+  if (chosen === dir) {
+    rt.axisOwned = true;
+    return "ours";
+  }
 
   /*
    * Палец идёт вниз, а содержимое при этом едет вверх — поэтому «куда» для
@@ -675,15 +748,22 @@ const decideAxis = (args: HandleMoveT, dir: "x" | "y"): "wait" | "gone" | "ours"
     x: rt.velocity.x,
     y: rt.velocity.y,
   });
-  if (!taken) return "ours";
+  if (!taken) {
+    /*
+     * У touch поперечное направление уже выбрано: даже если снаружи нет
+     * библиотечного получателя, не разрешаем ленте позже передумать и начать
+     * ехать по своей оси. Нативный scroll/page получит тот же жест благодаря
+     * разрешённому поперечному pan в touch-action.
+     */
+    if (args.isTouched) {
+      releaseHandedOffGesture(args);
+      return "gone";
+    }
 
-  rt.controller?.abort();
-  rt.controller = undefined;
-  rt.resetGesture();
+    return "ours";
+  }
 
-  args.clickedObject.current = null;
-  args.isDraggingRef.current = false;
-  args.triggerUpdate();
+  releaseHandedOffGesture(args);
 
   return "gone";
 };
@@ -692,7 +772,7 @@ function handleMove(args: HandleMoveT) {
   const dir = args.direction || "y";
 
   /* делим только тягу содержимого: бар и бегунок ведут свою ось по праву */
-  if (dir !== "hybrid" && args.clickedObject.current === "wrapp" && !args.axisFromAtr) {
+  if (args.clickedObject.current === "wrapp" && !args.axisFromAtr) {
     const verdict = decideAxis(args, dir);
 
     if (verdict === "gone") return;
@@ -752,15 +832,14 @@ function handleUp(args: HandleUpT) {
 
       // страницы считаем в координатах списка, а не разметки
       const flipped = isX && !!args.flipX;
-      const asList = (value: number) =>
-        flipped ? args.flipX!(value) : value;
+      const asList = (value: number) => (flipped ? args.flipX!(value) : value);
 
       /*
        * Куда тянули, считается по разметке, а страницы — по списку: у списка,
        * идущего справа, это противоположные стороны. Без этого прилипание
        * уводило на страницу назад вместо следующей.
        */
-      const stepDir = flipped && deltaDir ? ((-deltaDir) as 1 | -1) : deltaDir;
+      const stepDir = flipped && deltaDir ? (-deltaDir as 1 | -1) : deltaDir;
 
       const maxTopOrLeft = isX ? args.maxScrollSize[0] : args.maxScrollSize[1];
       const position = asList(el[isX ? "scrollLeft" : "scrollTop"]);

@@ -222,6 +222,129 @@ test.describe("MorphScroll slider bar drag (real browser)", () => {
   });
 });
 
+test.describe("drag controls inside native overflow", () => {
+  test("the custom thumb keeps the drag instead of moving its native parent", async ({
+    page,
+  }) => {
+    await open(page, "nativeSameAxisThumb");
+    const thumb = page.locator(".ms-thumb");
+    await thumb.scrollIntoViewIfNeeded();
+    const box = (await thumb.boundingBox())!;
+    const y = box.y + box.height / 2;
+    const nativeBefore = await page
+      .locator('[data-testid="native-same-axis"]')
+      .evaluate((element) => (element as HTMLElement).scrollLeft);
+
+    await page.mouse.move(box.x + box.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 80, y, { steps: 8 });
+    await page.mouse.up();
+
+    const result = await page.evaluate(() => ({
+      inner: document.querySelector<HTMLElement>(".ms-viewport")!.scrollLeft,
+      native: document.querySelector<HTMLElement>(
+        '[data-testid="native-same-axis"]',
+      )!.scrollLeft,
+    }));
+    expect(result.inner).toBeGreaterThan(30);
+    expect(result.native).toBe(nativeBefore);
+  });
+
+  test("the slider bar keeps the drag instead of moving its native parent", async ({
+    page,
+  }) => {
+    await open(page, "nativeSameAxisSliderBar");
+    const bar = page.locator(".ms-slider");
+    await bar.scrollIntoViewIfNeeded();
+    const box = (await bar.boundingBox())!;
+    const y = box.y + box.height / 2;
+    const nativeBefore = await page
+      .locator('[data-testid="native-same-axis"]')
+      .evaluate((element) => (element as HTMLElement).scrollLeft);
+
+    await page.mouse.move(box.x + box.width * 0.2, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.8, y, { steps: 8 });
+    await page.mouse.up();
+
+    const result = await page.evaluate(() => ({
+      inner: document.querySelector<HTMLElement>(".ms-viewport")!.scrollLeft,
+      native: document.querySelector<HTMLElement>(
+        '[data-testid="native-same-axis"]',
+      )!.scrollLeft,
+    }));
+    expect(result.inner).toBeGreaterThan(30);
+    expect(result.native).toBe(nativeBefore);
+  });
+
+  for (const [name, scenario, selector, axis] of [
+    ["vertical thumb", "nativeControlThumbY", ".ms-bar.ms-y .ms-thumb", "y"],
+    [
+      "hybrid horizontal thumb",
+      "nativeControlThumbHybrid",
+      ".ms-bar.ms-x .ms-thumb",
+      "x",
+    ],
+    [
+      "hybrid vertical thumb",
+      "nativeControlThumbHybrid",
+      ".ms-bar.ms-y .ms-thumb",
+      "y",
+    ],
+    ["vertical slider", "nativeControlSliderY", ".ms-slider.ms-y", "y"],
+    [
+      "hybrid horizontal slider",
+      "nativeControlSliderHybrid",
+      ".ms-slider.ms-x",
+      "x",
+    ],
+    [
+      "hybrid vertical slider",
+      "nativeControlSliderHybrid",
+      ".ms-slider.ms-y",
+      "y",
+    ],
+  ] as const) {
+    test(`${name} keeps its axis inside native overflow`, async ({ page }) => {
+      await open(page, scenario);
+      const control = page.locator(selector);
+      await control.scrollIntoViewIfNeeded();
+      const box = (await control.boundingBox())!;
+      const from = {
+        x: box.x + box.width * (axis === "x" ? 0.2 : 0.5),
+        y: box.y + box.height * (axis === "y" ? 0.2 : 0.5),
+      };
+      const to = {
+        x: box.x + box.width * (axis === "x" ? 0.8 : 0.5),
+        y: box.y + box.height * (axis === "y" ? 0.8 : 0.5),
+      };
+      const native = page.locator('[data-testid="native-control-axes"]');
+      const nativeBefore = await native.evaluate((element) => [
+        (element as HTMLElement).scrollLeft,
+        (element as HTMLElement).scrollTop,
+      ]);
+
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      await page.mouse.move(to.x, to.y, { steps: 8 });
+      await page.mouse.up();
+
+      const result = await page.evaluate(() => {
+        const inner = document.querySelector<HTMLElement>(".ms-viewport")!;
+        const native = document.querySelector<HTMLElement>(
+          '[data-testid="native-control-axes"]',
+        )!;
+        return {
+          inner: [inner.scrollLeft, inner.scrollTop],
+          native: [native.scrollLeft, native.scrollTop],
+        };
+      });
+      expect(result.inner[axis === "x" ? 0 : 1]).toBeGreaterThan(30);
+      expect(result.native).toEqual(nativeBefore);
+    });
+  }
+});
+
 /*
  * Узел края пишут один раз — так, как он выглядит сверху, — а по остальным
  * сторонам его разворачивает библиотека. Боковой полосе для этого мало

@@ -25,10 +25,7 @@ import ScrollBar from "./ScrollBar";
 import Edge from "./Edge";
 import Arrow from "./Arrow";
 
-import handleWheel, {
-  ScrollStateRefT,
-  alongOwn,
-} from "../helpers/handleWheel";
+import handleWheel, { ScrollStateRefT, alongOwn } from "../helpers/handleWheel";
 import focusStep from "../helpers/focusStep";
 import handleMouseOrTouch, { hasOwnDrag } from "../helpers/handleMouseOrTouch";
 import {
@@ -62,9 +59,11 @@ import {
 } from "../helpers/calculateThumbSize";
 import { hoverHandler, removeHover, addHover } from "../helpers/mouseOn";
 import {
+  registerRoom,
   registerTaker,
   findTaker,
   canTakeOutside,
+  nativeWheelHasPriority,
   isGestureClaimed,
 } from "../helpers/gestureRelay";
 
@@ -351,9 +350,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const isTouchedRef = React.useRef<boolean>(isTouchDevice());
     /* то же самое, но для разметки: см. `touchAction` ниже */
     const [isTouch, setIsTouch] = React.useState(false);
+    /* какие свободные оси должен принять внешний MorphScroll */
+    const [relayAxes, setRelayAxes] = React.useState<[boolean, boolean]>([
+      false,
+      false,
+    ]);
 
-    /* внутри другого MorphScroll — тогда поперечный жест отдаёт он сам, а не браузер */
-    const [nested, setNested] = React.useState(false);
     const firstRender = React.useRef<boolean>(true);
     const clickedObject = React.useRef<"thumb" | "wrapp" | "slider" | null>(
       null,
@@ -466,6 +468,22 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, [controlsST]) as ControlsConfig;
 
     /*
+     * Слушатель и запись в relay нужны, если content drag возможен хотя бы
+     * для одного указателя. Брать ли конкретный жест, решает его pointerType:
+     * touch получает drag вместе с wheel, мышь — только по явному drag.
+     */
+    const contentDragAvailable = !!(controlsLocal.drag || controlsLocal.wheel);
+    const acceptsContentDrag = React.useCallback(
+      (event: PointerEvent) =>
+        !!(
+          controlsLocal.drag ||
+          ((event.pointerType === "touch" || (!event.pointerType && isTouch)) &&
+            controlsLocal.wheel)
+        ),
+      [controlsST, isTouch],
+    );
+
+    /*
      * Прилипание задаётся на обе оси разом или на каждую отдельно: при
      * `hybrid` бывает нужно держаться низа, но не правого края.
      */
@@ -561,6 +579,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         thumbMinSize: config.thumbMinSize ?? 30,
       };
     }, [controlsST]);
+
+    /* sliderMenu нажимается, остальные custom bars перетаскиваются */
+    const controlDragAvailable =
+      barLocal.present && !barLocal.native && mode !== "sliderMenu";
 
     /*
      * По умолчанию клавиша делает то, что в этом режиме вообще имеет смысл:
@@ -1563,6 +1585,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ];
     }, [sizeLocal.join(), objectsWrapperHeightFull, objectsWrapperWidthFull]);
 
+    const touchAction = React.useMemo(() => {
+      /*
+       * Направление само по себе ещё не означает, что скроллу есть что
+       * двигать. Пустой hybrid раньше ставил `pinch-zoom` и запирал страницу
+       * под собой. Разрешаем браузеру каждую ось, которой этот экземпляр не
+       * владеет; у вложенного списка свободную ось по-прежнему держит relay.
+       */
+      const ownsX =
+        (direction === "x" || direction === "hybrid") && maxScrollSize[0] > 0;
+      const ownsY =
+        (direction === "y" || direction === "hybrid") && maxScrollSize[1] > 0;
+      /*
+       * Каждый MorphScroll запрещает только свои оси. Для вложенных списков
+       * браузер сам пересекает touch-action всех предков: x внутри y даёт
+       * запрет обеих осей, пока relay не выберет владельца. Если внешний
+       * скролл по этой оси пуст, он её не запрещает — и страница не заперта.
+       */
+      const allowX = !ownsX && !relayAxes[0];
+      const allowY = !ownsY && !relayAxes[1];
+
+      return [allowX && "pan-x", allowY && "pan-y", "pinch-zoom"]
+        .filter(Boolean)
+        .join(" ");
+    }, [direction, maxScrollSize.join(), relayAxes.join()]);
+
     /*
      * Наружу горизонталь считается от начала списка, а не от левого края
      * разметки. У развёрнутого списка начало справа, и `scrollTo(0)` обязан
@@ -2355,15 +2402,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ) => void
     >(() => {});
 
-    /*
-     * Кто ведёт жест, когда упёрся сам.
-     *
-     * Наружу уже пропускает тот, кому прокручивать нечего вовсе. Но упереться
-     * можно и на ходу — и там прежде начиналась резинка: палец продолжает
-     * вести, а не едет никто. Нативный тач в этом месте отдаёт внешнему, и
-     * отдавать надо так же: вместе со скоростью, чтобы бросок докатился уже у
-     * того, кто жест подхватил.
-     */
+    /* Приём оси, от которой вложенный MorphScroll отказался при старте. */
     const takeGestureRef = React.useRef<
       (event: PointerEvent, velocity: { x: number; y: number }) => void
     >(() => {});
@@ -2372,8 +2411,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const root = customScrollRef.current;
       if (!root) return;
 
-      return registerTaker(root, {
-        room: (axis, toward) => {
+      const room = {
+        room: (axis: "x" | "y", toward: 1 | -1) => {
           const scrollEl = scrollElementRef.current;
           if (!scrollEl) return false;
 
@@ -2388,9 +2427,26 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
           return toward > 0 ? at < most - 1 : at > 1;
         },
-        take: (event, velocity) => takeGestureRef.current(event, velocity),
-      });
-    }, [maxScrollSize.join(), loopPeriods.join()]);
+      };
+      const unregisterRoom = registerRoom(root, room);
+      const unregisterTaker = contentDragAvailable
+        ? registerTaker(root, {
+            ...room,
+            accepts: acceptsContentDrag,
+            take: (event, velocity) => takeGestureRef.current(event, velocity),
+          })
+        : undefined;
+
+      return () => {
+        unregisterTaker?.();
+        unregisterRoom();
+      };
+    }, [
+      contentDragAvailable,
+      acceptsContentDrag,
+      maxScrollSize.join(),
+      loopPeriods.join(),
+    ]);
 
     const handOffGesture = React.useCallback(
       (
@@ -2399,7 +2455,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         event: PointerEvent,
         velocity: { x: number; y: number },
       ) => {
-        const taker = findTaker(customScrollRef.current, axis, toward);
+        const taker = findTaker(customScrollRef.current, axis, toward, event);
         if (!taker) return false;
 
         taker.take(event, velocity);
@@ -2416,7 +2472,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         checkClickedBar?: boolean,
         seed?: { x: number; y: number },
       ) => {
-        isTouchedRef.current = isTouchDevice(); // уточняем девайс
+        isTouchedRef.current =
+          event.pointerType === "touch" ||
+          (!event.pointerType && isTouchDevice());
 
         const target = event.target as HTMLElement;
 
@@ -2479,6 +2537,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           emitNavigate: (reason, axis, from, to) =>
             emitNavigateRef.current(reason, axis, from, to),
           pointerId: event.pointerId,
+          startPoint: { x: event.clientX, y: event.clientY },
           runtime: pointerRuntime,
           handOff: handOffGesture,
           flipX: flipsX ? listX : undefined,
@@ -2924,14 +2983,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          */
         listPlaceRef.current = listXRef.current(scrollEl.scrollLeft);
 
-        onScrollPosition?.(
-          listPlaceRef.current,
-          scrollEl.scrollTop,
-          {
-            x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
-            y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
-          },
-        );
+        onScrollPosition?.(listPlaceRef.current, scrollEl.scrollTop, {
+          x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
+          y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
+        });
 
         const scrollOrSlider = el.querySelectorAll<HTMLElement>(
           mode === "scroll" ? ".ms-bar" : ".ms-slider",
@@ -3168,17 +3223,95 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     }, []);
 
     React.useLayoutEffect(() => {
-      if (!isTouchDevice()) return;
+      const touch = isTouchDevice();
+      isTouchedRef.current = touch;
 
       /*
-       * `nested` нужен только тачу, поэтому и считаем его только здесь: два
-       * обновления в одном эффекте сливаются в один рендер. Отдельный вызов
-       * стоил каждому скроллу без тача лишнего коммита при монтировании.
+       * `pointer: coarse` описывает основной указатель, а не наличие touch.
+       * На гибридном устройстве основным может быть мышь, хотя палец тоже
+       * приходит. Для разметки жестов достаточно знать, что touch возможен;
+       * wheel и клавиатуру по-прежнему не выключаем без coarse pointer.
        */
+      const touchCapable =
+        touch ||
+        (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
+      if (!touchCapable) return;
+
       setIsTouch(true);
-      setNested(
-        !!customScrollRef.current?.parentElement?.closest("[morph-scroll]"),
-      );
+
+      const root = customScrollRef.current;
+      if (!root) return;
+
+      const watched = new Set<Element>();
+
+      const outerTakes = (axis: "x" | "y") => {
+        let node = root.parentElement;
+        const size = axis === "x" ? "Width" : "Height";
+        const overflow = axis === "x" ? "overflowX" : "overflowY";
+
+        while (node) {
+          watched.add(node);
+
+          /*
+           * Обычный нативный контейнер ближе внешнего MorphScroll — законный
+           * владелец оси. Его не перекрываем библиотечным relay.
+           */
+          if (!node.classList.contains("ms-viewport")) {
+            const flow = getComputedStyle(node)[overflow];
+            const hasRoom = node[`scroll${size}`] > node[`client${size}`] + 1;
+            if ((flow === "auto" || flow === "scroll") && hasRoom) return false;
+          }
+
+          if (
+            node.hasAttribute("morph-scroll") &&
+            node.hasAttribute("ms-touch-taker") &&
+            node.hasAttribute(`ms-room-${axis}`)
+          )
+            return true;
+
+          node = node.parentElement;
+        }
+
+        return false;
+      };
+
+      const updateRelay = () => {
+        const next: [boolean, boolean] = [outerTakes("x"), outerTakes("y")];
+        setRelayAxes((current) =>
+          current[0] === next[0] && current[1] === next[1] ? current : next,
+        );
+      };
+
+      updateRelay();
+
+      /*
+       * Диапазон внешнего скролла появляется после замера содержимого. Его
+       * служебный атрибут меняется уже после первого layout effect, поэтому
+       * ждём изменение, а размеры обычных scroll-box отслеживаем отдельно.
+       */
+      const mutation = new MutationObserver(updateRelay);
+      const resize =
+        typeof ResizeObserver === "undefined"
+          ? null
+          : new ResizeObserver(updateRelay);
+      watched.forEach((node) => {
+        mutation.observe(node, {
+          attributes: true,
+          attributeFilter: [
+            "ms-touch-taker",
+            "ms-room-x",
+            "ms-room-y",
+            "class",
+            "style",
+          ],
+        });
+        resize?.observe(node);
+      });
+
+      return () => {
+        mutation.disconnect();
+        resize?.disconnect();
+      };
     }, []);
 
     // ♦ effects
@@ -3336,6 +3469,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           )
         )
           return;
+
+        /*
+         * Вложенный обычный overflow получает колесо раньше MorphScroll
+         * снаружи. Событие всплывает до его нативного default action, поэтому
+         * без этой проверки внешний скролл успевал сдвинуться первым. На краю
+         * нативного диапазона приоритета уже нет, и колесо идёт дальше.
+         */
+        if (nativeWheelHasPriority(e, scrollEl)) return;
 
         /*
          * Останавливаем событие только если сами его отработали. Упёршись в
@@ -3708,11 +3849,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        */
       const at = scrollEl.scrollLeft;
 
-      applyScrollPositionRef.current(
-        [before ? most - at : at, null],
-        0,
-        false,
-      );
+      applyScrollPositionRef.current([before ? most - at : at, null], 0, false);
     }, [flipsX, maxScrollSize[0]]);
 
     /*
@@ -4324,7 +4461,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     // установка слушателя нажатия на обертку
     React.useEffect(() => {
       const scrollEl = scrollElementRef.current;
-      if (!scrollEl) return;
+      const root = customScrollRef.current;
+      if (!scrollEl || !root) return;
 
       /*
        * С нативным скроллбаром (`progressElement: true`) сам бегунок остаётся
@@ -4344,6 +4482,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
 
       const handler = (event: PointerEvent) => {
+        if (!acceptsContentDrag(event)) return;
         if (isOnNativeBar(event)) return;
 
         // жест уже начал бар вложенного скролла — см. `claimGesture`
@@ -4378,17 +4517,44 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         onMouseOrTouchDown("wrapp", event);
       };
 
-      // сложное условие...
-      if (
-        controlsLocal.drag ||
-        (!controlsLocal.drag && isTouchedRef.current && controlsLocal.wheel)
-      )
+      /*
+       * Non-passive touchmove должен существовать уже в момент touchstart.
+       * Добавленный из pointerdown document-listener Chrome может не включить
+       * в scroll-blocking region текущего жеста и успеть прислать pointercancel.
+       * Здесь ничего не блокируем до выбора оси; после выбора удерживаем только
+       * уже принадлежащий MorphScroll жест.
+       */
+      const holdOwnedTouch = (event: TouchEvent) => {
+        if (pointerRuntime.axisOwned && event.cancelable) event.preventDefault();
+      };
+
+      if (contentDragAvailable)
         scrollEl.addEventListener("pointerdown", handler);
+
+      if (contentDragAvailable || controlDragAvailable) {
+        /*
+         * Бар и стрелки — соседи viewport внутри MorphScroll, а не его дети.
+         * Listener на viewport их touchmove не видел; корень видит и контент,
+         * и любой control, принадлежащий этому экземпляру.
+         */
+        root.addEventListener("touchmove", holdOwnedTouch, {
+          passive: false,
+        });
+      }
 
       return () => {
         scrollEl.removeEventListener("pointerdown", handler);
+        root.removeEventListener("touchmove", holdOwnedTouch);
       };
-    }, [controlsST, onMouseOrTouchDown, direction, maxScrollSize.join()]);
+    }, [
+      controlsST,
+      contentDragAvailable,
+      controlDragAvailable,
+      acceptsContentDrag,
+      onMouseOrTouchDown,
+      direction,
+      maxScrollSize.join(),
+    ]);
 
     // установка слушателя нажатия на scrollContentRef
     React.useEffect(() => {
@@ -4954,8 +5120,15 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         position: "relative",
         width: `${sizeLocal[2]}px`,
         height: `${sizeLocal[3]}px`,
+        /*
+         * Политика принадлежит всему MorphScroll, а не только `.ms-content`.
+         * Нативный overflow снаружи принимает решение по цепочке предков ещё
+         * до pointermove; корень должен заранее закрыть занятую библиотекой
+         * ось и для содержимого, и для полос, краёв и стрелок.
+         */
+        touchAction,
       }),
-      [sizeLocal],
+      [sizeLocal, touchAction],
     );
 
     const overflowStyleValue = React.useMemo(() => {
@@ -5197,6 +5370,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * этот самый скролл находится в инспекторе по `[morph-scroll="1"]`.
          */
         morph-scroll=""
+        ms-touch-taker={contentDragAvailable ? "" : undefined}
+        ms-room-x={direction !== "y" && maxScrollSize[0] > 0 ? "" : undefined}
+        ms-room-y={direction !== "x" && maxScrollSize[1] > 0 ? "" : undefined}
         className={className}
         ref={customScrollRef}
         style={containerStyle}
@@ -5204,37 +5380,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         <div
           className="ms-content"
           ref={scrollContentRef}
-          style={{
-            ...contentBoxStyle,
-            transform: "translateZ(0)", // помогает оптимизировать отображение
-            /*
-             * Блокируем touch, оставляя только zoom: иначе палец на боксе
-             * уводит нативную прокрутку и бегунок не поймать.
-             *
-             * Через состояние, а не сразу: сервер про устройство не знает и
-             * пишет разметку без этого, а клиент на телефоне — с ним, и
-             * гидрация расходилась на первом же скролле в SSR-приложении.
-             * Правку вносим до отрисовки, так что промежуточного кадра нет.
-             */
-            /*
-             * Скролл одной оси отдаёт браузеру пан поперёк себя: лента на
-             * обычной странице иначе глотала вертикальный свайп — ни она, ни
-             * страница под ней не ехали, потому что поперечный жест некому
-             * было передать. Вложенный так не делает: снаружи у него
-             * MorphScroll, и жест ему передаёт сама библиотека. Если у того
-             * нативный бар (`bar: true`), его окно — настоящий скроллер, и
-             * браузер отнял бы свайп на полпути: отменил бы указатель и повёл
-             * внешний сам, мимо его инерции и логики.
-             */
-            ...(isTouch && {
-              touchAction:
-                nested || direction === "hybrid"
-                  ? "pinch-zoom"
-                  : direction === "x"
-                    ? "pan-y pinch-zoom"
-                    : "pan-x pinch-zoom",
-            }),
-          }}
+          style={contentBoxStyle}
         >
           <div
             className="ms-viewport"

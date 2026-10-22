@@ -29,8 +29,14 @@ type PointerRuntime = CursorHolder & {
   checkMove: { x: number; y: number };
   /** travel on both axes since the press, until the gesture's axis is decided */
   travel: { x: number; y: number };
+  /** pointerdown point — direction must be known before the first touchmove */
+  startPoint: { x: number; y: number } | null;
   /** whether the gesture has shown which way it goes */
   axisDecided: boolean;
+  /** a one-axis scroll won the initial direction and must keep the gesture */
+  axisOwned: boolean;
+  /** dominant axis chosen at the start and kept through the gesture */
+  gestureAxis: "x" | "y" | null;
   /** travel so far, for a slider step */
   checkSliderThumbSize: { x: number; y: number };
   /** the bar element the current gesture aims at — one per axis */
@@ -60,7 +66,10 @@ function createPointerRuntime(): PointerRuntime {
   const runtime: PointerRuntime = {
     checkMove: { x: 0, y: 0 },
     travel: { x: 0, y: 0 },
+    startPoint: null,
     axisDecided: false,
+    axisOwned: false,
+    gestureAxis: null,
     checkSliderThumbSize: { x: 0, y: 0 },
     sliderAim: { x: null, y: null },
     velocity: emptyVelocity(),
@@ -74,7 +83,10 @@ function createPointerRuntime(): PointerRuntime {
       runtime.velocity = emptyVelocity();
       runtime.checkMove = { x: 0, y: 0 };
       runtime.travel = { x: 0, y: 0 };
+      runtime.startPoint = null;
       runtime.axisDecided = false;
+      runtime.axisOwned = false;
+      runtime.gestureAxis = null;
       runtime.checkSliderThumbSize = { x: 0, y: 0 };
       runtime.sliderAim = { x: null, y: null };
     },

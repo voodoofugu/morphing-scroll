@@ -371,13 +371,8 @@ test.describe("MorphScroll keys: focus (real browser)", () => {
   });
 });
 
-/*
- * Наружу пропускает не только тот, кому прокручивать нечего вовсе. Упереться
- * в свой край можно и на ходу — и там прежде начиналась резинка: палец
- * продолжает вести, а не едет никто. Нативный тач в этом месте отдаёт
- * внешнему, и отдавать надо так же.
- */
-test.describe("MorphScroll: a gesture handed outward mid-move", () => {
+/* Выбранная ось принадлежит одному MorphScroll до конца drag. */
+test.describe("MorphScroll: an owned drag stays local at the edge", () => {
   const positions = (page: import("@playwright/test").Page) =>
     page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>(".ms-viewport")].map((el) => ({
@@ -387,7 +382,7 @@ test.describe("MorphScroll: a gesture handed outward mid-move", () => {
       })),
     );
 
-  test("the outer takes over the moment the inner runs out", async ({
+  test("the inner rubber-bands without moving the outer", async ({
     page,
   }) => {
     await page.goto("/?scenario=nestedHandOff");
@@ -414,6 +409,12 @@ test.describe("MorphScroll: a gesture handed outward mid-move", () => {
       await page.mouse.move(cx, cy - i * 14, { steps: 1 });
       await page.waitForTimeout(10);
     }
+
+    const rubber = await page
+      .locator('[data-testid="inner-host"] .ms-objects-wrapper')
+      .evaluate((element) => (element as HTMLElement).style.transform);
+    expect(rubber).not.toBe("");
+
     await page.mouse.up();
     await page.waitForTimeout(300);
 
@@ -423,8 +424,7 @@ test.describe("MorphScroll: a gesture handed outward mid-move", () => {
 
     // внутренний доехал до своего конца и там остановился
     expect(innerEnd.at).toBe(innerEnd.most);
-    // а дальше повёл внешний — и повёл заметно, а не на пару пикселей
-    expect(outerEnd.at).toBeGreaterThan(100);
+    expect(outerEnd.at).toBe(0);
   });
 });
 

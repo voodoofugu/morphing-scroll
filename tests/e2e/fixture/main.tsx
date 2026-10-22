@@ -1593,19 +1593,35 @@ scenarios.loopUnmeasured = (
  * на деле: карусель посреди ленты. Жест, идущий поперёк ленты, принадлежит
  * списку снаружи.
  */
-const crossNest = (nativeBar = false, innerBar = false) => (
+const crossNest = (
+  nativeBar = false,
+  innerBar = false,
+  outerDrag = true,
+  innerDirection: "x" | "hybrid" = "x",
+) => (
   <MorphScroll
     objects={{ size: [280, 100], gap: 10 }}
     size={[300, 400]}
-    controls={{ drag: true, wheel: true, ...(nativeBar && { bar: true }) }}
+    controls={{
+      ...(outerDrag && { drag: true }),
+      wheel: true,
+      ...(nativeBar && { bar: true }),
+    }}
   >
     <div key="head" className="box">
       head
     </div>
     <div key="strip" data-testid="strip-host" style={{ height: 120 }}>
       <MorphScroll
-        direction="x"
-        objects={{ size: [120, 100], gap: 10 }}
+        direction={innerDirection}
+        objects={{
+          size: [120, 100],
+          gap: 10,
+          ...(innerDirection === "hybrid" && {
+            lines: 1,
+            order: "column" as const,
+          }),
+        }}
         size={[280, 120]}
         controls={{
           drag: true,
@@ -1630,6 +1646,70 @@ const crossNest = (nativeBar = false, innerBar = false) => (
 
 scenarios.nestedCross = crossNest();
 
+/* hybrid выбирает ведущую ось и не отдаёт жест из-за второй оси у края */
+scenarios.nestedCrossHybrid = crossNest(false, false, true, "hybrid");
+
+/* desktop не должен передавать мышиный drag скроллу только с wheel */
+scenarios.nestedCrossWheelOnly = crossNest(false, false, false);
+
+/*
+ * Между вложенной лентой и внешним MorphScroll стоит обычный scroll-box.
+ * Поперечный touch принадлежит ему как ближайшему владельцу прокрутки.
+ */
+scenarios.nestedCrossNativeMiddle = (
+  <MorphScroll
+    objects={{ size: [280, 140], gap: 10 }}
+    size={[300, 400]}
+    controls={{ drag: true, wheel: true }}
+  >
+    <div key="head" className="box">
+      head
+    </div>
+    <div
+      key="strip"
+      data-testid="native-middle"
+      style={{ height: 140, overflowY: "auto" }}
+    >
+      <div style={{ height: 600 }}>
+        <div data-testid="strip-host" style={{ height: 120 }}>
+          <MorphScroll
+            direction="x"
+            objects={{ size: [120, 100], gap: 10 }}
+            size={[280, 120]}
+            controls={{ drag: true, wheel: true }}
+          >
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={`middle-${i}`} className="box">
+                m{i}
+              </div>
+            ))}
+          </MorphScroll>
+        </div>
+      </div>
+    </div>
+    {Array.from({ length: 8 }, (_, i) => (
+      <div key={`middle-out-${i}`} className="box">
+        o{i}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+/* Пустой по обеим осям hybrid не должен запрещать странице нативный pan. */
+scenarios.emptyHybridNativePage = (
+  <div style={{ minHeight: 1200 }}>
+    <MorphScroll
+      className="empty-hybrid"
+      direction="hybrid"
+      objects={{ size: [100, 100] }}
+      size={[300, 220]}
+      controls={{ wheel: true }}
+    >
+      <div className="box">short</div>
+    </MorphScroll>
+  </div>
+);
+
 /*
  * Та же вложенность, но у внешнего нативный бар (`bar: true`): его окно —
  * настоящий скроллер, и браузер мог бы отнять свайп у библиотеки.
@@ -1638,6 +1718,33 @@ scenarios.nestedCrossNative = crossNest(true);
 
 /* у ленты свой бегунок: его жест — её, внешний тут ни при чём */
 scenarios.nestedCrossBar = crossNest(false, true);
+
+/* hybrid отдаёт ведущую ось наружу, когда доезжает по ней до края */
+scenarios.nestedHybridEdge = (
+  <MorphScroll
+    direction="x"
+    objects={{ size: [300, 140], gap: 10 }}
+    size={[400, 160]}
+    controls={{ drag: true, wheel: true }}
+  >
+    <div key="edge-head" className="box">head</div>
+    <div key="edge-inner" data-testid="hybrid-edge-host">
+      <MorphScroll
+        direction="hybrid"
+        objects={{ size: [80, 100], gap: 10, lines: 1, order: "column" }}
+        size={[280, 120]}
+        controls={{ drag: true, wheel: true }}
+      >
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={`hybrid-edge-${i}`} className="box">h{i}</div>
+        ))}
+      </MorphScroll>
+    </div>
+    {Array.from({ length: 5 }, (_, i) => (
+      <div key={`hybrid-outer-${i}`} className="box">o{i}</div>
+    ))}
+  </MorphScroll>
+);
 
 /* та же лента, но прямо на обычной высокой странице — снаружи только сама страница */
 scenarios.pageStrip = (
@@ -1657,6 +1764,180 @@ scenarios.pageStrip = (
       </MorphScroll>
     </div>
   </div>
+);
+
+/*
+ * Нативный overflow по той же оси вокруг MorphScroll. Браузер видит два
+ * возможных scroll target, но жест внутри должен остаться у библиотеки.
+ */
+const nativeSameAxis = (
+  mode: "scroll" | "slider" | "sliderMenu",
+  withBar = false,
+) => (
+  <div
+    data-testid="native-same-axis"
+    style={{
+      display: "grid",
+      placeItems: "center",
+      width: 220,
+      overflowX: "auto",
+    }}
+  >
+    <MorphScroll
+      direction="x"
+      mode={mode}
+      objects={{ size: [120, 100], gap: 10 }}
+      size={[620, 120]}
+      controls={
+        withBar
+          ? {
+              bar:
+                mode === "scroll" ? (
+                  <div className="thumb" />
+                ) : (
+                  <div className="dot" />
+                ),
+            }
+          : { wheel: true }
+      }
+    >
+      {Array.from({ length: 16 }, (_, i) => (
+        <div key={`${mode}-${i}`} className="box">{i}</div>
+      ))}
+    </MorphScroll>
+  </div>
+);
+
+scenarios.nativeSameAxisScroll = nativeSameAxis("scroll");
+scenarios.nativeSameAxisSlider = nativeSameAxis("slider");
+scenarios.nativeSameAxisSliderMenu = nativeSameAxis("sliderMenu");
+scenarios.nativeSameAxisThumb = nativeSameAxis("scroll", true);
+scenarios.nativeSameAxisSliderBar = nativeSameAxis("slider", true);
+
+/*
+ * Вертикальная и обе hybrid-полосы в том же нативном clip-контейнере.
+ * У hybrid сетка намеренно длиннее окна по обеим осям.
+ */
+const nativeControlAxes = (
+  mode: "scroll" | "slider",
+  direction: "y" | "hybrid",
+) => (
+  <div
+    data-testid="native-control-axes"
+    style={{ width: 220, height: 180, overflow: "auto" }}
+  >
+    <MorphScroll
+      direction={direction}
+      mode={mode}
+      objects={{
+        size: [140, 110],
+        gap: 10,
+        lines: direction === "hybrid" ? 6 : 2,
+      }}
+      size={[360, 260]}
+      controls={{
+        bar:
+          mode === "scroll" ? (
+            <div className="thumb" />
+          ) : (
+            <div className="dot" />
+          ),
+      }}
+    >
+      {Array.from({ length: 30 }, (_, i) => (
+        <div key={`${mode}-${direction}-${i}`} className="box">{i}</div>
+      ))}
+    </MorphScroll>
+  </div>
+);
+
+scenarios.nativeControlThumbY = nativeControlAxes("scroll", "y");
+scenarios.nativeControlThumbHybrid = nativeControlAxes("scroll", "hybrid");
+scenarios.nativeControlSliderY = nativeControlAxes("slider", "y");
+scenarios.nativeControlSliderHybrid = nativeControlAxes("slider", "hybrid");
+
+/*
+ * Обычный overflow внутри MorphScroll получает колесо первым. Только когда
+ * он дошёл до края, следующее деление может подняться к внешнему списку.
+ */
+scenarios.nativeInsideMorphWheel = (
+  <MorphScroll
+    objects={{ size: [300, 180], gap: 10 }}
+    size={[320, 260]}
+    controls={{ wheel: true }}
+  >
+    <div key="native" className="box">
+      <div
+        data-testid="native-inside"
+        style={{ height: 140, overflowY: "auto" }}
+      >
+        <div style={{ height: 620 }}>native content</div>
+      </div>
+    </div>
+    {Array.from({ length: 5 }, (_, i) => (
+      <div key={`outer-${i}`} className="box">outer {i}</div>
+    ))}
+  </MorphScroll>
+);
+
+/* Полная цепочка для колеса: inner MorphScroll → native → outer MorphScroll. */
+scenarios.mixedWheelChain = (
+  <MorphScroll
+    objects={{ size: [300, 300], gap: 10 }}
+    size={[320, 300]}
+    controls={{ wheel: true }}
+  >
+    <div key="chain" className="box">
+      <div
+        data-testid="mixed-wheel-native"
+        style={{ height: 180, overflowY: "auto" }}
+      >
+        <MorphScroll
+          objects={{ size: [260, 100], gap: 10 }}
+          size={[280, 260]}
+          controls={{ wheel: true }}
+        >
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={`chain-inner-${i}`} className="box">inner {i}</div>
+          ))}
+        </MorphScroll>
+      </div>
+    </div>
+    {Array.from({ length: 4 }, (_, i) => (
+      <div key={`chain-outer-${i}`} className="box">outer {i}</div>
+    ))}
+  </MorphScroll>
+);
+
+/* MorphScroll за нативной границей не подхватывает жест внутреннего. */
+scenarios.nativeRelayBoundary = (
+  <MorphScroll
+    direction="x"
+    objects={{ size: [380, 140], gap: 10 }}
+    size={[420, 160]}
+    controls={{ drag: true, wheel: true }}
+  >
+    <div key="native" className="box">
+      <div
+        data-testid="native-relay-boundary"
+        style={{ width: 280, overflowX: "auto" }}
+      >
+        <MorphScroll
+          direction="x"
+          objects={{ size: [120, 100], gap: 10 }}
+          size={[360, 120]}
+          controls={{ drag: true, wheel: true }}
+        >
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={`inner-${i}`} className="box">inner {i}</div>
+          ))}
+        </MorphScroll>
+      </div>
+    </div>
+    {Array.from({ length: 4 }, (_, i) => (
+      <div key={`after-${i}`} className="box">after {i}</div>
+    ))}
+  </MorphScroll>
 );
 
 /*

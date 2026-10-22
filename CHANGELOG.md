@@ -1,3 +1,24 @@
+## [3.2.0] - 2026-10-22
+
+### Fixed
+
+- **nested drag now keeps one axis and owner for the whole gesture.** A
+  cross-axis gesture can be routed outward only when its direction is first
+  chosen; an owned mouse or touch drag stays with MorphScroll and rubber-bands
+  at the edge instead of moving a parent or leaving a stuck `grab` cursor.
+- **only an eligible outer MorphScroll can receive that initial gesture.**
+  Desktop requires `controls.drag`; touch can also use `controls.wheel`.
+  Direction is measured from `pointerdown`, and the previous owner cleans up
+  its cursor and `ms-grabbing` state before routing the gesture.
+- **native overflow is a boundary for drag relay and gets wheel priority.** A
+  nested native scroll consumes wheel input while it has room, then lets the
+  next input continue outward. An owned content drag is never transferred to
+  native scrolling at the edge.
+- **touch ownership is reliable inside native overflow.** Dynamic
+  `touch-action` leaves unused axes to the browser, while content, custom
+  thumbs and slider bars retain an axis they claimed. Bar-only controls and
+  empty hybrid scrolls are covered too.
+
 ## [3.1.0] - 2026-09-22
 
 ### Added
