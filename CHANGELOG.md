@@ -18,6 +18,10 @@
   `touch-action` leaves unused axes to the browser, while content, custom
   thumbs and slider bars retain an axis they claimed. Bar-only controls and
   empty hybrid scrolls are covered too.
+- **object-form props now update without a remount.** Structural dependencies
+  no longer confuse objects, arrays or fractional values with one another, so
+  disabling `wheel` and switching controls, edges or render modes takes effect
+  immediately.
 
 ## [3.1.0] - 2026-09-22
 

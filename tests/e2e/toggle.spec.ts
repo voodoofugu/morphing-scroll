@@ -303,6 +303,57 @@ const CIRCLE_TOGGLES: Toggle[] = [
   { patch: { edge: { element: "@edge", size: 20 } } },
 ];
 
+/*
+ * Дашборд передаёт не короткие `true`, а объекты с настройками. Переход
+ * из однопольного объекта в `false` особенно важен: без границ структуры оба
+ * значения могут дать один хеш, и effect останется со старым listener.
+ */
+const OBJECT_CONTROLS: Config = {
+  ...PLAIN,
+  controls: {
+    wheel: { changeDirection: false },
+    keys: { mode: "pan", step: 40 },
+    bar: {
+      element: "@thumb",
+      reverse: false,
+      edgeGap: 4,
+      trackGap: 6,
+      thumbMinSize: 24,
+      showOnHover: false,
+    },
+    arrows: { element: "@arrow", size: 24, reserveSpace: false },
+  },
+};
+
+const OBJECT_CONTROL_TOGGLES: Toggle[] = [
+  { patch: { controls: { wheel: false } } },
+  { patch: { controls: { wheel: true } } },
+  { patch: { controls: { keys: false } } },
+  { patch: { controls: { keys: true } } },
+  { patch: { controls: { bar: false } } },
+  { patch: { controls: { bar: true } } },
+  { patch: { controls: { bar: "@thumb" } } },
+  { patch: { controls: { arrows: false } } },
+  { patch: { controls: { arrows: true } } },
+  { patch: { controls: { arrows: "@arrow" } } },
+  { patch: { controls: "wheel" } },
+  { patch: { controls: ["wheel", "keys"] } },
+];
+
+const OBJECT_PROPS: Config = {
+  ...PLAIN,
+  edge: { element: "@edge", size: 20 },
+  render: { mode: "virtual", rootMargin: 40, deferLoadOnScroll: false },
+};
+
+const OBJECT_PROP_TOGGLES: Toggle[] = [
+  { patch: { edge: false } },
+  { patch: { edge: true } },
+  { patch: { edge: "@edge" } },
+  { patch: { render: "virtual" } },
+  { patch: { render: "lazy" }, seen: true },
+];
+
 const name = (patch: Config) =>
   JSON.stringify(patch).replace(/"/g, "").slice(0, 70);
 
@@ -357,6 +408,9 @@ const suite = (title: string, base: Config, toggles: Toggle[]) =>
         await compare(page, base, toggle);
       });
   });
+
+suite("объектные формы controls", OBJECT_CONTROLS, OBJECT_CONTROL_TOGGLES);
+suite("объектные формы пропсов", OBJECT_PROPS, OBJECT_PROP_TOGGLES);
 
 /*
  * Колесо ходит по одному пути, а стрелка и палец — по своим: у них своя

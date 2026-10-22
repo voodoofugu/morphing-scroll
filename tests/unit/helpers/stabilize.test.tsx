@@ -96,4 +96,26 @@ describe("stabilize", () => {
     const b = stabilize({ flag: true, list: [1, 2] });
     expect(a).toEqual(b);
   });
+
+  it("distinguishes a container from the value inside it", () => {
+    expect(stabilize({ changeDirection: false })[0]).not.toBe(
+      stabilize(false)[0],
+    );
+    expect(stabilize([false])[0]).not.toBe(stabilize(false)[0]);
+  });
+
+  it("includes object keys in the hash", () => {
+    expect(stabilize({ wheel: true })[0]).not.toBe(
+      stabilize({ keys: true })[0],
+    );
+  });
+
+  it("distinguishes equal-looking primitive values of different types", () => {
+    expect(stabilize(1)[0]).not.toBe(stabilize("1")[0]);
+    expect(stabilize(3)[0]).not.toBe(stabilize(false)[0]);
+  });
+
+  it("does not truncate fractional numbers", () => {
+    expect(stabilize(1.2)[0]).not.toBe(stabilize(1.8)[0]);
+  });
 });
