@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { MorphScroll } from "@morphing-scroll/src";
+import { MorphScroll, ResizeTracker } from "@morphing-scroll/src";
 import type {
   MorphScroll as MorphScrollProps,
   MorphScrollHandle,
@@ -322,6 +322,71 @@ scenarios.sizeAuto = (
       {makeItems()}
     </MorphScroll>
   </div>
+);
+
+scenarios.resizeTrackerResponsive = (
+  <div
+    data-testid="resize-host"
+    style={{ width: "50vw", height: "50vh" }}
+  >
+    <ResizeTracker
+      measure="outer"
+      onResize={({ width, height }) => {
+        (window as any).__resize = { width, height };
+      }}
+    >
+      content
+    </ResizeTracker>
+  </div>
+);
+
+scenarios.sizeAutoResponsive = (
+  <div style={{ width: "50vw", height: "50vh" }}>
+    <MorphScroll
+      objects={{ size: OBJ }}
+      size="auto"
+      controls={{ wheel: true, bar: thumb }}
+      onScrollPosition={onScrollPosition}
+    >
+      {makeItems()}
+    </MorphScroll>
+  </div>
+);
+
+scenarios.firstChildResponsive = (
+  <MorphScroll
+    objects={{ size: "firstChild", lines: 2 }}
+    size={[500, 300]}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 10 }, (_, index) => (
+      <div
+        key={`responsive-${index}`}
+        className="box"
+        style={{ width: "20vw", height: "25vh" }}
+      >
+        item {index}
+      </div>
+    ))}
+  </MorphScroll>
+);
+
+scenarios.objectsAutoResponsive = (
+  <MorphScroll
+    objects={{ size: [100, "auto"], lines: 2 }}
+    size={[220, 200]}
+    controls={{ wheel: true }}
+  >
+    {Array.from({ length: 10 }, (_, index) => (
+      <div
+        key={`auto-responsive-${index}`}
+        className="box"
+        style={{ width: 100, height: "10vh" }}
+      >
+        item {index}
+      </div>
+    ))}
+  </MorphScroll>
 );
 
 // type: "slider" driven by a content drag — releasing past the threshold

@@ -552,6 +552,44 @@ describe('MorphScroll — objects.size: "firstChild" with render', () => {
   });
 });
 
+describe("MorphScroll — automatic ResizeTracker", () => {
+  it("does not add a tracker when every size is known", () => {
+    const { container } = render(
+      <MorphScroll objects={{ size: OBJ }} size={SIZE}>
+        {items(3)}
+      </MorphScroll>,
+    );
+
+    expect(container.querySelector("[resize-tracker]")).toBeNull();
+  });
+
+  it('tracks the outer box for size="auto"', () => {
+    const { container } = render(
+      <MorphScroll objects={{ size: OBJ }} size="auto">
+        {items(3)}
+      </MorphScroll>,
+    );
+    const tracker = container.querySelector<HTMLElement>("[resize-tracker]");
+
+    expect(tracker).not.toBeNull();
+    expect(tracker?.style.width).toBe("100%");
+    expect(tracker?.style.height).toBe("100%");
+  });
+
+  it("tracks content when an object dimension is automatic", () => {
+    const { container } = render(
+      <MorphScroll objects={{ size: [100, "auto"] }} size={SIZE}>
+        {items(3)}
+      </MorphScroll>,
+    );
+    const tracker = container.querySelector<HTMLElement>("[resize-tracker]");
+
+    expect(tracker).not.toBeNull();
+    expect(tracker?.style.width).toBe("max-content");
+    expect(tracker?.style.height).toBe("max-content");
+  });
+});
+
 /*
  * `render` расставляет объекты по счёту, а считать можно только известный
  * размер. Сторона, отданная CSS, — единственная, которую посчитать нечем, и

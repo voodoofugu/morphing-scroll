@@ -1982,10 +1982,10 @@ determines what is being measured by automatically applying inline styles that a
 sets <code>width: "max-content"</code> and <code>height: "max-content"</code>, measuring the size of child elements.<br />
 <br />
 <code><b>"outer"</b></code>:<br />
-measures the parent element by setting <code>minWidth: "100%"</code> and <code>minHeight: "100%"</code>.<br />
+fills and measures the parent element by setting <code>width: "100%"</code> and <code>height: "100%"</code>.<br />
 <br />
 <code><b>"all"</b></code>:<br />
-value combines the styles of both <code>"inner"</code> and <code>"outer"</code>, allowing measurement of both the parent and child elements.<br />
+uses <code>max-content</code> together with <code>min-width: "100%"</code> and <code>min-height: "100%"</code>, so the tracker fills its parent but can grow with its content.<br />
 <br />
 ✦ Note: <br />
 Be cautious when overriding styles via the <code>style</code> prop, as it may interfere with the styles applied by <code>measure</code>, leading to unexpected behavior.</em><br />
@@ -2025,7 +2025,7 @@ The function receives an object of type <b>Partial<DOMRectReadOnly></b> that con
 
 - #### Links:
 
-  [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+  [ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
 </details>
 
