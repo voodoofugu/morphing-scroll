@@ -14,6 +14,8 @@ type handleArrowT = {
   ) => void;
   duration: number;
   gap: number[];
+  /** page totals per axis, including a final partial page */
+  pageCounts?: number[];
   /** the circle's period per axis, zero where the axis does not loop */
   loopPeriods?: [number, number];
   /**
@@ -33,6 +35,7 @@ const handleArrow = ({
   smoothScroll,
   duration,
   gap,
+  pageCounts,
   loopPeriods,
   flipX,
 }: handleArrowT) => {
@@ -100,7 +103,11 @@ const handleArrow = ({
     const gapDir = isX ? gap[0] : gap[1];
     const period = periodOf(dir);
 
-    if (!period) return pageAt(value, clientSize, gapDir);
+    if (!period)
+      return pageAt(value, clientSize, gapDir, {
+        end: Math.max(0, wrapSize[isX ? 0 : 1] - clientSize),
+        count: pageCounts?.[isX ? 0 : 1] ?? 1,
+      });
 
     const { pages, step } = loopPages(period, clientSize, gapDir);
     const page = loopPageAt(value - period, step);

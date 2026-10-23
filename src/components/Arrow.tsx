@@ -42,7 +42,6 @@ const Arrow = ({ visibility, arrows, arrowType, handleArrow }: ArrowT) => {
 
   const boxStyle: React.CSSProperties = {
     position: "absolute",
-    [arrowType]: 0,
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -50,9 +49,25 @@ const Arrow = ({ visibility, arrows, arrowType, handleArrow }: ArrowT) => {
     // у тупика нечего нажимать — курсор не обещаем
     ...(isDisabled ? {} : { cursor: "pointer" }),
 
+    /*
+     * Переменная нужна только свойству, которое библиотека действительно
+     * задаёт inline. Противоположная сторона остаётся свободной для обычного
+     * CSS: например, `--ms-arrow-top: auto; bottom: 0` у боковой стрелки.
+     */
     ...(isHorizontal
-      ? { top: 0, height: "100%", width: `${arrows.size}px` }
-      : { left: 0, width: "100%", height: `${arrows.size}px` }),
+      ? {
+          [arrowType]: `var(--ms-arrow-${arrowType}, 0px)`,
+          top: "var(--ms-arrow-top, 0px)",
+          width: `${arrows.size}px`,
+          height: "var(--ms-arrow-height, 100%)",
+        }
+      : {
+          [arrowType]: `var(--ms-arrow-${arrowType}, 0px)`,
+          left: "var(--ms-arrow-left, 0px)",
+          width: "var(--ms-arrow-width, 100%)",
+          height: `${arrows.size}px`,
+        }),
+
   };
 
   /*

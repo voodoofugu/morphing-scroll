@@ -29,7 +29,6 @@ import handleWheel, { ScrollStateRefT, alongOwn } from "../helpers/handleWheel";
 import focusStep from "../helpers/focusStep";
 import handleMouseOrTouch, { hasOwnDrag } from "../helpers/handleMouseOrTouch";
 import {
-  objectsPerSize,
   smoothScroll,
   sliderCheck,
   getWrapperMinSizeStyle,
@@ -49,6 +48,7 @@ import {
   loopPageAt,
 } from "../helpers/loopWindow";
 import type { PackLayout } from "../helpers/packObjects";
+import pageAt, { pageCount } from "../helpers/pageAt";
 import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
@@ -70,7 +70,6 @@ import {
 import createSchedulerRAF from "../helpers/createSchedulerRAF";
 import filterValidChildren from "../helpers/filterValidChildren";
 import childKey from "../helpers/childKey";
-import pageAt from "../helpers/pageAt";
 import stabilize from "../helpers/stabilize";
 import {
   getRenderedKeysFromWrapper,
@@ -2221,24 +2220,23 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const objLengthPerSize = React.useMemo(() => {
       /*
-       * Обычный счёт — сколько целых окон влезло: остаток оттого и остаток,
-       * что отдельной страницей не стал. В круге же остатка не бывает: он
-       * замыкается на начало, и если не дать ему своей точки, последняя часть
-       * оборота показывалась бы первой — та бы и залипала, пока остаток не
-       * пройден.
+       * Неполный хвост — тоже страница. В обычной ленте она прижата к краю,
+       * в круге страницы чуть перекрываются, чтобы поделить оборот нацело.
+       * Число при этом одно и то же: считаем по содержимому без внешних полей,
+       * поэтому wrapper.margin не создаёт пустую точку.
        */
-      const pages = (axis: 0 | 1, span: number) => {
+      const pages = (axis: 0 | 1, content: number) => {
         const period = loopPeriods[axis];
 
         return period
           ? loopPages(period, sizeLocal[axis], gapXY[axis]).pages
-          : objectsPerSize(span, sizeLocal[axis]);
+          : pageCount(content, sizeLocal[axis], gapXY[axis]);
       };
 
-      return [pages(0, barSpan.w), pages(1, barSpan.h)];
+      return [pages(0, objectsWrapperWidth), pages(1, objectsWrapperHeight)];
     }, [
-      barSpan.w,
-      barSpan.h,
+      objectsWrapperWidth,
+      objectsWrapperHeight,
       sizeLocal.join(),
       loopPeriods.join(),
       gapXY.join(),
@@ -2655,14 +2653,24 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const client = isX ? el.clientWidth : el.clientHeight;
         const period = loopPeriods[wh];
 
-        if (!period) return pageAt(at, client, gapXY[wh]);
+        if (!period)
+          return pageAt(at, client, gapXY[wh], {
+            end: maxScrollSize[wh],
+            count: objLengthPerSize[wh],
+          });
 
         const { pages, step } = loopPages(period, client, gapXY[wh]);
         const page = loopPageAt(at - period, step);
 
         return pages > 0 ? ((page % pages) + pages) % pages : 0;
       },
-      [gapLocal[0], gapLocal[1], loopPeriods.join()],
+      [
+        gapLocal[0],
+        gapLocal[1],
+        loopPeriods.join(),
+        maxScrollSize.join(),
+        objLengthPerSize.join(),
+      ],
     );
 
     const pageNow = React.useCallback(
@@ -2755,6 +2763,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           smoothScroll: smoothScrollLocal,
           duration: duration,
           gap: gapXY,
+          pageCounts: objLengthPerSize,
           loopPeriods,
           flipX: flipsX ? listX : undefined,
         });
@@ -2774,6 +2783,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         loopPeriods.join(),
         gapLocal[0],
         gapLocal[1],
+        objLengthPerSize.join(),
         emitNavigate,
         flipsX,
         maxScrollSize[0],
@@ -2854,6 +2864,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         direction,
         objLengthPerSize,
         loopPeriods,
+        gapXY,
         flipsX ? listX : undefined,
       );
     }, [
@@ -2862,6 +2873,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       mode,
       objLengthPerSize.join(),
       loopPeriods.join(),
+      gapXY.join(),
       // сторона чтения и диапазон входят в перевод позиции в страницу
       flipsX,
       maxScrollSize[0],

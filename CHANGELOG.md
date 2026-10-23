@@ -1,7 +1,10 @@
-## [3.2.0] - 2026-10-22
+## [3.2.0] - 2026-10-23
 
 ### Added
 
+- **arrow boxes expose their geometry through CSS variables.**
+  Their inline-owned position and cross-axis length can be overridden through
+  `--ms-arrow-*`; thickness remains tied to `arrows.size` and `reserveSpace`.
 - **slider bars can limit their visible page markers.**
   `controls.bar.maxItems` keeps a moving window of `.ms-slider-item` elements
   around the active page in `slider` and `sliderMenu` modes.
@@ -19,6 +22,9 @@
 
 ### Fixed
 
+- **slider bars now count a partial final page consistently.** The same
+  content produces the same markers with and without `loop`; wrapper margins
+  do not create an extra page.
 - **nested drag now keeps one axis and owner for the whole gesture.** A
   cross-axis gesture can be routed outward only when its direction is first
   chosen; an owned mouse or touch drag stays with MorphScroll and rubber-bands

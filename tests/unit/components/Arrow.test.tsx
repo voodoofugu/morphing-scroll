@@ -182,11 +182,42 @@ describe("Arrow — sizing and cursor", () => {
     const arrow = container.querySelector<HTMLElement>(".ms-arrow-box.ms-bottom .ms-arrow")!;
 
     expect(box.style.height).toBe("40px");
-    expect(box.style.width).toBe("100%");
+    expect(box.style.width).toBe("var(--ms-arrow-width, 100%)");
 
     // how big the icon is, is the icon's business
     expect(arrow.style.width).toBe("");
     expect(arrow.style.height).toBe("");
+  });
+
+  it("exposes only the inline-owned geometry through CSS variables", () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: OBJ }}
+        size={SIZE}
+        direction="hybrid"
+        controls={{ arrows: { element: <i />, size: 40 } }}
+      >
+        {items(20)}
+      </MorphScroll>,
+    );
+    const top = arrow(container, "top").style;
+    const bottom = arrow(container, "bottom").style;
+    const left = arrow(container, "left").style;
+    const right = arrow(container, "right").style;
+
+    expect(top.top).toBe("var(--ms-arrow-top, 0px)");
+    expect(bottom.bottom).toBe("var(--ms-arrow-bottom, 0px)");
+    expect(left.left).toBe("var(--ms-arrow-left, 0px)");
+    expect(right.right).toBe("var(--ms-arrow-right, 0px)");
+    expect(left.width).toBe("40px");
+    expect(left.height).toBe("var(--ms-arrow-height, 100%)");
+    expect(bottom.width).toBe("var(--ms-arrow-width, 100%)");
+    expect(bottom.height).toBe("40px");
+
+    expect(top.bottom).toBe("");
+    expect(bottom.top).toBe("");
+    expect(left.right).toBe("");
+    expect(right.left).toBe("");
   });
 
   it("drops the pointer cursor on a dead end", () => {

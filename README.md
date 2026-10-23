@@ -1410,10 +1410,20 @@ arrows: <ArrowComponent />; // or true | an object
 ```
 
 <b>Description:</b><em><br />
-allows you to add custom arrows to the progress bar.<br />
+adds page-turn arrows to the active scroll axes.<br />
 <br />
 Each arrow is a <b>.ms-arrow-box</b> strip along its own side; the element you pass sits inside <b>.ms-arrow</b>, which only rotates it. An arrow with nowhere left to go gets <code>ms-disabled</code> and no <code>cursor: pointer</code> — under <code>loop</code> there are no dead ends, so the class never appears.<br />
+Override an arrow's inline position and cross-axis length with the matching <code>--ms-arrow-*</code> variables; its opposite side remains ordinary CSS. Thickness stays controlled by <code>arrows.size</code> so <code>reserveSpace</code> remains accurate.<br />
 </em><br />
+
+```css
+.design-slider .ms-arrow-box.ms-left,
+.design-slider .ms-arrow-box.ms-right {
+  --ms-arrow-top: auto;
+  bottom: 0;
+  --ms-arrow-height: 66px;
+}
+```
 
 <details><summary><code><b>element</b></code></summary><br /><ul><div>
 <b>Usage:</b><br />

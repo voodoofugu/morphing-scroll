@@ -74,6 +74,49 @@ test.describe("MorphScroll touch (real device emulation)", () => {
     expect(await scrollTop(el)).toBeGreaterThan(100);
   });
 
+  for (const direction of ["x", "y"] as const)
+    test(`${direction}: a finger settles on a partial final slider page`, async ({
+      page,
+    }) => {
+      const config = {
+        count: 7,
+        mode: "slider",
+        direction,
+        size: 300,
+        objects: { size: 100, lines: 1 },
+        controls: { drag: true, bar: "@dot" },
+        duration: 0,
+      };
+      await page.goto(
+        `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+      );
+
+      const viewport = page.locator(".ms-viewport");
+      const horizontal = direction === "x";
+      await viewport.evaluate((element, isX) => {
+        if (isX) element.scrollLeft = 300;
+        else element.scrollTop = 300;
+      }, horizontal);
+
+      const box = (await viewport.boundingBox())!;
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await swipe(
+        page,
+        { x, y },
+        { x: horizontal ? x - 40 : x, y: horizontal ? y : y - 40 },
+        { steps: 4, stepDelay: 30, holdBeforeRelease: 50 },
+      );
+
+      await expect
+        .poll(() =>
+          viewport.evaluate((element, isX) =>
+            isX ? element.scrollLeft : element.scrollTop,
+          horizontal),
+        )
+        .toBe(400);
+    });
+
   test("reports touch rubber-band pixels and the return to zero", async ({
     page,
   }) => {

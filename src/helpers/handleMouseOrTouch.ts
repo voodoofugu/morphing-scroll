@@ -15,6 +15,7 @@ import {
 
 import CONST from "../constants";
 import { loopPages, loopPageAt } from "./loopWindow";
+import pageAt from "./pageAt";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
@@ -407,7 +408,15 @@ const motionHandler = (
 
   const seen = rt.sliderAim[axis];
   /* и здесь страница по кольцу: прицел свёрнут, а «где мы» было развёрнуто */
-  const at = loopPageAt(asList(el[topOrLeft]) - period, step);
+  const listPosition = asList(el[topOrLeft]);
+  const at = period
+    ? loopPageAt(listPosition - period, step)
+    : pageAt(
+        listPosition,
+        el[isX ? "clientWidth" : "clientHeight"],
+        args.gap[wh],
+        { end: args.maxScrollSize[wh], count: pages },
+      );
   const current = seen ?? (period ? ((at % pages) + pages) % pages : at);
 
   let aimed: number;
@@ -865,16 +874,26 @@ function handleUp(args: HandleUpT) {
        */
       const from = position - period;
 
-      const currentPage = loopPageAt(from, step, stepDir ?? 0);
+      const pages = args.objLengthPerSize[isX ? 0 : 1];
+      const currentPage = period
+        ? loopPageAt(from, step, stepDir ?? 0)
+        : from >= maxTopOrLeft - 1
+          ? pages - 1
+          : Math.min(loopPageAt(from, step, stepDir ?? 0), pages - 1);
       const nextValue =
         period + Math.round((currentPage + (stepDir ?? 0)) * step);
 
       /*
-       * За границы не выезжаем — но в круге границ нет: там страница за
-       * средней копией такая же настоящая, и позицию потом довернёт перенос.
+       * У обычной ленты последняя страница может быть короче окна: её полный
+       * шаг лежит за физической границей, но отпускание всё равно должно
+       * довести контент до конца. В круге границ нет — соседняя страница за
+       * средней копией настоящая, и позицию затем довернёт перенос.
        */
-      if (period || (nextValue <= maxTopOrLeft && nextValue >= 0))
-        args.smoothScroll(asList(nextValue), dir, args.duration);
+      const target = period
+        ? nextValue
+        : clampValue(nextValue, 0, maxTopOrLeft);
+
+      args.smoothScroll(asList(target), dir, args.duration);
     };
 
     const resolveScroll = (dir: "x" | "y", value: number) => {

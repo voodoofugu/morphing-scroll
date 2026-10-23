@@ -1,38 +1,82 @@
-/** a pair by axis: x always first, y second */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***Pair***:
+ * a pair by axis: x always first, y second.
+ */
 export type Pair<T> = [x: T, y: T];
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***Vec2***:
+ * a numeric `[x, y]` pair.
+ */
 export type Vec2 = Pair<number>;
 
 type Edges = [top: number, right: number, bottom: number, left: number];
 type SpacingValue = number | Vec2 | Edges;
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***Align***:
+ * alignment at the start, center or end of an axis.
+ */
 export type Align = "start" | "center" | "end";
 type MinSize = number | "full";
 type ObjectSize = number | "full" | "firstChild" | "auto";
 
-/** the short form of `controls` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***ControlName***:
+ * a control enabled through the short form of `controls`.
+ */
 export type ControlName = "wheel" | "drag" | "arrows" | "bar" | "keys";
 
-/** the object form of `controls.bar` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***BarConfig***:
+ * the object form of `controls.bar`.
+ */
 export type BarConfig = {
-  /** what the bar is made of; an array feeds one node per slider element */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***element***:
+   * the custom thumb, or one node per page marker in the slider modes.
+   */
   element?: React.ReactNode | React.ReactNode[];
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***edgeGap***:
    * distance between the bar and the side it sits on;
    * a negative value pushes it past the edge
    */
   edgeGap?: number | Vec2;
-  /** shortens the track by this much at each of its two ends */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***trackGap***:
+   * shortens both ends of the track by this many pixels.
+   */
   trackGap?: number | Vec2;
-  /** put the bar on the opposite side */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***reverse***:
+   * puts the bar on the opposite side; a pair controls x and y separately.
+   */
   reverse?: boolean | Pair<boolean>;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***showOnHover***:
    * report the bar as idle unless it is hovered, touched or the content is
    * moving — through `--ms-bar-visibility` and the `ms-hover` / `ms-leave`
    * classes. Nothing is styled for you; see the README.
    */
   showOnHover?: boolean;
-  /** the thumb never shrinks below this */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***thumbMinSize***:
+   * minimum thumb size in pixels in `mode="scroll"`.
+   */
   thumbMinSize?: number;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***maxItems***:
    * Maximum page markers rendered per bar in `slider` and `sliderMenu`.
    * The window follows the active page; one value applies to each axis in
    * `direction="hybrid"`. Values are floored and clamped to at least `1`.
@@ -41,14 +85,22 @@ export type BarConfig = {
   maxItems?: number;
 };
 
-/** the object form of `controls.wheel` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***WheelConfig***:
+ * the object form of `controls.wheel`.
+ */
 export type WheelConfig = {
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***changeDirection***:
    * in `direction="hybrid"`, give the wheel to the x axis.
    * @note *one axis has nothing to switch to, so it needs `"hybrid"`*
    */
   changeDirection?: boolean;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***changeDirectionBtn***:
    * `KeyboardEvent.code`, or a list of them, that hands the wheel back to the
    * other axis while held — **Shift** by default, the same key a browser
    * scrolls sideways with. Needs `changeDirection`; an empty list turns it off
@@ -62,9 +114,15 @@ export type WheelConfig = {
   changeDirectionBtn?: string | string[];
 };
 
-/** the object form of `controls.keys` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***KeysConfig***:
+ * the object form of `controls.keys`.
+ */
 export type KeysConfig = {
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***mode***:
    * what an arrow key does:
    * - `"step"`: *turns a page, the same move the arrow buttons make*
    * - `"pan"`: *nudges the content along, the way a plain scroll behaves*
@@ -72,57 +130,105 @@ export type KeysConfig = {
    * @default `"step"` in the slider modes, `"pan"` in `mode="scroll"`
    */
   mode?: "pan" | "step" | "focus";
-  /** how far one press nudges in `"pan"` */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***step***:
+   * how far one press nudges in `"pan"`.
+   */
   step?: number;
 };
 
-/** the object form of `edge` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***EdgeConfig***:
+ * the object form of `edge`.
+ */
 export type EdgeConfig = {
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***element***:
    * the node; author it as it looks on top, the library turns it for the rest
    */
   element?: React.ReactNode;
-  /** thickness of the `.ms-edge` strip; without it your CSS decides */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***size***:
+   * thickness of the `.ms-edge` strip; without it your CSS decides.
+   */
   size?: number;
 };
 
-/** the object form of `controls.arrows` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***ArrowsConfig***:
+ * the object form of `controls.arrows`.
+ */
 export type ArrowsConfig = {
-  /** the icon; author it pointing right, the library turns it for the rest */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***element***:
+   * the icon; author it pointing right, the library turns it for the rest.
+   */
   element?: React.ReactNode;
-  /** thickness of the `.ms-arrow-box` strip */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***size***:
+   * arrow-strip thickness in pixels; also used by `reserveSpace`.
+   */
   size?: number;
-  /** the strip takes its thickness from the content instead of covering it */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***reserveSpace***:
+   * reserves the arrow strips beside the viewport instead of overlaying it.
+   */
   reserveSpace?: boolean;
 };
 
-/** the object form of `controls` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***ControlsConfig***:
+ * the object form of `controls`.
+ */
 export type ControlsConfig = {
-  /**
-   * the wheel over the content moves the scroll
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***wheel***:
+   * enables wheel scrolling and its touch equivalent, content dragging
    * @default true, while `controls` is not written at all
    */
   wheel?: boolean | WheelConfig;
-  /**
-   * the content follows the pointer, dragged from anywhere inside it — a
-   * finger too, where the browser does not scroll it itself
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***drag***:
+   * lets a mouse or pen drag the content from anywhere inside it; touch
+   * dragging is enabled by `wheel`
    */
   drag?: boolean;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***keys***:
    * the arrow keys move the scroll while it has focus
    * @default true, while `controls` is not written at all
    */
   keys?: boolean | KeysConfig;
-  /**
-   * the progress element: a thumb of yours in `mode="scroll"`, the page strip
-   * in the slider modes. `true` leaves it to the browser's own bar
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***bar***:
+   * adds a progress bar: a custom thumb in `mode="scroll"`, or page markers
+   * in the slider modes. `true` uses the browser's native scrollbar
    */
   bar?: boolean | React.ReactNode | React.ReactNode[] | BarConfig;
-  /** a strip along each side that turns a page; the icon in it is yours */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***arrows***:
+   * adds page-turn controls at both ends of every active scroll axis.
+   */
   arrows?: boolean | React.ReactNode | ArrowsConfig;
 };
 
-/**
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***NavigateReason***:
  * What brought the scroll to a new page. Names of your own fit here too: a
  * command through the `ref` takes any string, and it reaches `onNavigate`
  * untouched.
@@ -136,72 +242,159 @@ export type NavigateReason =
   // `& {}` не даёт литералам выше раствориться в `string` и потерять подсказки
   | (string & {});
 
-/** the argument of `onNavigate` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***NavigateEvent***:
+ * the argument of `onNavigate`.
+ */
 export type NavigateEvent = {
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***reason***:
    * `"scroll"` — the content got there on its own: a drag or inertia. A wheel
    * notch over a slider is a page turn asked for, and reports as `"wheel"`
    */
   reason: NavigateReason;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***axis***:
+   * axis on which the page changed.
+   */
   axis: "x" | "y";
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***from***:
+   * previous page index.
+   */
   from: number;
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***to***:
+   * destination page index.
+   */
   to: number;
 };
 
-/** the object form of `objects` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***ObjectsConfig***:
+ * the object form of `objects`.
+ */
 export type ObjectsConfig = {
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***size***:
    * one value for both sides, or a pair. A side left out of a pair is the
    * same as `"auto"`: the object decides it and the library measures it
    */
   size?: ObjectSize | Pair<ObjectSize | undefined>;
-  /** space between the objects; a pair is `[x, y]`, sideways first */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***gap***:
+   * space between the objects; a pair is `[x, y]`, sideways first.
+   */
   gap?: number | Vec2;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***lines***:
    * how many lines the objects run in, across the scroll.
    * @note *in `direction="hybrid"` there is no window across to end a line,
    * so the count is the only thing that can: it is `1` unless you raise it*
    */
   lines?: number;
-  /** where a short last line sits */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***align***:
+   * where a short last line sits.
+   */
   align?: Align;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***order***:
    * which way the list runs through the lines — it names the order, not the
    * layout: `"row"` fills a row and moves down, `"column"` fills a column and
    * moves right
    */
   order?: "row" | "column";
-  /** what to do with an object that rendered nothing */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***empty***:
+   * what to do with an object that rendered nothing.
+   */
   empty?: "clear" | "fallback" | EmptyObjectsConfig;
 };
 
-/** the object form of `wrapper` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***WrapperConfig***:
+ * the object form of `wrapper`.
+ */
 export type WrapperConfig = {
-  /** space around `.ms-objects-wrapper`; 1, 2 or 4 numbers */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***margin***:
+   * space around `.ms-objects-wrapper`; 1, 2 or 4 numbers.
+   */
   margin?: SpacingValue;
-  /** the box never gets smaller than this; `"full"` means the `size` prop */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***minSize***:
+   * the box never gets smaller than this; `"full"` means the `size` prop.
+   */
   minSize?: MinSize | Pair<MinSize>;
-  /** where the box sits when it is smaller than `size` */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***align***:
+   * where the box sits when it is smaller than `size`.
+   */
   align?: Align | Pair<Align>;
 };
 
-/** the object form of `objects.empty` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***EmptyObjectsConfig***:
+ * the object form of `objects.empty`.
+ */
 export type EmptyObjectsConfig = {
-  /** `"clear"` drops the empty objects, `"fallback"` puts `fallback.empty` there */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***mode***:
+   * `"clear"` drops the empty objects, `"fallback"` puts `fallback.empty` there.
+   */
   mode: "clear" | "fallback";
-  /** start clearing when something matching this selector is clicked */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***clickTrigger***:
+   * reruns empty-object detection after this selector is clicked.
+   */
   clickTrigger?: string | { selector: string; delay?: number };
 };
 
-/** the object form of `fallback` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***FallbackConfig***:
+ * the object form of `fallback`.
+ */
 export type FallbackConfig = {
-  /** stands in while an object is on its way */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***loading***:
+   * shown while an object is deferred or suspended.
+   */
   loading?: React.ReactNode;
-  /** stands in where an object rendered nothing */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***empty***:
+   * shown where an object rendered nothing.
+   */
   empty?: React.ReactNode;
 };
 
-/** a value understood by both `initialPosition` and `scrollTo` */
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***ScrollTarget***:
+ * a value understood by both `initialPosition` and `scrollTo`.
+ */
 export type ScrollTarget = null | number | "end" | Pair<null | number | "end">;
 
 /**---
@@ -225,9 +418,15 @@ export type ScrollTarget = null | number | "end" | Pair<null | number | "end">;
  * - `moveFocus`
  */
 export type MorphScrollHandle = {
-  /** run a scroll now; `duration: 0` jumps without animating */
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***scrollTo***:
+   * run a scroll now; `duration: 0` jumps without animating.
+   */
   scrollTo: (target: ScrollTarget, options?: { duration?: number }) => void;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***scrollToObject***:
    * bring one object into view.
    * @description
    * A place in the list rather than in pixels — the one a caller can name:
@@ -256,7 +455,9 @@ export type MorphScrollHandle = {
       reason?: NavigateReason;
     },
   ) => void;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***step***:
    * turn one page toward that side — the move the arrow buttons make.
    * Does nothing at the end of the run, unless `loop` has made it endless.
    */
@@ -264,7 +465,9 @@ export type MorphScrollHandle = {
     side: "top" | "right" | "bottom" | "left",
     options?: { reason?: NavigateReason },
   ) => void;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***pan***:
    * nudge the content by this many pixels. This is plain movement, so it
    * lands in `onScrollPosition`; it only reaches `onNavigate` if it settles
    * on a new page of a slider.
@@ -273,7 +476,9 @@ export type MorphScrollHandle = {
     delta: { x?: number; y?: number },
     options?: { duration?: number; reason?: NavigateReason },
   ) => void;
-  /**
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***moveFocus***:
    * move focus to the neighbouring object and bring it into view — Tab, but
    * aimed: the neighbour is picked by geometry, so a grid moves across its
    * row and down to the next one.
@@ -315,18 +520,18 @@ export type ResizeTracker = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***measure***:
-   * defines size measurement behavior.
+   * controls how the observed wrapper sizes itself.
    * @description
-   * - `inner`: *Fits content*
-   * - `outer`: *Fills parent*
-   * - `all`: *Combines both*
+   * - `inner`: *fits its content*
+   * - `outer`: *fills its parent*
+   * - `all`: *fills its parent and can grow with its content*
    * @default "inner"
    */
   measure?: "inner" | "outer" | "all";
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onResize***:
-   * callback on dimension change.
+   * called when the wrapper's content-box dimensions change.
    * @param rect is the dimensions of the container.
    */
   onResize?: (rect: Partial<DOMRectReadOnly>) => void;
@@ -359,14 +564,14 @@ export type IntersectionTracker = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***root***:
-   * root element.
+   * ancestor used as the observation viewport.
    * @default document viewport
    */
   root?: Element | null;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***rootMargin***:
-   * margin for the root element.
+   * observer margin around `root`, in pixels.
    * @note
    * *It can be a number or an array of 2 or 4 numbers*
    */
@@ -374,7 +579,7 @@ export type IntersectionTracker = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***threshold***:
-   * visibility threshold for triggering intersection events.
+   * visible ratios at which `onIntersection` is called.
    * @note
    * *a value between `0` (out of view) and `1` (fully visible) can be single or an array*
    */
@@ -382,7 +587,7 @@ export type IntersectionTracker = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onIntersection***:
-   * callback triggered when `threshold` is met.
+   * called when the observed wrapper crosses a `threshold`.
    * @param entry is the IntersectionObserverEntry object.
    *
    * @link https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserverEntry
@@ -438,7 +643,7 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***direction***:
-   * change the scrolling direction.
+   * axes along which the content can scroll.
    * @default "y"
    */
   direction?: "x" | "y" | "hybrid";
@@ -640,14 +845,24 @@ export type MorphScroll = {
     | "lazy"
     | "virtual"
     | {
-        /** `"lazy"` keeps the objects in place, `"virtual"` mounts only what shows */
+        /**---
+         * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+         * ### ***mode***:
+         * `"lazy"` keeps the objects in place, `"virtual"` mounts only what shows.
+         */
         mode: "lazy" | "virtual";
-        /**
+        /**---
+         * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+         * ### ***rootMargin***:
          * how far beyond the viewport an object still counts as visible, in
          * px — widen it to prepare objects before they are reached
          */
         rootMargin?: SpacingValue;
-        /** new objects wait for the scrolling to stop before they load */
+        /**---
+         * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+         * ### ***deferLoadOnScroll***:
+         * new objects wait for the scrolling to stop before they load.
+         */
         deferLoadOnScroll?: boolean;
       };
   /**---
@@ -688,7 +903,7 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***suspending***:
-   * wrap the objects in React Suspense
+   * wraps each object in React Suspense.
    */
   suspending?: boolean;
   /**---
@@ -709,7 +924,7 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onScrollPosition***:
-   * callback for scroll value.
+   * called when the scroll position, limits or overscroll change.
    * @param left current scroll position on the x-axis.
    * @param top current scroll position on the y-axis.
    * @param max how far each axis can go — the position at its very end, read

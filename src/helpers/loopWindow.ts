@@ -1,3 +1,5 @@
+import { pageCount } from "./pageAt";
+
 /*
  * Круг — это не бесконечная лента. У прокрутки есть предел: браузер обрезает
  * её на десятках миллионов пикселей, а точность позиции и инерция плывут
@@ -51,7 +53,8 @@ export const loopPages = (period: number, viewport: number, gap: number) => {
 
   if (period <= 0 || want <= 0) return { pages: 0, step: want };
 
-  const pages = Math.max(1, Math.ceil(period / want));
+  /* The period already contains the closing gap added between loop copies. */
+  const pages = pageCount(period - gap, viewport, gap);
 
   return { pages, step: period / pages };
 };

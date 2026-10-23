@@ -106,6 +106,45 @@ test.describe("MorphScroll physics (real browser)", () => {
     await expect.poll(() => scrollLeftOf(page)).toBe(40);
   });
 
+  test("arrow CSS variables override inline geometry without important", async ({
+    page,
+  }) => {
+    await page.goto("/?scenario=arrowsReserved");
+    await page.addStyleTag({
+      content: `
+        [morph-scroll] {
+          --ms-arrow-top: auto;
+          --ms-arrow-height: 23px;
+        }
+        .ms-arrow-box.ms-left,
+        .ms-arrow-box.ms-right {
+          bottom: 7px;
+        }
+        .ms-arrow-box.ms-right {
+          --ms-arrow-height: 31px;
+        }
+      `,
+    });
+
+    const geometry = (side: "left" | "right") =>
+      page.locator(`.ms-arrow-box.ms-${side}`).evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          bottom: style.bottom,
+          height: style.height,
+        };
+      });
+
+    await expect.poll(() => geometry("left")).toEqual({
+      bottom: "7px",
+      height: "23px",
+    });
+    await expect.poll(() => geometry("right")).toEqual({
+      bottom: "7px",
+      height: "31px",
+    });
+  });
+
   test("a command lands when only the layout knows the height", async ({
     page,
   }) => {
