@@ -458,6 +458,7 @@ test.describe("растяжение у края", () => {
         thirdSides: [...boxes[2].classList].filter((c) =>
           c.startsWith("ms-outside"),
         ),
+        reported: (window as any).__scroll?.overscroll,
       };
     });
 
@@ -488,12 +489,17 @@ test.describe("растяжение у края", () => {
     expect(Number(held.third)).toBeGreaterThan(0);
     expect(Number(held.third)).toBeLessThan(1);
     expect(held.thirdSides).toEqual(["ms-outside-bottom"]);
+    expect(held.reported.y).toBeGreaterThan(0);
 
     await page.mouse.up();
     await page.waitForTimeout(700);
 
     // отпустили — содержимое вернулось, и с ним доля
-    expect(await look(page)).toMatchObject({ shift: "", third: "1" });
+    expect(await look(page)).toMatchObject({
+      shift: "",
+      third: "1",
+      reported: { x: 0, y: 0 },
+    });
   });
 });
 

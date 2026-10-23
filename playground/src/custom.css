@@ -345,15 +345,92 @@ body.no-select {
  * добивает до нуля — если переменную переопределят, край всё равно уйдёт.
  */
 .playground-scroll .playground-edge {
+  position: relative;
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
+}
+
+.playground-scroll .playground-edge-fade {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(var(--card), transparent);
   opacity: var(--ms-edge-visibility, 1);
   transition: opacity 180ms ease;
 }
 
-.playground-scroll .ms-edge.ms-disabled .playground-edge {
+.playground-scroll .ms-edge.ms-disabled .playground-edge-fade {
   opacity: 0;
+}
+
+.playground-scroll .edge-pull-loader {
+  --pull-progress: 0;
+
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 32px;
+  height: 32px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 4px 14px var(--shadow);
+  opacity: clamp(0, calc(var(--pull-progress) * 6), 1);
+  scale: calc(0.72 + var(--pull-progress) * 0.28);
+  transition: opacity 80ms linear;
+}
+
+.playground-scroll .ms-top .edge-pull-loader {
+  --pull-progress: var(--pull-top);
+}
+
+.playground-scroll .ms-right .edge-pull-loader {
+  --pull-progress: var(--pull-right);
+}
+
+.playground-scroll .ms-bottom .edge-pull-loader {
+  --pull-progress: var(--pull-bottom);
+}
+
+.playground-scroll .ms-left .edge-pull-loader {
+  --pull-progress: var(--pull-left);
+}
+
+.playground-scroll .edge-pull-loader svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+.playground-scroll .edge-pull-loader circle {
+  fill: none;
+  stroke-width: 4;
+}
+
+.playground-scroll .edge-pull-track {
+  stroke: var(--line);
+}
+
+.playground-scroll .edge-pull-value {
+  display: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  transition: stroke 160ms ease;
+}
+
+.playground-scroll .edge-pull-value.active {
+  stroke: var(--accent);
+}
+
+.playground-scroll .ms-top .edge-pull-value-top,
+.playground-scroll .ms-right .edge-pull-value-right,
+.playground-scroll .ms-bottom .edge-pull-value-bottom,
+.playground-scroll .ms-left .edge-pull-value-left {
+  display: inline;
 }
 
 /* #endregion */

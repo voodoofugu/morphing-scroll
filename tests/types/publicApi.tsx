@@ -32,7 +32,9 @@ export const everyProp = (
     direction="hybrid"
     stickToEnd
     duration={300}
-    onScrollPosition={(left, top) => void (left + top)}
+    onScrollPosition={(left, top, max, overscroll) =>
+      void (left + top + max.x + max.y + overscroll.x + overscroll.y)
+    }
     onScrollingChange={(motion) => void motion}
     onRenderedKeysChange={(keys) => void keys.length}
     size={[300, 200]}

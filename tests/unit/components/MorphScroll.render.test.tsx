@@ -399,6 +399,63 @@ describe("MorphScroll — controls shorthand", () => {
     expect(cursor(short)).toBe(cursor(long));
   });
 
+  it("shows grab only while the chosen axis has scrollable content", () => {
+    const cursor = (container: HTMLElement) =>
+      container.querySelector<HTMLElement>(".ms-viewport")!.style.cursor;
+    const { container, rerender } = render(
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls="drag">
+        {items(2)}
+      </MorphScroll>,
+    );
+
+    expect(cursor(container)).toBe("");
+
+    rerender(
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls="drag">
+        {items(10)}
+      </MorphScroll>,
+    );
+    expect(cursor(container)).toBe("grab");
+
+    rerender(
+      <MorphScroll objects={{ size: OBJ }} size={SIZE} controls="drag">
+        {items(2)}
+      </MorphScroll>,
+    );
+    expect(cursor(container)).toBe("");
+  });
+
+  it("checks horizontal room for an x scroll", () => {
+    const { container, rerender } = render(
+      <MorphScroll
+        direction="x"
+        objects={{ size: OBJ }}
+        size={SIZE}
+        controls="drag"
+      >
+        {items(1)}
+      </MorphScroll>,
+    );
+
+    expect(
+      container.querySelector<HTMLElement>(".ms-viewport")!.style.cursor,
+    ).toBe("");
+
+    rerender(
+      <MorphScroll
+        direction="x"
+        objects={{ size: OBJ }}
+        size={SIZE}
+        controls="drag"
+      >
+        {items(4)}
+      </MorphScroll>,
+    );
+    expect(
+      container.querySelector<HTMLElement>(".ms-viewport")!.style.cursor,
+    ).toBe("grab");
+  });
+
   /*
    * Написанный набор заменяет умолчание целиком, поэтому пустой — это «ничем
    * не двигать», а не «оставить как было». И сказано это нарочно: скролл, у

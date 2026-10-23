@@ -32,7 +32,13 @@ const overscrollBackAnim = (
       return false; // остановить анимацию
     }
 
-    overscroll.current[axis] = startValue * (1 - progress);
+    /*
+     * Нативная резинка не возвращается с постоянной скоростью: сначала она
+     * заметно снимает натяжение, затем мягко укладывается на границу. Остаток
+     * ease-out cubic даёт ту же форму без перелёта через ноль.
+     */
+    const remaining = 1 - progress;
+    overscroll.current[axis] = startValue * remaining ** 3;
     updater();
     return true; // продолжить
   }, `overscroll-${axis}`); // ключ по оси, что бы повторный запуск заменял предыдущий

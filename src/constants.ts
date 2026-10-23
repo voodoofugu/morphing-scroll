@@ -73,7 +73,7 @@ const CONST = {
   RUBBER_STIFFNESS: 0.14, // чем меньше тем сильнее пружина
   BOUNCE_MAX_OVERSCROLL: 150, // ограничение растяжения (px)
   MICRO_DAMPENING: 0.6, // добавляется при смене направления растяжения
-  OVERSCROLL_BACK_DURATION: 140, // ms — время возвращения после растяжения
+  OVERSCROLL_BACK_DURATION: 220, // ms — мягкое возвращение после растяжения
   MIN_THRESHOLD_SIZE: 600, // px — размер viewport scroll, при котором включается эффект пружины
 };
 

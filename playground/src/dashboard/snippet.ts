@@ -51,6 +51,14 @@ export function formatCodeValue(value: CodeValue, indent = 0): string {
     .join("\n")}\n${pad}}`;
 }
 
+const hasValues = (value: Record<string, CodeValue | undefined>) =>
+  Object.values(value).some((item) => item !== undefined);
+
+const axisValue = <T extends CodeValue>(x: T, y: T, fallback: T) => {
+  if (x === fallback && y === fallback) return undefined;
+  return x === y ? x : ([x, y] as CodeValue);
+};
+
 export function buildSnippet(settings: Settings, duration: number) {
   const needsMenu = settings.mode === "sliderMenu";
 
@@ -96,44 +104,71 @@ export function buildSnippet(settings: Settings, duration: number) {
           : raw("<YourProgressElement />");
 
   /** всё про бегунок теперь живёт одним объектом внутри controls */
-  const barSettings = {
-    edgeGap: [settings.barEdgeGapX, settings.barEdgeGapY],
-    reverse: [settings.barReverseX, settings.barReverseY],
-    showOnHover: settings.barShowOnHover,
-    thumbMinSize: settings.barThumbMinSize,
-    trackGap: [settings.barTrackGapX, settings.barTrackGapY],
+  const barSettings: Record<string, CodeValue | undefined> = {
+    edgeGap: axisValue(settings.barEdgeGapX, settings.barEdgeGapY, 0),
+    reverse: axisValue(settings.barReverseX, settings.barReverseY, false),
+    showOnHover: settings.barShowOnHover || undefined,
+    thumbMinSize:
+      settings.barThumbMinSize === 30
+        ? undefined
+        : settings.barThumbMinSize,
+    trackGap: axisValue(settings.barTrackGapX, settings.barTrackGapY, 0),
   };
 
   const barForCode: CodeValue =
     barElement === false || barElement === true
       ? barElement
-      : { element: barElement, ...barSettings };
+      : hasValues(barSettings)
+        ? { element: barElement, ...barSettings }
+        : barElement;
 
-  const controls: CodeValue = {
-    wheel: settings.wheel
+  const wheelForCode: CodeValue | undefined = settings.wheel
+    ? settings.wheelChangeDirection
       ? {
-          changeDirection: settings.wheelChangeDirection,
-          // пусто — значит умолчание библиотеки, Shift; в разметку не пишем
+          changeDirection: true,
           ...(settings.wheelChangeDirectionBtn && {
             changeDirectionBtn: settings.wheelChangeDirectionBtn,
           }),
         }
-      : false,
-    drag: settings.contentDrag,
-    keys: settings.keys
-      ? settings.keysMode === "pan"
+      : true
+    : undefined;
+
+  const defaultKeysMode = settings.mode === "scroll" ? "pan" : "step";
+  const keysForCode: CodeValue | undefined = settings.keys
+    ? settings.keysMode === defaultKeysMode &&
+      (settings.keysMode !== "pan" || settings.keysStep === 40)
+      ? true
+      : settings.keysMode === "pan" && settings.keysStep !== 40
         ? { mode: settings.keysMode, step: settings.keysStep }
         : { mode: settings.keysMode }
-      : false,
-    bar: barForCode,
-    arrows: settings.arrows
-      ? {
+    : undefined;
+
+  const arrowsForCode: CodeValue | undefined = settings.arrows
+    ? settings.arrowSize === 40 && !settings.arrowContentReduce
+      ? raw("<YourArrow />")
+      : {
           element: raw("<YourArrow />"),
-          size: settings.arrowSize,
-          reserveSpace: settings.arrowContentReduce,
+          size: settings.arrowSize === 40 ? undefined : settings.arrowSize,
+          reserveSpace: settings.arrowContentReduce || undefined,
         }
-      : false,
+    : undefined;
+
+  const controlsObject: Record<string, CodeValue | undefined> = {
+    wheel: wheelForCode,
+    drag: settings.contentDrag || undefined,
+    keys: keysForCode,
+    bar: barForCode === false ? undefined : barForCode,
+    arrows: arrowsForCode,
   };
+  const controlsAreDefault =
+    wheelForCode === true &&
+    keysForCode === true &&
+    !settings.contentDrag &&
+    barForCode === false &&
+    arrowsForCode === undefined;
+  const controls: CodeValue | undefined = controlsAreDefault
+    ? undefined
+    : controlsObject;
 
   /*
    * Слежение за видимостью ничего не выбрасывает и живёт отдельным пропом:
@@ -144,8 +179,8 @@ export function buildSnippet(settings: Settings, duration: number) {
       ? undefined
       : {
           mode: settings.renderMode,
-          rootMargin: settings.rootMargin,
-          deferLoadOnScroll: settings.deferLoadOnScroll,
+          rootMargin: settings.rootMargin || undefined,
+          deferLoadOnScroll: settings.deferLoadOnScroll || undefined,
         };
 
   const emptyObjects: CodeValue | undefined =
@@ -163,32 +198,40 @@ export function buildSnippet(settings: Settings, duration: number) {
   const objectsGroup: Record<string, CodeValue | undefined> = {
     size: objectsSize,
     gap:
-      settings.gapX === settings.gapY
-        ? settings.gapX
-        : [settings.gapX, settings.gapY],
-    lines: numberOrUndefined(settings.lines),
-    align: settings.objectsAlign,
-    order: settings.objectsOrder,
+      settings.gapX === 0 && settings.gapY === 0
+        ? undefined
+        : settings.gapX === settings.gapY
+          ? settings.gapX
+          : [settings.gapX, settings.gapY],
+    lines:
+      settings.direction === "hybrid" && settings.lines === 1
+        ? undefined
+        : numberOrUndefined(settings.lines),
+    align:
+      settings.objectsAlign === "start" ? undefined : settings.objectsAlign,
+    order: settings.objectsOrder === "row" ? undefined : settings.objectsOrder,
     empty: emptyObjects,
+  };
+
+  const wrapperGroup: Record<string, CodeValue | undefined> = {
+    align: axisValue(
+      settings.wrapperAlignX,
+      settings.wrapperAlignY,
+      "start",
+    ),
+    margin: wrapperMargin,
+    minSize: wrapperMinSize,
   };
 
   const props: Array<[string, CodeValue | undefined, "boolean" | "value"]> = [
     ["className", settings.className || undefined, "value"],
-    ["mode", settings.mode, "value"],
-    ["direction", settings.direction, "value"],
+    ["mode", settings.mode === "scroll" ? undefined : settings.mode, "value"],
+    ["direction", settings.direction === "y" ? undefined : settings.direction, "value"],
     ["fromRight", settings.fromRight || undefined, "boolean"],
     ["size", size, "value"],
 
-    ["objects", objectsGroup, "value"],
-    [
-      "wrapper",
-      {
-        align: [settings.wrapperAlignX, settings.wrapperAlignY],
-        margin: wrapperMargin,
-        minSize: wrapperMinSize,
-      },
-      "value",
-    ],
+    ["objects", hasValues(objectsGroup) ? objectsGroup : undefined, "value"],
+    ["wrapper", hasValues(wrapperGroup) ? wrapperGroup : undefined, "value"],
 
     [
       // цвет и размер края теперь дело CSS, в проп уходит узел
@@ -227,7 +270,9 @@ export function buildSnippet(settings: Settings, duration: number) {
     [
       "onScrollPosition",
       settings.enableOnScrollValue
-        ? raw("(left, top) => console.log({ left, top })")
+        ? raw(
+            "(left, top, max, overscroll) => console.log({ left, top, max, overscroll })",
+          )
         : undefined,
       "value",
     ],

@@ -1,5 +1,19 @@
 ## [3.2.0] - 2026-10-22
 
+### Added
+
+- **`onScrollPosition` now reports rubber-band displacement.** Its fourth
+  argument is `{ x, y }` in pixels and updates while content is pulled beyond
+  an edge and while it settles back, enabling pull-to-refresh indicators and
+  other custom edge interactions.
+
+### Changed
+
+- **the rubber band now settles with an ease-out curve.** It releases tension
+  quickly and comes gently to rest instead of returning at a constant speed.
+- **the content drag cursor now reflects available movement.** `grab` appears
+  only when the configured axis has content beyond the viewport.
+
 ### Fixed
 
 - **nested drag now keeps one axis and owner for the whole gesture.** A

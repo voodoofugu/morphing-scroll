@@ -216,8 +216,6 @@ export type ScrollTarget = null | number | "end" | Pair<null | number | "end">;
  * - `step`
  * - `pan`
  * - `moveFocus`
- * ### Links:
- * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */
 export type MorphScrollHandle = {
   /** run a scroll now; `duration: 0` jumps without animating */
@@ -287,8 +285,6 @@ export type MorphScrollHandle = {
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***ResizeTrackerProps***:
  * the props of `ResizeTracker`, the component that monitors an element's size.
- * ### Links:
- * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */
 export type ResizeTracker = {
   /**---
@@ -333,8 +329,6 @@ export type ResizeTracker = {
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***IntersectionTrackerProps***:
  * the props of `IntersectionTracker`, the component that tracks an element against the viewport.
- * ### Links:
- * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */
 export type IntersectionTracker = {
   /**---
@@ -393,8 +387,6 @@ export type IntersectionTracker = {
  * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
  * ### ***MorphScrollProps***:
  * the props of `MorphScroll`, the main component of the library.
- * ### Links:
- * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
  */
 export type MorphScroll = {
   // — GENERAL —
@@ -715,6 +707,9 @@ export type MorphScroll = {
    * @param top current scroll position on the y-axis.
    * @param max how far each axis can go — the position at its very end, read
    * from the element itself, so it is a position the scroll really reaches.
+   * @param overscroll how many pixels the content is currently pulled beyond
+   * an edge on each axis. Positive values move it right/down, negative values
+   * left/up; both are zero outside an active rubber band and after it settles.
    * @description
    * `max` is what makes this a "load more" signal without a prop for it: how
    * far the end is, is `max` minus the position. With `render` or
@@ -728,6 +723,7 @@ export type MorphScroll = {
     left: number,
     top: number,
     max: { x: number; y: number },
+    overscroll: { x: number; y: number },
   ) => void;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)

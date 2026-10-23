@@ -26,10 +26,16 @@ const makeItems = () =>
 const thumb = <div className="thumb" />;
 
 // Expose the latest scroll offsets for assertions.
-const onScrollPosition = (left: number, top: number) => {
-  (window as any).__scroll = { left, top };
+const onScrollPosition = (
+  left: number,
+  top: number,
+  max: { x: number; y: number },
+  overscroll: { x: number; y: number },
+) => {
+  (window as any).__scroll = { left, top, max, overscroll };
   // весь путь, а не только его конец: по нему видно, ехали мы или перескочили
   ((window as any).__trail ??= []).push(top);
+  ((window as any).__overscrollTrail ??= []).push({ ...overscroll });
 };
 
 // Every page change, in order, so the reason can be asserted.
@@ -1072,6 +1078,7 @@ scenarios.overscrollVisibility = (
     size={[200, 200]}
     trackVisibility
     controls={{ wheel: true, drag: true }}
+    onScrollPosition={onScrollPosition}
   >
     {Array.from({ length: 12 }, (_, i) => (
       <div key={`ov-${i}`} className="box" data-testid={`ov-${i}`}>

@@ -32,6 +32,8 @@ type HandleMouseT = {
     duration: number,
   ) => Promise<void> | null;
   triggerUpdate: () => void;
+  /** report a rubber-band change: it does not produce a native scroll event */
+  reportScrollPosition: () => void;
   thumbSize: number;
   axisFromAtr: "x" | "y" | null;
   duration: number;
@@ -273,6 +275,11 @@ const motionHandler = (
     withVisualOverscroll: boolean,
   ) => {
     const state = rt.prevCoords![axis];
+    const setOverscroll = (value: number) => {
+      args.overscrollRef.current[axis] = value;
+      args.triggerUpdate();
+      args.reportScrollPosition();
+    };
 
     /*
      * `maxScrollSize` считается по пропсам, а докуда реально доезжает
@@ -301,16 +308,14 @@ const motionHandler = (
       state.raw += rawDelta * CONST.MICRO_DAMPENING;
 
       if (withVisualOverscroll) {
-        args.overscrollRef.current[axis] = applyRubberBand(state.raw, axis);
-        args.triggerUpdate();
+        setOverscroll(applyRubberBand(state.raw, axis));
       }
 
       // если пересекли 0 — полностью выходим в нормальный режим
       if (Math.sign(state.raw) !== Math.sign(prevRaw)) {
         state.raw = 0;
         if (withVisualOverscroll) {
-          args.overscrollRef.current[axis] = 0;
-          args.triggerUpdate();
+          setOverscroll(0);
         }
         return;
       }
@@ -351,8 +356,7 @@ const motionHandler = (
       state.raw += rawDelta;
 
       if (withVisualOverscroll) {
-        args.overscrollRef.current[axis] = applyRubberBand(state.raw, axis);
-        args.triggerUpdate();
+        setOverscroll(applyRubberBand(state.raw, axis));
       }
 
       return;
@@ -931,7 +935,10 @@ function handleUp(args: HandleUpT) {
       rt.overscrollLoop,
       args.overscrollRef,
       axis,
-      args.triggerUpdate,
+      () => {
+        args.triggerUpdate();
+        args.reportScrollPosition();
+      },
     );
 
   if (args.overscrollRef.current.x !== 0) backAnim("x");

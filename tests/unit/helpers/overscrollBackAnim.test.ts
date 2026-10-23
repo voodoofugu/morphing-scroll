@@ -35,15 +35,16 @@ describe("overscrollBackAnim", () => {
     expect(updater).toHaveBeenCalled();
   });
 
-  it("eases toward 0 (partway value is between start and 0)", () => {
+  it("returns quickly, then eases into 0 instead of moving linearly", () => {
     const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
     overscrollBackAnim(loop, ref as any, "x", updater);
-    advance(2); // a couple of frames in
+    advance(Math.floor(CONST.OVERSCROLL_BACK_DURATION / 16 / 2));
 
     expect(ref.current.x).toBeGreaterThan(0);
-    expect(ref.current.x).toBeLessThan(100);
+    // halfway through, linear motion would still be close to 50
+    expect(ref.current.x).toBeLessThan(30);
   });
 
   it("stopOverscrollBackAnim halts the animation", () => {

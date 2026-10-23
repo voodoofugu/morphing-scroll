@@ -161,7 +161,7 @@ const MODIFIER_FLAG: Record<
  * - `onNavigate`
  * - `onRenderedKeysChange`
  * ### Links:
- * [MorphScroll Documentation](https://www.npmjs.com/package/morphing-scroll)
+ * [MorphScroll Documentation](https://voodoofugu.github.io/morphing-scroll/docs/#/MorphScroll)
  */
 const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
   function MorphScroll(
@@ -396,6 +396,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const isDraggingRef = React.useRef(false);
     const lastRenderedKeysRef = React.useRef<string[] | null>(null);
     const onRenderedKeysChangeRef = React.useRef(onRenderedKeysChange); // для стабилизации функцию
+    const onScrollPositionRef = React.useRef(onScrollPosition);
+
+    onScrollPositionRef.current = onScrollPosition;
 
     function useSizeRef() {
       return React.useRef<{ width: number; height: number }>({
@@ -1585,6 +1588,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       ];
     }, [sizeLocal.join(), objectsWrapperHeightFull, objectsWrapperWidthFull]);
 
+    /*
+     * Drag обещаем только там, где он способен сдвинуть контент. Та же
+     * проверка решает, брать ли pointerdown, и рисует grab-курсор: короткий
+     * список не должен выглядеть перетаскиваемым.
+     */
+    const contentDragHasRoom =
+      direction === "hybrid"
+        ? maxScrollSize[0] > 0 || maxScrollSize[1] > 0
+        : maxScrollSize[direction === "x" ? 0 : 1] > 0;
+
     const touchAction = React.useMemo(() => {
       /*
        * Направление само по себе ещё не означает, что скроллу есть что
@@ -1639,6 +1652,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * и восстанавливать потом уже нечего. Держим место здесь.
      */
     const listPlaceRef = React.useRef(0);
+
+    /*
+     * Резиновость двигает обёртку, а не scrollLeft/scrollTop, поэтому браузер
+     * не присылает scroll-event. Один reporter нужен и обычному скроллу, и
+     * drag: так четвёртый аргумент идёт за пальцем и за возвратной анимацией.
+     */
+    const reportScrollPosition = React.useCallback(() => {
+      const callback = onScrollPositionRef.current;
+      const scrollEl = scrollElementRef.current;
+      if (!callback || !scrollEl) return;
+
+      listPlaceRef.current = listXRef.current(scrollEl.scrollLeft);
+      callback(
+        listPlaceRef.current,
+        scrollEl.scrollTop,
+        {
+          x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
+          y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
+        },
+        {
+          x: overscrollRef.current.x,
+          y: overscrollRef.current.y,
+        },
+      );
+    }, []);
 
     const scrollSpaceFromRef =
       direction === "x"
@@ -2519,6 +2557,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           scrollStateRef: scrollStateRef.current,
           mode,
           triggerUpdate: triggerRAF,
+          reportScrollPosition,
           direction,
           smoothScroll: smoothScrollLocal,
           sizeLocal: [sizeLocal[0], sizeLocal[1]],
@@ -2558,6 +2597,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         gapLocal.join(),
         objLengthPerSize,
         maxScrollSize.join(),
+        reportScrollPosition,
         // сторона чтения входит в перевод позиции — без неё жест считает по старой
         flipsX,
       ],
@@ -2981,12 +3021,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * уже прочитаны scrollLeft и scrollTop: раскладка на этот момент
          * посчитана, лишнего пересчёта не будет.
          */
-        listPlaceRef.current = listXRef.current(scrollEl.scrollLeft);
-
-        onScrollPosition?.(listPlaceRef.current, scrollEl.scrollTop, {
-          x: Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth),
-          y: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
-        });
+        reportScrollPosition();
 
         const scrollOrSlider = el.querySelectorAll<HTMLElement>(
           mode === "scroll" ? ".ms-bar" : ".ms-slider",
@@ -3059,7 +3094,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         });
       },
       [
-        onScrollPosition,
+        reportScrollPosition,
         onScrollingChange,
         reportNavigate,
         mode,
@@ -4506,12 +4541,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          */
         if (hasOwnDrag(event.target as Element | null)) return;
 
-        const room =
-          direction === "hybrid"
-            ? maxScrollSize[0] > 0 || maxScrollSize[1] > 0
-            : maxScrollSize[direction === "x" ? 0 : 1] > 0;
-
-        if (!room) return;
+        if (!contentDragHasRoom) return;
 
         event.stopPropagation();
         onMouseOrTouchDown("wrapp", event);
@@ -4525,7 +4555,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
        * уже принадлежащий MorphScroll жест.
        */
       const holdOwnedTouch = (event: TouchEvent) => {
-        if (pointerRuntime.axisOwned && event.cancelable) event.preventDefault();
+        if (pointerRuntime.axisOwned && event.cancelable)
+          event.preventDefault();
       };
 
       if (contentDragAvailable)
@@ -4552,8 +4583,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       controlDragAvailable,
       acceptsContentDrag,
       onMouseOrTouchDown,
-      direction,
-      maxScrollSize.join(),
+      contentDragHasRoom,
     ]);
 
     // установка слушателя нажатия на scrollContentRef
@@ -5411,7 +5441,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
                     overflow: "hidden",
                   }
                 : { overflow: overflowStyleValue }),
-              ...(controlsLocal.drag && { cursor: "grab" }),
+              ...(controlsLocal.drag &&
+                contentDragHasRoom && { cursor: "grab" }),
             }}
           >
             {objectsSizeLocal[0] && objectsSizeLocal[1] ? (

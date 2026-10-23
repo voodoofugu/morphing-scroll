@@ -44,6 +44,12 @@ import { buildItems, buildProgressMenu } from "./custom/items";
 import type { PadSample } from "./custom/gamepad";
 import { useGamepadScroll } from "./custom/gamepad";
 import ScrollThumb from "./custom/ScrollThumb";
+import EdgeLoader from "./custom/EdgeLoader";
+import {
+  activeEdgePull,
+  edgePullProgress,
+  PULL_RELOAD_THRESHOLD,
+} from "./custom/edgePull";
 
 /**
  * Живое показание стенда. Пока событие выключено, библиотека о нём молчит, и
@@ -70,6 +76,11 @@ function App() {
   const [settings, setSettings, update] = useStoredSettings();
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const [scrollTop, setScrollTop] = React.useState(0);
+  const [overscroll, setOverscroll] = React.useState({ x: 0, y: 0 });
+  const pointerActiveRef = React.useRef(false);
+  const activePullRef = React.useRef<ReturnType<typeof activeEdgePull>>(null);
+  const edgeLoadersEnabled =
+    settings.enableOnScrollValue && settings.enableEdgeLoaders;
   const [isScrolling, setIsScrolling] = React.useState(false);
   const [lastNavigate, setLastNavigate] = React.useState<NavigateEvent | null>(
     null,
@@ -86,6 +97,47 @@ function App() {
   const [codeOpen, setCodeOpen] = React.useState(false);
   const [codeTab, setCodeTab] = React.useState<"css" | "jsx">("jsx");
   const scrollRef = React.useRef<MorphScrollHandle>(null);
+
+  /*
+   * Полный круг только вооружает обновление. Само обновление происходит на
+   * pointerup, если палец всё ещё держит порог; движение назад ниже 40px его
+   * отменяет. Capture нужен потому, что MorphScroll останавливает pointerdown
+   * внутри viewport, выбирая владельца вложенного drag.
+   */
+  React.useEffect(() => {
+    pointerActiveRef.current = false;
+    activePullRef.current = null;
+    if (!edgeLoadersEnabled) return;
+
+    const begin = () => {
+      pointerActiveRef.current = true;
+      activePullRef.current = null;
+    };
+    const release = () => {
+      const reload =
+        pointerActiveRef.current &&
+        (activePullRef.current?.distance ?? 0) >= PULL_RELOAD_THRESHOLD;
+
+      pointerActiveRef.current = false;
+      activePullRef.current = null;
+
+      if (reload) window.setTimeout(() => window.location.reload(), 0);
+    };
+    const cancel = () => {
+      pointerActiveRef.current = false;
+      activePullRef.current = null;
+    };
+
+    window.addEventListener("pointerdown", begin, true);
+    window.addEventListener("pointerup", release, true);
+    window.addEventListener("pointercancel", cancel, true);
+
+    return () => {
+      window.removeEventListener("pointerdown", begin, true);
+      window.removeEventListener("pointerup", release, true);
+      window.removeEventListener("pointercancel", cancel, true);
+    };
+  }, [edgeLoadersEnabled]);
 
   useGamepadScroll(
     scrollRef,
@@ -352,9 +404,16 @@ function App() {
      */
     return {
       size: settings.edgeSize,
-      element: <div className="playground-edge" />,
+      element: (
+        <div className="playground-edge">
+          <span className="playground-edge-fade" />
+          {edgeLoadersEnabled && (
+            <EdgeLoader progress={edgePullProgress(overscroll)} />
+          )}
+        </div>
+      ),
     };
-  }, [settings.edge, settings.edgeSize]);
+  }, [edgeLoadersEnabled, overscroll, settings.edge, settings.edgeSize]);
 
   const progressElement = React.useMemo<
     React.ReactNode | React.ReactNode[] | boolean
@@ -431,9 +490,12 @@ function App() {
         ? setRenderedKeys
         : undefined,
       onScrollPosition: settings.enableOnScrollValue
-        ? (left, top) => {
+        ? (left, top, _max, nextOverscroll) => {
             setScrollLeft(left);
             setScrollTop(top);
+            setOverscroll(nextOverscroll);
+            if (edgeLoadersEnabled && pointerActiveRef.current)
+              activePullRef.current = activeEdgePull(nextOverscroll);
           }
         : undefined,
       controls: {
@@ -1487,8 +1549,19 @@ function App() {
                 />
               }
               active={touched.onScrollPosition}
+              enabled={settings.enableOnScrollValue}
               name="onScrollPosition"
-            />
+            >
+              <ToggleField
+                label="edge loaders"
+                onChange={(value) => update("enableEdgeLoaders", value)}
+                value={settings.enableEdgeLoaders}
+              />
+              <p className="sub-note">
+                playground example using the <code>overscroll</code> value from
+                <code> onScrollPosition</code>
+              </p>
+            </PropCard>
             <PropCard
               control={
                 <ToggleField
@@ -1590,6 +1663,9 @@ function App() {
                 <div className="readouts">
                   <Readout name="scroll" on={settings.enableOnScrollValue}>
                     {Math.round(scrollLeft)}, {Math.round(scrollTop)}
+                  </Readout>
+                  <Readout name="overscroll" on={settings.enableOnScrollValue}>
+                    {Math.round(overscroll.x)}, {Math.round(overscroll.y)}
                   </Readout>
                   <Readout name="motion" on={settings.enableIsScrolling}>
                     {isScrolling ? "yes" : "no"}

@@ -2,6 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, act } from "@testing-library/react";
 import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
+import CONST from "@morphing-scroll/src/constants";
 
 import { stubLayout, pointer, drag } from "../../helpers/dom";
 
@@ -19,12 +20,16 @@ const items = () =>
  * scroll saturates before the code thinks the edge was reached — the
  * rubber-band never engages.
  */
-const mount = (realScrollWidth: number) => {
+const mount = (
+  realScrollWidth: number,
+  onScrollPosition?: ReturnType<typeof vi.fn>,
+) => {
   const utils = render(
     <MorphScroll objects={{ size: OBJ }}
       size={[VIEW, 100]}
       direction="x"
       controls={{ drag: true }}
+      onScrollPosition={onScrollPosition}
     >
       {items()}
     </MorphScroll>,
@@ -88,5 +93,30 @@ describe("MorphScroll — rubber band at the horizontal end", () => {
     expect(overscrollX(wrapper)).toBeLessThan(0);
 
     pointer("pointerup", 0, 50, document);
+  });
+
+  it("reports the pull and every frame of its return through onScrollPosition", () => {
+    const onScrollPosition = vi.fn();
+    const { el } = mount(COUNT * OBJ, onScrollPosition);
+    onScrollPosition.mockClear();
+
+    dragPastRightEdge(el);
+
+    expect(onScrollPosition).toHaveBeenCalled();
+    expect(onScrollPosition.mock.calls.at(-1)?.[3]).toMatchObject({
+      x: expect.any(Number),
+      y: 0,
+    });
+    expect(onScrollPosition.mock.calls.at(-1)?.[3].x).toBeLessThan(0);
+
+    pointer("pointerup", 0, 50, document);
+    for (
+      let frame = 0;
+      frame < Math.ceil(CONST.OVERSCROLL_BACK_DURATION / 16) + 5;
+      frame += 1
+    )
+      act(() => vi.advanceTimersToNextFrame());
+
+    expect(onScrollPosition.mock.calls.at(-1)?.[3]).toEqual({ x: 0, y: 0 });
   });
 });

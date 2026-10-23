@@ -1767,11 +1767,11 @@ Tell them apart by naming them. A spinner where the data is on its way and a wor
 <b>Usage:</b><br />
 
 ```tsx
-onScrollPosition: (left, top, max) => {};
+onScrollPosition: (left, top, max, overscroll) => {};
 ```
 
 <b>Description:</b><em><br />
-runs on every scroll event with the current offsets, and with how far each axis can go.<br />
+runs whenever the scroll position or rubber band changes, with the current offsets, how far each axis can go, and the signed rubber-band displacement in pixels as <code>overscroll.x</code> and <code>overscroll.y</code>.<br />
 <br />
 That third argument is what makes a "load more" out of this without a prop for it: the distance to the end is <code>max</code> minus the position. With <code>render</code> or <code>objects.size: "auto"</code> nothing outside <b>can</b> know it — the objects are not in the document, or their sizes were measured here.<br />
 <br />
@@ -1780,6 +1780,7 @@ That third argument is what makes a "load more" out of this without a prop for i
 <ul>
   <li>measure with a distance, not with equality. <code>max</code> is read off the element, where the sizes are whole numbers while the position need not be: under browser zoom the two drift apart by a fraction of a pixel, and the position can even read past <code>max</code>. <code>max.y - top &lt; 1</code> is "at the end" — and a "load more" wants a wider reach than that anyway, so it is the natural way to write it.</li>
   <li>in <code>loop</code> the content has no end, and <code>max</code> measures the strip of copies rather than one turn.</li>
+  <li><code>overscroll</code> is <code>{ x: 0, y: 0 }</code> outside a pull or its return animation. Positive values mean that the content moved right/down, negative values left/up. Releasing the pointer keeps reporting the return animation until both values reach zero.</li>
 </ul>
 </em><br />
 <br />
@@ -1788,8 +1789,9 @@ That third argument is what makes a "load more" out of this without a prop for i
 ```tsx
 <MorphScroll
   {...props}
-  onScrollPosition={(left, top, max) => {
+  onScrollPosition={(left, top, max, overscroll) => {
     if (max.y - top < 300) loadMore();
+    setPullProgress(Math.min(Math.abs(overscroll.y) / 80, 1));
   }}
 >
   {children}

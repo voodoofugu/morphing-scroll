@@ -74,6 +74,35 @@ test.describe("MorphScroll touch (real device emulation)", () => {
     expect(await scrollTop(el)).toBeGreaterThan(100);
   });
 
+  test("reports touch rubber-band pixels and the return to zero", async ({
+    page,
+  }) => {
+    const { box } = await openScroll(page);
+
+    await swipe(
+      page,
+      { x: box.x + box.width / 2, y: box.y + 50 },
+      { x: box.x + box.width / 2, y: box.y + box.height - 20 },
+      { steps: 8, stepDelay: 20, holdBeforeRelease: 50 },
+    );
+
+    const peak = await page.evaluate(() =>
+      Math.max(
+        0,
+        ...(((window as any).__overscrollTrail ?? []) as { y: number }[]).map(
+          (value) => value.y,
+        ),
+      ),
+    );
+    expect(peak).toBeGreaterThan(0);
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => (window as any).__scroll?.overscroll),
+      )
+      .toEqual({ x: 0, y: 0 });
+  });
+
   test("uses the pointer itself when coarse media is unavailable", async ({
     page,
   }) => {

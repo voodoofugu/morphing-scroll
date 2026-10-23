@@ -39,6 +39,7 @@ export type Settings = {
   variableItems: boolean;
   interactiveItems: boolean;
   enableOnScrollValue: boolean;
+  enableEdgeLoaders: boolean;
   enableIsScrolling: boolean;
   enableOnNavigate: boolean;
   enableOnRenderedKeysChange: boolean;
@@ -118,6 +119,7 @@ export const defaultSettings: Settings = {
   variableItems: true,
   interactiveItems: true,
   enableOnScrollValue: true,
+  enableEdgeLoaders: true,
   enableIsScrolling: true,
   enableOnNavigate: true,
   enableOnRenderedKeysChange: true,
