@@ -220,6 +220,9 @@ const sliderCheck = (
   flipX?: (value: number) => number,
 ) => {
   [...scrollBars].forEach((msSlider, i) => {
+    // A limited slider renders and marks its small page window declaratively.
+    if (msSlider.hasAttribute("ms-windowed")) return;
+
     let cache = sliderCache.get(msSlider);
 
     /*
@@ -250,9 +253,7 @@ const sliderCheck = (
       cache.elements.length !== objLengthPerSize[axisIndex] ||
       !cache.elements[0]?.isConnected
     ) {
-      const elements = Array.from(
-        msSlider.querySelectorAll(".ms-slider-item"),
-      );
+      const elements = Array.from(msSlider.querySelectorAll(".ms-slider-item"));
 
       for (const el of elements) el.classList.remove("ms-active");
 

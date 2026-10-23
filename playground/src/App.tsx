@@ -519,6 +519,7 @@ function App() {
                 reverse: [settings.barReverseX, settings.barReverseY],
                 showOnHover: settings.barShowOnHover,
                 thumbMinSize: settings.barThumbMinSize,
+                maxItems: numberOrUndefined(settings.barMaxItems),
                 trackGap: [settings.barTrackGapX, settings.barTrackGapY],
               },
         wheel: settings.wheel
@@ -1375,6 +1376,14 @@ function App() {
                   onChange={(value) => update("barThumbMinSize", value)}
                   value={settings.barThumbMinSize}
                 />
+                {settings.mode !== "scroll" && (
+                  <NumberField
+                    label="maxItems"
+                    max={100}
+                    onChange={(value) => update("barMaxItems", value)}
+                    value={settings.barMaxItems}
+                  />
+                )}
                 {settings.direction !== "y" && (
                   <div className="axis-block">
                     <span className="axis-tag">x</span>

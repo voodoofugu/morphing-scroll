@@ -83,6 +83,7 @@ const build = () => {
                 reverse: true,
                 showOnHover: true,
                 thumbMinSize: 24,
+                ...(mode && { maxItems: 5 }),
               }
             : mode
               ? "@dot"

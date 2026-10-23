@@ -32,6 +32,13 @@ export type BarConfig = {
   showOnHover?: boolean;
   /** the thumb never shrinks below this */
   thumbMinSize?: number;
+  /**
+   * Maximum page markers rendered per bar in `slider` and `sliderMenu`.
+   * The window follows the active page; one value applies to each axis in
+   * `direction="hybrid"`. Values are floored and clamped to at least `1`.
+   * Has no effect in `scroll` mode.
+   */
+  maxItems?: number;
 };
 
 /** the object form of `controls.wheel` */

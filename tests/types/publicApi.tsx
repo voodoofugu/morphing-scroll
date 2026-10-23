@@ -58,6 +58,7 @@ export const everyProp = (
         reverse: [true, false],
         showOnHover: true,
         thumbMinSize: 24,
+        maxItems: 5,
       },
       arrows: { element: <b />, size: 40 },
     }}

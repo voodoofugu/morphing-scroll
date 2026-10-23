@@ -1187,7 +1187,7 @@ determines how the scroll progress is managed<br />
 
 <ul>
   <li>With <code>mode="scroll"</code> you pass your own thumb; <b>true</b> falls back to the browser's own scrollbar. The element you pass sits inside <b>.ms-thumb</b>, which is the part that moves and is sized along the track — leave its own size and position to the library and style what is inside it.</li><br />
-  <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. The strip is dragged along and pages as you go.</li><br />
+  <li>With <code>mode="slider"</code> a <b>.ms-slider</b> element is generated, holding one <b>.ms-slider-item</b> per page; the one under the current position carries <code>ms-active</code>. The strip is dragged along and pages as you go.</li><br />
   <li>With <code>mode="sliderMenu"</code> the strip is the same, but pressed rather than dragged: an element turns to its own page.</li>
 </ul>
 <br />
@@ -1202,6 +1202,7 @@ bar: {
   reverse: true,
   showOnHover: true,
   thumbMinSize: 24,
+  maxItems: 7,
 }
 ```
 
@@ -1364,6 +1365,36 @@ the thumb never shrinks below this.<br />
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-controls_bar_thumbMinSize.png)
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><code><b>maxItems</b></code></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+maxItems: 7;
+```
+
+<b>Description:</b><em><br />
+limits how many page markers are rendered at once in <b>slider</b> and <b>sliderMenu</b> modes. Use a positive integer; fractions are rounded down and values below <b>1</b> become <b>1</b>.<br />
+<br />
+The window follows the active page: when it reaches an edge, one marker enters ahead and one leaves behind. Under <code>loop</code> the window wraps with the pages. In <code>direction="hybrid"</code> the same limit applies independently to both bars. If <code>element</code> is an array, its entries keep their original page indexes while the window moves.<br />
+<br />
+Omitting the setting keeps all page markers. It has no effect in <b>scroll</b> mode.<br />
+</em><br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  mode="sliderMenu"
+  controls={{ bar: { element: <PagePreview />, maxItems: 7 } }}
+>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
 

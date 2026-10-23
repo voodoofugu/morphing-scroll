@@ -234,6 +234,37 @@ test.describe("MorphScroll touch: nesting and taps", () => {
 
     expect(await scrollTop(page.locator(".ms-viewport"))).toBe(600);
   });
+
+  test("ограниченную полосу слайдера можно вести пальцем", async ({ page }) => {
+    const config = {
+      count: 10,
+      size: 300,
+      mode: "slider",
+      objects: { size: "full" },
+      controls: { bar: { element: "@dot", maxItems: 4 } },
+      duration: 0,
+    };
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+
+    const first = page.locator(".ms-slider-item").first();
+    const box = (await first.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+
+    await swipe(
+      page,
+      { x, y },
+      { x, y: y + box.height * 1.2 },
+      { steps: 4, stepDelay: 20 },
+    );
+
+    await expect(page.locator('.ms-slider-item[ms-page="1"]')).toHaveClass(
+      /\bms-active\b/,
+    );
+    await expect(page.locator(".ms-slider-item")).toHaveCount(4);
+  });
 });
 
 /* На границе touch-drag остаётся у внутреннего MorphScroll. */

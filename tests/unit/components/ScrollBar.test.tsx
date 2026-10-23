@@ -11,7 +11,8 @@ const items = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={`item-${i}`}>item {i}</div>);
 
 const withBar = (count: number) => (
-  <MorphScroll objects={{ size: OBJ }}
+  <MorphScroll
+    objects={{ size: OBJ }}
     size={[100, VIEW]}
     controls={{ wheel: true, bar: <div className="knob" /> }}
   >
@@ -77,7 +78,8 @@ describe("ScrollBar — showOnHover", () => {
   afterEach(() => vi.useRealTimers());
 
   const onHover = (
-    <MorphScroll objects={{ size: OBJ }}
+    <MorphScroll
+      objects={{ size: OBJ }}
       size={[100, VIEW]}
       controls={{
         wheel: true,
@@ -150,7 +152,8 @@ describe("ScrollBar — showOnHover", () => {
 
 describe("ScrollBar — a changed progressElement", () => {
   const withThumb = (label: string) => (
-    <MorphScroll objects={{ size: OBJ }}
+    <MorphScroll
+      objects={{ size: OBJ }}
       size={[100, VIEW]}
       controls={{ wheel: true, bar: <b>{label}</b> }}
     >
@@ -159,7 +162,8 @@ describe("ScrollBar — a changed progressElement", () => {
   );
 
   const withDots = (label: string) => (
-    <MorphScroll objects={{ size: VIEW }}
+    <MorphScroll
+      objects={{ size: VIEW }}
       size={[100, VIEW]}
       mode="sliderMenu"
       controls={{ wheel: true, bar: <b>{label}</b> }}
@@ -195,10 +199,87 @@ describe("ScrollBar — a changed progressElement", () => {
   });
 });
 
+describe("ScrollBar — maxItems", () => {
+  it("renders only the requested page window", () => {
+    const markers = Array.from({ length: 9 }, (_, index) => (
+      <i key={index}>page {index}</i>
+    ));
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: VIEW }}
+        size={[100, VIEW]}
+        mode="sliderMenu"
+        controls={{
+          wheel: true,
+          bar: { element: markers, maxItems: 4 },
+        }}
+      >
+        {items(9)}
+      </MorphScroll>,
+    );
+
+    const shown = container.querySelectorAll<HTMLElement>(".ms-slider-item");
+    expect(shown).toHaveLength(4);
+    expect(Array.from(shown, (item) => item.getAttribute("ms-page"))).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+    ]);
+    expect(shown[0]).toHaveClass("ms-active");
+  });
+
+  it("does not alter the existing unlimited path", () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: VIEW }}
+        size={[100, VIEW]}
+        mode="sliderMenu"
+        controls={{ wheel: true, bar: <i /> }}
+      >
+        {items(9)}
+      </MorphScroll>,
+    );
+
+    expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(9);
+    expect(container.querySelector(".ms-slider")).not.toHaveAttribute(
+      "ms-windowed",
+    );
+  });
+
+  it("can be enabled, changed, and disabled without remounting", () => {
+    const view = (maxItems?: number) => (
+      <MorphScroll
+        objects={{ size: VIEW }}
+        size={[100, VIEW]}
+        mode="sliderMenu"
+        controls={{
+          wheel: true,
+          bar: { element: <i />, ...(maxItems && { maxItems }) },
+        }}
+      >
+        {items(9)}
+      </MorphScroll>
+    );
+    const { container, rerender } = render(view());
+
+    expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(9);
+    rerender(view(3));
+    expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(3);
+    expect(container.querySelectorAll(".ms-slider-item.ms-active")).toHaveLength(1);
+    rerender(view(5));
+    expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(5);
+    expect(container.querySelectorAll(".ms-slider-item.ms-active")).toHaveLength(1);
+    rerender(view());
+    expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(9);
+  });
+});
+
 describe("ScrollBar — edgeGap", () => {
   const bar = (config: unknown) =>
     render(
-      <MorphScroll objects={{ size: OBJ }}
+      <MorphScroll
+        objects={{ size: OBJ }}
         size={[100, VIEW]}
         controls={{ wheel: true, bar: config as never }}
       >
@@ -231,7 +312,8 @@ describe("ScrollBar — edgeGap", () => {
 
   it("takes the axis pair for a hybrid scroll", () => {
     const { container } = render(
-      <MorphScroll objects={{ size: 100, lines: 4 }}
+      <MorphScroll
+        objects={{ size: 100, lines: 4 }}
         size={[300, 300]}
         direction="hybrid"
         controls={{
@@ -259,7 +341,8 @@ describe("ScrollBar — edgeGap", () => {
 
   it("gives a single horizontal scroll the x half of the pair", () => {
     const { container } = render(
-      <MorphScroll objects={{ size: 100 }}
+      <MorphScroll
+        objects={{ size: 100 }}
         size={[300, 300]}
         direction="x"
         controls={{

@@ -9,6 +9,11 @@ import type {
 import handleWheel, { ScrollStateRefT } from "../helpers/handleWheel";
 import CONST from "../constants";
 import { claimGesture } from "../helpers/gestureRelay";
+import {
+  shiftSliderWindow,
+  sliderWindowLimit,
+  sliderWindowPages,
+} from "../helpers/sliderWindow";
 
 type ModifiedProps = Pick<MorphScroll, "mode"> & {
   /** the bar configuration, already parsed, for one axis */
@@ -47,6 +52,9 @@ type ModifiedProps = Pick<MorphScroll, "mode"> & {
   pageDirection: "ltr" | "rtl";
   controls: [ControlsConfig, number];
   maxScrollSize: Vec2;
+  maxItems?: number;
+  activePage: number;
+  loop: boolean;
 };
 
 const ScrollBar = ({
@@ -75,6 +83,9 @@ const ScrollBar = ({
   triggerUpdate,
   overscroll,
   maxScrollSize,
+  maxItems,
+  activePage,
+  loop,
 }: ModifiedProps) => {
   // - refs -
   const scrollBarRef = React.useRef<HTMLDivElement>(null);
@@ -99,14 +110,85 @@ const ScrollBar = ({
       ? thumbSpace + dampeningOverscroll
       : thumbSpace;
 
+  const limit = sliderWindowLimit(maxItems, objLengthPerSize);
+  const windowed = mode !== "scroll" && limit < objLengthPerSize;
+  const [windowState, setWindowState] = React.useState(() => ({
+    active: activePage,
+    limit,
+    start: windowed
+      ? shiftSliderWindow({
+          active: activePage,
+          previous: 0,
+          start: 0,
+          total: objLengthPerSize,
+          limit,
+          loop,
+        })
+      : 0,
+    total: objLengthPerSize,
+    loop,
+  }));
+  const windowChanged =
+    windowState.active !== activePage ||
+    windowState.limit !== limit ||
+    windowState.total !== objLengthPerSize ||
+    windowState.loop !== loop;
+  const nextWindow =
+    windowed && windowChanged
+      ? {
+          active: activePage,
+          limit,
+          start: shiftSliderWindow({
+            active: activePage,
+            previous: windowState.active,
+            start: windowState.start,
+            total: objLengthPerSize,
+            limit,
+            loop,
+          }),
+          total: objLengthPerSize,
+          loop,
+        }
+      : windowState;
+
+  React.useLayoutEffect(() => {
+    if (nextWindow === windowState) return;
+    setWindowState(nextWindow);
+  }, [nextWindow, windowState]);
+
+  const previousWindowed = React.useRef(windowed);
+  React.useLayoutEffect(() => {
+    const wasWindowed = previousWindowed.current;
+    previousWindowed.current = windowed;
+
+    /* Restore the imperative active marker when the full stable list returns. */
+    if (wasWindowed && !windowed) sliderCheckLocal();
+  }, [sliderCheckLocal, windowed]);
+
+  const visiblePages = React.useMemo(
+    () =>
+      sliderWindowPages(
+        windowed ? nextWindow.start : 0,
+        objLengthPerSize,
+        limit,
+        loop,
+      ),
+    [limit, loop, nextWindow.start, objLengthPerSize, windowed],
+  );
+  /* unlimited bars keep the old stable list while sliderCheck updates classes */
+  const renderedActivePage = windowed ? activePage : -1;
+
   // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
     if (mode === "scroll") return;
 
-    return Array.from({ length: objLengthPerSize }, (_, index) => (
+    return visiblePages.map((page) => (
       <div
-        key={index}
-        className="ms-slider-item"
+        key={page}
+        className={`ms-slider-item${
+          page === renderedActivePage ? " ms-active" : ""
+        }`}
+        ms-page={windowed ? page : undefined}
         /*
          * Нажатие — механика меню, и живёт оно там. У слайдера полосу тянут:
          * два способа сделать одно и то же спорят и на вид — курсор обещал бы
@@ -118,22 +200,23 @@ const ScrollBar = ({
          */
         {...(mode === "sliderMenu" && {
           style: { cursor: "pointer" },
-          onClick: () => goToPage(index, axis),
+          onClick: () => goToPage(page, axis),
         })}
       >
         {Array.isArray(progressElement)
-          ? progressElement[index]
+          ? progressElement[page]
           : progressElement}
       </div>
     ));
   }, [
-    objLengthPerSize,
+    renderedActivePage,
+    visiblePages,
+    windowed,
     mode,
     controls[1], // только для memo
     axis,
     goToPage,
   ]);
-
 
   const dataDirection = React.useMemo(() => {
     return direction !== "x" ? "y" : "x";
@@ -256,9 +339,7 @@ const ScrollBar = ({
            * читаются и без него.
            */
           role="scrollbar"
-          aria-orientation={
-            dataDirection === "x" ? "horizontal" : "vertical"
-          }
+          aria-orientation={dataDirection === "x" ? "horizontal" : "vertical"}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={
@@ -328,6 +409,7 @@ const ScrollBar = ({
           <div
             className={`ms-slider ms-${dataDirection}`}
             ref={scrollBarRef}
+            ms-windowed={windowed ? "" : undefined}
             {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
             style={{
               ...commonStyles,

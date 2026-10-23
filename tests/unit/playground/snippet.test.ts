@@ -20,6 +20,7 @@ describe("playground JSX snippet", () => {
     expect(code).not.toContain("reverse:");
     expect(code).not.toContain("showOnHover:");
     expect(code).not.toContain("thumbMinSize:");
+    expect(code).not.toContain("maxItems:");
     expect(code).not.toContain("drag: false");
     expect(code).not.toContain("align: \"start\"");
     expect(code).not.toContain("order: \"row\"");
@@ -65,6 +66,7 @@ describe("playground JSX snippet", () => {
         barReverseX: true,
         barShowOnHover: true,
         barThumbMinSize: 24,
+        barMaxItems: 5,
       }),
       200,
     );
@@ -72,6 +74,7 @@ describe("playground JSX snippet", () => {
     expect(code).toContain("reverse: [true, false]");
     expect(code).toContain("showOnHover: true");
     expect(code).toContain("thumbMinSize: 24");
+    expect(code).toContain("maxItems: 5");
   });
 
   it("keeps a slider example compact when its direction is y", () => {

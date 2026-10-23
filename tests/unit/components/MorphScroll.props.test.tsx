@@ -92,6 +92,7 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   // 12 items over 3 columns make a 400px wrapper, so the thumb is 225px
   // on its own — the floor has to be above that to bind
   ["bar.thumbMinSize", { controls: { bar: <i /> } }, { controls: { bar: { element: <i />, thumbMinSize: 280 } } }],
+  ["bar.maxItems", { mode: "slider", objects: { size: 300 }, controls: { bar: <i /> } }, { mode: "slider", objects: { size: 300 }, controls: { bar: { element: <i />, maxItems: 2 } } }],
 ];
 
 describe("MorphScroll — every prop is read", () => {

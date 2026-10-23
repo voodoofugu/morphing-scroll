@@ -41,6 +41,8 @@ type PointerRuntime = CursorHolder & {
   checkSliderThumbSize: { x: number; y: number };
   /** the bar element the current gesture aims at — one per axis */
   sliderAim: { x: number | null; y: number | null };
+  /** page held when a limited slider bar starts moving */
+  sliderOrigin: { x: number | null; y: number | null };
   velocity: Velocity;
   prevCoords: { x: PrevCoord; y: PrevCoord } | null;
   /** the listeners of the current gesture */
@@ -72,6 +74,7 @@ function createPointerRuntime(): PointerRuntime {
     gestureAxis: null,
     checkSliderThumbSize: { x: 0, y: 0 },
     sliderAim: { x: null, y: null },
+    sliderOrigin: { x: null, y: null },
     velocity: emptyVelocity(),
     prevCoords: null,
     controller: undefined,
@@ -89,6 +92,7 @@ function createPointerRuntime(): PointerRuntime {
       runtime.gestureAxis = null;
       runtime.checkSliderThumbSize = { x: 0, y: 0 };
       runtime.sliderAim = { x: null, y: null };
+      runtime.sliderOrigin = { x: null, y: null };
     },
 
     destroy() {

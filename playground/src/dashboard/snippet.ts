@@ -112,6 +112,7 @@ export function buildSnippet(settings: Settings, duration: number) {
       settings.barThumbMinSize === 30
         ? undefined
         : settings.barThumbMinSize,
+    maxItems: numberOrUndefined(settings.barMaxItems),
     trackGap: axisValue(settings.barTrackGapX, settings.barTrackGapY, 0),
   };
 

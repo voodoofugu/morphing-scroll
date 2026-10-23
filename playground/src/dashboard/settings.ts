@@ -97,6 +97,7 @@ export type Settings = {
   barEdgeGapX: number;
   barEdgeGapY: number;
   barThumbMinSize: number;
+  barMaxItems: number;
   renderMode: RenderMode;
   rootMargin: number;
   deferLoadOnScroll: boolean;
@@ -177,6 +178,7 @@ export const defaultSettings: Settings = {
   barEdgeGapX: 8,
   barEdgeGapY: 8,
   barThumbMinSize: 30,
+  barMaxItems: 0,
   renderMode: "off",
   rootMargin: 120,
   deferLoadOnScroll: false,

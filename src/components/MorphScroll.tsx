@@ -580,6 +580,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         reverse: pair(config.reverse, false),
         showOnHover: config.showOnHover ?? false,
         thumbMinSize: config.thumbMinSize ?? 30,
+        maxItems: config.maxItems,
       };
     }, [controlsST]);
 
@@ -5292,6 +5293,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             triggerUpdate={triggerRAF}
             overscroll={overscrollRef}
             maxScrollSize={maxScrollSize}
+            maxItems={barLocal.maxItems}
+            activePage={pageNow(args.direction) ?? 0}
+            loop={loopPeriods[axis] > 0}
           />
         );
       });

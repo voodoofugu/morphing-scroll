@@ -49,6 +49,8 @@ type HandleMouseT = {
     y: number;
   }>;
   objLengthPerSize: number[];
+  /** visible marker count captured when a limited slider drag starts */
+  sliderVisibleItems?: number;
   isDraggingRef: React.MutableRefObject<boolean>;
   maxScrollSize: Vec2;
   /** the circle's period per axis, zero where the axis does not loop */
@@ -105,36 +107,14 @@ type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
   event: PointerEvent;
   thumbRatio: number;
   maxScrollSize: Vec2;
+  /** stable control node; its pressed child may leave a limited slider */
+  gestureElement: HTMLElement | null;
 };
 
 function getVisualToLayoutScale(el: HTMLElement) {
   const rect = el.getBoundingClientRect();
   return [rect.width / el.clientWidth, rect.height / el.clientHeight];
 }
-
-const cursorClassChange = (
-  clicked: ClickedT,
-  target: HTMLElement | null,
-  scrollElement: HTMLDivElement | null,
-  mode: "start" | "end",
-  runtime: PointerRuntime,
-) => {
-  if (!clicked) return;
-  let elem: HTMLElement | null = null;
-
-  /*
-   * Класс достаётся элементу библиотеки, а не тому, во что попал указатель:
-   * что лежит внутри бегунка — дело автора разметки, и стилизовать по классу
-   * он смог бы только угадывая. У слайдера и содержимого так было всегда.
-   */
-  if (["thumb", "slider"].includes(clicked)) {
-    elem = target?.closest(
-      clicked === "slider" ? ".ms-slider" : ".ms-thumb",
-    ) as HTMLElement | null;
-  } else elem = scrollElement; // clicked = "wrapp"
-
-  mouseOnEl(elem, mode, runtime);
-};
 
 /*
  * Получатель жеста держит свой cursor lock и снимает только его. Поэтому
@@ -144,13 +124,7 @@ const cursorClassChange = (
 const releaseHandedOffGesture = (args: HandleMoveT) => {
   const rt = args.runtime;
 
-  cursorClassChange(
-    args.clickedObject.current,
-    args.target,
-    args.scrollElement,
-    "end",
-    rt,
-  );
+  mouseOnEl(args.scrollElement, "end", rt);
 
   rt.controller?.abort();
   rt.controller = undefined;
@@ -410,18 +384,6 @@ const motionHandler = (
    * Полоса страниц развёрнутого списка показана справа налево, значит и
    * прицел по ней читается оттуда же: у правого края её первая страница.
    */
-  const along = (point[axis] - barStart) / barSize;
-  const reach = Math.floor((isX && args.flipX ? 1 - along : along) * pages);
-
-  /*
-   * За краем бара обычный слайдер упирается: дальше первого и последнего
-   * пункта идти некуда. В круге некуда не бывает — за последним снова первый,
-   * — поэтому там прицел не упирается, а заворачивается.
-   */
-  const aimed = period
-    ? ((reach % pages) + pages) % pages
-    : clampValue(reach, 0, pages - 1);
-
   const step = loopPages(
     period,
     el[isX ? "clientWidth" : "clientHeight"],
@@ -447,6 +409,35 @@ const motionHandler = (
   /* и здесь страница по кольцу: прицел свёрнут, а «где мы» было развёрнуто */
   const at = loopPageAt(asList(el[topOrLeft]) - period, step);
   const current = seen ?? (period ? ((at % pages) + pages) % pages : at);
+
+  let aimed: number;
+  if (args.sliderVisibleItems) {
+    const origin =
+      rt.sliderOrigin[axis] ?? (period ? ((at % pages) + pages) % pages : at);
+    rt.sliderOrigin[axis] = origin;
+
+    const itemSize = barSize / args.sliderVisibleItems;
+    const travel = point[axis] - args.startPoint[axis];
+    const reach =
+      origin + Math.round(travel / itemSize) * (isX && args.flipX ? -1 : 1);
+
+    aimed = period
+      ? ((reach % pages) + pages) % pages
+      : clampValue(reach, 0, pages - 1);
+  } else {
+    const along = (point[axis] - barStart) / barSize;
+    const reach = Math.floor((isX && args.flipX ? 1 - along : along) * pages);
+
+    /*
+     * За краем бара обычный слайдер упирается: дальше первого и последнего
+     * пункта идти некуда. В круге некуда не бывает — за последним снова
+     * первый, — поэтому там прицел не упирается, а заворачивается.
+     */
+    aimed = period
+      ? ((reach % pages) + pages) % pages
+      : clampValue(reach, 0, pages - 1);
+  }
+
   rt.sliderAim[axis] = aimed;
   if (aimed === current) return;
 
@@ -527,8 +518,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
   if (args.clickedObject.current !== "wrapp") {
     rt.axisDecided = true;
     rt.axisOwned = true;
-    rt.gestureAxis =
-      args.axisFromAtr ?? (args.direction === "x" ? "x" : "y");
+    rt.gestureAxis = args.axisFromAtr ?? (args.direction === "x" ? "x" : "y");
   }
 
   // получение некоторых данных заранее при клике
@@ -574,7 +564,22 @@ function handleMouseOrTouch(args: HandleMouseT) {
   }
 
   // меняем курсор и класс
-  cursorClassChange(args.clickedObject.current, args.target, el, "start", rt);
+  const gestureElement =
+    args.clickedObject.current === "wrapp"
+      ? el
+      : (args.target?.closest(
+          args.mode === "slider" ? ".ms-slider" : ".ms-thumb",
+        ) as HTMLElement | null);
+  mouseOnEl(gestureElement, "start", rt);
+
+  /*
+   * The strip stays mounted while its limited page items rotate. Keeping the
+   * strip itself avoids losing the gesture when the pressed item leaves.
+   */
+  const sliderBar =
+    args.clickedObject.current === "thumb" && args.mode === "slider"
+      ? (args.target?.closest(".ms-slider") as HTMLElement | null)
+      : null;
 
   // слушатели для движения и отжатия
   rt.controller?.abort(); // отменяем предыдущий жест этого же скролла
@@ -586,10 +591,11 @@ function handleMouseOrTouch(args: HandleMouseT) {
     // бар мог переехать за время жеста — читаем его положение на каждом шаге
     let sliderRect: DOMRect | undefined;
     if (args.clickedObject.current === "thumb" && args.mode === "slider") {
-      const bar = args.target?.closest(".ms-slider") as HTMLElement | null;
-      if (!bar) return;
+      if (!sliderBar) return;
 
-      sliderRect = bar.getBoundingClientRect();
+      sliderRect = sliderBar.getBoundingClientRect();
+      if (sliderBar.hasAttribute("ms-windowed") && !args.sliderVisibleItems)
+        args.sliderVisibleItems = sliderBar.childElementCount;
     }
 
     handleMove({
@@ -656,6 +662,7 @@ function handleMouseOrTouch(args: HandleMouseT) {
       ...args,
       event: e as any,
       thumbRatio,
+      gestureElement,
     });
   };
 
@@ -710,9 +717,7 @@ const decideAxis = (
     const toward: 1 | -1 = rt.travel[chosen] > 0 ? -1 : 1;
     const index = chosen === "x" ? 0 : 1;
     const position =
-      args.scrollElement?.[
-        chosen === "x" ? "scrollLeft" : "scrollTop"
-      ] ?? 0;
+      args.scrollElement?.[chosen === "x" ? "scrollLeft" : "scrollTop"] ?? 0;
     const most = args.maxScrollSize[index];
     const localRoom =
       !!args.loopPeriods?.[index] ||
@@ -824,7 +829,7 @@ function handleUp(args: HandleUpT) {
   if (!el) return;
 
   // меняем курсор и классы
-  cursorClassChange(args.clickedObject.current, args.target, el, "end", rt);
+  mouseOnEl(args.gestureElement, "end", rt);
 
   // логика для слайдера
   /* у страниц прилипает и тяга содержимого — в обоих режимах слайдера */
@@ -931,15 +936,10 @@ function handleUp(args: HandleUpT) {
 
   // - сбрасываем -
   const backAnim = (axis: "x" | "y") =>
-    overscrollBackAnim(
-      rt.overscrollLoop,
-      args.overscrollRef,
-      axis,
-      () => {
-        args.triggerUpdate();
-        args.reportScrollPosition();
-      },
-    );
+    overscrollBackAnim(rt.overscrollLoop, args.overscrollRef, axis, () => {
+      args.triggerUpdate();
+      args.reportScrollPosition();
+    });
 
   if (args.overscrollRef.current.x !== 0) backAnim("x");
   if (args.overscrollRef.current.y !== 0) backAnim("y");

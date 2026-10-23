@@ -2,6 +2,9 @@
 
 ### Added
 
+- **slider bars can limit their visible page markers.**
+  `controls.bar.maxItems` keeps a moving window of `.ms-slider-item` elements
+  around the active page in `slider` and `sliderMenu` modes.
 - **`onScrollPosition` now reports rubber-band displacement.** Its fourth
   argument is `{ x, y }` in pixels and updates while content is pulled beyond
   an edge and while it settles back, enabling pull-to-refresh indicators and
