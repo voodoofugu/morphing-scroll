@@ -15,25 +15,19 @@ import { STORAGE_KEY } from "../dashboard/settings";
 import type { Theme } from "../dashboard/settings";
 import ChromeScroll from "../shell/ChromeScroll";
 import TopBar from "../shell/TopBar";
+import { liveDemos } from "./demos";
 
 /*
  * Документация — это README, показанный удобнее: текст разделов приходит из
  * него готовым HTML (`plugins/readme.ts`), здесь только навигация, поиск и
- * живые примеры. Пример лежит в `demos/` под путём пропса и встаёт на место
- * картинки из README; нет примера — остаётся картинка.
+ * живые примеры. Примеры собраны по пути пропса в `demos.tsx` и встают на
+ * место картинок из README; нет примера — остаётся картинка.
  *
  * Прокрутки на странице — свои: библиотека о них и рассказывает, так что и
  * дерево слева, и текст справа едут на `MorphScroll`.
  */
-const demos = import.meta.glob<{ default: React.ComponentType }>(
-  "./demos/*.tsx",
-  { eager: true },
-);
-
 const demoOf = (node: ReadmeNode) =>
-  node.component === "MorphScroll"
-    ? demos[`./demos/${node.path}.tsx`]?.default
-    : undefined;
+  node.component === "MorphScroll" ? liveDemos[node.path] : undefined;
 
 const hrefOf = (node: ReadmeNode) =>
   node.kind === "component"

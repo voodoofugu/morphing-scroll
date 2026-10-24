@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { collectDocs } from "../../playground/plugins/docs";
 import { flatten, parseReadme, README_FILE } from "../../playground/plugins/readme";
+import { liveDemos } from "../../playground/src/docs/demos";
 
 /*
  * README — источник правды документации, JSDoc — подсказки редактора. Текст
@@ -51,5 +52,14 @@ describe("README и типы описывают одни и те же пропс
       path in docs || paths.some((other) => other.startsWith(`${path}.`));
 
     expect([...sections.keys()].filter((path) => !known(path))).toEqual([]);
+  });
+
+  it("каждый баннер MorphScroll заменён живым примером на сайте", () => {
+    const banners = [...sections]
+      .filter(([, section]) => section.body.includes('alt="banner"'))
+      .map(([path]) => path);
+
+    expect(banners.filter((path) => !liveDemos[path])).toEqual([]);
+    expect(liveDemos["controls.bar.maxItems"]).toBeDefined();
   });
 });

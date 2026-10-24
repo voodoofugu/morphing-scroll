@@ -355,6 +355,7 @@
 
 .doc-demo-box {
   height: 240px;
+  overflow: auto;
 }
 
 .doc-demo-control {
@@ -366,9 +367,53 @@
   font-weight: 700;
 }
 
-.doc-demo-control input {
+.doc-demo-control input[type="range"] {
   flex: 1;
   accent-color: var(--accent);
+}
+
+.doc-demo-control input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.doc-demo-control select,
+.doc-demo-controls button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  padding: 4px 9px;
+}
+
+.doc-demo-control select {
+  flex: 1;
+}
+
+.doc-demo-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.doc-demo-controls .doc-demo-control {
+  flex: 1;
+}
+
+.doc-demo-hint {
+  margin: -4px 0 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.doc-example-wrapper .ms-objects-wrapper {
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
+  background: var(--accent-soft);
 }
 
 .doc-demo-control output {
@@ -411,5 +456,13 @@
 
   .doc-title {
     font-size: 24px;
+  }
+
+  .doc-demo-stage {
+    padding: 12px;
+  }
+
+  .doc-demo-control {
+    gap: 8px;
   }
 }
