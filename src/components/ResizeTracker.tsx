@@ -14,7 +14,7 @@ import stabilize from "../helpers/stabilize";
  * - `measure`
  * - `onResize`
  * ### Links:
- * [ResizeTracker Documentation](https://voodoofugu.github.io/morphing-scroll/docs/#/ResizeTracker)
+ * [ResizeTracker Documentation](https://voodoofugu.github.io/morphing-scroll/#/ResizeTracker)
  *
  * [MDN Resize Observer API](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
  */

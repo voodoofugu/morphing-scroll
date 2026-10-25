@@ -12,7 +12,7 @@ import MorphScroll from "./components/MorphScroll";
  * - `ResizeTracker`: *monitors changes to an element's size.*
  * - `IntersectionTracker`: *tracks the intersection of an element with the viewport.*
  * ### Links:
- * [Morph Documentation](https://voodoofugu.github.io/morphing-scroll/docs/#/IntersectionTracker)
+ * [Morph Documentation](https://voodoofugu.github.io/morphing-scroll/)
  */
 const Morph = { MorphScroll, ResizeTracker, IntersectionTracker };
 

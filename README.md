@@ -26,7 +26,7 @@ The library includes optimizations for large lists, improving performance and ov
 
 ### 〈 Playground 〉
 
-[**The documentation**](https://voodoofugu.github.io/morphing-scroll/docs/) holds everything below, prop by prop, with a live example where one helps — and the **Playground** is a click away from it: a dashboard where every prop is a card. Turn them, watch the scroll change, then take the JSX it writes for you. Rest on a prop name and its description comes up — the same one your editor shows, read straight from the types.
+[**The documentation**](https://voodoofugu.github.io/morphing-scroll/) holds everything below, prop by prop, with a live example where one helps — and the [**Playground**](https://voodoofugu.github.io/morphing-scroll/playground/) is a click away from it: a dashboard where every prop is a card. Turn them, watch the scroll change, then take the JSX it writes for you. Rest on a prop name and its description comes up — the same one your editor shows, read straight from the types.
 
 The library styles only what it cannot work without, inline and no further: sizes, places, the parts it moves. The look is yours — and the dashboard hands that half over too: the **CSS** tab holds the look you are seeing, with a line on every block saying what the library gives — the `ms-grabbing` and `ms-disabled` classes, the `--ms-bar-visibility`, `--ms-edge-visibility` and `--ms-content-visibility` variables — and what is yours to write.
 

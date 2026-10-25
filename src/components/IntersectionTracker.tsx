@@ -23,7 +23,7 @@ import stabilize from "../helpers/stabilize";
  * - `threshold`
  * - `onIntersection`
  * ### Links:
- * [IntersectionTracker Documentation](https://www.npmjs.com/package/morphing-scroll)
+ * [IntersectionTracker Documentation](https://voodoofugu.github.io/morphing-scroll/#/IntersectionTracker)
  *
  * [MDN Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
  */

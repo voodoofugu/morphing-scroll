@@ -16,12 +16,14 @@ import type { Theme } from "../dashboard/settings";
 import ChromeScroll from "../shell/ChromeScroll";
 import TopBar from "../shell/TopBar";
 import { liveDemos } from "./demos";
+import { splitExampleHtml } from "./splitExampleHtml";
 
 /*
  * Документация — это README, показанный удобнее: текст разделов приходит из
  * него готовым HTML (`plugins/readme.ts`), здесь только навигация, поиск и
- * живые примеры. Примеры собраны по пути пропса в `demos.tsx` и встают на
- * место картинок из README; нет примера — остаётся картинка.
+ * живые примеры. Примеры собраны по пути пропса в `demos.tsx` и заменяют
+ * статический код и баннер внутри раздела Example; README при этом остаётся
+ * самодостаточным на GitHub.
  *
  * Прокрутки на странице — свои: библиотека о них и рассказывает, так что и
  * дерево слева, и текст справа едут на `MorphScroll`.
@@ -130,7 +132,7 @@ function useTheme() {
 }
 
 /** HTML раздела из README, с подсветкой кода */
-function Body({ html, hideBanners }: { html: string; hideBanners?: boolean }) {
+function Body({ html }: { html: string }) {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -139,7 +141,7 @@ function Body({ html, hideBanners }: { html: string; hideBanners?: boolean }) {
 
   return (
     <div
-      className={`doc-body${hideBanners ? " has-demo" : ""}`}
+      className="doc-body"
       dangerouslySetInnerHTML={{ __html: html }}
       ref={ref}
     />
@@ -204,6 +206,7 @@ function Overview() {
 
 function Page({ node }: { node: ReadmeNode }) {
   const Demo = demoOf(node);
+  const example = Demo ? splitExampleHtml(node.body) : null;
   const chain = trail(node);
 
   return (
@@ -228,13 +231,20 @@ function Page({ node }: { node: ReadmeNode }) {
         <p className="doc-lead">{node.note}</p>
       )}
 
-      {Demo && (
-        <section aria-label="live example" className="doc-demo">
-          <Demo />
+      <Body html={example?.before ?? node.body} />
+
+      {Demo && example && (
+        <section className="doc-example">
+          <p className="doc-example-title">
+            <b>Example:</b>
+          </p>
+          <div aria-label="live example" className="doc-demo">
+            <Demo />
+          </div>
         </section>
       )}
 
-      <Body hideBanners={!!Demo} html={node.body} />
+      {example?.after && <Body html={example.after} />}
 
       {node.kind === "component" ? (
         <Groups nodes={node.children} />

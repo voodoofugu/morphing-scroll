@@ -307,11 +307,6 @@
   border-radius: 10px;
 }
 
-/* живой пример уже стоит выше — картинка из README ему не нужна */
-.doc-body.has-demo img[alt="banner"] {
-  display: none;
-}
-
 .doc-body ul {
   padding-left: 20px;
 }
@@ -333,6 +328,10 @@
 /* #endregion */
 
 /* #region demo */
+.doc-example-title {
+  margin: 0 0 12px;
+}
+
 .doc-demo {
   display: grid;
   gap: 14px;

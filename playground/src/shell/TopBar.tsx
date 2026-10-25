@@ -6,8 +6,8 @@ import type { Theme } from "../dashboard/settings";
 
 /**
  * Общая шапка документации и дашборда: одно меню на обе страницы, чтобы из
- * любой можно было уйти в другую. Адреса относительные — документация лежит
- * на `/docs/`, дашборд в корне.
+ * любой можно было уйти в другую. Адреса относительные: документация лежит в
+ * корне сайта, дашборд — в `/playground/`.
  */
 const themes = ["system", "light", "dark"] as const;
 
@@ -83,7 +83,7 @@ function TopBar({
 
   return (
     <header className="top-bar">
-      <a className="top-brand" href={here ? "#/" : "#"}>
+      <a className="top-brand" href={here ? "#/" : "../"}>
         {/* знак красим сами: форму берём маской, цвет — из темы */}
         <span
           className="top-mark"
@@ -93,10 +93,13 @@ function TopBar({
       </a>
 
       <nav className="top-links">
-        <a aria-current={here ? "page" : undefined} href={here ? "#/" : "docs/"}>
+        <a aria-current={here ? "page" : undefined} href={here ? "#/" : "../"}>
           docs
         </a>
-        <a aria-current={here ? undefined : "page"} href={here ? "../" : "#"}>
+        <a
+          aria-current={here ? undefined : "page"}
+          href={here ? "playground/" : "#"}
+        >
           playground
         </a>
         <a href="https://www.npmjs.com/package/morphing-scroll">npm</a>

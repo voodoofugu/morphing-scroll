@@ -160,7 +160,7 @@ const MODIFIER_FLAG: Record<
  * - `onNavigate`
  * - `onRenderedKeysChange`
  * ### Links:
- * [MorphScroll Documentation](https://voodoofugu.github.io/morphing-scroll/docs/#/MorphScroll)
+ * [MorphScroll Documentation](https://voodoofugu.github.io/morphing-scroll/#/MorphScroll)
  */
 const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
   function MorphScroll(

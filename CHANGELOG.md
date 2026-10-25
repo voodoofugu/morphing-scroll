@@ -1,3 +1,12 @@
+## [3.2.1] - 2026-10-25
+
+### Changed
+
+- **the documentation is now the site entry point.** The interactive API
+  reference lives at the project root and the playground at `/playground/`.
+  Live demos replace the static snippet and banner inside each `Example`
+  section on the site, while README keeps both for GitHub and npm.
+
 ## [3.2.0] - 2026-10-23
 
 ### Added

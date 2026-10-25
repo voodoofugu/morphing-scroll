@@ -85,6 +85,7 @@ function Control({
   if (input.type === "checkbox") {
     return (
       <input
+        aria-label={spec.name}
         checked={bool(value)}
         onChange={(event) => setValue(event.target.checked)}
         type="checkbox"
@@ -99,6 +100,7 @@ function Control({
 
     return (
       <select
+        aria-label={spec.name}
         onChange={(event) =>
           setValue(input.choices[Number(event.target.value)].value)
         }
@@ -115,6 +117,7 @@ function Control({
 
   return (
     <input
+      aria-label={spec.name}
       max={input.max}
       min={input.min}
       onChange={(event) => setValue(Number(event.target.value))}
@@ -150,7 +153,6 @@ function PropDemo({ spec }: { spec: DemoSpec }) {
       </div>
 
       <label className="doc-demo-control">
-        <span>{spec.name}</span>
         <Control setValue={setValue} spec={spec} value={value} />
         <output>
           {typeof value === "boolean" ? (value ? "on" : "off") : value}
@@ -256,8 +258,8 @@ function StickToEndDemo() {
       </div>
       <div className="doc-demo-controls">
         <label className="doc-demo-control">
-          <span>stickToEnd</span>
           <input
+            aria-label="stickToEnd"
             checked={enabled}
             onChange={(event) => setEnabled(event.target.checked)}
             type="checkbox"

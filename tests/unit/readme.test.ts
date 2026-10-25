@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
 
+import { marked } from "marked";
+
 import { collectDocs } from "../../playground/plugins/docs";
 import { flatten, parseReadme, README_FILE } from "../../playground/plugins/readme";
 import { liveDemos } from "../../playground/src/docs/demos";
+import { splitExampleHtml } from "../../playground/src/docs/splitExampleHtml";
 
 /*
  * README — источник правды документации, JSDoc — подсказки редактора. Текст
@@ -61,5 +64,17 @@ describe("README и типы описывают одни и те же пропс
 
     expect(banners.filter((path) => !liveDemos[path])).toEqual([]);
     expect(liveDemos["controls.bar.maxItems"]).toBeDefined();
+  });
+
+  it("живой пример встаёт вместо статического кода внутри Example", () => {
+    const missing = Object.keys(liveDemos).filter((path) => {
+      const section = sections.get(path);
+      if (!section) return true;
+
+      const html = marked.parse(section.body, { async: false }) as string;
+      return !splitExampleHtml(html);
+    });
+
+    expect(missing).toEqual([]);
   });
 });
