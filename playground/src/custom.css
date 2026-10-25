@@ -215,20 +215,9 @@ body.no-select {
   background: var(--accent-soft);
 }
 
-/* форму рисует сам элемент бегунка, здесь только место под него */
+/* форму рисует сам элемент бегунка */
 .playground-scroll .ms-thumb {
   width: 10px;
-  min-height: 28px;
-  margin-inline: 2px;
-  transition:
-    width 0.1s ease,
-    margin 0.1s ease;
-}
-
-/* под пальцем и под курсором бегунок прибавляет в ширине */
-.playground-scroll .ms-thumb:active {
-  width: 14px;
-  margin-inline: 0;
 }
 
 .scroll-thumb,

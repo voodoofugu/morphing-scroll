@@ -354,6 +354,10 @@
 
 .doc-demo-box {
   height: 240px;
+  overflow: hidden;
+}
+
+.doc-demo-box.is-scrollable {
   overflow: auto;
 }
 

@@ -29,6 +29,7 @@ type DemoSpec = {
   children?: React.ReactNode;
   hint?: string;
   remount?: boolean;
+  scrollableStage?: boolean;
   showRenderedCount?: boolean;
 };
 
@@ -137,7 +138,9 @@ function PropDemo({ spec }: { spec: DemoSpec }) {
   return (
     <>
       <div className="doc-demo-stage">
-        <div className="doc-demo-box">
+        <div
+          className={`doc-demo-box${spec.scrollableStage ? " is-scrollable" : ""}`}
+        >
           <MorphScroll
             {...props}
             key={spec.remount ? String(value) : undefined}
@@ -295,6 +298,7 @@ const size = define({
   name: "width",
   initial: 420,
   input: { type: "range", min: 220, max: 640, step: 10 },
+  scrollableStage: true,
   props: (value) => base({ size: [num(value), 240] }),
   code: (value) => `<MorphScroll {...props} size={[${value}, 240]}>`,
 });
@@ -468,11 +472,15 @@ const barNumber = (
     input: { type: "range", min, max },
     props: (value) => {
       const slider = name === "maxItems";
+      const thumbSize = name === "thumbMinSize";
       return base({
         mode: slider ? "sliderMenu" : "scroll",
         objects: slider
           ? { size: [120, "full"], gap: 8, lines: 1 }
-          : { size: [104, 70], gap: 8, lines: 2 },
+          : thumbSize
+            ? { size: [180, 70], gap: 8, lines: 1 }
+            : { size: [104, 70], gap: 8, lines: 2 },
+        ...(thumbSize && { children: items(120) }),
         controls: {
           wheel: true,
           drag: true,
