@@ -625,24 +625,19 @@ test.describe("MorphScroll: the wheel over a slider", () => {
       await expect.poll(() => scrollTopOf(page)).toBe(600);
     });
 
-  /*
-   * Нажатие — механика меню, и обещать его слайдеру нечем: полосу там тянут,
-   * и курсор должен говорить об этом, а не о клике.
-   */
+  /* Слайдер тянут, а меню нажимают — кроме уже выбранного пункта. */
   test("the strip promises the gesture it actually has", async ({ page }) => {
-    for (const mode of ["slider", "sliderMenu"] as const) {
-      await page.goto(url(mode));
-      await expect(page.locator(".ms-slider-item").first()).toBeVisible();
+    await page.goto(url("slider"));
+    await expect(page.locator(".ms-slider-item").first()).toHaveCSS(
+      "cursor",
+      "grab",
+    );
 
-      const cursor = await page
-        .locator(".ms-slider-item")
-        .first()
-        .evaluate((el) => getComputedStyle(el).cursor);
-
-      expect(cursor, `${mode}: курсор обещает не тот жест`).toBe(
-        mode === "sliderMenu" ? "pointer" : "grab",
-      );
-    }
+    await page.goto(url("sliderMenu"));
+    const items = page.locator(".ms-slider-item");
+    await expect(items.first()).toHaveClass(/\bms-active\b/);
+    await expect(items.first()).toHaveCSS("cursor", "auto");
+    await expect(items.nth(1)).toHaveCSS("cursor", "pointer");
   });
 
   /* и тяга содержимого прилипает к странице в обоих режимах */

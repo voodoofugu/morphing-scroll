@@ -1378,9 +1378,11 @@ maxItems: 7;
 ```
 
 <b>Description:</b><em><br />
-limits how many page markers are rendered at once in <b>slider</b> and <b>sliderMenu</b> modes. Use a positive integer; fractions are rounded down and values below <b>1</b> become <b>1</b>.<br />
+limits how many page markers are rendered at once in <b>slider</b> and <b>sliderMenu</b> modes. Use an integer of at least <b>2</b>; fractions are rounded down and lower values become <b>2</b>.<br />
 <br />
 The window follows the active page: when it reaches an edge, one marker enters ahead and one leaves behind. Under <code>loop</code> the window wraps with the pages. In <code>direction="hybrid"</code> the same limit applies independently to both bars. If <code>element</code> is an array, its entries keep their original page indexes while the window moves.<br />
+<br />
+Without <code>loop</code>, <code>.ms-slider</code> receives <code>ms-more-before</code> and <code>ms-more-after</code> while pages remain hidden before or after its window in page order. These classes can style any number of edge markers with <code>:first-child</code>, <code>:nth-child()</code> and their <code>:last-child</code> counterparts.<br />
 <br />
 Omitting the setting keeps all page markers. It has no effect in <b>scroll</b> mode.<br />
 </em><br />

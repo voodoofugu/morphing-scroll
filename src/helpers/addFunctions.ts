@@ -212,6 +212,17 @@ const sliderCheck = (
     // A limited slider renders and marks its small page window declaratively.
     if (msSlider.hasAttribute("ms-windowed")) return;
 
+    const menu = msSlider.hasAttribute("ms-menu");
+    const mark = (element: Element | undefined, active: boolean) => {
+      if (!element) return;
+
+      element.classList.toggle("ms-active", active);
+      if (!menu || !(element instanceof HTMLElement)) return;
+
+      if (active) element.style.removeProperty("cursor");
+      else element.style.cursor = "pointer";
+    };
+
     let cache = sliderCache.get(msSlider);
 
     /*
@@ -244,7 +255,7 @@ const sliderCheck = (
     ) {
       const elements = Array.from(msSlider.querySelectorAll(".ms-slider-item"));
 
-      for (const el of elements) el.classList.remove("ms-active");
+      for (const el of elements) mark(el, false);
 
       cache = { elements, lastIndex: -1 };
       sliderCache.set(msSlider, cache);
@@ -284,9 +295,8 @@ const sliderCheck = (
 
     if (activeIndex === cache.lastIndex) return;
 
-    if (cache.lastIndex !== -1)
-      cache.elements[cache.lastIndex]?.classList.remove("ms-active");
-    cache.elements[activeIndex]?.classList.add("ms-active");
+    if (cache.lastIndex !== -1) mark(cache.elements[cache.lastIndex], false);
+    mark(cache.elements[activeIndex], true);
 
     cache.lastIndex = activeIndex;
   });

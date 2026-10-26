@@ -3474,6 +3474,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       renderMode,
       updateLoadedElementsKeysLocal,
       validChildrenKeys.length, // при изменении количества детей
+      // при size="auto" ячейки появляются только после первого измерения
+      sizeLocal.join(),
     ]);
 
     React.useEffect(() => {

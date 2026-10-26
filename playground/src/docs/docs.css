@@ -419,6 +419,11 @@
   background: var(--accent-soft);
 }
 
+.doc-example-pages .demo-item {
+  width: calc(100% - 24px);
+  margin-inline: 12px;
+}
+
 .doc-demo-control output {
   min-width: 3ch;
   color: var(--accent-ink);

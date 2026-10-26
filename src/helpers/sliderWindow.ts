@@ -10,11 +10,11 @@ type SliderWindowArgs = {
 const modulo = (value: number, total: number) =>
   ((value % total) + total) % total;
 
-/** A positive integer cap, or no window when every page already fits. */
+/** An integer cap of at least two, or no window when every page already fits. */
 const sliderWindowLimit = (asked: number | undefined, total: number) => {
   if (!Number.isFinite(asked) || asked === undefined) return total;
 
-  return Math.min(total, Math.max(1, Math.floor(asked)));
+  return Math.min(total, Math.max(2, Math.floor(asked)));
 };
 
 /**
@@ -30,7 +30,6 @@ const shiftSliderWindow = ({
   loop,
 }: SliderWindowArgs) => {
   if (total <= 0 || limit >= total) return 0;
-  if (limit === 1) return loop ? modulo(active, total) : active;
 
   if (!loop) {
     const maxStart = total - limit;

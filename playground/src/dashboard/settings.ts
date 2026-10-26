@@ -202,7 +202,10 @@ export function readInitialSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultSettings;
-    return { ...defaultSettings, ...JSON.parse(raw) } as Settings;
+    const settings = { ...defaultSettings, ...JSON.parse(raw) } as Settings;
+    if (settings.barMaxItems !== 0)
+      settings.barMaxItems = Math.max(2, Math.floor(settings.barMaxItems));
+    return settings;
   } catch {
     return defaultSettings;
   }

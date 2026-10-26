@@ -1,4 +1,9 @@
-## [3.2.1] - 2026-10-25
+## [3.2.1] - 2026-10-26
+
+### Added
+
+- **limited slider bars expose hidden pages.** Without `loop`, `.ms-slider`
+  receives `ms-more-before` and `ms-more-after` for styling its edge markers.
 
 ### Changed
 
@@ -6,6 +11,11 @@
   reference lives at the project root and the playground at `/playground/`.
   Live demos replace the static snippet and banner inside each `Example`
   section on the site, while README keeps both for GitHub and npm.
+
+### Fixed
+
+- **`controls.bar.maxItems` keeps at least two page markers.** Values below
+  `2` are normalized to `2`, so the active page always retains a neighbour.
 
 ## [3.2.0] - 2026-10-23
 

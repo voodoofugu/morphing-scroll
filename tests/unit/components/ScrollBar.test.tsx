@@ -200,6 +200,21 @@ describe("ScrollBar — a changed progressElement", () => {
 });
 
 describe("ScrollBar — maxItems", () => {
+  it("keeps at least the active marker and one neighbour", () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: VIEW }}
+        size={[100, VIEW]}
+        mode="sliderMenu"
+        controls={{ bar: { element: <i />, maxItems: 1 } }}
+      >
+        {items(9)}
+      </MorphScroll>,
+    );
+
+    expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(2);
+  });
+
   it("renders only the requested page window", () => {
     const markers = Array.from({ length: 9 }, (_, index) => (
       <i key={index}>page {index}</i>
@@ -227,6 +242,12 @@ describe("ScrollBar — maxItems", () => {
       "3",
     ]);
     expect(shown[0]).toHaveClass("ms-active");
+    expect(shown[0].style.cursor).toBe("");
+    expect(shown[1].style.cursor).toBe("pointer");
+    expect(container.querySelector(".ms-slider")).toHaveClass("ms-more-after");
+    expect(container.querySelector(".ms-slider")).not.toHaveClass(
+      "ms-more-before",
+    );
   });
 
   it("does not alter the existing unlimited path", () => {
@@ -244,6 +265,33 @@ describe("ScrollBar — maxItems", () => {
     expect(container.querySelectorAll(".ms-slider-item")).toHaveLength(9);
     expect(container.querySelector(".ms-slider")).not.toHaveAttribute(
       "ms-windowed",
+    );
+    expect(container.querySelector(".ms-slider")).not.toHaveClass(
+      "ms-more-before",
+    );
+    expect(container.querySelector(".ms-slider")).not.toHaveClass(
+      "ms-more-after",
+    );
+  });
+
+  it("does not expose finite edges while loop is active", () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: VIEW }}
+        size={[100, VIEW]}
+        mode="sliderMenu"
+        loop
+        controls={{ bar: { element: <i />, maxItems: 4 } }}
+      >
+        {items(9)}
+      </MorphScroll>,
+    );
+
+    expect(container.querySelector(".ms-slider")).not.toHaveClass(
+      "ms-more-before",
+    );
+    expect(container.querySelector(".ms-slider")).not.toHaveClass(
+      "ms-more-after",
     );
   });
 

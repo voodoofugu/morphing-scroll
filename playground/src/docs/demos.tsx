@@ -48,6 +48,16 @@ const items = (count = 18, draggable = false) =>
   ));
 
 const markers = <span className="slider-progress-dot" />;
+const menuMarkers = (count: number) =>
+  Array.from({ length: count }, (_, index) => (
+    <button
+      className="slider-menu-button"
+      key={`menu-${index}`}
+      type="button"
+    >
+      {index + 1}
+    </button>
+  ));
 const arrow = <span className="arrow-mark">›</span>;
 const edge = (
   <span className="playground-edge">
@@ -67,6 +77,11 @@ const base = (
   children: items(),
   ...overrides,
 });
+
+const pageLayout = {
+  className: "playground-scroll doc-example-scroll doc-example-pages",
+  wrapper: { margin: [12, 0, 12, 0] },
+} satisfies Partial<MorphScrollProps>;
 
 const bool = (value: DemoValue) => value === true;
 const num = (value: DemoValue) => Number(value);
@@ -202,12 +217,23 @@ const mode = define({
   },
   props: (value) => {
     const current = text(value) as MorphScrollProps["mode"];
+    const slider = current !== "scroll";
     return base({
       mode: current,
+      ...(slider && {
+        ...pageLayout,
+        children: items(6),
+        objects: { size: "full", gap: 8, lines: 1 },
+      }),
       controls: {
         wheel: true,
         drag: true,
-        bar: current === "scroll" ? <ScrollThumb /> : markers,
+        bar:
+          current === "scroll"
+            ? <ScrollThumb />
+            : current === "sliderMenu"
+              ? menuMarkers(6)
+              : markers,
       },
     });
   },
@@ -221,12 +247,43 @@ const direction = define({
     type: "select",
     choices: ["x", "y", "hybrid"].map((value) => ({ label: value, value })),
   },
+  props: (value) => {
+    const current = text(value) as MorphScrollProps["direction"];
+    const hybrid = current === "hybrid";
+    return base({
+      direction: current,
+      children: items(hybrid ? 30 : 18),
+      objects: {
+        size: hybrid ? [190, 76] : [92, 62],
+        gap: 8,
+        lines: hybrid ? 4 : current === "x" ? 2 : 4,
+      },
+    });
+  },
+  code: (value) =>
+    `<MorphScroll {...props} direction="${value}"${value === "hybrid" ? " objects={{ lines: 4 }}" : ""}>`,
+});
+
+const fromRight = define({
+  name: "fromRight",
+  initial: false,
+  input: { type: "checkbox" },
   props: (value) =>
     base({
-      direction: text(value) as MorphScrollProps["direction"],
-      objects: { size: [92, 62], gap: 8, lines: 3 },
+      ...pageLayout,
+      mode: "sliderMenu",
+      fromRight: bool(value),
+      children: items(6),
+      objects: { size: "full", gap: 8, lines: 1 },
+      controls: {
+        wheel: true,
+        drag: true,
+        bar: menuMarkers(6),
+        arrows: { element: arrow },
+      },
     }),
-  code: (value) => `<MorphScroll {...props} direction="${value}">`,
+  code: (value) =>
+    `<MorphScroll {...props}${bool(value) ? " fromRight" : ""}>`,
 });
 
 const initialPosition = define({
@@ -292,6 +349,54 @@ const autoScrollOnDrag = define({
     base({ autoScrollOnDrag: bool(value), children: items(18, true) }),
   code: (value) =>
     `<MorphScroll {...props}${bool(value) ? " autoScrollOnDrag" : ""}>`,
+});
+
+const loop = define({
+  name: "loop",
+  initial: true,
+  input: { type: "checkbox" },
+  hint: "Use the arrows or drag through the last page.",
+  props: (value) =>
+    base({
+      ...pageLayout,
+      mode: "slider",
+      loop: bool(value),
+      children: items(6),
+      objects: { size: "full", gap: 8, lines: 1 },
+      controls: {
+        wheel: true,
+        drag: true,
+        keys: true,
+        bar: markers,
+        arrows: { element: arrow },
+      },
+    }),
+  code: (value) =>
+    `<MorphScroll {...props}${bool(value) ? " loop" : ""}>`,
+});
+
+const duration = define({
+  name: "duration",
+  initial: 400,
+  input: { type: "range", min: 0, max: 800, step: 50 },
+  hint: "Click the scroll, then use the keyboard arrows or the visible controls.",
+  props: (value) =>
+    base({
+      ...pageLayout,
+      mode: "slider",
+      duration: num(value),
+      children: items(6),
+      objects: { size: "full", gap: 8, lines: 1 },
+      controls: {
+        wheel: true,
+        drag: true,
+        keys: true,
+        bar: markers,
+        arrows: { element: arrow },
+      },
+    }),
+  code: (value) =>
+    `<MorphScroll {...props} duration={${value}} controls={{ keys: true }}>`,
 });
 
 const size = define({
@@ -404,10 +509,11 @@ const objectsEmpty = define({
         lines: 2,
         empty: text(value) as "fallback" | "clear",
       },
+      render: "virtual",
       fallback: { empty: <span className="empty-fallback">empty</span> },
     }),
   code: (value) =>
-    `<MorphScroll {...props} objects={{ empty: "${value}" }}>`,
+    `<MorphScroll {...props} objects={{ empty: "${value}" }} render="virtual" fallback={{ empty: <Empty /> }}>`,
 });
 
 const wrapperMargin = define({
@@ -474,25 +580,27 @@ const barNumber = (
       const slider = name === "maxItems";
       const thumbSize = name === "thumbMinSize";
       return base({
+        ...(slider && pageLayout),
         mode: slider ? "sliderMenu" : "scroll",
         objects: slider
-          ? { size: [120, "full"], gap: 8, lines: 1 }
+          ? { size: "full", gap: 8, lines: 1 }
           : thumbSize
             ? { size: [180, 70], gap: 8, lines: 1 }
             : { size: [104, 70], gap: 8, lines: 2 },
+        ...(slider && { children: items(12) }),
         ...(thumbSize && { children: items(120) }),
         controls: {
           wheel: true,
           drag: true,
           bar: {
-            element: slider ? markers : <ScrollThumb />,
+            element: slider ? menuMarkers(12) : <ScrollThumb />,
             [name]: num(value),
           },
         },
       });
     },
     code: (value) =>
-      `<MorphScroll {...props} controls={{ bar: { element: <${name === "maxItems" ? "Marker" : "Thumb"} />, ${name}: ${value} } }}>`,
+      `<MorphScroll {...props} controls={{ bar: { element: ${name === "maxItems" ? "menuItems" : "<Thumb />"}, ${name}: ${value} } }}>`,
   });
 
 const barBoolean = (name: "reverse" | "showOnHover") =>
@@ -603,11 +711,50 @@ const renderRootMargin = define({
     `<MorphScroll {...props} render={{ mode: "virtual", rootMargin: ${value} }}>`,
 });
 
+const renderDeferLoad = define({
+  name: "render.deferLoadOnScroll",
+  initial: true,
+  input: { type: "checkbox" },
+  hint: "Scroll quickly: unseen cells stay as placeholders until movement stops.",
+  props: (value) =>
+    base({
+      children: items(80),
+      render: {
+        mode: "virtual",
+        rootMargin: 0,
+        deferLoadOnScroll: bool(value),
+      },
+      fallback: {
+        loading: <span className="cell-fallback">deferred</span>,
+      },
+    }),
+  code: (value) =>
+    `<MorphScroll {...props} render={{ mode: "virtual", deferLoadOnScroll: ${bool(value)} }} fallback={{ loading: <Deferred /> }}>`,
+});
+
+const trackVisibility = define({
+  name: "trackVisibility",
+  initial: true,
+  input: { type: "checkbox" },
+  hint: "Partly visible cards use --ms-content-visibility for opacity and scale.",
+  props: (value) =>
+    base({
+      children: items(10),
+      objects: { size: [190, 110], gap: 8, lines: 1 },
+      trackVisibility: bool(value),
+    }),
+  code: (value) =>
+    `<MorphScroll {...props}${bool(value) ? " trackVisibility" : ""}>`,
+});
+
 export const liveDemos: Record<string, React.ComponentType> = {
   mode,
   direction,
+  fromRight,
   initialPosition,
   stickToEnd: StickToEndDemo,
+  loop,
+  duration,
   autoScrollOnDrag,
   size,
   "objects.size": objectsSize,
@@ -621,15 +768,17 @@ export const liveDemos: Record<string, React.ComponentType> = {
   "wrapper.align": wrapperAlign,
   "controls.drag": controlsDrag,
   "controls.bar.edgeGap": barNumber("edgeGap", 8, -12, 32),
-  "controls.bar.trackGap": barNumber("trackGap", 10, 0, 50),
+  "controls.bar.trackGap": barNumber("trackGap", 10, -20, 50),
   "controls.bar.reverse": barBoolean("reverse"),
   "controls.bar.showOnHover": barBoolean("showOnHover"),
   "controls.bar.thumbMinSize": barNumber("thumbMinSize", 30, 12, 100),
-  "controls.bar.maxItems": barNumber("maxItems", 6, 1, 10),
+  "controls.bar.maxItems": barNumber("maxItems", 6, 2, 10),
   "controls.arrows.element": arrowsElement,
   "controls.arrows.size": arrowsSize,
   "controls.arrows.reserveSpace": arrowsReserveSpace,
   edge: edgeDemo,
   "render.mode": renderMode,
   "render.rootMargin": renderRootMargin,
+  "render.deferLoadOnScroll": renderDeferLoad,
+  trackVisibility,
 };

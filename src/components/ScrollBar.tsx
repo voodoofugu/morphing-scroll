@@ -177,6 +177,9 @@ const ScrollBar = ({
   );
   /* unlimited bars keep the old stable list while sliderCheck updates classes */
   const renderedActivePage = windowed ? activePage : -1;
+  const moreBefore = windowed && !loop && nextWindow.start > 0;
+  const moreAfter =
+    windowed && !loop && nextWindow.start + limit < objLengthPerSize;
 
   // высчитываем элементы заранее
   const sliderContent = React.useMemo(() => {
@@ -199,7 +202,10 @@ const ScrollBar = ({
          * попадает, а жест в пределах одной — это и есть нажатие.
          */
         {...(mode === "sliderMenu" && {
-          style: { cursor: "pointer" },
+          style: {
+            cursor:
+              page === renderedActivePage ? undefined : "pointer",
+          },
           onClick: () => goToPage(page, axis),
         })}
       >
@@ -407,8 +413,11 @@ const ScrollBar = ({
         objLengthPerSize > 1 && // что бы не показывать один бегунок при size: 1
         progressElement && (
           <div
-            className={`ms-slider ms-${dataDirection}`}
+            className={`ms-slider ms-${dataDirection}${
+              moreBefore ? " ms-more-before" : ""
+            }${moreAfter ? " ms-more-after" : ""}`}
             ref={scrollBarRef}
+            ms-menu={mode === "sliderMenu" ? "" : undefined}
             ms-windowed={windowed ? "" : undefined}
             {...{ [CONST.BAR_AXIS_ATR]: dataDirection }} // доп логика
             style={{

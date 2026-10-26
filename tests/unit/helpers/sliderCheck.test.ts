@@ -1,13 +1,14 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { sliderCheck } from "@morphing-scroll/src/helpers/addFunctions";
 
-const build = (pages: number) => {
+const build = (pages: number, menu = false) => {
   const scrollEl = document.createElement("div");
   Object.defineProperty(scrollEl, "clientHeight", { value: 300, configurable: true });
   Object.defineProperty(scrollEl, "clientWidth", { value: 300, configurable: true });
 
   const bar = document.createElement("div");
   bar.setAttribute("ms-direction", "y");
+  if (menu) bar.setAttribute("ms-menu", "");
   for (let i = 0; i < pages; i++) {
     const el = document.createElement("div");
     el.className = "ms-slider-item";
@@ -31,6 +32,7 @@ const build = (pages: number) => {
       el.className = "ms-slider-item";
       bar.appendChild(el);
     },
+    items: () => Array.from(bar.children) as HTMLElement[],
   };
 };
 
@@ -79,6 +81,27 @@ describe("sliderCheck", () => {
     sliderCheck(scrollEl as HTMLDivElement, bars, "y", [1, 4]);
 
     expect(document.querySelector(".ms-slider-item.active")).toBeNull();
+  });
+
+  it("keeps the pointer only on inactive sliderMenu items", () => {
+    const { scrollEl, bars, items } = build(4, true);
+
+    sliderCheck(scrollEl as HTMLDivElement, bars, "y", [1, 4]);
+    expect(items().map((item) => item.style.cursor)).toEqual([
+      "",
+      "pointer",
+      "pointer",
+      "pointer",
+    ]);
+
+    scrollEl.scrollTop = 300;
+    sliderCheck(scrollEl as HTMLDivElement, bars, "y", [1, 4]);
+    expect(items().map((item) => item.style.cursor)).toEqual([
+      "pointer",
+      "",
+      "pointer",
+      "pointer",
+    ]);
   });
 
   /*

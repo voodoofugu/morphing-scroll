@@ -10,25 +10,13 @@ describe("sliderWindow", () => {
   it("normalizes the requested maximum", () => {
     expect(sliderWindowLimit(undefined, 8)).toBe(8);
     expect(sliderWindowLimit(4.8, 8)).toBe(4);
-    expect(sliderWindowLimit(0, 8)).toBe(1);
-    expect(sliderWindowLimit(-4, 8)).toBe(1);
+    expect(sliderWindowLimit(1, 8)).toBe(2);
+    expect(sliderWindowLimit(0, 8)).toBe(2);
+    expect(sliderWindowLimit(-4, 8)).toBe(2);
     expect(sliderWindowLimit(20, 8)).toBe(8);
+    expect(sliderWindowLimit(1, 1)).toBe(1);
     expect(sliderWindowLimit(Number.NaN, 8)).toBe(8);
     expect(sliderWindowLimit(Number.POSITIVE_INFINITY, 8)).toBe(8);
-  });
-
-  it("lets a one-item window follow the active page", () => {
-    expect(
-      shiftSliderWindow({
-        active: 6,
-        previous: 5,
-        start: 5,
-        total: 10,
-        limit: 1,
-        loop: false,
-      }),
-    ).toBe(6);
-    expect(sliderWindowPages(6, 10, 1, false)).toEqual([6]);
   });
 
   it("moves forward only when the active page reaches the last item", () => {

@@ -141,6 +141,8 @@ test.describe("controls.bar.maxItems", () => {
 
       await expect(page.locator(`${slider} .ms-slider-item`)).toHaveCount(4);
       expect(await pages(page, slider)).toEqual(["0", "1", "2", "3"]);
+      await expect(page.locator(slider)).not.toHaveClass(/\bms-more-before\b/);
+      await expect(page.locator(slider)).toHaveClass(/\bms-more-after\b/);
 
       await page.locator(`${slider} [ms-page="3"]`).click();
 
@@ -148,9 +150,19 @@ test.describe("controls.bar.maxItems", () => {
         page.locator(`${slider} [ms-page="3"]`),
       ).toHaveClass(/\bms-active\b/);
       await expect.poll(() => pages(page, slider)).toEqual(["1", "2", "3", "4"]);
+      await expect(page.locator(slider)).toHaveClass(/\bms-more-before\b/);
+      await expect(page.locator(slider)).toHaveClass(/\bms-more-after\b/);
 
       await page.locator(`${slider} [ms-page="4"]`).click();
       await expect.poll(() => pages(page, slider)).toEqual(["2", "3", "4", "5"]);
+
+      await page.locator(".ms-viewport").evaluate((element, axis) => {
+        if (axis === "x") element.scrollLeft = element.scrollWidth;
+        else element.scrollTop = element.scrollHeight;
+      }, direction);
+      await expect.poll(() => pages(page, slider)).toEqual(["6", "7", "8", "9"]);
+      await expect(page.locator(slider)).toHaveClass(/\bms-more-before\b/);
+      await expect(page.locator(slider)).not.toHaveClass(/\bms-more-after\b/);
     });
 
   test("hybrid limits both bars independently", async ({ page }) => {
@@ -185,6 +197,9 @@ test.describe("controls.bar.maxItems", () => {
       /\bms-active\b/,
     );
     await expect.poll(() => pages(page)).toEqual(["8", "9", "0", "1"]);
+    await expect(page.locator(".ms-slider")).not.toHaveClass(
+      /\bms-more-(before|after)\b/,
+    );
   });
 
   test("an element array keeps its global page indexes", async ({ page }) => {

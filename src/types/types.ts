@@ -79,7 +79,10 @@ export type BarConfig = {
    * ### ***maxItems***:
    * Maximum page markers rendered per bar in `slider` and `sliderMenu`.
    * The window follows the active page; one value applies to each axis in
-   * `direction="hybrid"`. Values are floored and clamped to at least `1`.
+   * `direction="hybrid"`. Values are floored and clamped to at least `2`.
+   * Without `loop`, `.ms-slider` receives `ms-more-before` and
+   * `ms-more-after` while markers remain hidden before or after its window in
+   * page order.
    * Has no effect in `scroll` mode.
    */
   maxItems?: number;

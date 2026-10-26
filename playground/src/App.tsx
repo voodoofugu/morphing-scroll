@@ -1380,7 +1380,12 @@ function App() {
                   <NumberField
                     label="maxItems"
                     max={100}
-                    onChange={(value) => update("barMaxItems", value)}
+                    onChange={(value) =>
+                      update(
+                        "barMaxItems",
+                        value === 0 ? 0 : Math.max(2, Math.floor(value)),
+                      )
+                    }
                     value={settings.barMaxItems}
                   />
                 )}

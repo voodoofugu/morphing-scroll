@@ -1,7 +1,8 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import MorphScroll from "@morphing-scroll/src/components/MorphScroll";
+import { resizeObservers } from "../../setup";
 
 const SIZE: [number, number] = [100, 300];
 const OBJ = 100;
@@ -30,6 +31,29 @@ describe("MorphScroll — emptyObjects", () => {
     });
     // all three boxes stay mounted under "fallback"
     expect(boxes(container)).toHaveLength(3);
+  });
+
+  it('rechecks empty boxes after size="auto" has been measured', async () => {
+    const { container } = render(
+      <MorphScroll
+        objects={{ size: OBJ, empty: "fallback" }}
+        size="auto"
+        render="virtual"
+        fallback={{ empty: <b className="mine" /> }}
+      >
+        {mixed()}
+      </MorphScroll>,
+    );
+
+    act(() =>
+      resizeObservers.forEach((observer) =>
+        observer.emit({ width: 100, height: 300 }),
+      ),
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector("b.mine")).toBeInTheDocument();
+    });
   });
 
   /*
