@@ -1847,7 +1847,7 @@ That third argument is what makes a "load more" out of this without a prop for i
 
 <details><summary><b><code>onScrollingChange</code></b></summary><br /><ul><div>
 <b>Description:</b><em><br />
-runs whenever the scroll starts or stops, with <b>true</b> while it moves and <b>false</b> once it settles — the hook for pausing an animation or showing a loading state.</em><br />
+runs whenever visual movement starts or fully settles, with <b>true</b> during ordinary scrolling, pulling beyond an edge and the rubber-band return, then <b>false</b> only after every motion source has stopped.</em><br />
 <br />
 <b>Example:</b>
 

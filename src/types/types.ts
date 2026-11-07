@@ -953,8 +953,9 @@ export type MorphScroll = {
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***onScrollingChange***:
-   * called when the scroll starts moving and when it stops.
-   * @param motion whether it is moving now
+   * called when visual movement starts and when it fully settles, including
+   * pulling beyond an edge and the rubber-band return to zero.
+   * @param motion whether scroll or overscroll motion is active now
    */
   onScrollingChange?: (motion: boolean) => void;
   /**---

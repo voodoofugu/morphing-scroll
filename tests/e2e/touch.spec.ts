@@ -57,7 +57,20 @@ const openScroll = async (page: Page) => {
   await page.goto("/?scenario=wheel");
   const el = page.locator(".ms-viewport");
   await expect(el).toBeVisible();
+  await page.evaluate(() => {
+    (window as any).__motionTrail = [];
+    (window as any).__motionEvents = [];
+  });
   return { el, box: (await el.boundingBox())! };
+};
+
+const motionTrail = (page: Page) =>
+  page.evaluate(() => ((window as any).__motionTrail ?? []) as boolean[]);
+
+const waitForMotionEnd = async (page: Page) => {
+  await expect
+    .poll(() => page.evaluate(() => (window as any).__motion))
+    .toBe(false);
 };
 
 test.describe("MorphScroll touch (real device emulation)", () => {
@@ -144,6 +157,158 @@ test.describe("MorphScroll touch (real device emulation)", () => {
         page.evaluate(() => (window as any).__scroll?.overscroll),
       )
       .toEqual({ x: 0, y: 0 });
+
+    await waitForMotionEnd(page);
+    expect(await motionTrail(page)).toEqual([true, false]);
+
+    const events = await page.evaluate(
+      () => ((window as any).__motionEvents ?? []) as {
+        type: "position" | "motion";
+        motion?: boolean;
+        overscroll: { x: number; y: number };
+      }[],
+    );
+    const lastFalse = events.findLastIndex(
+      (event) => event.type === "motion" && event.motion === false,
+    );
+    const lastPosition = events.findLastIndex(
+      (event) => event.type === "position",
+    );
+
+    expect(lastPosition).toBeLessThan(lastFalse);
+    expect(events[lastPosition].overscroll).toEqual({ x: 0, y: 0 });
+  });
+
+  test("a new touch during the return keeps one motion lifecycle", async ({
+    page,
+  }) => {
+    const { box } = await openScroll(page);
+    const x = box.x + box.width / 2;
+
+    await swipe(
+      page,
+      { x, y: box.y + 50 },
+      { x, y: box.y + box.height - 20 },
+      { steps: 5, stepDelay: 10 },
+    );
+    await swipe(
+      page,
+      { x, y: box.y + 70 },
+      { x, y: box.y + box.height - 30 },
+      { steps: 5, stepDelay: 10 },
+    );
+
+    await waitForMotionEnd(page);
+    expect(await motionTrail(page)).toEqual([true, false]);
+  });
+
+  test("a gesture handed outside during the return still settles", async ({
+    page,
+  }) => {
+    const { box } = await openScroll(page);
+    const x = box.x + box.width / 2;
+    const y = box.y + 70;
+
+    await swipe(
+      page,
+      { x, y },
+      { x, y: box.y + box.height - 20 },
+      { steps: 5, stepDelay: 10 },
+    );
+
+    // The y scroll gives this cross-axis touch back to the native page.
+    await gesture(page, [
+      { x, y },
+      { x: x + 80, y },
+    ]);
+
+    await waitForMotionEnd(page);
+    expect(await motionTrail(page)).toEqual([true, false]);
+    expect(
+      await page.evaluate(() => (window as any).__scroll?.overscroll),
+    ).toEqual({ x: 0, y: 0 });
+  });
+
+  test("returning the finger to zero ends overscroll without a duplicate", async ({
+    page,
+  }) => {
+    const { box } = await openScroll(page);
+    const point = { x: box.x + box.width / 2, y: box.y + 50 };
+
+    await gesture(page, [
+      point,
+      { ...point, y: box.y + 60 }, // first move chooses the axis
+      { ...point, y: box.y + 160 },
+      // reverse far enough for the dampened raw distance to cross zero
+      { ...point, y: box.y - 20 },
+    ]);
+
+    await waitForMotionEnd(page);
+    expect(await motionTrail(page)).toEqual([true, false]);
+    expect(
+      await page.evaluate(() => (window as any).__scroll?.overscroll),
+    ).toEqual({ x: 0, y: 0 });
+  });
+
+  test("hybrid waits for both overscroll axes", async ({ page }) => {
+    await page.goto("/?scenario=hybridMotion");
+    const viewport = page.locator(".ms-viewport");
+    await expect(viewport).toBeVisible();
+    await page.evaluate(() => {
+      (window as any).__motionTrail = [];
+      (window as any).__motionEvents = [];
+    });
+    const box = (await viewport.boundingBox())!;
+    const point = { x: box.x + 60, y: box.y + 60 };
+
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 70, box.y + 70); // initialise both axes
+    await page.mouse.move(box.x + 180, box.y + 180);
+    // x is back at rest while y is still stretched.
+    await page.mouse.move(box.x - 20, box.y + 180);
+    await page.mouse.up();
+
+    const trail = await page.evaluate(
+      () => ((window as any).__overscrollTrail ?? []) as {
+        x: number;
+        y: number;
+      }[],
+    );
+    expect(trail.some(({ x, y }) => x > 0 && y > 0)).toBe(true);
+    expect(trail.some(({ x, y }) => x === 0 && y > 0)).toBe(true);
+
+    await waitForMotionEnd(page);
+    expect(await motionTrail(page)).toEqual([true, false]);
+  });
+
+  test("scroll reaching its edge and overscroll stay one motion", async ({
+    page,
+  }) => {
+    const { el, box } = await openScroll(page);
+    await el.evaluate((element) => {
+      element.scrollTop = element.scrollHeight - element.clientHeight - 40;
+    });
+    await expect.poll(() => scrollTop(el)).toBeGreaterThan(0);
+    await waitForMotionEnd(page);
+
+    await page.evaluate(() => {
+      (window as any).__motionTrail = [];
+    });
+
+    const x = box.x + box.width / 2;
+    await swipe(
+      page,
+      { x, y: box.y + box.height - 20 },
+      { x, y: box.y + 20 },
+      { steps: 8, stepDelay: 20, holdBeforeRelease: 30 },
+    );
+
+    await waitForMotionEnd(page);
+    expect(await motionTrail(page)).toEqual([true, false]);
+    expect(await scrollTop(el)).toBe(
+      await el.evaluate((element) => element.scrollHeight - element.clientHeight),
+    );
   });
 
   test("uses the pointer itself when coarse media is unavailable", async ({

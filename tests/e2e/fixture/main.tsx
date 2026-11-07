@@ -36,6 +36,22 @@ const onScrollPosition = (
   // весь путь, а не только его конец: по нему видно, ехали мы или перескочили
   ((window as any).__trail ??= []).push(top);
   ((window as any).__overscrollTrail ??= []).push({ ...overscroll });
+  ((window as any).__motionEvents ??= []).push({
+    type: "position",
+    overscroll: { ...overscroll },
+  });
+};
+
+const onScrollingChange = (motion: boolean) => {
+  const overscroll = (window as any).__scroll?.overscroll ?? { x: 0, y: 0 };
+
+  (window as any).__motion = motion;
+  ((window as any).__motionTrail ??= []).push(motion);
+  ((window as any).__motionEvents ??= []).push({
+    type: "motion",
+    motion,
+    overscroll: { ...overscroll },
+  });
 };
 
 // Every page change, in order, so the reason can be asserted.
@@ -50,6 +66,20 @@ const scenarios: Record<string, React.ReactElement> = {
       size={300}
       controls={{ wheel: true, bar: thumb }}
       onScrollPosition={onScrollPosition}
+      onScrollingChange={onScrollingChange}
+    >
+      {makeItems()}
+    </MorphScroll>
+  ),
+
+  hybridMotion: (
+    <MorphScroll
+      direction="hybrid"
+      objects={{ size: [100, 100], lines: 4 }}
+      size={[300, 300]}
+      controls={{ wheel: true, drag: true }}
+      onScrollPosition={onScrollPosition}
+      onScrollingChange={onScrollingChange}
     >
       {makeItems()}
     </MorphScroll>

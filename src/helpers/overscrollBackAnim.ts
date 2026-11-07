@@ -11,14 +11,10 @@ type RafLoop = ReturnType<typeof createRafLoop>;
  */
 const overscrollBackAnim = (
   loop: RafLoop,
-  overscroll: React.MutableRefObject<{
-    x: number;
-    y: number;
-  }>,
   axis: "x" | "y",
-  updater: () => void,
+  startValue: number,
+  update: (value: number) => void,
 ) => {
-  const startValue = overscroll.current[axis];
   const startTime = performance.now();
 
   loop.start(() => {
@@ -27,8 +23,7 @@ const overscrollBackAnim = (
     const progress = Math.min(elapsed / CONST.OVERSCROLL_BACK_DURATION, 1);
 
     if (progress >= 1) {
-      overscroll.current[axis] = 0;
-      updater();
+      update(0);
       return false; // остановить анимацию
     }
 
@@ -38,8 +33,7 @@ const overscrollBackAnim = (
      * ease-out cubic даёт ту же форму без перелёта через ноль.
      */
     const remaining = 1 - progress;
-    overscroll.current[axis] = startValue * remaining ** 3;
-    updater();
+    update(startValue * remaining ** 3);
     return true; // продолжить
   }, `overscroll-${axis}`); // ключ по оси, что бы повторный запуск заменял предыдущий
 };

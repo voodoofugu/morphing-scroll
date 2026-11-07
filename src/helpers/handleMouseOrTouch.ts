@@ -33,8 +33,8 @@ type HandleMouseT = {
     duration: number,
   ) => Promise<void> | null;
   triggerUpdate: () => void;
-  /** report a rubber-band change: it does not produce a native scroll event */
-  reportScrollPosition: () => void;
+  /** the single writer for rubber-band position and its motion lifecycle */
+  setOverscroll: (axis: "x" | "y", value: number) => void;
   thumbSize: number;
   axisFromAtr: "x" | "y" | null;
   duration: number;
@@ -112,6 +112,11 @@ type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
   gestureElement: HTMLElement | null;
 };
 
+type OverscrollReturnArgs = Pick<
+  HandleMouseT,
+  "runtime" | "overscrollRef" | "setOverscroll"
+>;
+
 function getVisualToLayoutScale(el: HTMLElement) {
   const rect = el.getBoundingClientRect();
   return [rect.width / el.clientWidth, rect.height / el.clientHeight];
@@ -133,7 +138,27 @@ const releaseHandedOffGesture = (args: HandleMoveT) => {
 
   args.clickedObject.current = null;
   args.isDraggingRef.current = false;
+  returnOverscroll(args);
   args.triggerUpdate();
+};
+
+/*
+ * Один и тот же возврат нужен обычному pointerup и жесту, который пришлось
+ * отдать наружу. Иначе новый pointerdown мог остановить прежнюю резинку, а
+ * последующая передача оставляла её висеть навсегда на ненулевом значении.
+ */
+const returnOverscroll = (args: OverscrollReturnArgs) => {
+  (["x", "y"] as const).forEach((axis) => {
+    const startValue = args.overscrollRef.current[axis];
+    if (startValue === 0) return;
+
+    overscrollBackAnim(
+      args.runtime.overscrollLoop,
+      axis,
+      startValue,
+      (value) => args.setOverscroll(axis, value),
+    );
+  });
 };
 
 const setScrollValue = (
@@ -251,9 +276,7 @@ const motionHandler = (
   ) => {
     const state = rt.prevCoords![axis];
     const setOverscroll = (value: number) => {
-      args.overscrollRef.current[axis] = value;
-      args.triggerUpdate();
-      args.reportScrollPosition();
+      args.setOverscroll(axis, value);
     };
 
     /*
@@ -954,14 +977,7 @@ function handleUp(args: HandleUpT) {
   }
 
   // - сбрасываем -
-  const backAnim = (axis: "x" | "y") =>
-    overscrollBackAnim(rt.overscrollLoop, args.overscrollRef, axis, () => {
-      args.triggerUpdate();
-      args.reportScrollPosition();
-    });
-
-  if (args.overscrollRef.current.x !== 0) backAnim("x");
-  if (args.overscrollRef.current.y !== 0) backAnim("y");
+  returnOverscroll(args);
 
   args.clickedObject.current = null;
   rt.resetGesture();

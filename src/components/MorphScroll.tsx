@@ -83,6 +83,8 @@ import {
 import edgePads from "../helpers/edgePads";
 import CONST from "../constants";
 
+type MotionSource = "scroll" | "overscroll-x" | "overscroll-y";
+
 /** the side a key points at — the same one the arrow buttons use */
 const ARROW_KEYS: Record<string, handleArrowT["arrowType"] | undefined> = {
   ArrowUp: "top",
@@ -375,6 +377,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       animationFrameId: 0,
     });
     const isScrollingRef = React.useRef<boolean>(false);
+    const motionSourcesRef = React.useRef<Set<MotionSource>>(new Set());
     /*
      * Липнет ли скролл к концу. `scrollPosition: "end"` означает «держись
      * низа», но вырывать пользователя из середины истории нельзя — а понять,
@@ -396,8 +399,39 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     const lastRenderedKeysRef = React.useRef<string[] | null>(null);
     const onRenderedKeysChangeRef = React.useRef(onRenderedKeysChange); // для стабилизации функцию
     const onScrollPositionRef = React.useRef(onScrollPosition);
+    const onScrollingChangeRef = React.useRef(onScrollingChange);
 
     onScrollPositionRef.current = onScrollPosition;
+    onScrollingChangeRef.current = onScrollingChange;
+
+    /*
+     * Нативная позиция и резиновость двигаются независимо, но снаружи это
+     * одно непрерывное движение. Первый источник включает состояние, а
+     * последний выключает — ни одна ось не может закончить другую раньше.
+     */
+    const startMotion = React.useCallback((source: MotionSource) => {
+      const sources = motionSourcesRef.current;
+      if (sources.has(source)) return;
+
+      const wasMoving = sources.size > 0;
+      sources.add(source);
+      if (wasMoving) return;
+
+      isScrollingRef.current = true;
+      customScrollRef.current?.setAttribute(CONST.SCROLLING_ATR, "");
+      onScrollingChangeRef.current?.(true);
+    }, []);
+
+    const stopMotion = React.useCallback((source: MotionSource) => {
+      const sources = motionSourcesRef.current;
+
+      // Остановка неактивного источника не должна присылать повторный false.
+      if (!sources.delete(source) || sources.size > 0) return;
+
+      isScrollingRef.current = false;
+      customScrollRef.current?.removeAttribute(CONST.SCROLLING_ATR);
+      onScrollingChangeRef.current?.(false);
+    }, []);
 
     function useSizeRef() {
       return React.useRef<{ width: number; height: number }>({
@@ -1678,6 +1712,28 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       );
     }, []);
 
+    /*
+     * Единственное место, которое пишет visual overscroll. Нулевую позицию
+     * сначала сообщаем наружу и только затем завершаем motion: при false
+     * последний onScrollPosition уже обязан содержать { x: 0, y: 0 }.
+     */
+    const setOverscroll = React.useCallback(
+      (axis: "x" | "y", value: number) => {
+        const previous = overscrollRef.current[axis];
+        const source: MotionSource = `overscroll-${axis}`;
+
+        overscrollRef.current[axis] = value;
+
+        if (previous === 0 && value !== 0) startMotion(source);
+
+        raf.schedule("triggerUpdate", triggerUpdate);
+        reportScrollPosition();
+
+        if (previous !== 0 && value === 0) stopMotion(source);
+      },
+      [reportScrollPosition, startMotion, stopMotion],
+    );
+
     const scrollSpaceFromRef =
       direction === "x"
         ? scrollElementRef.current?.scrollLeft || 0
@@ -2556,7 +2612,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           scrollStateRef: scrollStateRef.current,
           mode,
           triggerUpdate: triggerRAF,
-          reportScrollPosition,
+          setOverscroll,
           direction,
           smoothScroll: smoothScrollLocal,
           sizeLocal: [sizeLocal[0], sizeLocal[1]],
@@ -2596,7 +2652,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         gapLocal.join(),
         objLengthPerSize,
         maxScrollSize.join(),
-        reportScrollPosition,
+        setOverscroll,
         // сторона чтения входит в перевод позиции — без неё жест считает по старой
         flipsX,
       ],
@@ -2931,10 +2987,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         tasks.cancelTask("removeHover"); // удаляем task
 
         const el = scrollContentRef.current;
-        const mainEl = customScrollRef.current;
         const scrollEl = scrollElementRef.current;
 
-        if (!el || !mainEl || !scrollEl) return;
+        if (!el || !scrollEl) return;
 
         /*
          * Кадры собственной анимации к концу — не мнение пользователя о том,
@@ -3050,21 +3105,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           });
         }
 
-        // только на переходе: событий scroll за один жест десятки,
-        // а прокрутка началась один раз
-        if (!isScrollingRef.current) {
-          isScrollingRef.current = true;
-          // видно снаружи: по нему вложенные скроллы решают, брать ли колесо
-          mainEl.setAttribute(CONST.SCROLLING_ATR, "");
-          onScrollingChange?.(true);
-        }
+        // Событий scroll за один жест десятки, источник добавляется один раз.
+        startMotion("scroll");
 
         // debounce для финала через setTask
         tasks.setTask(
           () => {
-            isScrollingRef.current = false;
-            mainEl.removeAttribute(CONST.SCROLLING_ATR);
-            onScrollingChange?.(false);
+            stopMotion("scroll");
             // всё доехало — отметка о конце тут точно про итоговое положение
             updateAtEnd();
             reportNavigate();
@@ -3108,7 +3155,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       },
       [
         reportScrollPosition,
-        onScrollingChange,
+        startMotion,
+        stopMotion,
         reportNavigate,
         mode,
         sliderCheckLocal,
@@ -4466,7 +4514,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     React.useEffect(() => {
       const animationFrameId = scrollStateRef.current.animationFrameId;
 
-      onScrollingChange?.(false); // стартовое состояние
+      onScrollingChangeRef.current?.(false); // стартовое состояние
 
       return () => {
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -4484,6 +4532,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          */
         tasks.clear();
         pointerRuntime.destroy();
+        motionSourcesRef.current.clear();
       };
     }, []);
 

@@ -1,3 +1,12 @@
+## [3.2.2] - 2026-11-07
+
+### Fixed
+
+- **`onScrollingChange` now covers the complete rubber-band lifecycle.** It
+  stays active while content is pulled beyond an edge and until every
+  overscroll axis has returned to zero, without interrupting overlapping
+  native scroll motion.
+
 ## [3.2.1] - 2026-10-26
 
 ### Added

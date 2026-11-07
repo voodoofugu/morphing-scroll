@@ -24,52 +24,49 @@ describe("overscrollBackAnim", () => {
   };
 
   it("relaxes the overscroll value back to 0 and notifies via updater", () => {
-    const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(loop, ref as any, "x", updater);
+    overscrollBackAnim(loop, "x", 100, updater);
     // OVERSCROLL_BACK_DURATION ms worth of frames, plus slack
     advance(Math.ceil(CONST.OVERSCROLL_BACK_DURATION / 16) + 5);
 
-    expect(ref.current.x).toBe(0);
+    expect(updater).toHaveBeenLastCalledWith(0);
     expect(updater).toHaveBeenCalled();
   });
 
   it("returns quickly, then eases into 0 instead of moving linearly", () => {
-    const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(loop, ref as any, "x", updater);
+    overscrollBackAnim(loop, "x", 100, updater);
     advance(Math.floor(CONST.OVERSCROLL_BACK_DURATION / 16 / 2));
 
-    expect(ref.current.x).toBeGreaterThan(0);
+    const value = updater.mock.lastCall![0];
+    expect(value).toBeGreaterThan(0);
     // halfway through, linear motion would still be close to 50
-    expect(ref.current.x).toBeLessThan(30);
+    expect(value).toBeLessThan(30);
   });
 
   it("stopOverscrollBackAnim halts the animation", () => {
-    const ref = { current: { x: 100, y: 0 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(loop, ref as any, "x", updater);
+    overscrollBackAnim(loop, "x", 100, updater);
     advance(1);
     stopOverscrollBackAnim(loop);
-    const frozen = ref.current.x;
+    const frozen = updater.mock.lastCall![0];
     updater.mockClear();
 
     advance(10);
 
-    expect(ref.current.x).toBe(frozen); // no further change
+    expect(frozen).toBeLessThan(100);
     expect(updater).not.toHaveBeenCalled();
   });
 
   it("animates the y axis independently", () => {
-    const ref = { current: { x: 0, y: -80 } };
     const updater = vi.fn();
 
-    overscrollBackAnim(loop, ref as any, "y", updater);
+    overscrollBackAnim(loop, "y", -80, updater);
     advance(Math.ceil(CONST.OVERSCROLL_BACK_DURATION / 16) + 5);
 
-    expect(ref.current.y).toBe(0);
+    expect(updater).toHaveBeenLastCalledWith(0);
   });
 });
