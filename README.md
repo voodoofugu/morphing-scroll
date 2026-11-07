@@ -1699,6 +1699,7 @@ Nothing is styled for you and nothing is dropped: the objects stay mounted and s
 <ul>
   <li>only the axes the scroll moves along are named: a <code>y</code> scroll never speaks of left or right.</li>
   <li>an object the window cannot fit is outside on both of its sides at once, and says so.</li>
+  <li>a difference up to one CSS pixel is treated as browser subpixel rounding, not as an outside edge.</li>
   <li>the ratio is counted against the window itself, so <code>render.rootMargin</code> does not widen it: an object preloaded past the edge reports <b>0</b> until it truly shows.</li>
   <li>counted by place, so it needs an <code>objects.size</code> that can be counted — the same one <code>render</code> needs.</li>
 </ul>

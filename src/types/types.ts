@@ -898,6 +898,8 @@ export type MorphScroll = {
    * speaks of left or right*
    * @note *an object the window cannot fit is outside on both of its sides at
    * once, and says so*
+   * @note *a difference up to one CSS pixel is treated as browser subpixel
+   * rounding, not as an outside edge*
    * @note *the ratio is counted against the window itself, so
    * `render.rootMargin` does not widen it — an object preloaded past the
    * edge reports `0` until it truly shows*

@@ -28,6 +28,16 @@
   mask: var(--mark) center / contain no-repeat;
 }
 
+.top-version {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+}
+
 .top-links {
   display: flex;
   flex-wrap: wrap;

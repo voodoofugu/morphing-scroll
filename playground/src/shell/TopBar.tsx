@@ -1,6 +1,7 @@
 import React from "react";
 
 import logo from "@morphing-scroll/src/assets/morphing-scroll.svg";
+import packageInfo from "../../../package.json";
 
 import type { Theme } from "../dashboard/settings";
 
@@ -89,7 +90,8 @@ function TopBar({
           className="top-mark"
           style={{ "--mark": `url("${logo}")` } as React.CSSProperties}
         />
-        morphing-scroll
+        <span>morphing-scroll</span>
+        <span className="top-version">v{packageInfo.version}</span>
       </a>
 
       <nav className="top-links">

@@ -1,3 +1,11 @@
+## [3.2.3] - 2026-11-07
+
+### Fixed
+
+- **`ms-outside-*` ignores subpixel edge rounding.** A fully visible object no
+  longer keeps a side class when fractional viewport geometry and the browser's
+  scroll position differ by at most one CSS pixel.
+
 ## [3.2.2] - 2026-11-07
 
 ### Fixed

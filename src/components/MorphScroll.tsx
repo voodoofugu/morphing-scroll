@@ -85,6 +85,12 @@ import CONST from "../constants";
 
 type MotionSource = "scroll" | "overscroll-x" | "overscroll-y";
 
+/*
+ * DOM scroll positions and layout sizes can round the same fractional CSS
+ * coordinate differently. That subpixel residue is not a visibly cut edge.
+ */
+const OUTSIDE_EDGE_TOLERANCE = 1;
+
 /** the side a key points at — the same one the arrow buttons use */
 const ARROW_KEYS: Record<string, handleArrowT["arrowType"] | undefined> = {
   ArrowUp: "top",
@@ -5021,8 +5027,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
            * начало, ушедший вниз — конец, а тот, что в окно не помещается,
            * режет обе: это та же геометрия, а не особый случай.
            */
-          cutStart: elStart < viewportStart,
-          cutEnd: elEnd > viewportEnd,
+          cutStart: elStart < viewportStart - OUTSIDE_EDGE_TOLERANCE,
+          cutEnd: elEnd > viewportEnd + OUTSIDE_EDGE_TOLERANCE,
         };
       };
 

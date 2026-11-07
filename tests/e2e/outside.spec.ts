@@ -155,6 +155,111 @@ test.describe("стороны ухода", () => {
 });
 
 /*
+ * clientWidth/clientHeight are integers, while the visual box and an object
+ * can remain fractional. A snapped full-page object is still whole when the
+ * browser leaves no more than one CSS pixel between those coordinate systems.
+ */
+test.describe("дробный край полноразмерного слайда", () => {
+  const cases = [
+    {
+      name: "ряд",
+      direction: "x",
+      size: [1111.5, 240],
+      step: "right",
+      start: "left",
+      end: "right",
+    },
+    {
+      name: "развёрнутый ряд",
+      direction: "x",
+      size: [1111.5, 240],
+      step: "left",
+      start: "left",
+      end: "right",
+      fromRight: true,
+    },
+    {
+      name: "столбец",
+      direction: "y",
+      size: [300, 511.5],
+      step: "bottom",
+      start: "top",
+      end: "bottom",
+    },
+  ] as const;
+
+  for (const item of cases) {
+    test(`${item.name}: округление не считается обрезанием`, async ({ page }) => {
+      const config = {
+        count: 3,
+        size: item.size,
+        direction: item.direction,
+        mode: "slider",
+        objects: { size: "full" },
+        trackVisibility: true,
+        duration: 0,
+        controls: { bar: "@dot" },
+        ...(item.fromRight && { fromRight: true }),
+      };
+
+      await page.goto(
+        `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+      );
+
+      const viewport = page.locator(".ms-viewport");
+      const target = page
+        .locator(".ms-object-box")
+        .filter({ has: page.getByTestId("crash-1") });
+
+      await expect(viewport).toBeVisible();
+      await page.evaluate(
+        (side) =>
+          (
+            window as unknown as {
+              __ms: {
+                step: (side: string, options: { duration: number }) => void;
+              };
+            }
+          ).__ms.step(side, { duration: 0 }),
+        item.step,
+      );
+
+      await expect
+        .poll(() =>
+          target.evaluate((el) =>
+            el.style.getPropertyValue("--ms-content-visibility"),
+          ),
+        )
+        .toBe("1");
+      await expect(target).not.toHaveClass(/ms-outside-/);
+
+      const snapped = await viewport.evaluate(
+        (el, direction) =>
+          direction === "x" ? el.scrollLeft : el.scrollTop,
+        item.direction,
+      );
+
+      const move = async (offset: number) => {
+        await viewport.evaluate(
+          (el, next) => {
+            if (next.direction === "x") el.scrollLeft = next.value;
+            else el.scrollTop = next.value;
+          },
+          { direction: item.direction, value: snapped + offset },
+        );
+      };
+
+      // More than one CSS pixel is a real cut and still names its side.
+      await move(-2);
+      await expect(target).toHaveClass(new RegExp(`ms-outside-${item.end}`));
+
+      await move(2);
+      await expect(target).toHaveClass(new RegExp(`ms-outside-${item.start}`));
+    });
+  }
+});
+
+/*
  * Отрисовка с запасом и видимость — разные вопросы, и это сказано в описании
  * пропса: `render.rootMargin` рисует объекты за краем заранее, но видно их от
  * этого не становится.
