@@ -872,7 +872,7 @@ export type MorphScroll = {
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***trackVisibility***:
    * report how much of every object shows, through `--ms-content-visibility`
-   * on its `.ms-object-box` — `0` out of sight, `1` whole, a hundredth of it
+   * on its `.ms-object-box` — `0` out of sight, `1` whole, a thousandth of it
    * at a time in between.
    * @description
    * Nothing is styled and nothing is dropped: the objects stay mounted and

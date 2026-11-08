@@ -1676,7 +1676,7 @@ trackVisibility: true;
 false<br />
 <br />
 <b>Description:</b><em><br />
-reports how much of every object shows, through <code>--ms-content-visibility</code> on its <code>.ms-object-box</code> — <b>0</b> out of sight, <b>1</b> whole, a hundredth of it at a time in between. That is what a fade is styled with: <code>opacity: var(--ms-content-visibility);</code><br />
+reports how much of every object shows, through <code>--ms-content-visibility</code> on its <code>.ms-object-box</code> — <b>0</b> out of sight, <b>1</b> whole, a thousandth of it at a time in between. That is what a fade is styled with: <code>opacity: var(--ms-content-visibility);</code><br />
 <br />
 Which way it leaves comes with it: the box takes the class of the side cutting it — <code>ms-outside-top</code>, <code>ms-outside-right</code>, <code>ms-outside-bottom</code> or <code>ms-outside-left</code>. Only a side that cuts is named, so a rule reaches the objects it is about and nobody else — the ratio says how much, the class says where:<br />
 <br />

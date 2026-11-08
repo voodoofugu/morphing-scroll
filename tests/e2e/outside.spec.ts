@@ -227,10 +227,10 @@ test.describe("дробный край полноразмерного слайд
       await expect
         .poll(() =>
           target.evaluate((el) =>
-            el.style.getPropertyValue("--ms-content-visibility"),
+            Number(el.style.getPropertyValue("--ms-content-visibility")),
           ),
         )
-        .toBe("1");
+        .toBeGreaterThanOrEqual(0.999);
       await expect(target).not.toHaveClass(/ms-outside-/);
 
       const snapped = await viewport.evaluate(

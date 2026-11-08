@@ -407,12 +407,7 @@ test.describe("content visibility without a render mode", () => {
     expect(values[11]).toBe(0);
   });
 
-  /*
-   * Шаг доли — сотая. По десятой было видно, как объект появляется
-   * ступенями: то же место дало бы ровно 0.9, то есть мимо на шесть
-   * сотых, и на привязанном свойстве этот скачок заметен.
-   */
-  test("доля считается сотыми", async ({ page }) => {
+  test("доля считается тысячными", async ({ page }) => {
     await open(page, "visibilityPlain");
     await page.waitForTimeout(300);
 
@@ -422,7 +417,62 @@ test.describe("content visibility without a render mode", () => {
     const values = await seen(page);
 
     // карточка высотой 60, за краем осталось 5 — это 55/60
-    expect(values[0]).toBe(0.92);
+    expect(values[0]).toBe(0.917);
+  });
+
+  test("полноразмерный объект меняет долю с каждым пикселем", async ({
+    page,
+  }) => {
+    const config = {
+      count: 3,
+      size: [1000, 240],
+      direction: "x",
+      objects: { size: "full" },
+      trackVisibility: true,
+      controls: { wheel: true },
+    };
+
+    await page.goto(
+      `/?scenario=crash&props=${encodeURIComponent(JSON.stringify(config))}`,
+    );
+
+    const viewport = page.locator(".ms-viewport");
+    const first = page
+      .locator(".ms-object-box")
+      .filter({ has: page.getByTestId("crash-0") });
+    const last = page
+      .locator(".ms-object-box")
+      .filter({ has: page.getByTestId("crash-2") });
+    const visibility = (target: typeof first) =>
+      target.evaluate((el) =>
+        Number(el.style.getPropertyValue("--ms-content-visibility")),
+      );
+
+    await expect(viewport).toBeVisible();
+    await expect.poll(() => visibility(first)).toBe(1);
+    await expect.poll(() => visibility(last)).toBe(0);
+
+    const values: number[] = [1];
+
+    for (let offset = 1; offset <= 4; offset += 1) {
+      await viewport.evaluate((el, left) => (el.scrollLeft = left), offset);
+      const expected = 1 - offset / 1000;
+
+      await expect.poll(() => visibility(first)).toBeCloseTo(expected, 3);
+      values.push(await visibility(first));
+    }
+
+    expect(values[1]).toBe(0.999);
+    expect(
+      values.every((value, index) => !index || value < values[index - 1]),
+    ).toBe(true);
+
+    // The ratio is precise at one pixel; outside classes keep their own
+    // tolerance and appear only once the object is cut by more than one.
+    await viewport.evaluate((el) => (el.scrollLeft = 1));
+    await expect(first).not.toHaveClass(/ms-outside-/);
+    await viewport.evaluate((el) => (el.scrollLeft = 2));
+    await expect(first).toHaveClass(/ms-outside-left/);
   });
 
   test("после прокрутки числа переезжают вместе с окном", async ({ page }) => {
