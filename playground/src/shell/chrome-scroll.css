@@ -8,10 +8,18 @@
 }
 
 .chrome-scroll .ms-thumb .scroll-thumb:not(.playground-thumb) {
+  --chrome-thumb-corner: min(0.25rem, 50%);
+
   width: 8px;
   height: 100%;
-  border-radius: 20px;
-  corner-shape: bevel;
+  clip-path: polygon(
+    50% 0,
+    100% var(--chrome-thumb-corner),
+    100% calc(100% - var(--chrome-thumb-corner)),
+    50% 100%,
+    0 calc(100% - var(--chrome-thumb-corner)),
+    0 var(--chrome-thumb-corner)
+  );
 }
 
 .chrome-scroll .ms-thumb.ms-grabbing .scroll-thumb:not(.playground-thumb) {

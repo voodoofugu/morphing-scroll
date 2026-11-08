@@ -143,13 +143,16 @@ describe("MorphScroll isolation — scheduled tasks", () => {
 });
 
 describe("MorphScroll isolation — pointer gestures", () => {
+  const nextFrame = () =>
+    new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
   // a failing assertion must not leave a gesture open for the next test
   afterEach(() => {
     pointer("pointerup", 0, 0, document);
     pointer("pointerup", 0, 0, document, 2);
   });
 
-  it("does not cancel an in-flight drag when another instance starts one", () => {
+  it("does not cancel an in-flight drag when another instance starts one", async () => {
     const { a, b } = renderPair({ controls: { drag: true } });
 
     // A starts dragging and moves.
@@ -162,6 +165,7 @@ describe("MorphScroll isolation — pointer gestures", () => {
 
     // A keeps moving — its listeners must still be alive.
     pointer("pointermove", 50, 140, document);
+    await nextFrame();
     expect(a.scrollTop).toBeGreaterThan(0);
 
     pointer("pointerup", 50, 140, document);
@@ -193,12 +197,15 @@ describe("MorphScroll isolation — pointer gestures", () => {
 });
 
 describe("MorphScroll isolation — concurrent pointers", () => {
+  const nextFrame = () =>
+    new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
   afterEach(() => {
     pointer("pointerup", 0, 0, document, 1);
     pointer("pointerup", 0, 0, document, 2);
   });
 
-  it("keeps two simultaneous drags independent", () => {
+  it("keeps two simultaneous drags independent", async () => {
     const { a, b } = renderPair({ controls: { drag: true } });
 
     // two fingers, one on each list, moving different distances
@@ -208,12 +215,13 @@ describe("MorphScroll isolation — concurrent pointers", () => {
     pointer("pointermove", 50, 240, document, 2);
     pointer("pointermove", 50, 150, document, 1); // A travels 90
     pointer("pointermove", 50, 200, document, 2); // B travels 40
+    await nextFrame();
 
     expect(a.scrollTop).toBe(90);
     expect(b.scrollTop).toBe(40);
   });
 
-  it("lifting one finger does not end the other gesture", () => {
+  it("lifting one finger does not end the other gesture", async () => {
     const { a, b } = renderPair({ controls: { drag: true } });
 
     pointer("pointerdown", 50, 250, a, 1);
@@ -223,6 +231,7 @@ describe("MorphScroll isolation — concurrent pointers", () => {
 
     pointer("pointerup", 50, 240, document, 1); // A lets go
     pointer("pointermove", 50, 140, document, 2); // B keeps dragging
+    await nextFrame();
 
     expect(b.scrollTop).toBe(100);
   });

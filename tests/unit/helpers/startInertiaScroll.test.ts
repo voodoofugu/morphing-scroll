@@ -76,6 +76,38 @@ describe("startInertiaScroll", () => {
     expect(el.scrollTop).toBeGreaterThanOrEqual(0);
   });
 
+  it("hands the remaining velocity to touch overscroll at the edge", () => {
+    const el = makeEl({ scrollTop: 690 });
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+    let scheduled: (() => void) | null = null;
+    const collision = vi.fn();
+
+    startInertiaScroll({
+      el: el as unknown as HTMLDivElement,
+      axis: "y",
+      velocity: 2,
+      rafSchedule: (_key, fn) => {
+        scheduled = fn;
+      },
+      onEdge: collision,
+    });
+
+    for (let index = 0; scheduled && index < 10; index++) {
+      const frame = scheduled;
+      scheduled = null;
+      now += 16;
+      frame();
+    }
+
+    expect(el.scrollTop).toBe(700);
+    expect(collision).toHaveBeenCalledTimes(1);
+    expect(collision.mock.lastCall?.[0]).toMatchObject({ edge: "end" });
+    expect(collision.mock.lastCall?.[0].velocity).toBeGreaterThan(0);
+    expect(collision.mock.lastCall?.[0].overflow).toBeGreaterThan(0);
+    expect(scheduled).toBeNull();
+  });
+
   it("terminates (velocity decays below the stop threshold)", () => {
     const el = makeEl({ scrollTop: 0 });
     const iterations = run(el, "y", 1);
@@ -95,5 +127,13 @@ describe("startInertiaScroll", () => {
     run(el, "x", 1);
     expect(el.scrollLeft).toBeGreaterThan(0);
     expect(el.scrollTop).toBe(0);
+  });
+
+  it("does not turn a slow release into a fixed minimum glide", () => {
+    const el = makeEl({ scrollTop: 0 });
+    run(el, "y", 0.06);
+
+    expect(el.scrollTop).toBeGreaterThan(0);
+    expect(el.scrollTop).toBeLessThan(40);
   });
 });

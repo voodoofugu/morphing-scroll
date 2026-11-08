@@ -10,6 +10,8 @@ const makeState = (): ScrollStateRefT => ({
   targetScrollX: 0,
   animating: false,
   animationFrameId: null,
+  wheelMode: null,
+  lastWheelAt: 0,
 });
 
 const makeScrollEl = () => {
@@ -19,8 +21,8 @@ const makeScrollEl = () => {
   return el;
 };
 
-const wheel = (deltaY: number) =>
-  new WheelEvent("wheel", { deltaY, bubbles: true });
+const wheel = (deltaY: number, options: WheelEventInit = {}) =>
+  new WheelEvent("wheel", { deltaY, bubbles: true, ...options });
 
 describe("handleWheel", () => {
   beforeEach(() => vi.useFakeTimers());
@@ -74,6 +76,57 @@ describe("handleWheel", () => {
     settle();
 
     expect(el.scrollTop).toBe(MAX[1]);
+  });
+
+  it("follows precise trackpad deltas without an easing tail", () => {
+    const el = makeScrollEl();
+    const state = makeState();
+
+    handleWheel(wheel(18), el, MAX, state, "y");
+
+    expect(el.scrollTop).toBe(18);
+    expect(state.animating).toBe(false);
+    expect(state.animationFrameId).toBeNull();
+  });
+
+  it("keeps a fast trackpad burst direct after its small first delta", () => {
+    const el = makeScrollEl();
+    const state = makeState();
+
+    handleWheel(wheel(8), el, MAX, state, "y");
+    handleWheel(wheel(70), el, MAX, state, "y");
+
+    expect(el.scrollTop).toBe(78);
+    expect(state.animating).toBe(false);
+  });
+
+  it("still smooths a discrete mouse notch", () => {
+    const el = makeScrollEl();
+    const state = makeState();
+
+    handleWheel(wheel(120), el, MAX, state, "y");
+
+    expect(el.scrollTop).toBe(0);
+    expect(state.animating).toBe(true);
+
+    settle();
+    expect(el.scrollTop).toBe(120);
+  });
+
+  it("starts a new trackpad gesture from the visible eased position", () => {
+    const el = makeScrollEl();
+    const state = makeState();
+
+    handleWheel(wheel(1000), el, MAX, state, "y");
+    vi.advanceTimersByTime(121);
+    const visible = el.scrollTop;
+
+    expect(visible).toBeLessThan(1000);
+
+    handleWheel(wheel(10), el, MAX, state, "y");
+
+    expect(el.scrollTop).toBe(visible + 10);
+    expect(state.animating).toBe(false);
   });
 
   describe("focus", () => {

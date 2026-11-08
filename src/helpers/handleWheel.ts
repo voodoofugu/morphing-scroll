@@ -7,6 +7,8 @@ export type ScrollStateRefT = {
   targetScrollX: number;
   animating: boolean;
   animationFrameId: number | null;
+  wheelMode: "direct" | "smooth" | null;
+  lastWheelAt: number;
 };
 
 /*
@@ -19,6 +21,16 @@ export type ScrollStateRefT = {
  * прокрутка: щелчок в три строки даёт 120, рядом с сотней у Chrome.
  */
 const LINE_HEIGHT = 40;
+
+const preciseWheel = (event: WheelEvent) => {
+  if (event.deltaMode !== 0) return false;
+
+  const largest = Math.max(Math.abs(event.deltaX), Math.abs(event.deltaY));
+  const fractional =
+    !Number.isInteger(event.deltaX) || !Number.isInteger(event.deltaY);
+
+  return fractional || largest <= CONST.WHEEL_DIRECT_MAX_DELTA;
+};
 
 const deltaOf = (e: WheelEvent, scrollEl: HTMLElement): Vec2 => {
   const scale =
@@ -91,6 +103,23 @@ export default function handleWheel(
     scrollEl.focus({ preventScroll: true });
 
   const [deltaX, deltaY] = deltaOf(e, scrollEl);
+  const now = performance.now();
+  const newBurst =
+    stateRef.wheelMode === null ||
+    now - stateRef.lastWheelAt > CONST.WHEEL_BURST_GAP;
+
+  if (newBurst)
+    stateRef.wheelMode = preciseWheel(e) ? "direct" : "smooth";
+
+  stateRef.lastWheelAt = now;
+
+  /* A new precise gesture starts where the previous easing visibly is. */
+  if (newBurst && stateRef.wheelMode === "direct" && stateRef.animating) {
+    if (stateRef.animationFrameId !== null)
+      cancelAnimationFrame(stateRef.animationFrameId);
+    stateRef.animating = false;
+    stateRef.animationFrameId = null;
+  }
 
   // Устанавливаем начальные значения
   if (!stateRef.animating) {
@@ -161,6 +190,24 @@ export default function handleWheel(
     stateRef.targetScrollX !== before[0] || stateRef.targetScrollY !== before[1];
 
   if (!consumed) return false;
+
+  /*
+   * A trackpad already sends a dense stream with system acceleration. Adding
+   * another easing tail makes it lag behind the fingers and pulse after they
+   * stop. Small/fractional pixel deltas follow their target directly; a mouse
+   * notch remains smoothed because it arrives as one large jump.
+   */
+  if (stateRef.wheelMode === "direct") {
+    if (stateRef.animationFrameId !== null)
+      cancelAnimationFrame(stateRef.animationFrameId);
+
+    if (direction !== "y") scrollEl.scrollLeft = stateRef.targetScrollX;
+    if (direction !== "x") scrollEl.scrollTop = stateRef.targetScrollY;
+
+    stateRef.animating = false;
+    stateRef.animationFrameId = null;
+    return true;
+  }
 
   // Запускаем анимацию, если она ещё не запущена
   if (!stateRef.animating) {

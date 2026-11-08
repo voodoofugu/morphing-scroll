@@ -68,6 +68,8 @@ const setup = ({ duration = 200 } = {}) => {
       targetScrollY: 0,
       animating: false,
       animationFrameId: null,
+      wheelMode: null,
+      lastWheelAt: 0,
     },
     sizeLocal: [300, PAGE],
     smoothScroll,

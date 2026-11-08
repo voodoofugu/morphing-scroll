@@ -274,15 +274,18 @@ function Tree({ nodes, current }: { nodes: ReadmeNode[]; current: string }) {
         const inside =
           current.startsWith(`${href}.`) || current.startsWith(`${href}/`);
         const open = node.kind === "component" || current === href || inside;
+        const isCurrent = current === href;
 
         return (
           <li key={href}>
-            <a
-              aria-current={current === href ? "page" : inside || undefined}
-              href={href}
-            >
-              {node.name}
-            </a>
+            <span className={`docs-tree-link${isCurrent ? " is-current" : ""}`}>
+              <a
+                aria-current={isCurrent ? "page" : inside || undefined}
+                href={href}
+              >
+                {node.name}
+              </a>
+            </span>
             {open && node.children.length > 0 && (
               <Tree current={current} nodes={node.children} />
             )}
@@ -331,7 +334,7 @@ function Docs() {
           <div className="docs-nav-scroll">
             <ChromeScroll
               controls={{ keys: true, bar: { trackGap: -4 } }}
-              wrapper={{ margin: [0, 14, 0, 0] }}
+              wrapper={{ margin: [1, 14, 0, 1] }}
             >
               {found ? (
                 <ul className="docs-found">
@@ -349,12 +352,16 @@ function Docs() {
                 </ul>
               ) : (
                 <nav aria-label="contents" className="docs-tree">
-                  <a
-                    aria-current={route === "#/" ? "page" : undefined}
-                    href="#/"
+                  <span
+                    className={`docs-tree-link${route === "#/" ? " is-current" : ""}`}
                   >
-                    overview
-                  </a>
+                    <a
+                      aria-current={route === "#/" ? "page" : undefined}
+                      href="#/"
+                    >
+                      overview
+                    </a>
+                  </span>
                   <Tree current={route} nodes={readme.api} />
                 </nav>
               )}

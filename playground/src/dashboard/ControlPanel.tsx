@@ -21,7 +21,10 @@ function ControlPanel({ children }: { children: React.ReactNode }) {
    * везёт она их вместе, и считать каждый отдельно ей незачем.
    */
   return (
-    <ChromeScroll className="control-panel is-scrolled" wrapper={{ margin: 14 }}>
+    <ChromeScroll
+      className="control-panel is-scrolled"
+      wrapper={{ margin: 14 }}
+    >
       <div className="panel-body">{children}</div>
     </ChromeScroll>
   );

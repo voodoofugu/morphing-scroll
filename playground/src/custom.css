@@ -16,14 +16,51 @@
 
 /* #region scroll */
 [morph-scroll].playground-scroll {
+  --drag-edge-top: transparent;
+  --drag-edge-right: transparent;
+  --drag-edge-bottom: transparent;
+  --drag-edge-left: transparent;
+
   isolation: isolate;
   background: var(--card);
   box-shadow: 0 10px 28px var(--shadow);
 }
 
-.playground-scroll .ms-content,
-.playground-scroll .ms-viewport {
-  border-radius: 10px;
+.playground-scroll[ms-under-drag~="top"] {
+  --drag-edge-top: var(--accent);
+}
+
+.playground-scroll[ms-under-drag~="right"] {
+  --drag-edge-right: var(--accent);
+}
+
+.playground-scroll[ms-under-drag~="bottom"] {
+  --drag-edge-bottom: var(--accent);
+}
+
+.playground-scroll[ms-under-drag~="left"] {
+  --drag-edge-left: var(--accent);
+}
+
+.playground-scroll,
+.playground-scroll .ms-content {
+  border-radius: 4px;
+}
+
+/* `ms-under-drag` называет сторону, к которой autoScrollOnDrag ведёт список. */
+.playground-scroll .ms-content::after {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0.3rem 0 var(--drag-edge-top),
+    inset -0.3rem 0 0 var(--drag-edge-right),
+    inset 0 -0.3rem 0 var(--drag-edge-bottom),
+    inset 0.3rem 0 0 var(--drag-edge-left);
+  content: "";
+  pointer-events: none;
+  transition: box-shadow 120ms ease;
 }
 
 .playground-scroll .ms-objects-wrapper {
@@ -57,6 +94,8 @@ body.no-select {
 }
 
 .demo-item {
+  --item-corner-cut: 0.875rem;
+
   /*
    * Долю видимости библиотека кладёт переменной на бокс объекта — карточка
    * внутри его наследует. Без trackVisibility переменной нет, и запасная
@@ -72,8 +111,7 @@ body.no-select {
   height: 100%;
   overflow: hidden;
   border: 1px solid rgba(127, 140, 137, 0.25);
-  border-radius: 2px 14px 2px 2px;
-  corner-shape: round bevel round round;
+  border-radius: 6px;
   padding: 11px;
   color: var(--item-ink);
 }

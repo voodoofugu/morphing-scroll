@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   overscrollBackAnim,
+  overscrollLimit,
+  overscrollMomentumAnim,
   stopOverscrollBackAnim,
 } from "@morphing-scroll/src/helpers/overscrollBackAnim";
 import createRafLoop from "@morphing-scroll/src/helpers/createRafLoop";
@@ -68,5 +70,25 @@ describe("overscrollBackAnim", () => {
     advance(Math.ceil(CONST.OVERSCROLL_BACK_DURATION / 16) + 5);
 
     expect(updater).toHaveBeenLastCalledWith(0);
+  });
+
+  it("turns edge momentum into one outward pull and returns to zero", () => {
+    const updater = vi.fn();
+
+    overscrollMomentumAnim(loop, "y", -4, -1.2, 180, updater);
+    advance(120);
+
+    const values = updater.mock.calls.map(([value]) => value as number);
+    expect(Math.min(...values)).toBeLessThan(-4);
+    expect(Math.max(...values)).toBe(0);
+    expect(values.length).toBeGreaterThan(2);
+    expect(updater).toHaveBeenLastCalledWith(0);
+    expect(values.every((value) => value <= 0)).toBe(true);
+  });
+
+  it("scales the limit with the viewport but keeps safe bounds", () => {
+    expect(overscrollLimit(200)).toBe(CONST.BOUNCE_MIN_OVERSCROLL);
+    expect(overscrollLimit(780)).toBeCloseTo(187.2);
+    expect(overscrollLimit(2000)).toBe(CONST.BOUNCE_MAX_OVERSCROLL);
   });
 });

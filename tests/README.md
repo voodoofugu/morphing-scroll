@@ -22,9 +22,9 @@ tests/
     hybrid.spec.ts         # tier 3 — hybrid wheel + changeDirection
 ```
 
-Current status: **353 unit + 36 e2e green**, 81% statement coverage of `src`
-from the unit tier alone — `autoScrollRegistry` and the gesture physics are
-covered by Playwright, which this number does not see.
+The full suite combines unit/jsdom checks with more than five hundred browser
+scenarios. `autoScrollRegistry` and the gesture physics are covered by
+Playwright, which unit coverage does not see.
 Covered mechanics include:
 render `virtual`/`lazy`, `emptyObjects` (clear/fallback), `suspending`,
 `edge`, `arrows`, the `bar` scrollbar, `direction`/`objects.lines`,
@@ -37,7 +37,9 @@ the axis that can move,
 auto-scroll, hybrid `wheel.changeDirection`, plus the pure algorithms
 (`startInertiaScroll`, `overscrollBackAnim`, rAF schedulers, `handleArrow`,
 `updateKeys`, `autoScrollRegistry`) and the wheel/thumb/content-drag/arrow
-interactions.
+interactions. Pointer input also pins one DOM scroll write per display frame,
+coalesced-sample velocity, direct precise-wheel bursts and smoothed discrete
+mouse-wheel notches.
 
 ### Instance isolation (v3, stage 1)
 
@@ -108,8 +110,6 @@ code, except the last, which was already fixed and is now held in place:
 ### Still uncovered (candidates for the next pass)
 - `handleMouseOrTouch` full flow beyond thumb/content drag (rubber-band, slider
   drag with snapping on release) — needs real `getBoundingClientRect`, so e2e.
-- Touch inertia end-to-end (`page.touchscreen` + velocity) — the integrator
-  itself is unit-tested; the gesture → inertia handoff is not.
 - `wheel.changeDirectionBtn` (keyboard toggle).
 
 ## Running

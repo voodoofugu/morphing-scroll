@@ -29,6 +29,8 @@ const CONST = {
   SCROLLING_ATR: "ms-scrolling", // present on the root while a scroll is running
   LERP_FACTOR: 0.4, // Interpolation factor for smooth scrolling (0-1)
   DIFF_THRESHOLD: 2.5, // Minimum distance to stop animation (pixels)
+  WHEEL_DIRECT_MAX_DELTA: 40, // pixel deltas at or below this follow a trackpad directly
+  WHEEL_BURST_GAP: 120, // ms — after this pause a wheel device is classified again
   SCROLL_END_DELAY: 200, // Delay before marking scroll as ended (ms)
   /*
    * У края скролл отдаёт колесо наружу не сразу: пока его крутят, оно ещё
@@ -61,19 +63,22 @@ const CONST = {
   // инерция для прокрутки
   MIN_VELOCITY: 0.05, // px/ms
   MIN_DISTANCE: 12, // px
-  INERTIA_FRICTION: 0.0025, // сила торможения (меньше → дольше катится, своего рода сила трения)!
+  INERTIA_FRICTION: 0.0021, // меньше сопротивления: быстрый touch-бросок не ощущается вязким
   INERTIA_MIN_VELOCITY: 0.02, // порог остановки
   INERTIA_EDGE_DAMPING: 0.4, // демпфирование у краёв
   INERTIA_RELEASE_TIMEOUT: 80, // ms — максимум пауза между движением и отпусканием
-  INERTIA_BOOST_EXP: 0.92, // кривая усиления (>0.7 и <1 даёт «пружину»)
-  INERTIA_MIN_START: 0.2, // минимальный старт, чтобы не «умирало»
+  INERTIA_BOOST_EXP: 0.98, // почти линейная скорость: жест остаётся выразительным без резкого разгона
 
   // - spring-bounce -
-  RUBBER_STIFFNESS: 0.14, // чем меньше тем сильнее пружина
-  BOUNCE_MAX_OVERSCROLL: 150, // ограничение растяжения (px)
+  RUBBER_STIFFNESS: 0.22, // доля viewport, к которой асимптотически тянется rubber-band
+  BOUNCE_MIN_OVERSCROLL: 96, // маленький scroll всё ещё даёт заметное растяжение
+  BOUNCE_MAX_OVERSCROLL: 220, // большой scroll не превращает растяжение в длинный перелёт
+  BOUNCE_OVERSCROLL_RATIO: 0.24, // размерозависимый visual-предел
   MICRO_DAMPENING: 0.6, // добавляется при смене направления растяжения
   OVERSCROLL_BACK_DURATION: 220, // ms — мягкое возвращение после растяжения
-  MIN_THRESHOLD_SIZE: 600, // px — размер viewport scroll, при котором включается эффект пружины
+  OVERSCROLL_MOMENTUM_SPRING: 180, // s^-2 — пружина после столкновения touch-инерции с краем
+  OVERSCROLL_MOMENTUM_DAMPING: 24, // s^-1 — гасит пружину до первого возврата без дрожания
+  MIN_THRESHOLD_SIZE: 440, // px — нижняя база нелинейного сопротивления
 };
 
 export default CONST;

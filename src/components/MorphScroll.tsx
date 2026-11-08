@@ -381,6 +381,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       targetScrollX: 0,
       animating: false,
       animationFrameId: 0,
+      wheelMode: null,
+      lastWheelAt: 0,
     });
     const isScrollingRef = React.useRef<boolean>(false);
     const motionSourcesRef = React.useRef<Set<MotionSource>>(new Set());

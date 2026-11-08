@@ -1,4 +1,18 @@
-## [3.2.3] - 2026-11-08
+## [3.3.0] - 2026-11-08
+
+### Changed
+
+- **Pointer dragging now commits at most one scroll position per frame.** Input
+  remains synchronous for axis ownership, while redundant intermediate DOM
+  writes are coalesced without losing the final position before release.
+- **Touch inertia follows the measured release instead of a fixed minimum.**
+  Coalesced pointer samples keep velocity stable across event rates, a slow
+  release no longer turns into an artificial glide, and reduced resistance
+  keeps fast flicks responsive. Momentum reaching an edge continues as a
+  viewport-scaled touch rubber-band before settling back.
+- **Trackpad scrolling no longer receives a second easing tail.** Small or
+  fractional pixel-delta bursts follow their system acceleration directly;
+  discrete mouse-wheel notches keep the library's smoothing.
 
 ### Fixed
 

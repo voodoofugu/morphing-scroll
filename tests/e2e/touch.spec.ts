@@ -87,6 +87,81 @@ test.describe("MorphScroll touch (real device emulation)", () => {
     expect(await scrollTop(el)).toBeGreaterThan(100);
   });
 
+  test("turns touch inertia into rubber-band when it reaches the edge", async ({
+    page,
+  }) => {
+    const { el, box } = await openScroll(page);
+    const max = await el.evaluate((node) => node.scrollHeight - node.clientHeight);
+
+    await el.evaluate((node, position) => {
+      node.scrollTop = position;
+      (window as any).__overscrollTrail = [];
+    }, max - 180);
+
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await swipe(
+      page,
+      { x, y: y + 45 },
+      { x, y: y - 45 },
+      { steps: 4, stepDelay: 8 },
+    );
+
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Math.min(
+            0,
+            ...(((window as any).__overscrollTrail ?? []) as {
+              y: number;
+            }[]).map((value) => value.y),
+          ),
+        ),
+      )
+      .toBeLessThan(-1);
+
+    await expect.poll(() => scrollTop(el)).toBe(max);
+    await expect
+      .poll(() => page.evaluate(() => (window as any).__scroll?.overscroll))
+      .toEqual({ x: 0, y: 0 });
+  });
+
+  test("a fast release of an already stretched edge has one smooth turn", async ({
+    page,
+  }) => {
+    const { el, box } = await openScroll(page);
+    await el.evaluate((node) => {
+      node.scrollTop = node.scrollHeight - node.clientHeight;
+      (window as any).__overscrollTrail = [];
+    });
+
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await swipe(
+      page,
+      { x, y: y + 70 },
+      { x, y: y - 70 },
+      { steps: 5, stepDelay: 8 },
+    );
+
+    await expect
+      .poll(() => page.evaluate(() => (window as any).__scroll?.overscroll))
+      .toEqual({ x: 0, y: 0 });
+
+    const values = await page.evaluate(() =>
+      (((window as any).__overscrollTrail ?? []) as { y: number }[])
+        .map((value) => value.y)
+        .filter((value) => value <= 0),
+    );
+    const trough = values.indexOf(Math.min(...values));
+
+    expect(values[trough]).toBeLessThan(-20);
+    for (let index = 1; index <= trough; index++)
+      expect(values[index]).toBeLessThanOrEqual(values[index - 1] + 0.5);
+    for (let index = trough + 1; index < values.length; index++)
+      expect(values[index]).toBeGreaterThanOrEqual(values[index - 1] - 0.5);
+  });
+
   for (const direction of ["x", "y"] as const)
     test(`${direction}: a finger settles on a partial final slider page`, async ({
       page,

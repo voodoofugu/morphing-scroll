@@ -17,6 +17,6 @@ export default defineConfig({
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     css: false,
     // отчёт только по библиотеке — хелперы самих тестов его искажают
-    coverage: { include: ["src/**"] },
+    coverage: { include: ["src/**/*.{ts,tsx}"] },
   },
 });

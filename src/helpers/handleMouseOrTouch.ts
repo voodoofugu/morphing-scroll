@@ -10,12 +10,15 @@ import startInertiaScroll from "./startInertiaScroll";
 import clampValue from "./clampValue";
 import {
   overscrollBackAnim,
+  overscrollLimit,
+  overscrollMomentumAnim,
   stopOverscrollBackAnim,
 } from "./overscrollBackAnim";
 
 import CONST from "../constants";
 import { loopPages, loopPageAt } from "./loopWindow";
 import pageAt from "./pageAt";
+import { recordPointerVelocity } from "./pointerVelocity";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
@@ -104,7 +107,7 @@ type HandleMoveT = Omit<
   sliderRect?: DOMRect;
 };
 
-type HandleUpT = Omit<HandleMouseT, "scrollStateRef" | "sizeLocal"> & {
+type HandleUpT = Omit<HandleMouseT, "scrollStateRef"> & {
   event: PointerEvent;
   thumbRatio: number;
   maxScrollSize: Vec2;
@@ -134,6 +137,7 @@ const releaseHandedOffGesture = (args: HandleMoveT) => {
 
   rt.controller?.abort();
   rt.controller = undefined;
+  rt.scrollWriter.cancel();
   rt.resetGesture();
 
   args.clickedObject.current = null;
@@ -147,8 +151,13 @@ const releaseHandedOffGesture = (args: HandleMoveT) => {
  * отдать наружу. Иначе новый pointerdown мог остановить прежнюю резинку, а
  * последующая передача оставляла её висеть навсегда на ненулевом значении.
  */
-const returnOverscroll = (args: OverscrollReturnArgs) => {
+const returnOverscroll = (
+  args: OverscrollReturnArgs,
+  momentumAxes?: ReadonlySet<"x" | "y">,
+) => {
   (["x", "y"] as const).forEach((axis) => {
+    if (momentumAxes?.has(axis)) return;
+
     const startValue = args.overscrollRef.current[axis];
     if (startValue === 0) return;
 
@@ -168,12 +177,14 @@ const setScrollValue = (
   value: number,
 ) => {
   if (axis === "x") {
+    args.runtime.scroll.x = value;
     args.scrollStateRef.targetScrollX = value;
-    if (el.scrollLeft !== value) el.scrollLeft = value;
   } else {
+    args.runtime.scroll.y = value;
     args.scrollStateRef.targetScrollY = value;
-    if (el.scrollTop !== value) el.scrollTop = value;
   }
+
+  args.runtime.scrollWriter.schedule(el, axis, value);
 };
 
 const motionHandler = (
@@ -204,13 +215,14 @@ const motionHandler = (
       axisLocal === "x" ? args.sizeLocal[0] : args.sizeLocal[1];
     const K =
       Math.max(CONST.MIN_THRESHOLD_SIZE, viewportSize) * CONST.RUBBER_STIFFNESS;
+    const limit = overscrollLimit(viewportSize);
 
     const abs = Math.abs(drag);
 
     return clampValue(
       (drag * K) / (K + (invert ? -abs : abs)),
-      -CONST.BOUNCE_MAX_OVERSCROLL,
-      CONST.BOUNCE_MAX_OVERSCROLL,
+      -limit,
+      limit,
     );
   };
 
@@ -243,25 +255,6 @@ const motionHandler = (
   if (stableCheckMove > 2) {
     args.isDraggingRef.current = true;
   } else if (stableCheckMove < 3) rt.checkMove[axis] += delta[axis];
-
-  // логика для плавного скроллинга пальцем
-  if (args.isTouched) {
-    const now = performance.now();
-
-    if (!rt.velocity.t) {
-      rt.velocity.t = now;
-    } else {
-      const dt = Math.max(now - rt.velocity.t, 8);
-
-      rt.velocity = {
-        x: rt.velocity.x * 0.8 + (delta.x / dt) * 0.2,
-        y: rt.velocity.y * 0.8 + (delta.y / dt) * 0.2,
-        t: now,
-        distX: rt.velocity.distX + Math.abs(delta.x),
-        distY: rt.velocity.distY + Math.abs(delta.y),
-      };
-    }
-  }
 
   const move =
     args.clickedObject.current === "wrapp" ? -delta[axis] : delta[axis];
@@ -326,7 +319,7 @@ const motionHandler = (
       return;
     }
 
-    const currentScroll = el[topOrLeft];
+    const currentScroll = rt.scroll[axis];
     const isAtStart = currentScroll <= 0;
     const isAtEnd = currentScroll >= maxScrollSize;
     const isMovingBeforeStart = scrollDelta < 0;
@@ -360,7 +353,7 @@ const motionHandler = (
       return;
     }
 
-    const nextScroll = el[topOrLeft] + scrollDelta;
+    const nextScroll = currentScroll + scrollDelta;
     const clampedScroll = clampValue(nextScroll, 0, maxScrollSize);
     setScrollValue(axis, el, args, clampedScroll);
   };
@@ -520,6 +513,9 @@ const hasOwnDrag = (target: Element | null) =>
 function handleMouseOrTouch(args: HandleMouseT) {
   const rt = args.runtime;
 
+  /* A completed input frame must become the starting point of the next one. */
+  rt.scrollWriter.flush();
+
   // останавливаем overscroll анимацию назад, если она есть
   stopOverscrollBackAnim(rt.overscrollLoop);
 
@@ -533,11 +529,18 @@ function handleMouseOrTouch(args: HandleMouseT) {
   const el = args.scrollElement;
   if (!el) return;
 
+  if (args.scrollStateRef.animationFrameId !== null)
+    cancelAnimationFrame(args.scrollStateRef.animationFrameId);
+  args.scrollStateRef.animating = false;
+  args.scrollStateRef.animationFrameId = null;
+
   args.scrollStateRef.targetScrollX = el.scrollLeft;
   args.scrollStateRef.targetScrollY = el.scrollTop;
 
   // reset inertia state for new gesture
   rt.resetGesture();
+  rt.scroll.x = el.scrollLeft;
+  rt.scroll.y = el.scrollTop;
   rt.startPoint = args.startPoint;
 
   /*
@@ -812,6 +815,8 @@ const decideAxis = (
 function handleMove(args: HandleMoveT) {
   const dir = args.direction || "y";
 
+  if (args.isTouched) recordPointerVelocity(args.runtime.velocity, args.event);
+
   /* делим только тягу содержимого: бар и бегунок ведут свою ось по праву */
   if (args.clickedObject.current === "wrapp" && !args.axisFromAtr) {
     const verdict = decideAxis(args, dir);
@@ -856,6 +861,9 @@ function handleUp(args: HandleUpT) {
   const rt = args.runtime;
   rt.controller?.abort(); // удаляем слушатели
   rt.controller = undefined;
+
+  /* Do not lose the last pointermove when release lands before the next frame. */
+  rt.scrollWriter.flush();
 
   const el = args.scrollElement as HTMLDivElement;
   if (!el) return;
@@ -936,6 +944,8 @@ function handleUp(args: HandleUpT) {
   }
 
   // --- inertia scroll for touch ---
+  const momentumAxes = new Set<"x" | "y">();
+
   if (
     args.isTouched &&
     args.mode === "scroll" &&
@@ -956,11 +966,53 @@ function handleUp(args: HandleUpT) {
         Math.abs(vel) > CONST.MIN_VELOCITY &&
         dist > CONST.MIN_DISTANCE
       ) {
+        const index = axis === "x" ? 0 : 1;
+        const currentOverscroll = args.overscrollRef.current[axis];
+        const contentGesture = args.clickedObject.current === "wrapp";
+        const onLoop = !!args.loopPeriods?.[index];
+
+        /*
+         * Если край уже растянут, обычная scroll-инерция немедленно снова
+         * ударилась бы в тот же край, пока параллельно шёл return animation.
+         * Одна пружина продолжает прямо с текущего visual-положения и скорости
+         * пальца — без шага назад и повторного толчка наружу.
+         */
+        if (currentOverscroll !== 0 && contentGesture && !onLoop) {
+          momentumAxes.add(axis);
+          overscrollMomentumAnim(
+            rt.overscrollLoop,
+            axis,
+            currentOverscroll,
+            vel,
+            overscrollLimit(args.sizeLocal[index]),
+            (value) => args.setOverscroll(axis, value),
+          );
+          return;
+        }
+
         startInertiaScroll({
           el,
           axis,
           velocity: args.clickedObject.current === "thumb" ? vel : -vel,
           rafSchedule: args.rafScrollAnim.schedule,
+          ...(!onLoop &&
+            contentGesture && {
+              onEdge: ({ velocity, overflow }) => {
+                /*
+                 * Положительный layout-scroll едет к концу, но обёртка при
+                 * этом растягивается назад. Поэтому visual-направление
+                 * противоположно и остатку пути, и скорости инерции.
+                 */
+                overscrollMomentumAnim(
+                  rt.overscrollLoop,
+                  axis,
+                  args.overscrollRef.current[axis] - overflow,
+                  -velocity,
+                  overscrollLimit(args.sizeLocal[index]),
+                  (value) => args.setOverscroll(axis, value),
+                );
+              },
+            }),
         });
       }
     };
@@ -977,7 +1029,7 @@ function handleUp(args: HandleUpT) {
   }
 
   // - сбрасываем -
-  returnOverscroll(args);
+  returnOverscroll(args, momentumAxes);
 
   args.clickedObject.current = null;
   rt.resetGesture();

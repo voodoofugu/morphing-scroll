@@ -1,4 +1,7 @@
 import createRafLoop from "./createRafLoop";
+import createPointerScrollWriter from "./createPointerScrollWriter";
+import { emptyPointerVelocity } from "./pointerVelocity";
+import type { PointerVelocity } from "./pointerVelocity";
 import { unlockCursor } from "./mouseOn";
 import type { CursorHolder } from "./mouseOn";
 
@@ -6,14 +9,6 @@ type PrevCoord = {
   value: number;
   rest: number;
   raw: number;
-};
-
-type Velocity = {
-  x: number;
-  y: number;
-  t: number;
-  distX: number; // дистанция для границы запуска конца touch анимации
-  distY: number;
 };
 
 /**
@@ -43,26 +38,22 @@ type PointerRuntime = CursorHolder & {
   sliderAim: { x: number | null; y: number | null };
   /** page held when a limited slider bar starts moving */
   sliderOrigin: { x: number | null; y: number | null };
-  velocity: Velocity;
+  velocity: PointerVelocity;
+  /** logical pointer position while its DOM writes wait for the next frame */
+  scroll: { x: number; y: number };
   prevCoords: { x: PrevCoord; y: PrevCoord } | null;
   /** the listeners of the current gesture */
   controller: AbortController | undefined;
   /** the loop that returns from a stretch at the edge */
   overscrollLoop: ReturnType<typeof createRafLoop>;
+  /** batches pointer-driven DOM scroll writes to the display frame */
+  scrollWriter: ReturnType<typeof createPointerScrollWriter>;
   cursorLocked: boolean;
   /** the reset between gestures */
   resetGesture: () => void;
   /** the full stop on unmount */
   destroy: () => void;
 };
-
-const emptyVelocity = (): Velocity => ({
-  x: 0,
-  y: 0,
-  t: 0,
-  distX: 0,
-  distY: 0,
-});
 
 function createPointerRuntime(): PointerRuntime {
   const runtime: PointerRuntime = {
@@ -75,15 +66,18 @@ function createPointerRuntime(): PointerRuntime {
     checkSliderThumbSize: { x: 0, y: 0 },
     sliderAim: { x: null, y: null },
     sliderOrigin: { x: null, y: null },
-    velocity: emptyVelocity(),
+    velocity: emptyPointerVelocity(),
+    scroll: { x: 0, y: 0 },
     prevCoords: null,
     controller: undefined,
     overscrollLoop: createRafLoop(),
+    scrollWriter: createPointerScrollWriter(),
     cursorLocked: false,
 
     resetGesture() {
       runtime.prevCoords = null;
-      runtime.velocity = emptyVelocity();
+      runtime.velocity = emptyPointerVelocity();
+      runtime.scroll = { x: 0, y: 0 };
       runtime.checkMove = { x: 0, y: 0 };
       runtime.travel = { x: 0, y: 0 };
       runtime.startPoint = null;
@@ -99,6 +93,7 @@ function createPointerRuntime(): PointerRuntime {
       runtime.controller?.abort();
       runtime.controller = undefined;
       runtime.overscrollLoop.stop();
+      runtime.scrollWriter.cancel();
       runtime.resetGesture();
 
       // жест мог оборваться размонтированием — курсорный замок надо вернуть
@@ -113,4 +108,4 @@ function createPointerRuntime(): PointerRuntime {
 }
 
 export default createPointerRuntime;
-export type { PointerRuntime, Velocity };
+export type { PointerRuntime };
