@@ -165,6 +165,20 @@ test.describe("controls.bar.maxItems", () => {
       await expect(page.locator(slider)).not.toHaveClass(/\bms-more-after\b/);
     });
 
+  test("windows of five keep two markers around the active page", async ({
+    page,
+  }) => {
+    await open(page, {
+      ...menu("x"),
+      controls: { bar: { element: "@dot", maxItems: 5 } },
+    });
+
+    await page.locator('[ms-page="3"]').click();
+
+    await expect.poll(() => pages(page)).toEqual(["1", "2", "3", "4", "5"]);
+    await expect(page.locator('[ms-page="3"]')).toHaveClass(/\bms-active\b/);
+  });
+
   test("hybrid limits both bars independently", async ({ page }) => {
     await open(page, {
       count: 256,
@@ -200,6 +214,24 @@ test.describe("controls.bar.maxItems", () => {
     await expect(page.locator(".ms-slider")).not.toHaveClass(
       /\bms-more-(before|after)\b/,
     );
+  });
+
+  test("a looped window of five wraps with two markers on each side", async ({
+    page,
+  }) => {
+    await open(page, {
+      ...menu("y"),
+      loop: true,
+      controls: {
+        bar: { element: "@dot", maxItems: 5 },
+        arrows: { element: "@arrow" },
+      },
+    });
+
+    await page.locator(".ms-arrow-box.ms-top").click();
+
+    await expect.poll(() => pages(page)).toEqual(["7", "8", "9", "0", "1"]);
+    await expect(page.locator('[ms-page="9"]')).toHaveClass(/\bms-active\b/);
   });
 
   test("an element array keeps its global page indexes", async ({ page }) => {

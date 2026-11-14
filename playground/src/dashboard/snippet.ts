@@ -224,9 +224,39 @@ export function buildSnippet(settings: Settings, duration: number) {
     minSize: wrapperMinSize,
   };
 
+  const pages: CodeValue | undefined = (() => {
+    if (settings.mode === "scroll") return undefined;
+
+    if (settings.direction === "hybrid") {
+      if (
+        settings.pageBasisX === "viewport" &&
+        settings.pageBasisY === "viewport"
+      )
+        return undefined;
+
+      return {
+        basis:
+          settings.pageBasisX === settings.pageBasisY
+            ? settings.pageBasisX
+            : [settings.pageBasisX, settings.pageBasisY],
+        align: [settings.pageAlignX, settings.pageAlignY],
+      };
+    }
+
+    const isX = settings.direction === "x";
+    const basis = isX ? settings.pageBasisX : settings.pageBasisY;
+    if (basis === "viewport") return undefined;
+
+    return {
+      basis,
+      align: isX ? settings.pageAlignX : settings.pageAlignY,
+    };
+  })();
+
   const props: Array<[string, CodeValue | undefined, "boolean" | "value"]> = [
     ["className", settings.className || undefined, "value"],
     ["mode", settings.mode === "scroll" ? undefined : settings.mode, "value"],
+    ["pages", pages, "value"],
     ["direction", settings.direction === "y" ? undefined : settings.direction, "value"],
     ["fromRight", settings.fromRight || undefined, "boolean"],
     ["size", size, "value"],

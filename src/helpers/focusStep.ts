@@ -40,6 +40,38 @@ const firstInView = (boxes: HTMLElement[], view: DOMRect) =>
   boxes[0] ??
   null;
 
+/** The visible loop copy of a logical object, closest to the view centre. */
+const preferredInView = (
+  boxes: HTMLElement[],
+  view: DOMRect,
+  object: number | undefined,
+) => {
+  if (object === undefined) return null;
+
+  const matching = boxes.filter(
+    (box) => Number(box.getAttribute("ms-child")) - 1 === object,
+  );
+
+  return (
+    matching
+      .filter((box) => {
+        const rect = box.getBoundingClientRect();
+        return (
+          overlaps(rect.top, rect.bottom, view.top, view.bottom) &&
+          overlaps(rect.left, rect.right, view.left, view.right)
+        );
+      })
+      .sort((a, b) => {
+        const centre = (rect: DOMRect) =>
+          Math.hypot(
+            rect.left + rect.width / 2 - (view.left + view.width / 2),
+            rect.top + rect.height / 2 - (view.top + view.height / 2),
+          );
+        return centre(a.getBoundingClientRect()) - centre(b.getBoundingClientRect());
+      })[0] ?? null
+  );
+};
+
 /**
  * The neighbour on a given side — picked by geometry rather than by index, so
  * a grid, objects of different sizes and both axes are all counted the same
@@ -173,6 +205,7 @@ function focusStep(
   scrollEl: HTMLElement | null,
   side: Side,
   spacing: Spacing = NO_SPACING,
+  preferredObject?: number,
 ) {
   if (!wrapper || !scrollEl) return null;
 
@@ -183,7 +216,9 @@ function focusStep(
   const current = boxWithFocus(boxes);
 
   // первая стрелка ничего не листает: она берёт то, на что человек смотрит
-  const next = current ? pickNeighbour(boxes, current, side) : firstInView(boxes, view);
+  const next = current
+    ? pickNeighbour(boxes, current, side)
+    : preferredInView(boxes, view, preferredObject) ?? firstInView(boxes, view);
   if (!next) return null;
 
   /*

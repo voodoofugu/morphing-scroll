@@ -19,6 +19,7 @@ import {
   objectsSizeValue,
   sidesOf,
   modeOptions,
+  pageBasisOptions,
   renderOptions,
   useStoredSettings,
 } from "./dashboard/settings";
@@ -66,7 +67,7 @@ function Readout({
   children: React.ReactNode;
 }) {
   return (
-    <span className={on ? undefined : "is-off"}>
+    <span className={on ? undefined : "is-off"} data-readout={name}>
       {name} <b>{on ? children : "—"}</b>
     </span>
   );
@@ -160,6 +161,13 @@ function App() {
     const objectsAlign = settings.objectsAlign !== "start";
     const order = settings.objectsOrder !== "row";
     const empty = settings.emptyMode !== "off";
+    const pages =
+      settings.mode !== "scroll" &&
+      (settings.direction === "hybrid"
+        ? settings.pageBasisX === "object" || settings.pageBasisY === "object"
+        : settings.direction === "x"
+          ? settings.pageBasisX === "object"
+          : settings.pageBasisY === "object");
 
     const wrapperAlign =
       settings.wrapperAlignX !== "start" || settings.wrapperAlignY !== "start";
@@ -182,6 +190,7 @@ function App() {
     return {
       className: settings.className !== "",
       mode: settings.mode !== "scroll",
+      pages,
       direction: settings.direction !== "y",
       fromRight: settings.fromRight,
       stickToEnd: settings.stickToEnd,
@@ -539,6 +548,28 @@ function App() {
       size,
       suspending: settings.suspending,
       mode: settings.mode,
+      pages:
+        settings.mode === "scroll"
+          ? undefined
+          : settings.direction === "hybrid" &&
+              (settings.pageBasisX === "object" ||
+                settings.pageBasisY === "object")
+            ? {
+                basis: [settings.pageBasisX, settings.pageBasisY],
+                align: [settings.pageAlignX, settings.pageAlignY],
+              }
+            : (() => {
+                const isX = settings.direction === "x";
+                const basis = isX
+                  ? settings.pageBasisX
+                  : settings.pageBasisY;
+                if (basis === "viewport") return undefined;
+
+                return {
+                  basis,
+                  align: isX ? settings.pageAlignX : settings.pageAlignY,
+                };
+              })(),
       wrapper: {
         align: [settings.wrapperAlignX, settings.wrapperAlignY],
         margin: wrapperMargin,
@@ -742,6 +773,51 @@ function App() {
               active={touched.mode}
               name="mode"
             />
+            <PropCard
+              active={touched.pages}
+              enabled={settings.mode !== "scroll"}
+              name="pages"
+              note="viewport turns one screen at a time; object gives every reachable object position its own page"
+            >
+              {(settings.direction === "x" ||
+                settings.direction === "hybrid") && (
+                <>
+                  <SelectField
+                    label={settings.direction === "hybrid" ? "basis x" : "basis"}
+                    onChange={(value) => update("pageBasisX", value)}
+                    options={pageBasisOptions}
+                    value={settings.pageBasisX}
+                  />
+                  {settings.pageBasisX === "object" && (
+                    <SegmentedField
+                      label={settings.direction === "hybrid" ? "align x" : "align"}
+                      onChange={(value) => update("pageAlignX", value)}
+                      options={alignOptions}
+                      value={settings.pageAlignX}
+                    />
+                  )}
+                </>
+              )}
+              {(settings.direction === "y" ||
+                settings.direction === "hybrid") && (
+                <>
+                  <SelectField
+                    label={settings.direction === "hybrid" ? "basis y" : "basis"}
+                    onChange={(value) => update("pageBasisY", value)}
+                    options={pageBasisOptions}
+                    value={settings.pageBasisY}
+                  />
+                  {settings.pageBasisY === "object" && (
+                    <SegmentedField
+                      label={settings.direction === "hybrid" ? "align y" : "align"}
+                      onChange={(value) => update("pageAlignY", value)}
+                      options={alignOptions}
+                      value={settings.pageAlignY}
+                    />
+                  )}
+                </>
+              )}
+            </PropCard>
             <PropCard
               control={
                 <SelectField

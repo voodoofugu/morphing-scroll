@@ -95,4 +95,36 @@ describe("playground JSX snippet", () => {
     expect(code).not.toContain("showOnHover: false");
     expect(code).not.toContain("arrows: false");
   });
+
+  it("writes object pages only when an active slider axis uses them", () => {
+    const x = buildSnippet(
+      settings({
+        mode: "slider",
+        direction: "x",
+        pageBasisX: "object",
+        pageAlignX: "center",
+      }),
+      200,
+    );
+    expect(x).toContain("pages={{");
+    expect(x).toContain('basis: "object"');
+    expect(x).toContain('align: "center"');
+
+    const inactive = buildSnippet(
+      settings({ mode: "slider", direction: "y", pageBasisX: "object" }),
+      200,
+    );
+    expect(inactive).not.toContain("pages=");
+
+    const hybrid = buildSnippet(
+      settings({
+        mode: "sliderMenu",
+        direction: "hybrid",
+        pageBasisX: "object",
+        pageBasisY: "viewport",
+      }),
+      200,
+    );
+    expect(hybrid).toContain('basis: ["object", "viewport"]');
+  });
 });

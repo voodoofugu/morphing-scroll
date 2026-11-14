@@ -5,6 +5,7 @@ import clampValue from "./clampValue";
 import CONST from "../constants";
 import type { Tasks } from "./createTasks";
 import pageAt from "./pageAt";
+import type { PageModel } from "./createPageModel";
 
 /*
  * Ждём, пока контент сможет удержать запрошенную позицию, что бы стартовая
@@ -207,6 +208,7 @@ const sliderCheck = (
    * начинается там, где разметка кончается, и страницу надо считать оттуда.
    */
   flipX?: (value: number) => number,
+  pageModels?: [PageModel, PageModel],
 ) => {
   [...scrollBars].forEach((msSlider, i) => {
     // A limited slider renders and marks its small page window declaratively.
@@ -288,10 +290,12 @@ const sliderCheck = (
             visibleSize,
           count: cache.elements.length,
         });
-    const activeIndex = onLoop
-      ? ((page % cache.elements.length) + cache.elements.length) %
-        cache.elements.length
-      : page;
+    const activeIndex = pageModels
+      ? pageModels[axisIndex].pageAt(at)
+      : onLoop
+        ? ((page % cache.elements.length) + cache.elements.length) %
+          cache.elements.length
+        : page;
 
     if (activeIndex === cache.lastIndex) return;
 

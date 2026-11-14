@@ -8,6 +8,7 @@ import type {
   MorphScrollHandle,
   NavigateReason,
   ControlsConfig,
+  PageBasis,
   Vec2,
   Pair,
 } from "../types/types";
@@ -37,6 +38,7 @@ import {
   getStyleAlign,
   isTouchDevice,
   shiftAim,
+  aimOf,
 } from "../helpers/addFunctions";
 import handleArrow, { handleArrowT } from "../helpers/handleArrow";
 import createSizeStore from "../helpers/createSizeStore";
@@ -44,11 +46,14 @@ import packObjects from "../helpers/packObjects";
 import {
   loopCopies,
   loopShift,
-  loopPages,
-  loopPageAt,
 } from "../helpers/loopWindow";
 import type { PackLayout } from "../helpers/packObjects";
-import pageAt, { pageCount } from "../helpers/pageAt";
+import {
+  createObjectPageLayout,
+  createViewportPageModel,
+} from "../helpers/createPageModel";
+import type { ObjectBox, PageModel } from "../helpers/createPageModel";
+import placeUniformObjects from "../helpers/placeUniformObjects";
 import {
   updateLoadedElementsKeys,
   updateEmptyKeysClick,
@@ -138,6 +143,7 @@ const MODIFIER_FLAG: Record<
  *
  * ##### — SCROLL —
  * - `mode`
+ * - `pages`
  * - `direction`
  * - `fromRight`
  * - `initialPosition`
@@ -179,6 +185,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
       // Scroll Settings
       mode = "scroll",
+      pages = "viewport",
       direction = "y",
       fromRight = false,
       initialPosition,
@@ -457,6 +464,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       initialPositionST,
       renderST,
       sizeST,
+      pagesST,
       objectsSizeST,
       emptyObjectsST,
       wrapperST,
@@ -470,6 +478,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       initialPosition,
       render,
       size,
+      pages,
       objectsSize,
       emptyObjects,
       wrapper,
@@ -479,6 +488,20 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       edge,
       fallback,
     );
+
+    const pagesLocal = React.useMemo(() => {
+      const config = typeof pages === "string" ? { basis: pages } : pages;
+      const basis = config?.basis ?? "viewport";
+      const align = config?.align ?? "start";
+
+      return {
+        basis: (Array.isArray(basis) ? basis : [basis, basis]) as Pair<PageBasis>,
+        align: (Array.isArray(align) ? align : [align, align]) as Pair<Align>,
+      };
+    }, [pagesST]);
+
+    if (mode === "scroll" && pagesLocal.basis.includes("object"))
+      complain(`pages: "object" needs mode: "slider" or "sliderMenu"`);
 
     /*
      * Короткая форма приводится к объектной один раз: дальше по компоненту
@@ -928,10 +951,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      * своей высотой (и наоборот у горизонтального), у сетки — объект целиком
      * свой. Всё это считается, так что и `render` работает сразу.
      */
-    const objectsSizing = React.useMemo(() => {
+    const objectsSizing = React.useMemo<
+      Array<number | "firstChild" | "full" | "auto" | null>
+    >(() => {
       if (!objectsSize) {
-        /* страница слайдера — это окно, обе стороны у неё оттуда */
-        if (mode !== "scroll") return (["full", "full"] as const).slice();
+        /*
+         * Viewport pages keep their old full-size cells. Object pages need
+         * the real object size along the scrolling axis; the existing
+         * measured layout already provides it through `"auto"`.
+         */
+        if (mode !== "scroll") {
+          if (direction === "x")
+            return [
+              pagesLocal.basis[0] === "object" ? "auto" : "full",
+              "full",
+            ];
+          if (direction === "y")
+            return [
+              "full",
+              pagesLocal.basis[1] === "object" ? "auto" : "full",
+            ];
+
+          return pagesLocal.basis.map((basis) =>
+            basis === "object" ? "auto" : "full",
+          );
+        }
 
         /* при `hybrid` едут обе стороны, и обе стороны объект знает сам */
         if (direction === "hybrid") return (["auto", "auto"] as const).slice();
@@ -959,7 +1003,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       return !Array.isArray(objectsSize)
         ? argsFormatter(objectsSize, true, 2)
         : objectsSize.map((axis) => axis ?? "auto");
-    }, [objectsSizeST, mode, direction, lines]);
+    }, [objectsSizeST, mode, direction, lines, pagesLocal.basis.join()]);
 
     const eachOnMain = objectsSizing[mainAxis] === "auto";
     const eachOnCross = objectsSizing[crossAxis] === "auto";
@@ -1015,7 +1059,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         } not work without a countable objects.size — give it a number or "auto"`,
       );
 
-    if (isEach && mode !== "scroll")
+    const objectPagesOnScrollAxis =
+      mode !== "scroll" &&
+      (direction === "hybrid"
+        ? pagesLocal.basis.includes("object")
+        : pagesLocal.basis[direction === "x" ? 0 : 1] === "object");
+
+    if (isEach && mode !== "scroll" && !objectPagesOnScrollAxis)
       complain(`objects.size: "auto" does not work with mode: "${mode}"`);
 
     /*
@@ -1405,6 +1455,38 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       sizes.version,
     ]);
 
+    /*
+     * Page stops, virtualization, loop copies and visibility all need the
+     * same object geometry. Calculate the uniform layout once and share it;
+     * measured layouts already expose the same boxes through `packed.items`.
+     */
+    const needsObjectCoordinates =
+      objectPagesOnScrollAxis || !!renderMode || loop || tracking || isEach;
+    const uniformObjectBoxes = React.useMemo<ObjectBox[]>(() => {
+      if (isEach || !needsObjectCoordinates) return [];
+
+      return placeUniformObjects({
+        total: validChildrenKeys.length,
+        direction,
+        order: objectsOrder,
+        align: objectsAlign ?? "start",
+        perDirection: [objectsPerDirection[0], objectsPerDirection[1]],
+        size: [objectsSizeLocal[0], objectsSizeLocal[1]],
+        gap: [gapLocal[0], gapLocal[1]],
+      });
+    }, [
+      isEach,
+      needsObjectCoordinates,
+      validChildrenKeys.length,
+      direction,
+      objectsOrder,
+      objectsAlign,
+      objectsPerDirection.join(),
+      objectsSizeLocal.join(),
+      gapLocal.join(),
+    ]);
+    const objectBoxes: ObjectBox[] = isEach ? packed.items : uniformObjectBoxes;
+
     const objectsWrapperWidth = React.useMemo(() => {
       if (isEach) return packed.width;
 
@@ -1468,6 +1550,69 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       isEach,
       packed,
     ]);
+
+    /*
+     * A short object cannot put its centre at either edge without some real
+     * scrollable room there. These insets are layout, not fake pages: they
+     * enlarge the wrapper margins but never enter the marker count.
+     */
+    const preliminaryObjectPages = React.useMemo(() => {
+      const layout = (axis: 0 | 1) => {
+        const basis = pagesLocal.basis[axis];
+        const active =
+          mode !== "scroll" &&
+          (direction === "hybrid" || direction === (axis === 0 ? "x" : "y"));
+
+        if (!active || basis !== "object") return null;
+
+        const isX = axis === 0;
+        const content = isX ? objectsWrapperWidth : objectsWrapperHeight;
+        const before = isX ? (fromRight ? mR : mL) : mT;
+        const after = isX ? (fromRight ? mL : mR) : mB;
+        const gapOnAxis = gapLocal[isX ? 1 : 0];
+
+        return createObjectPageLayout({
+          boxes: objectBoxes,
+          axis,
+          viewport: sizeLocal[axis],
+          content,
+          before,
+          after,
+          align: pagesLocal.align[axis],
+          /* A loop has no first or last edge, so it never receives gutters. */
+          period: loop ? content + gapOnAxis : 0,
+        });
+      };
+
+      return [layout(0), layout(1)] as const;
+    }, [
+      pagesLocal.basis.join(),
+      pagesLocal.align.join(),
+      mode,
+      direction,
+      objectBoxes,
+      objectsWrapperWidth,
+      objectsWrapperHeight,
+      sizeLocal.join(),
+      fromRight,
+      mT,
+      mR,
+      mB,
+      mL,
+      gapLocal.join(),
+      loop,
+    ]);
+
+    const pageInsetLeft = fromRight
+      ? (preliminaryObjectPages[0]?.inset[1] ?? 0)
+      : (preliminaryObjectPages[0]?.inset[0] ?? 0);
+    const pageInsetRight = fromRight
+      ? (preliminaryObjectPages[0]?.inset[0] ?? 0)
+      : (preliminaryObjectPages[0]?.inset[1] ?? 0);
+    const pageInsetTop = preliminaryObjectPages[1]?.inset[0] ?? 0;
+    const pageInsetBottom = preliminaryObjectPages[1]?.inset[1] ?? 0;
+    const pageInsetX = pageInsetLeft + pageInsetRight;
+    const pageInsetY = pageInsetTop + pageInsetBottom;
 
     /*
      * Круг: сколько копий контента лежит в ленте и через сколько пикселей он
@@ -1556,7 +1701,13 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
      */
     const asList = !!renderMode && mode === "scroll";
 
-    const byCoords = !!(renderMode || isEach || loopLocal || tracking);
+    const byCoords = !!(
+      renderMode ||
+      isEach ||
+      loopLocal ||
+      tracking ||
+      objectPagesOnScrollAxis
+    );
 
     /*
      * Куда идёт список. Спрашивается пропом, а не у окружения: подсмотренное
@@ -1615,11 +1766,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     );
 
     const objectsWrapperHeightFull = React.useMemo(() => {
-      return loopedHeight + mLocalY;
-    }, [loopedHeight, mLocalY]);
+      return loopedHeight + mLocalY + pageInsetY;
+    }, [loopedHeight, mLocalY, pageInsetY]);
     const objectsWrapperWidthFull = React.useMemo(() => {
-      return loopedWidth + mLocalX;
-    }, [loopedWidth, mLocalX]);
+      return loopedWidth + mLocalX + pageInsetX;
+    }, [loopedWidth, mLocalX, pageInsetX]);
     const fullHeightOrWidth =
       direction === "x" ? objectsWrapperWidthFull : objectsWrapperHeightFull;
 
@@ -1950,100 +2101,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           : 0,
     };
 
-    const memoizedChildrenData = React.useMemo(() => {
-      // кладка считает координаты сама, и считает их всегда: по ним она и кладка
-      if (isEach) return packed.items;
-
-      // считаем всем, кому координаты нужны, а не одной лишь виртуализации
-      if (!byCoords) return [{ top: 0, bottom: 0, left: 0, right: 0 }];
-
-      let alignSpace: number = 0;
-
-      const isX = direction === "x";
-      const isRow = objectsOrder === "row";
-      const isRowInDir = (isX && !isRow) || (!isX && isRow);
-
-      const stepX = objectsSizeLocal[0] + gapLocal[1];
-      const stepY = objectsSizeLocal[1] + gapLocal[0];
-
-      const itemsInLastLine = new Set<number>();
-
-      // -- находим последние индексы
-      const itemsPerLine = isRowInDir
-        ? objectsPerDirection[0]
-        : objectsPerDirection[1];
-      const size = objectsSizeLocal[isRow ? 0 : 1];
-      const gap = gapLocal[isRow ? 1 : 0];
-
-      // начало последней линии
-      const lastLineStart =
-        Math.floor((validChildrenKeys.length - 1) / itemsPerLine) *
-        itemsPerLine;
-
-      for (let i = lastLineStart; i < validChildrenKeys.length; i++)
-        itemsInLastLine.add(i);
-
-      // -- вычисляем отступ
-      const emptySlots = itemsPerLine - itemsInLastLine.size;
-      const offset = emptySlots > 0 ? (size + gap) * emptySlots : 0;
-
-      if (objectsAlign === "center") alignSpace = Math.round(offset / 2);
-      else if (objectsAlign === "end") alignSpace = offset;
-
-      // -- получаем координаты
-      return validChildrenKeys.map((_, childIndex) => {
-        // вычисляем group и subIndex сразу
-        const groupIndex = isRowInDir
-          ? childIndex % objectsPerDirection[0]
-          : Math.floor(childIndex / objectsPerDirection[1]);
-
-        const subIndex = isRowInDir
-          ? Math.floor(childIndex / objectsPerDirection[0])
-          : childIndex % objectsPerDirection[1];
-
-        let leftIndex: number;
-        let topIndex: number;
-
-        if (direction === "x") {
-          leftIndex = subIndex;
-          topIndex = groupIndex;
-        } else if (direction === "y") {
-          leftIndex = groupIndex;
-          topIndex = subIndex;
-        } else {
-          // hybrid
-          leftIndex = groupIndex;
-          topIndex = subIndex;
-        }
-
-        const isLastEl =
-          itemsInLastLine.size > 0 && itemsInLastLine.has(childIndex);
-
-        const top = (isLastEl && !isRow ? alignSpace : 0) + stepY * topIndex;
-        const left = (isLastEl && isRow ? alignSpace : 0) + stepX * leftIndex;
-
-        return {
-          top,
-          left,
-          bottom: top + objectsSizeLocal[1],
-          right: left + objectsSizeLocal[0],
-        };
-      });
-    }, [
-      objectsSizeLocal[0],
-      objectsSizeLocal[1],
-      gapLocal[0],
-      gapLocal[1],
-      objectsAlign,
-      validChildrenKeys.length,
-      objectsPerDirection[0],
-      objectsPerDirection[1],
-      byCoords,
-      objectsOrder,
-      direction,
-      isEach,
-      packed,
-    ]);
+    const memoizedChildrenData = byCoords
+      ? objectBoxes
+      : [{ top: 0, bottom: 0, left: 0, right: 0 }];
 
     /*
      * Окно списка: у каких объектов вообще имеет смысл спрашивать, видны ли
@@ -2278,33 +2338,65 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
     ]);
 
     /*
-     * Страниц в круге столько, сколько их в обороте: лента длиннее только
-     * потому, что копий в ней несколько, и считать по ней значило бы показать
-     * втрое больше точек, чем есть на самом деле.
+     * One model per axis is the only source of page count and page targets.
+     * Viewport models preserve the old arithmetic exactly; object models use
+     * the already calculated layout boxes and therefore cost no DOM reads.
      */
-    const objLengthPerSize = React.useMemo(() => {
-      /*
-       * Неполный хвост — тоже страница. В обычной ленте она прижата к краю,
-       * в круге страницы чуть перекрываются, чтобы поделить оборот нацело.
-       * Число при этом одно и то же: считаем по содержимому без внешних полей,
-       * поэтому wrapper.margin не создаёт пустую точку.
-       */
-      const pages = (axis: 0 | 1, content: number) => {
+    const pageModels = React.useMemo<Pair<PageModel>>(() => {
+      const model = (axis: 0 | 1): PageModel => {
+        const isX = axis === 0;
+        const content = isX ? objectsWrapperWidth : objectsWrapperHeight;
+        const end = isX ? maxScrollSize[0] : maxScrollSize[1];
         const period = loopPeriods[axis];
 
-        return period
-          ? loopPages(period, sizeLocal[axis], gapXY[axis]).pages
-          : pageCount(content, sizeLocal[axis], gapXY[axis]);
+        if (mode !== "scroll" && pagesLocal.basis[axis] === "object") {
+          if (!period && preliminaryObjectPages[axis])
+            return preliminaryObjectPages[axis]!.model;
+
+          return createObjectPageLayout({
+            boxes: objectBoxes,
+            axis,
+            viewport: sizeLocal[axis],
+            content,
+            before: isX ? (fromRight ? mR : mL) : mT,
+            after: isX ? (fromRight ? mL : mR) : mB,
+            align: pagesLocal.align[axis],
+            period,
+          }).model;
+        }
+
+        return createViewportPageModel({
+          content,
+          viewport: sizeLocal[axis],
+          gap: gapXY[axis],
+          end,
+          period,
+        });
       };
 
-      return [pages(0, objectsWrapperWidth), pages(1, objectsWrapperHeight)];
+      return [model(0), model(1)];
     }, [
+      mode,
+      pagesLocal.basis.join(),
+      pagesLocal.align.join(),
       objectsWrapperWidth,
       objectsWrapperHeight,
-      sizeLocal.join(),
+      maxScrollSize.join(),
       loopPeriods.join(),
+      objectBoxes,
+      preliminaryObjectPages,
+      sizeLocal.join(),
       gapXY.join(),
+      fromRight,
+      mT,
+      mR,
+      mB,
+      mL,
     ]);
+    const objLengthPerSize = React.useMemo(
+      () => [pageModels[0].count, pageModels[1].count],
+      [pageModels],
+    );
     const objLengthPerSizeXY = React.useMemo(() => {
       return direction === "x" ? objLengthPerSize[0] : objLengthPerSize[1];
     }, [direction, objLengthPerSize[0], objLengthPerSize[1]]);
@@ -2357,7 +2449,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
     const wrapperStyle = React.useMemo<React.CSSProperties>(() => {
       const common: React.CSSProperties = {
-        margin: wrapper?.margin ? `${mT}px ${mR}px ${mB}px ${mL}px` : "",
+        margin:
+          wrapper?.margin || pageInsetX || pageInsetY
+            ? `${mT + pageInsetTop}px ${mR + pageInsetRight}px ${mB + pageInsetBottom}px ${mL + pageInsetLeft}px`
+            : "",
         height: objectsSizing[1] != null ? `${loopedHeight}px` : "fit-content",
         width: objectsSizing[0] != null ? `${loopedWidth}px` : "fit-content",
         ...(gap &&
@@ -2468,7 +2563,20 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       };
     }, [
       wrapperST,
-      [mT, mR, mB, mL, mLocalX, mLocalY, gapLocal[0], gapLocal[1]].join(),
+      [
+        mT,
+        mR,
+        mB,
+        mL,
+        mLocalX,
+        mLocalY,
+        pageInsetTop,
+        pageInsetRight,
+        pageInsetBottom,
+        pageInsetLeft,
+        gapLocal[0],
+        gapLocal[1],
+      ].join(),
       sizeLocal.join(),
       gapST,
       objectsSizing[1],
@@ -2633,6 +2741,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           gap: gapXY,
           overscrollRef,
           objLengthPerSize,
+          pageModels,
           isDraggingRef,
           maxScrollSize,
           loopPeriods,
@@ -2659,6 +2768,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         thumbSizeMemo.y,
         gapLocal.join(),
         objLengthPerSize,
+        pageModels,
         maxScrollSize.join(),
         setOverscroll,
         // сторона чтения входит в перевод позиции — без неё жест считает по старой
@@ -2714,27 +2824,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         const isX = axis === "x";
         const wh = isX ? 0 : 1;
         const at = isX ? listXRef.current(raw) : raw;
-        const client = isX ? el.clientWidth : el.clientHeight;
-        const period = loopPeriods[wh];
-
-        if (!period)
-          return pageAt(at, client, gapXY[wh], {
-            end: maxScrollSize[wh],
-            count: objLengthPerSize[wh],
-          });
-
-        const { pages, step } = loopPages(period, client, gapXY[wh]);
-        const page = loopPageAt(at - period, step);
-
-        return pages > 0 ? ((page % pages) + pages) % pages : 0;
+        return pageModels[wh].pageAt(at);
       },
-      [
-        gapLocal[0],
-        gapLocal[1],
-        loopPeriods.join(),
-        maxScrollSize.join(),
-        objLengthPerSize.join(),
-      ],
+      [pageModels],
     );
 
     const pageNow = React.useCallback(
@@ -2828,6 +2920,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           duration: duration,
           gap: gapXY,
           pageCounts: objLengthPerSize,
+          pageModels,
           loopPeriods,
           flipX: flipsX ? listX : undefined,
         });
@@ -2848,6 +2941,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         gapLocal[0],
         gapLocal[1],
         objLengthPerSize.join(),
+        pageModels,
         emitNavigate,
         flipsX,
         maxScrollSize[0],
@@ -2930,6 +3024,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         loopPeriods,
         gapXY,
         flipsX ? listX : undefined,
+        pageModels,
       );
     }, [
       sizeLocal.join(),
@@ -2938,6 +3033,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       objLengthPerSize.join(),
       loopPeriods.join(),
       gapXY.join(),
+      pageModels,
       // сторона чтения и диапазон входят в перевод позиции в страницу
       flipsX,
       maxScrollSize[0],
@@ -3189,28 +3285,90 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         duration: number,
       ) => {
         const scrollEl = scrollElementRef.current;
+        if (!scrollEl) return;
+
+        const sideAxis = side === "left" || side === "right" ? 0 : 1;
+        const loopModel = pageModels[sideAxis];
+        const raw = sideAxis === 0 ? scrollEl.scrollLeft : scrollEl.scrollTop;
+        const at = sideAxis === 0 ? listX(raw) : raw;
+        const preferredObject =
+          loopPeriods[sideAxis] && loopModel.basis === "object"
+            ? loopModel.stops[loopModel.pageAt(at)]?.objects[0]
+            : undefined;
         const moved = focusStep(objectsWrapperRef.current, scrollEl, side, {
           gap: gapXY,
           margin: [mT, mR, mB, mL],
           endless: [!!loopPeriods[0], !!loopPeriods[1]],
-        });
-        if (!moved || !scrollEl) return;
+        }, preferredObject);
+        if (!moved) return;
 
         const axes: ("x" | "y")[] =
           direction === "hybrid" ? ["x", "y"] : [direction];
 
-        const shift = axes.filter((axis) => moved.delta[axis]);
-        if (!shift.length) return; // объект и так в окне — двигать нечего
+        /*
+         * В объектной модели фокус следует той же странице, что стрелки,
+         * drag и меню. Объект может уже целиком быть в окне, но ещё не стоять
+         * на своей точке выравнивания — обычного `intoViewDelta` тут мало.
+         * `ms-child` хранит исходный индекс и одинаков у loop-копий, поэтому
+         * фокус не привязывается к тому, какая копия сейчас смонтирована.
+         */
+        const object = Number(moved.box.getAttribute(CONST.CHILD_ATR)) - 1;
+        const targets = axes.flatMap((axis) => {
+          const wh = axis === "x" ? 0 : 1;
+
+          if (pagesLocal.basis[wh] === "object" && object >= 0) {
+            const model = pageModels[wh];
+            const page = model.stops.findIndex((stop) =>
+              stop.objects.includes(object),
+            );
+            if (page === -1) return [];
+
+            const raw = axis === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop;
+            const at = axis === "x" ? listX(raw) : raw;
+            let targetInList = model.targetAt(page, at);
+            const period = loopPeriods[wh];
+            const currentPage = model.pageAt(at);
+
+            /*
+             * In a loop the nearest copy is not necessarily the copy in the
+             * direction of the pressed key. Focus still chooses the object by
+             * geometry, but the scroll must follow the promised direction —
+             * the same rule used by a page step.
+             */
+            if (period && page !== currentPage) {
+              let toward =
+                side === "right" || side === "bottom" ? 1 : -1;
+              if (axis === "x" && flipsX) toward *= -1;
+
+              if (toward > 0 && targetInList <= at + 0.5)
+                targetInList += period;
+              if (toward < 0 && targetInList >= at - 0.5)
+                targetInList -= period;
+            }
+
+            const target = axis === "x" ? listX(targetInList) : targetInList;
+
+            return Math.abs(target - raw) > 0.5 ? [{ axis, target }] : [];
+          }
+
+          const delta = moved.delta[axis];
+          return delta
+            ? [
+                {
+                  axis,
+                  target:
+                    (axis === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop) +
+                    delta,
+                },
+              ]
+            : [];
+        });
+        if (!targets.length) return; // объект уже стоит на нужном месте
 
         markNavigate(reason);
 
-        shift.forEach((axis) =>
-          smoothScrollLocal(
-            (axis === "x" ? scrollEl.scrollLeft : scrollEl.scrollTop) +
-              moved.delta[axis],
-            axis,
-            duration,
-          ),
+        targets.forEach(({ axis, target }) =>
+          smoothScrollLocal(target, axis, duration),
         );
       },
       [
@@ -3223,6 +3381,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         mR,
         mB,
         mL,
+        pageModels,
+        pagesLocal.basis.join(),
+        flipsX,
+        maxScrollSize[0],
       ],
     );
 
@@ -3731,15 +3893,8 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         const isX = axis === "x";
         const wh = isX ? 0 : 1;
-        const period = loopPeriods[wh];
-
-        const clientSize = isX ? scrollEl.clientWidth : scrollEl.clientHeight;
-        const { step } = loopPages(
-          period,
-          clientSize || sizeLocal[wh],
-          gapXY[wh],
-        );
-        if (!(step > 0)) return;
+        const model = pageModels[wh];
+        if (!model.count) return;
 
         markNavigate("bar");
 
@@ -3748,15 +3903,9 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           isX && flipsX ? listX(value) : value;
 
         const at = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
-
-        let target = asList(period + Math.round(index * step));
-
-        // в круге едем к ближайшему из повторов, а не через весь оборот
-        if (period) {
-          const ahead = (((target - at) % period) + period) % period;
-
-          target = at + (ahead <= period / 2 ? ahead : ahead - period);
-        }
+        const atList = isX ? asList(at) : at;
+        const targetList = model.targetAt(index, atList);
+        const target = isX ? asList(targetList) : targetList;
 
         smoothScrollLocal(target, axis, duration);
         raf.schedule("sliderCheckLocal", sliderCheckLocal);
@@ -3778,9 +3927,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         emitNavigate("bar", axis, pageOf(axis, at), pageOf(axis, landed));
       },
       [
-        loopPeriods.join(),
-        gapXY.join(),
-        sizeLocal.join(),
+        pageModels,
         markNavigate,
         emitNavigate,
         pageOf,
@@ -3789,7 +3936,7 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         duration,
         sliderCheckLocal,
         flipsX,
-        maxScrollSize[0],
+        maxScrollSize.join(),
       ],
     );
 
@@ -4084,9 +4231,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
         const before = was?.[axis] ?? 0;
         const at = axis === 0 ? scrollEl.scrollLeft : scrollEl.scrollTop;
-        const inside = before
-          ? Math.min(Math.max(at - before, 0), period - 1)
-          : 0;
+        const objectOpening =
+          !was && pagesLocal.basis[axis] === "object"
+            ? pageModels[axis].targetAt(0, period * 1.5)
+            : null;
+        const inside =
+          objectOpening === null
+            ? before
+              ? Math.min(Math.max(at - before, 0), period - 1)
+              : 0
+            : ((objectOpening % period) + period) % period;
 
         loopPlaceRef.current[axis] = inside;
 
@@ -4102,19 +4256,38 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
          * позиция останется стоять по разметке и уедет от начала списка.
          */
         if (axis === 0 && flipsX) {
+          /*
+           * У объектных страниц начало оборота может лежать не на его краю:
+           * `center` сдвигает первую точку на пол-окна. Открытие всего лишь в
+           * правом краю ленты поэтому зажигало чужой marker. Переводим именно
+           * объектную точку из координат списка в физический `scrollLeft`.
+           */
+          if (objectOpening !== null) {
+            scrollEl.scrollLeft = listX(objectOpening);
+            return;
+          }
+
           if (was || openedAtEnd.current)
             applyScrollPositionRef.current([inside, null], 0, false);
 
           return;
         }
 
-        if (axis === 0) scrollEl.scrollLeft = period + inside;
-        else scrollEl.scrollTop = period + inside;
+        const opening = objectOpening ?? period + inside;
+        if (axis === 0) scrollEl.scrollLeft = opening;
+        else scrollEl.scrollTop = opening;
       };
 
       place(0, loopPeriods[0]);
       place(1, loopPeriods[1]);
-    }, [loopLocal, loopPeriods.join(), flipsX]);
+    }, [
+      loopLocal,
+      loopPeriods.join(),
+      flipsX,
+      maxScrollSize[0],
+      pageModels,
+      pagesLocal.basis.join(),
+    ]);
 
     /*
      * А это правило, а не движение: контент дорос — едем за ним. От ушедшего
@@ -4343,6 +4516,31 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           const isX = axis === "x";
           const wh = isX ? 0 : 1;
 
+          /*
+           * An object command without its own alignment follows the same
+           * object page as arrows, markers and drag settle. An explicit
+           * alignment remains an intentional pixel target.
+           */
+          if (
+            options?.align === undefined &&
+            pagesLocal.basis[wh] === "object"
+          ) {
+            const model = pageModels[wh];
+            const page = model.stops.findIndex((stop) =>
+              stop.objects.includes(index),
+            );
+
+            if (page !== -1) {
+              const raw = isX ? scrollEl.scrollLeft : scrollEl.scrollTop;
+              const at = isX ? listX(raw) : raw;
+              const targetInList = model.targetAt(page, at);
+              const to = isX ? listX(targetInList) : targetInList;
+
+              smoothScrollLocal(Math.round(to), axis, moveDuration);
+              return;
+            }
+          }
+
           const align = alignXY[wh];
           const start = isX ? box.left : box.top;
           const size = isX ? box.width : box.height;
@@ -4354,8 +4552,16 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
            * всё по списку, а в разметку переводим уже готовое.
            */
           const flips = isX && flipsX;
-          const origin = isX ? (flips ? mR : mL) : mT;
-          const tail = isX ? (flips ? mL : mR) : mB;
+          const origin = isX
+            ? flips
+              ? mR + pageInsetRight
+              : mL + pageInsetLeft
+            : mT + pageInsetTop;
+          const tail = isX
+            ? flips
+              ? mL + pageInsetLeft
+              : mR + pageInsetRight
+            : mB + pageInsetBottom;
 
           const period = loopPeriods[wh];
 
@@ -4415,6 +4621,12 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
         mR,
         mB,
         mL,
+        pageModels,
+        pagesLocal.basis.join(),
+        pageInsetTop,
+        pageInsetRight,
+        pageInsetBottom,
+        pageInsetLeft,
       ],
     );
 
@@ -4496,13 +4708,14 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
 
           if (delta.x)
             now.smoothScrollLocal(
-              scrollEl.scrollLeft + (now.flipsX ? -delta.x : delta.x),
+              (aimOf(scrollEl, "x") ?? scrollEl.scrollLeft) +
+                (now.flipsX ? -delta.x : delta.x),
               "x",
               moveDuration,
             );
           if (delta.y)
             now.smoothScrollLocal(
-              scrollEl.scrollTop + delta.y,
+              (aimOf(scrollEl, "y") ?? scrollEl.scrollTop) + delta.y,
               "y",
               moveDuration,
             );
@@ -5011,8 +5224,19 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
             ? [rootMarginLocal[3], rootMarginLocal[1]]
             : [rootMarginLocal[0], rootMarginLocal[2]];
 
-        const elStart = (dir === "x" ? left : top) - marginAfter;
-        const elEnd = (dir === "x" ? right : bottom) + marginBefore;
+        /*
+         * Object coordinates start inside `.ms-objects-wrapper`, while the
+         * scroll position starts at the viewport. Wrapper margins — including
+         * the automatic room used to centre first/last object pages — lie
+         * between those origins. Omitting them made visibility change before
+         * the object actually reached an edge.
+         */
+        const wrapperOffset =
+          dir === "x" ? mL + pageInsetLeft : mT + pageInsetTop;
+        const elStart =
+          (dir === "x" ? left : top) + wrapperOffset - marginAfter;
+        const elEnd =
+          (dir === "x" ? right : bottom) + wrapperOffset + marginBefore;
 
         const elementSize = elEnd - elStart;
 
@@ -5303,7 +5527,10 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
       const base: any[] = [
         {
           shouldRender:
-            (isNotX ? barSpan.h : barSpan.w) > sizeLocal[isNotX ? 1 : 0],
+            mode !== "scroll"
+              ? pageModels[isNotX ? 1 : 0].count > 1
+              : (isNotX ? barSpan.h : barSpan.w) >
+                sizeLocal[isNotX ? 1 : 0],
           direction,
           thumbSize: isNotX ? thumbSizeMemo.y : thumbSizeMemo.x,
           thumbSpace: isNotX ? thumbSpace.y : thumbSpace.x,
@@ -5311,7 +5538,11 @@ const MorphScroll = React.forwardRef<MorphScrollHandle, MorphScrollProps>(
           progressReverseIndex: 0,
         },
         {
-          shouldRender: direction === "hybrid" && barSpan.w > sizeLocal[0],
+          shouldRender:
+            direction === "hybrid" &&
+            (mode !== "scroll"
+              ? pageModels[0].count > 1
+              : barSpan.w > sizeLocal[0]),
           direction: "x" as const,
           thumbSize: thumbSizeMemo.x,
           thumbSpace: thumbSpace.x,

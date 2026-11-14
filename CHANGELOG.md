@@ -1,3 +1,18 @@
+## [3.4.0] - 2026-11-14
+
+### Added
+
+- **Slider pages can follow objects instead of viewport-sized screens.** The
+  new `pages` prop supports object stops, start/centre/end alignment and
+  independent x/y settings in `direction="hybrid"`; the same page model is
+  shared by gestures, controls, focus, navigation events and ref commands.
+
+### Changed
+
+- **Larger `controls.bar.maxItems` windows keep the active marker nearer the
+  centre.** Limits of `5` or more retain two markers in the movement direction;
+  limits below `5` preserve the existing one-marker buffer.
+
 ## [3.3.0] - 2026-11-08
 
 ### Changed

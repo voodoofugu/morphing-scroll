@@ -19,6 +19,7 @@ import CONST from "../constants";
 import { loopPages, loopPageAt } from "./loopWindow";
 import pageAt from "./pageAt";
 import { recordPointerVelocity } from "./pointerVelocity";
+import type { PageModel } from "./createPageModel";
 
 type ClickedT = "thumb" | "slider" | "wrapp" | null;
 
@@ -53,6 +54,7 @@ type HandleMouseT = {
     y: number;
   }>;
   objLengthPerSize: number[];
+  pageModels?: [PageModel, PageModel];
   /** visible marker count captured when a limited slider drag starts */
   sliderVisibleItems?: number;
   isDraggingRef: React.MutableRefObject<boolean>;
@@ -396,17 +398,22 @@ const motionHandler = (
   if (barSize <= 0) return;
 
   const period = args.loopPeriods?.[wh] ?? 0;
+  const candidatePageModel = args.pageModels?.[wh];
+  const pageModel =
+    candidatePageModel?.basis === "object" ? candidatePageModel : undefined;
 
   /*
    * Полоса страниц развёрнутого списка показана справа налево, значит и
    * прицел по ней читается оттуда же: у правого края её первая страница.
    */
-  const step = loopPages(
-    period,
-    el[isX ? "clientWidth" : "clientHeight"],
-    args.gap[wh],
-  ).step;
-  if (!(step > 0)) return;
+  const step = pageModel
+    ? 0
+    : loopPages(
+        period,
+        el[isX ? "clientWidth" : "clientHeight"],
+        args.gap[wh],
+      ).step;
+  if (!pageModel && !(step > 0)) return;
 
   /*
    * Где жест уже был, помнит он сам. По текущей позиции судить нельзя: во
@@ -425,14 +432,16 @@ const motionHandler = (
   const seen = rt.sliderAim[axis];
   /* и здесь страница по кольцу: прицел свёрнут, а «где мы» было развёрнуто */
   const listPosition = asList(el[topOrLeft]);
-  const at = period
-    ? loopPageAt(listPosition - period, step)
-    : pageAt(
-        listPosition,
-        el[isX ? "clientWidth" : "clientHeight"],
-        args.gap[wh],
-        { end: args.maxScrollSize[wh], count: pages },
-      );
+  const at = pageModel
+    ? pageModel.pageAt(listPosition)
+    : period
+      ? loopPageAt(listPosition - period, step)
+      : pageAt(
+          listPosition,
+          el[isX ? "clientWidth" : "clientHeight"],
+          args.gap[wh],
+          { end: args.maxScrollSize[wh], count: pages },
+        );
   const current = seen ?? (period ? ((at % pages) + pages) % pages : at);
 
   let aimed: number;
@@ -484,9 +493,11 @@ const motionHandler = (
    * повторов: завернувшись с последней страницы на первую, мотать назад через
    * весь круг незачем — рядом та же самая.
    */
-  let target = asList(period + Math.round(aimed * step));
+  let target = pageModel
+    ? asList(pageModel.targetAt(aimed, listPosition))
+    : asList(period + Math.round(aimed * step));
 
-  if (period) {
+  if (period && !pageModel) {
     const at = el[topOrLeft];
     const ahead = (((target - at) % period) + period) % period;
 
@@ -895,6 +906,19 @@ function handleUp(args: HandleUpT) {
       const gapPerDir = isX ? args.gap[0] : args.gap[1];
       const clientSize = el[isX ? "clientWidth" : "clientHeight"];
       const period = args.loopPeriods?.[isX ? 0 : 1] ?? 0;
+      const candidate = args.pageModels?.[isX ? 0 : 1];
+      const model = candidate?.basis === "object" ? candidate : undefined;
+
+      if (model) {
+        const currentPage = model.pageAt(position, stepDir ?? 0);
+        const targetPage = stepDir
+          ? model.next(currentPage, stepDir)
+          : currentPage;
+        const target = model.targetAt(targetPage, position);
+
+        args.smoothScroll(asList(target), dir, args.duration);
+        return;
+      }
 
       const step = loopPages(period, clientSize, gapPerDir).step;
 

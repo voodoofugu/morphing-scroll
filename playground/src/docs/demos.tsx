@@ -240,6 +240,34 @@ const mode = define({
   code: (value) => `<MorphScroll {...props} mode="${value}">`,
 });
 
+const pages = define({
+  name: "pages",
+  initial: "viewport",
+  input: {
+    type: "select",
+    choices: ["viewport", "object"].map((value) => ({ label: value, value })),
+  },
+  hint: "Object pages stop on every card; viewport pages turn one visible screen at a time.",
+  props: (value) => {
+    const basis = text(value) as "viewport" | "object";
+    return base({
+      ...pageLayout,
+      mode: "slider",
+      pages: { basis, align: "center" },
+      children: items(7),
+      objects: { size: [112, 76], gap: 12, lines: 1 },
+      controls: {
+        wheel: true,
+        drag: true,
+        arrows: { element: arrow },
+        bar: markers,
+      },
+    });
+  },
+  code: (value) =>
+    `<MorphScroll {...props} mode="slider" pages={{ basis: "${value}", align: "center" }}>`,
+});
+
 const direction = define({
   name: "direction",
   initial: "x",
@@ -749,6 +777,7 @@ const trackVisibility = define({
 
 export const liveDemos: Record<string, React.ComponentType> = {
   mode,
+  pages,
   direction,
   fromRight,
   initialPosition,

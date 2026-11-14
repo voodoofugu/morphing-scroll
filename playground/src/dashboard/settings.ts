@@ -26,6 +26,8 @@ export type RenderMode = "off" | "lazy" | "virtual";
 
 export type ScrollMode = "scroll" | "slider" | "sliderMenu";
 
+export type PageBasis = "viewport" | "object";
+
 export type SizeMode = "fixed" | "square" | "auto";
 
 export type WrapperMinMode = "off" | "number" | "pair" | "full";
@@ -44,6 +46,10 @@ export type Settings = {
   enableOnNavigate: boolean;
   enableOnRenderedKeysChange: boolean;
   mode: ScrollMode;
+  pageBasisX: PageBasis;
+  pageBasisY: PageBasis;
+  pageAlignX: Align;
+  pageAlignY: Align;
   direction: Direction;
   fromRight: boolean;
   sizeMode: SizeMode;
@@ -125,6 +131,10 @@ export const defaultSettings: Settings = {
   enableOnNavigate: true,
   enableOnRenderedKeysChange: true,
   mode: "scroll",
+  pageBasisX: "viewport",
+  pageBasisY: "viewport",
+  pageAlignX: "center",
+  pageAlignY: "center",
   direction: "y",
   fromRight: false,
   sizeMode: "fixed",
@@ -197,6 +207,8 @@ export const directionOptions: Direction[] = ["y", "x", "hybrid"];
 export const renderOptions: RenderMode[] = ["off", "lazy", "virtual"];
 
 export const modeOptions: ScrollMode[] = ["scroll", "slider", "sliderMenu"];
+
+export const pageBasisOptions: PageBasis[] = ["viewport", "object"];
 
 export function readInitialSettings() {
   try {

@@ -19,6 +19,33 @@ type SpacingValue = number | Vec2 | Edges;
  * alignment at the start, center or end of an axis.
  */
 export type Align = "start" | "center" | "end";
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***PageBasis***:
+ * what one slider page follows: the viewport or the objects themselves.
+ */
+export type PageBasis = "viewport" | "object";
+
+/**---
+ * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+ * ### ***PagesConfig***:
+ * how slider pages are built and aligned.
+ */
+export type PagesConfig =
+  | PageBasis
+  | {
+      /**
+       * The geometry that defines page stops. A pair configures x and y in
+       * `direction="hybrid"`.
+       * @default "viewport"
+       */
+      basis: PageBasis | Pair<PageBasis>;
+      /**
+       * Where an object stands in the viewport with `basis: "object"`.
+       * @default "start"
+       */
+      align?: Align | Pair<Align>;
+    };
 type MinSize = number | "full";
 type ObjectSize = number | "full" | "firstChild" | "auto";
 
@@ -78,8 +105,10 @@ export type BarConfig = {
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***maxItems***:
    * Maximum page markers rendered per bar in `slider` and `sliderMenu`.
-   * The window follows the active page; one value applies to each axis in
-   * `direction="hybrid"`. Values are floored and clamped to at least `2`.
+   * The window follows the active page. Limits of `5` or more keep two
+   * markers ahead in the movement direction; smaller limits keep one. One
+   * value applies to each axis in `direction="hybrid"`. Values are floored
+   * and clamped to at least `2`.
    * Without `loop`, `.ms-slider` receives `ms-more-before` and
    * `ms-more-after` while markers remain hidden before or after its window in
    * page order.
@@ -440,15 +469,13 @@ export type MorphScrollHandle = {
    * which a child gives itself: `ms-group="news"`. A group goes to its first
    * object; a key wins over a group of the same name.
    *
-   * `align` is `"start"` by default, `"center"`, or `"end"`. The object stops
-   * short of the edge by whatever is really in that place: the `objects.gap`
-   * it holds against its neighbour, or `wrapper.margin` where the objects run
-   * out — so `scrollToObject(1, "start")` arrives where `scrollTo(0)` does.
-   * A pair aims the axes apart under `direction="hybrid"`:
-   * `["center", "start"]`.
-   * @note *`align` asks, the range answers: an object near either end of an
-   * axis cannot be moved off it, so all three land in the same place there —
-   * the first object is at the start whatever you ask for*
+   * Without an explicit `align`, an object page follows the alignment from
+   * `pages`; other modes use `"start"`. An explicit `"start"`, `"center"` or
+   * `"end"` remains a free pixel target. A pair aims the axes apart under
+   * `direction="hybrid"`: `["center", "start"]`.
+   * @note *outside object pages, `align` asks and the available range answers:
+   * an object near an edge may be unable to reach the requested place. Object
+   * pages add the edge room required by their configured alignment*
    */
   scrollToObject: (
     target: number | string,
@@ -636,13 +663,29 @@ export type MorphScroll = {
    * @note *what tells them apart is the gesture the strip answers, and the
    * cursor says which. The elements are yours either way: `controls.bar`
    * takes an array, one node per page, in both*
-   * @note *a slider draws one element per page, so a long list makes a long
-   * strip of them: they are for a handful of pages, a growing list is
-   * `mode="scroll"`*
-   * @note *a page is one window, so content that does not divide into whole
-   * windows ends on a short one — `objects.size: "full"` keeps them equal*
+   * @note *a slider draws one element per page; `controls.bar.maxItems` can
+   * keep a long marker strip compact*
+   * @note *a page is one window by default; `pages="object"` instead builds
+   * stops from the objects themselves*
    */
   mode?: "scroll" | "slider" | "sliderMenu";
+  /**---
+   * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
+   * ### ***pages***:
+   * choose what a page in the slider modes follows.
+   * @default "viewport"
+   * @description
+   * - `"viewport"`: *one page is one viewport, preserving the original
+   * slider behaviour*
+   * - `"object"`: *page stops come from object positions; in a single line
+   * this gives one page marker per object*
+   * - `{ basis, align }`: *align an object at the start, centre or end; pairs
+   * configure the axes separately in `direction="hybrid"`*
+   * @note *objects sharing the same reachable position form one page: an
+   * axis cannot distinguish two objects that sit on the same line*
+   * @note *only the slider modes use pages; `mode="scroll"` remains free*
+   */
+  pages?: PagesConfig;
   /**---
    * ## ![logo](https://github.com/voodoofugu/morphing-scroll/raw/main/src/assets/morphing-scroll-logo.png)
    * ### ***direction***:
@@ -754,7 +797,9 @@ export type MorphScroll = {
    * aside: across the scroll an object takes the whole window, along it the
    * size is its own — a slider's page is the window on both sides, and
    * `direction="hybrid"` hands both to the objects. All of that can be
-   * counted, so `render` and `loop` work with nothing named. The exception is
+   * counted, so `render` and `loop` work with nothing named. In a slider,
+   * measured sizes pair with `pages="object"`; viewport pages still require
+   * one common cell size. The exception is
    * `lines` above one without a size: that is a grid whose track widths your
    * CSS decides, and nothing can count them — name a size to get them back*
    * - `gap`: *space between the objects, one number or `[x, y]`*
@@ -770,7 +815,8 @@ export type MorphScroll = {
    * across it, or both, is a flow — a line at a time, ended by the room or by
    * `lines`*
    * @note *a side left to CSS is the one `render` cannot count; `"auto"` it
-   * can, and pages need one size for all — so `"auto"` is for `mode="scroll"`*
+   * can; viewport pages need one common size, while object pages can use the
+   * measured size of every object*
    * @see the README for how each arrangement places its objects
    */
   objects?: ObjectsConfig;

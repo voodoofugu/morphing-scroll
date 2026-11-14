@@ -33,6 +33,8 @@ export type {
   EmptyObjectsConfig,
   FallbackConfig,
   ObjectsConfig,
+  PagesConfig,
+  PageBasis,
   Align,
   NavigateEvent,
   NavigateReason,

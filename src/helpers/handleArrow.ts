@@ -1,6 +1,7 @@
 import pageAt from "./pageAt";
 import { loopPages, loopPageAt } from "./loopWindow";
 import { aimOf } from "./addFunctions";
+import type { PageModel } from "./createPageModel";
 
 type handleArrowT = {
   arrowType: "left" | "right" | "top" | "bottom";
@@ -16,6 +17,8 @@ type handleArrowT = {
   gap: number[];
   /** page totals per axis, including a final partial page */
   pageCounts?: number[];
+  /** shared page geometry; when present it is the source of every target */
+  pageModels?: [PageModel, PageModel];
   /** the circle's period per axis, zero where the axis does not loop */
   loopPeriods?: [number, number];
   /**
@@ -36,6 +39,7 @@ const handleArrow = ({
   duration,
   gap,
   pageCounts,
+  pageModels,
   loopPeriods,
   flipX,
 }: handleArrowT) => {
@@ -74,8 +78,32 @@ const handleArrow = ({
   };
 
   const getNewPosition = (dir: "x" | "y", delta: 1 | -1) => {
+    const axis = dir === "x" ? 0 : 1;
     const period = periodOf(dir);
     const position = (dir === "x" ? left : top) - period;
+
+    const model = pageModels?.[axis];
+    if (model?.basis === "object") {
+      const at = position + period;
+      const page = model.pageAt(at, delta);
+      const next = model.next(page, delta);
+      let target = model.targetAt(next, at);
+
+      /*
+       * `targetAt` chooses the nearest loop copy — exactly what a direct
+       * marker click needs, but a step also promises a direction. At the
+       * wrap, and especially in a one-page turn shorter than the viewport,
+       * the nearest copy can be the one we already occupy. Move it by one
+       * period so forward always advances and backward always retreats.
+       */
+      if (period) {
+        if (delta > 0 && target <= at + 0.5) target += period;
+        if (delta < 0 && target >= at - 0.5) target -= period;
+      }
+
+      return dir === "x" ? asList(target) : target;
+    }
+
     const step = stepOf(dir);
 
     /*
@@ -99,6 +127,10 @@ const handleArrow = ({
    */
   const pageOn = (dir: "x" | "y", value: number) => {
     const isX = dir === "x";
+    const model = pageModels?.[isX ? 0 : 1];
+    if (model?.basis === "object")
+      return model.pageAt(isX ? asList(value) : value);
+
     const clientSize = scrollElement[isX ? "clientWidth" : "clientHeight"];
     const gapDir = isX ? gap[0] : gap[1];
     const period = periodOf(dir);

@@ -205,6 +205,28 @@ test.describe("MorphScroll touch (real device emulation)", () => {
         .toBe(400);
     });
 
+  test("a finger settles on the next object page", async ({ page }) => {
+    await page.goto("/?scenario=objectPages");
+    const viewport = page.locator(".ms-viewport");
+    const box = (await viewport.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+
+    await swipe(
+      page,
+      { x, y },
+      { x: x - 45, y },
+      { steps: 5, stepDelay: 30, holdBeforeRelease: 50 },
+    );
+
+    await expect
+      .poll(() => viewport.evaluate((element) => element.scrollLeft))
+      .toBe(140);
+    await expect(page.locator(".ms-slider-item").nth(1)).toHaveClass(
+      /ms-active/,
+    );
+  });
+
   test("reports touch rubber-band pixels and the return to zero", async ({
     page,
   }) => {

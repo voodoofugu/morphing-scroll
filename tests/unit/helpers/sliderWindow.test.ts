@@ -19,7 +19,17 @@ describe("sliderWindow", () => {
     expect(sliderWindowLimit(Number.POSITIVE_INFINITY, 8)).toBe(8);
   });
 
-  it("moves forward only when the active page reaches the last item", () => {
+  it("keeps two markers ahead in windows of five or more", () => {
+    expect(
+      shiftSliderWindow({
+        active: 2,
+        previous: 1,
+        start: 0,
+        total: 10,
+        limit: 5,
+        loop: false,
+      }),
+    ).toBe(0);
     expect(
       shiftSliderWindow({
         active: 3,
@@ -29,25 +39,15 @@ describe("sliderWindow", () => {
         limit: 5,
         loop: false,
       }),
-    ).toBe(0);
-    expect(
-      shiftSliderWindow({
-        active: 4,
-        previous: 3,
-        start: 0,
-        total: 10,
-        limit: 5,
-        loop: false,
-      }),
     ).toBe(1);
   });
 
-  it("moves back symmetrically and keeps one previous page", () => {
+  it("moves back symmetrically and keeps two previous markers", () => {
     expect(
       shiftSliderWindow({
-        active: 1,
-        previous: 2,
-        start: 1,
+        active: 2,
+        previous: 3,
+        start: 2,
         total: 10,
         limit: 5,
         loop: false,
@@ -55,7 +55,7 @@ describe("sliderWindow", () => {
     ).toBe(0);
   });
 
-  it("places a direct jump with one page ahead", () => {
+  it("places a direct jump with two markers ahead", () => {
     expect(
       shiftSliderWindow({
         active: 8,
@@ -65,8 +65,21 @@ describe("sliderWindow", () => {
         limit: 5,
         loop: false,
       }),
-    ).toBe(5);
-    expect(sliderWindowPages(5, 12, 5, false)).toEqual([5, 6, 7, 8, 9]);
+    ).toBe(6);
+    expect(sliderWindowPages(6, 12, 5, false)).toEqual([6, 7, 8, 9, 10]);
+  });
+
+  it("keeps the original one-marker buffer below five items", () => {
+    expect(
+      shiftSliderWindow({
+        active: 3,
+        previous: 2,
+        start: 0,
+        total: 10,
+        limit: 4,
+        loop: false,
+      }),
+    ).toBe(1);
   });
 
   it("wraps a loop window without duplicating pages", () => {
@@ -80,6 +93,6 @@ describe("sliderWindow", () => {
         limit: 5,
         loop: true,
       }),
-    ).toBe(7);
+    ).toBe(8);
   });
 });

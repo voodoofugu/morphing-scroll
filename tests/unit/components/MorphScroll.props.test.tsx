@@ -52,6 +52,7 @@ const cases: Array<[string, Partial<MorphScrollProps>, Partial<MorphScrollProps>
   ["className", {}, { className: "mine" }],
   ["children", {}, { children: items(3) }],
   ["mode", { controls: { bar: <i /> } }, { mode: "slider", objects: { size: 300 }, controls: { bar: <i /> } }],
+  ["pages", { mode: "slider", direction: "x", controls: { bar: <i /> } }, { mode: "slider", direction: "x", pages: { basis: "object", align: "center" }, controls: { bar: <i /> } }],
   ["direction", {}, { direction: "x" }],
   ["size", {}, { size: [200, 150] }],
   ["objects.size", {}, { objects: { size: 60 } }],

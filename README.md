@@ -138,9 +138,9 @@ the same pages and the same turns, but the strip is a menu: a press on an elemen
 <br />
 So what tells them apart is the gesture the strip answers — dragged or pressed — and the cursor says which. Both take an array in <code>bar</code>, one node per page, so the elements themselves are yours either way: page dots that are only dragged along, or the same dots as a menu.<br />
 <br />
-Both draw one element per page, so a long list makes a long strip of them and past a point it outgrows the scroll. There is no cap on purpose: hiding pages would make the progress lie. The slider modes are for a handful of pages; for a list that keeps going, <code>mode="scroll"</code> shows the same position in one thumb.<br />
+Both draw one element per page. For a long list, <code>controls.bar.maxItems</code> keeps the marker strip compact while its window follows the active page; omitting it keeps every marker visible. For continuous progress instead of pages, <code>mode="scroll"</code> shows the same position in one thumb.<br />
 <br />
-A page is one window, so content that does not divide into whole windows ends on a short one: the last turn stops against the end rather than on a page of its own. Nothing breaks — the turns stay reversible — but the last two are spaced unevenly. Sizing the objects so a whole number fills the window, or handing them the window with <code>objects.size: "full"</code>, keeps every page equal.</em><br />
+By default a page is one window, so content that does not divide into whole windows ends on a short one: the last turn stops against the end rather than on a page of its own. Nothing breaks — the turns stay reversible — but the last two are spaced unevenly. Sizing the objects so a whole number fills the window, handing them the window with <code>objects.size: "full"</code>, or choosing <code>pages="object"</code> makes the intended stops explicit.</em><br />
 <br />
 <b>Example:</b>
 
@@ -151,6 +151,42 @@ A page is one window, so content that does not divide into whole windows ends on
 ```
 
 ![banner](https://raw.githubusercontent.com/voodoofugu/morphing-scroll/refs/heads/main/src/assets/banner-mode.png)
+
+</div></ul></details>
+
+<h2></h2>
+
+<details><summary><b><code>pages</code></b></summary><br /><ul><div>
+<b>Usage:</b><br />
+
+```tsx
+pages={{ basis: "object", align: "center" }}
+```
+
+<b>Default:</b><br />
+"viewport"<br />
+<br />
+<b>Description:</b><em><br />
+chooses what one page follows in <code>slider</code> and <code>sliderMenu</code>.<br />
+<br />
+<code>"viewport"</code> preserves the original model: a page is one window. <code>"object"</code> builds stops from object positions, so a one-line carousel gets one marker and one turn per object even when several objects show at once. An object config adds <code>align: "start" | "center" | "end"</code>; the library adds the edge room needed to align the first and last objects too.<br />
+<br />
+Objects sharing one reachable position form one page. In a grid, for example, objects on the same row cannot be told apart by a vertical scroll. With <code>direction="hybrid"</code>, pairs configure x and y separately.<br />
+<br />
+The page model is shared by drag settle, wheel, keys, arrows, the slider bar, <code>step</code>, <code>scrollToObject</code> without an explicit alignment, and <code>onNavigate</code>. <code>scrollTo</code>, <code>pan</code> and an explicitly aligned <code>scrollToObject</code> remain pixel commands and are not silently snapped.</em><br />
+<br />
+<b>Example:</b>
+
+```tsx
+<MorphScroll
+  {...props}
+  mode="slider"
+  direction="x"
+  pages={{ basis: "object", align: "center" }}
+>
+  {children}
+</MorphScroll>
+```
 
 </div></ul></details>
 
@@ -399,7 +435,7 @@ brings one object into view. A place in the list rather than a place in pixels, 
 
 <ul>
   <li><code>target</code>: a place in the list counted from <b>one</b>, a child's <code>key</code>, or the name of a <b>group</b> — which a child names on itself, <code>ms-group="news"</code>.</li><br />
-  <li><code>options.align</code>: where in the window it lands — <b>"start"</b> by default, <b>"center"</b>, or <b>"end"</b>. A pair aligns the axes apart under <code>direction="hybrid"</code>: <code>["center", "start"]</code>.</li>
+  <li><code>options.align</code>: where in the window it lands — <b>"start"</b>, <b>"center"</b>, or <b>"end"</b>. When omitted, an object page follows the alignment configured in <code>pages</code>; elsewhere it defaults to <b>"start"</b>. A pair aligns the axes apart under <code>direction="hybrid"</code>: <code>["center", "start"]</code>.</li>
 </ul>
 
 <br />
@@ -408,7 +444,7 @@ brings one object into view. A place in the list rather than a place in pixels, 
 <br />
 An aligned object does not stand against the edge of the window: it stops short of it by whatever is really in that place. Another object beyond it means the <code>objects.gap</code> the two hold between them; where the objects run out there is no gap left, and there it is <code>wrapper.margin</code>. So the ends agree with themselves — <code>scrollToObject(1, { align: "start" })</code> arrives exactly where <code>scrollTo(0)</code> does, and the last object with <b>"end"</b> where <code>scrollTo("end")</code> does. <code>moveFocus</code> and <code>keys: { mode: "focus" }</code> bring an object to an edge by the same rule.<br />
 <br />
-<code>align</code> asks, the range answers: an object near either end of an axis cannot be moved off it, so all three values land in the same place there — the first object sits at the start whatever you ask for. In a grid that is per axis, and a section starting in the first column is at the start of the horizontal one.</em>
+Outside object pages, <code>align</code> asks and the available range answers: an object near either end may be unable to reach the requested place. Object pages instead add the edge room required by their configured alignment. Passing <code>options.align</code> explicitly remains a free pixel target rather than changing the page model.</em>
 
 ```tsx
 <MorphScroll {...props} ref={scroll} render="virtual">
@@ -612,7 +648,7 @@ There is no way to ask the library not to measure a side, and there was no point
 
 <ul>
   <li><b>"auto"</b> works with <code>render</code>: the library measures the side and then knows it. The only size it cannot count is the grid above — <code>lines</code> without a size.</li>
-  <li><b>"auto"</b> needs <code>mode="scroll"</code>: pages are all one size, and objects of their own size have no size in common.</li>
+  <li><b>"auto"</b> in a slider needs <code>pages="object"</code>: viewport pages require a common cell size, while object pages are built from the measured objects themselves.</li>
   <li>with <code>direction="hybrid"</code> the line is ended by <code>lines</code> and nothing else: there is no window across to wrap against. It is <b>1</b> unless you raise it — a column of objects each its own width, which scrolls sideways as far as the widest one.</li>
   <li>the layout follows the objects, so anything that changes their size while they are on screen repacks them. Reserving space for a late picture (<code>aspect-ratio</code> does it in one line) still saves that repack.</li>
 </ul>
@@ -1380,7 +1416,7 @@ maxItems: 7;
 <b>Description:</b><em><br />
 limits how many page markers are rendered at once in <b>slider</b> and <b>sliderMenu</b> modes. Use an integer of at least <b>2</b>; fractions are rounded down and lower values become <b>2</b>.<br />
 <br />
-The window follows the active page: when it reaches an edge, one marker enters ahead and one leaves behind. Under <code>loop</code> the window wraps with the pages. In <code>direction="hybrid"</code> the same limit applies independently to both bars. If <code>element</code> is an array, its entries keep their original page indexes while the window moves.<br />
+The window follows the active page. Limits from <b>2</b> to <b>4</b> keep one marker ahead in the movement direction; limits of <b>5</b> or more keep two, placing the active marker closer to the centre. Under <code>loop</code> the window wraps with the pages. In <code>direction="hybrid"</code> the same limit applies independently to both bars. If <code>element</code> is an array, its entries keep their original page indexes while the window moves.<br />
 <br />
 Without <code>loop</code>, <code>.ms-slider</code> receives <code>ms-more-before</code> and <code>ms-more-after</code> while pages remain hidden before or after its window in page order. These classes can style any number of edge markers with <code>:first-child</code>, <code>:nth-child()</code> and their <code>:last-child</code> counterparts.<br />
 <br />

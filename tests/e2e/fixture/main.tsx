@@ -432,6 +432,241 @@ scenarios.sliderDrag = (
   </MorphScroll>
 );
 
+const objectPageItems = Array.from({ length: 5 }, (_, index) => (
+  <div
+    key={`object-page-${index}`}
+    className="box"
+    data-testid={`object-page-${index}`}
+    style={{ width: 120, height: 100 }}
+  >
+    item {index}
+  </div>
+));
+
+scenarios.objectPages = (
+  <MorphScroll
+    direction="x"
+    mode="sliderMenu"
+    pages={{ basis: "object", align: "center" }}
+    objects={{ size: [120, 100], gap: [20, 0] }}
+    size={[300, 120]}
+    duration={0}
+    trackVisibility
+    controls={{
+      drag: true,
+      keys: true,
+      arrows: <div className="arrow" />,
+      bar: <div className="dot" />,
+    }}
+    onNavigate={onNavigate}
+    onScrollPosition={onScrollPosition}
+  >
+    {objectPageItems}
+  </MorphScroll>
+);
+
+scenarios.objectPagesLoop = (
+  <MorphScroll
+    direction="x"
+    mode="sliderMenu"
+    pages={{ basis: "object", align: "center" }}
+    objects={{ size: [120, 100], gap: [20, 0] }}
+    size={[300, 120]}
+    duration={0}
+    loop
+    controls={{
+      keys: { mode: "step" },
+      arrows: <div className="arrow" />,
+      bar: <div className="dot" />,
+    }}
+    onNavigate={onNavigate}
+    onScrollPosition={onScrollPosition}
+  >
+    {objectPageItems}
+  </MorphScroll>
+);
+
+const ObjectPageCommands = () => {
+  const ref = React.useRef<MorphScrollHandle>(null);
+
+  React.useEffect(() => {
+    (window as any).__morphRef = ref.current;
+  });
+
+  return (
+    <MorphScroll
+      ref={ref}
+      direction="x"
+      mode="slider"
+      pages={{ basis: "object", align: "center" }}
+      objects={{ size: [120, 100], gap: [20, 0] }}
+      size={[300, 120]}
+      duration={120}
+      controls={{ bar: <div className="dot" /> }}
+      onNavigate={onNavigate}
+      onScrollPosition={onScrollPosition}
+    >
+      {objectPageItems}
+    </MorphScroll>
+  );
+};
+
+scenarios.objectPageCommands = <ObjectPageCommands />;
+
+const VariableObjectPages = () => {
+  const [wide, setWide] = React.useState(false);
+  const widths = wide ? [200, 160, 90, 140] : [80, 160, 90, 140];
+
+  React.useEffect(() => {
+    (window as any).__resizeObjectPages = () => setWide((value) => !value);
+  }, []);
+
+  return (
+    <MorphScroll
+      direction="x"
+      mode="sliderMenu"
+      pages={{ basis: "object", align: "center" }}
+      objects={{ size: ["auto", 100], gap: [16, 0], lines: 1 }}
+      render="virtual"
+      size={[320, 120]}
+      duration={0}
+      controls={{ bar: <div className="dot" /> }}
+      onScrollPosition={onScrollPosition}
+    >
+      {widths.map((width, index) => (
+        <div
+          key={`variable-object-page-${index}`}
+          className="box"
+          data-testid={`variable-object-page-${index}`}
+          style={{ width, height: 100 }}
+        >
+          item {index}
+        </div>
+      ))}
+    </MorphScroll>
+  );
+};
+
+scenarios.variableObjectPages = <VariableObjectPages />;
+
+scenarios.objectPageLines = (
+  <MorphScroll
+    direction="x"
+    mode="sliderMenu"
+    pages="object"
+    objects={{ size: [100, 80], gap: 10, lines: 2 }}
+    size={[260, 190]}
+    duration={0}
+    controls={{ bar: <div className="dot" /> }}
+  >
+    {makeItems().slice(0, 6)}
+  </MorphScroll>
+);
+
+scenarios.objectPagesHybrid = (
+  <MorphScroll
+    direction="hybrid"
+    mode="sliderMenu"
+    pages={{ basis: ["object", "object"], align: ["center", "center"] }}
+    objects={{ size: [100, 80], gap: 10, lines: 2 }}
+    size={[260, 190]}
+    duration={0}
+    controls={{ bar: <div className="dot" /> }}
+  >
+    {makeItems().slice(0, 6)}
+  </MorphScroll>
+);
+
+scenarios.objectPagesHybridLoopStep = (
+  <MorphScroll
+    direction="hybrid"
+    loop
+    mode="sliderMenu"
+    pages={{ basis: "object", align: ["center", "center"] }}
+    objects={{ size: [100, 80], gap: 10, lines: 2 }}
+    size={[260, 190]}
+    duration={0}
+    controls={{ keys: { mode: "step" }, bar: <div className="dot" /> }}
+  >
+    {makeItems().slice(0, 6)}
+  </MorphScroll>
+);
+
+scenarios.objectPagesHybridLoopFocus = (
+  <MorphScroll
+    direction="hybrid"
+    loop
+    mode="sliderMenu"
+    pages={{ basis: "object", align: ["center", "center"] }}
+    objects={{ size: [100, 80], gap: 10, lines: 2 }}
+    size={[260, 190]}
+    duration={0}
+    controls={{ keys: { mode: "focus" }, bar: <div className="dot" /> }}
+  >
+    {makeItems().slice(0, 6)}
+  </MorphScroll>
+);
+
+scenarios.objectPagesFromRight = (
+  <MorphScroll
+    direction="x"
+    fromRight
+    mode="sliderMenu"
+    pages={{ basis: "object", align: "center" }}
+    objects={{ size: [120, 100], gap: [20, 0] }}
+    size={[300, 120]}
+    duration={0}
+    controls={{ bar: <div className="dot" /> }}
+  >
+    {objectPageItems}
+  </MorphScroll>
+);
+
+scenarios.objectPagesFromRightLoop = (
+  <MorphScroll
+    direction="x"
+    fromRight
+    loop
+    mode="sliderMenu"
+    pages={{ basis: "object", align: "center" }}
+    objects={{ size: [120, 100], gap: [20, 0] }}
+    size={[300, 120]}
+    duration={0}
+    controls={{ bar: <div className="dot" /> }}
+  >
+    {objectPageItems}
+  </MorphScroll>
+);
+
+scenarios.objectPagesFocus = (
+  <MorphScroll
+    direction="x"
+    mode="sliderMenu"
+    pages={{ basis: "object", align: "center" }}
+    objects={{ size: [120, 100], gap: [20, 0] }}
+    size={[300, 120]}
+    duration={0}
+    controls={{ keys: { mode: "focus" }, bar: <div className="dot" /> }}
+  >
+    {objectPageItems}
+  </MorphScroll>
+);
+
+scenarios.objectPagesFocusLoop = (
+  <MorphScroll
+    direction="x"
+    loop
+    mode="sliderMenu"
+    pages={{ basis: "object", align: "center" }}
+    objects={{ size: [120, 100], gap: [20, 0] }}
+    size={[300, 120]}
+    duration={0}
+    controls={{ keys: { mode: "focus" }, bar: <div className="dot" /> }}
+  >
+    {objectPageItems}
+  </MorphScroll>
+);
+
 /*
  * Страница нарочно длиннее окна: колесо над баром двигало её вместе с
  * содержимым скролла — браузер отдавал прокрутку ближайшему предку.

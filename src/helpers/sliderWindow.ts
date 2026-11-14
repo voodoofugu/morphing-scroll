@@ -17,9 +17,12 @@ const sliderWindowLimit = (asked: number | undefined, total: number) => {
   return Math.min(total, Math.max(2, Math.floor(asked)));
 };
 
+/** Keep the active marker closer to the centre when the window has room. */
+const sliderWindowBuffer = (limit: number) => (limit >= 5 ? 2 : 1);
+
 /**
- * Move a page window only when the active page reaches the edge it travelled
- * towards. A direct jump lands with one page left ahead in that direction.
+ * Move a page window when the active page enters its directional buffer. Small
+ * windows keep one marker ahead; windows of five or more keep two.
  */
 const shiftSliderWindow = ({
   active,
@@ -31,16 +34,18 @@ const shiftSliderWindow = ({
 }: SliderWindowArgs) => {
   if (total <= 0 || limit >= total) return 0;
 
+  const buffer = sliderWindowBuffer(limit);
+
   if (!loop) {
     const maxStart = total - limit;
 
-    if (active > previous && active >= start + limit - 1)
-      return Math.min(active - (limit - 2), maxStart);
-    if (active < previous && active <= start)
-      return Math.max(active - 1, 0);
-    if (active < start) return Math.max(active - 1, 0);
+    if (active > previous && active >= start + limit - buffer)
+      return Math.min(active - (limit - buffer - 1), maxStart);
+    if (active < previous && active <= start + buffer - 1)
+      return Math.max(active - buffer, 0);
+    if (active < start) return Math.max(active - buffer, 0);
     if (active >= start + limit)
-      return Math.min(active - (limit - 2), maxStart);
+      return Math.min(active - (limit - buffer - 1), maxStart);
 
     return Math.min(Math.max(start, 0), maxStart);
   }
@@ -51,17 +56,17 @@ const shiftSliderWindow = ({
   const backward = modulo(previous - active, total);
 
   if (offset < limit) {
-    if (forward <= backward && offset === limit - 1)
-      return modulo(normalizedStart + 1, total);
-    if (backward < forward && offset === 0)
-      return modulo(normalizedStart - 1, total);
+    if (forward <= backward && offset >= limit - buffer)
+      return modulo(active - (limit - buffer - 1), total);
+    if (backward < forward && offset < buffer)
+      return modulo(active - buffer, total);
 
     return normalizedStart;
   }
 
   return forward <= backward
-    ? modulo(active - (limit - 2), total)
-    : modulo(active - 1, total);
+    ? modulo(active - (limit - buffer - 1), total)
+    : modulo(active - buffer, total);
 };
 
 const sliderWindowPages = (
