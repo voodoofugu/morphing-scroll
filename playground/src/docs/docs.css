@@ -13,9 +13,16 @@
  * своя, с тем же бегунком, что в примерах.
  */
 .docs {
+  --top-bar-height: 59px;
+  position: relative;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   height: 100dvh;
+}
+
+.docs > .top-bar {
+  position: absolute;
+  inset: 0 0 auto;
 }
 
 .docs-shell {
@@ -25,14 +32,15 @@
 }
 
 .docs-nav {
-  position: sticky;
-  top: 0;
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   height: calc(100dvh - 116px);
   min-height: 0;
   background: var(--bg);
   padding: 0 0 16px;
+  transform: translate3d(0, var(--docs-scroll-offset, 0px), 0);
+  will-change: transform;
 }
 
 .docs-nav-scroll,
@@ -304,7 +312,7 @@
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 24px 0;
+  padding: calc(var(--top-bar-height) + 24px) 24px 0;
 }
 
 .docs-page-slot {
@@ -668,6 +676,8 @@
 /* #endregion */
 
 @media (max-width: 860px) {
+  .docs { --top-bar-height: 78px; }
+
   .docs-body {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
@@ -681,6 +691,8 @@
     height: 32dvh;
     border-bottom: 1px solid var(--line-soft);
     padding: 12px 0;
+    transform: none;
+    will-change: auto;
   }
 
   .docs-page-slot { padding-top: 24px; }

@@ -6,7 +6,10 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-tsx";
 import "prismjs/components/prism-bash";
 
-import type { MorphScrollHandle } from "@morphing-scroll/src/types/types";
+import type {
+  MorphScroll as MorphScrollProps,
+  MorphScrollHandle,
+} from "@morphing-scroll/src/types/types";
 import docs from "virtual:ms-docs";
 import readme from "virtual:ms-readme";
 import type { ReadmeNode } from "virtual:ms-readme";
@@ -366,6 +369,17 @@ function Docs() {
     () => new Map(),
   );
   const page = React.useRef<MorphScrollHandle>(null);
+  const navigation = React.useRef<HTMLElement>(null);
+  const shell = React.useRef<HTMLDivElement>(null);
+  const keepNavigationStill = React.useCallback<
+    NonNullable<MorphScrollProps["onScrollPosition"]>
+  >((_left, top, _max, overscroll) => {
+    navigation.current?.style.setProperty(
+      "--docs-scroll-offset",
+      `${top - overscroll.y}px`,
+    );
+    shell.current?.toggleAttribute("data-scrolled", top > 8);
+  }, []);
 
   // новый раздел читают с начала
   React.useEffect(() => {
@@ -390,18 +404,19 @@ function Docs() {
   };
 
   return (
-    <div className="docs">
+    <div className="docs" ref={shell}>
       <TopBar onTheme={setTheme} page="docs" theme={theme} />
 
       <div className="docs-shell">
         <main className="docs-main">
           <ChromeScroll
             controls={{ keys: true }}
+            onScrollPosition={keepNavigationStill}
             ref={page}
           >
             <div className="docs-content">
               <div className="docs-body">
-                <aside className="docs-nav">
+                <aside className="docs-nav" ref={navigation}>
           <input
             aria-label="search props"
             className="docs-search"

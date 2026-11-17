@@ -35,8 +35,3 @@
 .chrome-scroll .ms-thumb.ms-grabbing .scroll-thumb:not(.playground-thumb) {
   color: var(--ink-faint);
 }
-
-.chrome-scroll .ms-edge:not(.ms-disabled) .ms-edge-inner {
-  background: linear-gradient(var(--fade, var(--bg)) 0%, transparent 100%);
-  width: 20px;
-}
