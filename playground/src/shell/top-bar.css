@@ -1,12 +1,18 @@
-/* Шапка общая у документации и дашборда — и выглядит одинаково. */
+/*
+ * Shared documentation shell: keep structural changes aligned with
+ * nexus-state and styled-atom; each site retains its own accent and content.
+ */
 .top-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  position: relative;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  min-height: 58px;
   border-bottom: 1px solid var(--line-soft);
-  background: var(--bg);
-  padding: 10px 24px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  padding: 8px 22px;
+  backdrop-filter: blur(18px);
 }
 
 .top-brand {
@@ -41,9 +47,9 @@
 .top-links {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  justify-self: center;
   gap: 4px;
-  margin-right: auto;
-  margin-left: 12px;
 }
 
 .top-links a {
@@ -147,12 +153,22 @@
 }
 
 .top-theme {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-self: end;
   gap: 2px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--card);
+  cursor: grab;
   padding: 2px;
+  touch-action: none;
+  user-select: none;
+  width: 176px;
+}
+
+.top-theme[data-dragging="true"] {
+  cursor: grabbing;
 }
 
 .top-theme button {
@@ -162,11 +178,12 @@
   color: var(--ink-faint);
   cursor: pointer;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   min-height: 24px;
   padding: 3px 9px;
+  text-transform: uppercase;
 }
 
 .top-theme button:hover {
@@ -181,6 +198,33 @@
 
 @media (max-width: 860px) {
   .top-bar {
-    padding: 10px 16px;
+    grid-template-columns: 1fr auto;
+    padding: 8px 16px;
+  }
+
+  .top-links {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin-top: 3px;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-bar {
+    padding-inline: 12px;
+  }
+
+  .top-version {
+    display: none;
+  }
+
+  .top-links a,
+  .top-article > button {
+    padding-inline: 6px;
+    font-size: 12px;
+  }
+
+  .top-theme button {
+    padding-inline: 6px;
   }
 }

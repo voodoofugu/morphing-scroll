@@ -71,6 +71,72 @@ function ArticleMenu() {
   );
 }
 
+/** Сегментированный выбор темы поддерживает клик, клавиатуру и перетаскивание. */
+function ThemeControl({
+  theme,
+  onTheme,
+}: {
+  theme: Theme;
+  onTheme: (theme: Theme) => void;
+}) {
+  const control = React.useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = React.useState(false);
+
+  const selectAt = (clientX: number) => {
+    const bounds = control.current?.getBoundingClientRect();
+    if (!bounds || bounds.width === 0) return;
+
+    const offset = Math.max(
+      0,
+      Math.min(bounds.width - 1, clientX - bounds.left),
+    );
+    const index = Math.min(
+      themes.length - 1,
+      Math.floor(offset / (bounds.width / themes.length)),
+    );
+    onTheme(themes[index]);
+  };
+
+  const stopDragging = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDragging(false);
+  };
+
+  return (
+    <div
+      aria-label="Color theme"
+      className="top-theme"
+      data-dragging={dragging || undefined}
+      onLostPointerCapture={() => setDragging(false)}
+      onPointerCancel={stopDragging}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDragging(true);
+        selectAt(event.clientX);
+      }}
+      onPointerMove={(event) => {
+        if (dragging) selectAt(event.clientX);
+      }}
+      onPointerUp={stopDragging}
+      ref={control}
+    >
+      {themes.map((name) => (
+        <button
+          aria-pressed={theme === name}
+          key={name}
+          onClick={() => onTheme(name)}
+          type="button"
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TopBar({
   page,
   theme,
@@ -107,20 +173,10 @@ function TopBar({
         <a href="https://www.npmjs.com/package/morphing-scroll">npm</a>
         <a href="https://github.com/voodoofugu/morphing-scroll">github</a>
         <ArticleMenu />
+        <a href="https://resume.voodoofugu.com/?lang=ru">author</a>
       </nav>
 
-      <div className="top-theme">
-        {themes.map((name) => (
-          <button
-            aria-pressed={theme === name}
-            key={name}
-            onClick={() => onTheme(name)}
-            type="button"
-          >
-            {name}
-          </button>
-        ))}
-      </div>
+      <ThemeControl onTheme={onTheme} theme={theme} />
     </header>
   );
 }
