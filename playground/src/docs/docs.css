@@ -247,7 +247,7 @@
 
 .docs-tree-row.is-ancestor::before {
   z-index: -1;
-  background: var(--line-soft);
+  background: color-mix(in srgb, var(--line-soft) 85%, var(--accent-ink));
 }
 
 .docs-tree-row.is-ancestor::after {
