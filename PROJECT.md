@@ -11,9 +11,10 @@ pointer dragging. Every site links back to the author's site from its footer.
 Documentation uses one full-width main scroll. Header, article grid and footer
 content share a centered 1180px inner container; their outer surfaces remain
 full-width. On desktop the side navigation stays visually fixed in its article
-column while the article moves beneath a translucent header; the header gains a
-subtle tint and shadow after scrolling. Shared site scrolls do not render edge
-gradients.
+column while the article moves beneath a translucent header. Its available
+height shrinks when the footer enters the viewport, so the footer never covers
+the menu; long menus keep their own scroll. The header gains a subtle tint and
+shadow after scrolling. Shared site scrolls do not render edge gradients.
 
 The implementation stays local to each repository for now. This avoids a shared
 UI package and cross-project release coupling for a small amount of code. When
