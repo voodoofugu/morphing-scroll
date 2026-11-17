@@ -7,6 +7,7 @@ import "prismjs/components/prism-tsx";
 import "prismjs/components/prism-bash";
 
 import type { MorphScrollHandle } from "@morphing-scroll/src/types/types";
+import packageInfo from "../../../package.json";
 import docs from "virtual:ms-docs";
 import readme from "virtual:ms-readme";
 import type { ReadmeNode } from "virtual:ms-readme";
@@ -260,7 +261,17 @@ function Page({ node }: { node: ReadmeNode }) {
   );
 }
 
-function Tree({ nodes, current }: { nodes: ReadmeNode[]; current: string }) {
+function Tree({
+  nodes,
+  current,
+  expanded,
+  onToggle,
+}: {
+  nodes: ReadmeNode[];
+  current: string;
+  expanded: ReadonlyMap<string, boolean>;
+  onToggle: (href: string, open: boolean) => void;
+}) {
   return (
     <ul>
       {nodes.map((node) => {
@@ -273,21 +284,54 @@ function Tree({ nodes, current }: { nodes: ReadmeNode[]; current: string }) {
          */
         const inside =
           current.startsWith(`${href}.`) || current.startsWith(`${href}/`);
-        const open = node.kind === "component" || current === href || inside;
+        const hasChildren = node.children.length > 0;
+        const routeOpen = current === href || inside;
+        const open = hasChildren && (expanded.get(href) ?? routeOpen);
         const isCurrent = current === href;
 
         return (
           <li key={href}>
-            <span className={`docs-tree-link${isCurrent ? " is-current" : ""}`}>
-              <a
-                aria-current={isCurrent ? "page" : inside || undefined}
-                href={href}
+            <div className="docs-tree-row">
+              <span className={`docs-tree-link${isCurrent ? " is-current" : ""}`}>
+                <a
+                  aria-current={isCurrent ? "page" : inside || undefined}
+                  href={href}
+                >
+                  {node.name}
+                </a>
+              </span>
+              {hasChildren && (
+                <button
+                  aria-expanded={open}
+                  aria-label={`${open ? "Collapse" : "Expand"} ${node.name}`}
+                  className="docs-tree-toggle"
+                  onClick={() => onToggle(href, open)}
+                  type="button"
+                >
+                  <span aria-hidden="true">›</span>
+                </button>
+              )}
+            </div>
+            {hasChildren && (
+              <div
+                aria-hidden={!open}
+                className="docs-tree-branch"
+                data-open={open || undefined}
+                ref={(node) => {
+                  if (!node) return
+                  if (open) node.removeAttribute('inert')
+                  else node.setAttribute('inert', '')
+                }}
               >
-                {node.name}
-              </a>
-            </span>
-            {open && node.children.length > 0 && (
-              <Tree current={current} nodes={node.children} />
+                <div>
+                  <Tree
+                    current={current}
+                    expanded={expanded}
+                    nodes={node.children}
+                    onToggle={onToggle}
+                  />
+                </div>
+              </div>
             )}
           </li>
         );
@@ -296,15 +340,38 @@ function Tree({ nodes, current }: { nodes: ReadmeNode[]; current: string }) {
   );
 }
 
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <div>
+        <strong>morphing-scroll</strong>
+        <span>v{packageInfo.version}</span>
+        <span>© {new Date().getFullYear()} voodoofugu</span>
+      </div>
+      <nav aria-label="Project links">
+        <a href="https://www.npmjs.com/package/morphing-scroll">npm</a>
+        <a href="https://github.com/voodoofugu/morphing-scroll">github</a>
+        <a href="https://dev.to/voodoofugu/the-story-of-morphing-scroll-my-npm-library-1agb">article · en</a>
+        <a href="https://habr.com/ru/articles/1084664/">article · ru</a>
+        <a href="https://resume.voodoofugu.com/?lang=ru">author</a>
+      </nav>
+    </footer>
+  );
+}
+
 function Docs() {
   const route = useRoute();
   const [theme, setTheme] = useTheme();
   const [query, setQuery] = React.useState("");
+  const [expanded, setExpanded] = React.useState<Map<string, boolean>>(
+    () => new Map(),
+  );
   const page = React.useRef<MorphScrollHandle>(null);
 
   // новый раздел читают с начала
   React.useEffect(() => {
     page.current?.scrollTo(0, { duration: 0 });
+    setExpanded(new Map());
   }, [route]);
 
   const node = byHref.get(route);
@@ -315,6 +382,13 @@ function Docs() {
           .includes(query.trim().toLowerCase()),
       )
     : null;
+  const toggle = (href: string, open: boolean) => {
+    setExpanded((current) => {
+      const next = new Map(current);
+      next.set(href, !open);
+      return next;
+    });
+  };
 
   return (
     <div className="docs">
@@ -362,7 +436,12 @@ function Docs() {
                       overview
                     </a>
                   </span>
-                  <Tree current={route} nodes={readme.api} />
+                  <Tree
+                    current={route}
+                    expanded={expanded}
+                    nodes={readme.api}
+                    onToggle={toggle}
+                  />
                 </nav>
               )}
             </ChromeScroll>
@@ -373,9 +452,12 @@ function Docs() {
           <ChromeScroll
             controls={{ keys: true }}
             ref={page}
-            wrapper={{ margin: [24, 18, 96, 0] }}
+            wrapper={{ margin: [24, 18, 24, 0] }}
           >
-            {node ? <Page node={node} /> : <Overview />}
+            <div className="docs-content">
+              {node ? <Page node={node} /> : <Overview />}
+              <Footer />
+            </div>
           </ChromeScroll>
         </main>
       </div>

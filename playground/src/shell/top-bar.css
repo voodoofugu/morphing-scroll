@@ -66,18 +66,6 @@
  * а где уйдёшь. Стрелка нарисована, а не прочитана — в пустых кавычках её
  * замена для чтения вслух, чтобы к имени ссылки не липло «стрелка».
  */
-.top-links a[href^="http"]::after {
-  content: "↗" / "";
-  margin-left: 4px;
-  color: var(--ink-faint);
-  font-size: 0.9em;
-  vertical-align: 1px;
-}
-
-.top-links a[href^="http"]:hover::after {
-  color: inherit;
-}
-
 .top-links a:hover {
   background: var(--card);
   color: var(--ink);
@@ -89,72 +77,10 @@
   box-shadow: inset 0 0 0 1px var(--accent-ink);
 }
 
-/*
- * Статья: кнопка выглядит как соседние ссылки, языки выпадают под ней. Стрелка
- * наружу стоит у самих языков — уводят именно они.
- */
-.top-article {
-  position: relative;
-}
-
-.top-article > button {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  padding: 6px 10px;
-}
-
-.top-article > button::after {
-  content: "▾";
-  color: var(--ink-faint);
-  font-size: 0.9em;
-}
-
-.top-article > button:hover,
-.top-article > button[aria-expanded="true"] {
-  background: var(--card);
-  color: var(--ink);
-}
-
-.top-article-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 20;
-  display: grid;
-  gap: 2px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 4px;
-  box-shadow: 0 10px 24px var(--shadow);
-}
-
-.top-article-menu a {
-  border-radius: 6px;
-  color: var(--ink-soft);
-  font-size: 13px;
-  font-weight: 650;
-  padding: 5px 10px;
-  text-decoration: none;
-}
-
-.top-article-menu a:hover {
-  background: var(--card);
-  color: var(--ink);
-}
-
 .top-theme {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-column: 3;
   justify-self: end;
   gap: 2px;
   border: 1px solid var(--line);
@@ -164,7 +90,7 @@
   padding: 2px;
   touch-action: none;
   user-select: none;
-  width: 176px;
+  width: 186px;
 }
 
 .top-theme[data-dragging="true"] {
@@ -177,12 +103,12 @@
   background: none;
   color: var(--ink-faint);
   cursor: pointer;
-  font-family: inherit;
+  font-family: var(--mono);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   min-height: 24px;
-  padding: 3px 9px;
+  padding: 3px 8px;
   text-transform: uppercase;
 }
 
@@ -207,6 +133,10 @@
     grid-column: 1 / -1;
     margin-top: 3px;
   }
+
+  .top-theme {
+    grid-column: 2;
+  }
 }
 
 @media (max-width: 640px) {
@@ -218,8 +148,7 @@
     display: none;
   }
 
-  .top-links a,
-  .top-article > button {
+  .top-links a {
     padding-inline: 6px;
     font-size: 12px;
   }

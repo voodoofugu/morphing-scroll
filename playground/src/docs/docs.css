@@ -69,6 +69,7 @@
 .docs-tree,
 .docs-found {
   --docs-arrow-corner: 0.75rem;
+  padding-block: 4px 18px;
 }
 
 .docs-tree ul ul {
@@ -100,7 +101,7 @@
 }
 
 /* компоненты — ступень выше пропсов */
-.docs-tree > ul > li > .docs-tree-link > a,
+.docs-tree > ul > li > .docs-tree-row > .docs-tree-link > a,
 .docs-tree > .docs-tree-link > a {
   margin-top: 10px;
   color: var(--ink);
@@ -125,6 +126,61 @@
   &.is-current {
     transform: translateY(-1px);
   }
+}
+
+.docs-tree-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: center;
+}
+
+.docs-tree-row > .docs-tree-link:last-child {
+  grid-column: 1 / -1;
+}
+
+.docs-tree-toggle {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-family: var(--mono);
+  place-items: center;
+}
+
+.docs-tree-toggle:hover {
+  background: var(--card);
+  color: var(--ink);
+}
+
+.docs-tree-toggle span {
+  transition: transform 180ms ease;
+}
+
+.docs-tree-toggle[aria-expanded="true"] span {
+  transform: rotate(90deg);
+}
+
+.docs-tree-branch {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 220ms ease,
+    opacity 160ms ease;
+}
+
+.docs-tree-branch[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.docs-tree-branch > div {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .docs-tree-link.is-current::before,
@@ -210,6 +266,41 @@
 .doc-page {
   max-width: 760px;
 }
+
+.docs-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 28px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: auto;
+  border-top: 1px solid var(--line-soft);
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 34px 0 24px;
+}
+
+.site-footer div,
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.site-footer strong { color: var(--ink); }
+.site-footer a { color: var(--ink-soft); text-decoration: none; }
+.site-footer a:hover { color: var(--accent-ink); }
+.site-footer a::after { content: "↗" / ""; margin-left: 4px; }
 
 .doc-crumbs {
   display: flex;
@@ -542,5 +633,12 @@
 
   .doc-demo-control {
     gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-tree-branch,
+  .docs-tree-toggle span {
+    transition-duration: 0.01ms;
   }
 }

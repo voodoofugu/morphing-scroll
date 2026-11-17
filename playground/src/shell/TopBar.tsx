@@ -12,65 +12,6 @@ import type { Theme } from "../dashboard/settings";
  */
 const themes = ["system", "light", "dark"] as const;
 
-/** один и тот же рассказ о библиотеке, на двух языках */
-const article = {
-  en: "https://dev.to/voodoofugu/the-story-of-morphing-scroll-my-npm-library-1agb",
-  ru: "https://habr.com/ru/articles/1084664/",
-};
-
-/**
- * Статья одной кнопкой: языки прячутся под ней, а не занимают два места в
- * меню. Закрывается сама — нажатием мимо и клавишей Esc, как и положено
- * всплывающему.
- */
-function ArticleMenu() {
-  const [open, setOpen] = React.useState(false);
-  const box = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!open) return;
-
-    const onDown = (event: PointerEvent) => {
-      if (!box.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-
-    return () => {
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  return (
-    <div className="top-article" ref={box}>
-      <button
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onClick={() => setOpen((shown) => !shown)}
-        type="button"
-      >
-        article
-      </button>
-
-      {open && (
-        <div className="top-article-menu" role="menu">
-          <a href={article.en} hrefLang="en" role="menuitem">
-            en
-          </a>
-          <a href={article.ru} hrefLang="ru" role="menuitem">
-            ru
-          </a>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /** Сегментированный выбор темы поддерживает клик, клавиатуру и перетаскивание. */
 function ThemeControl({
   theme,
@@ -170,10 +111,6 @@ function TopBar({
         >
           playground
         </a>
-        <a href="https://www.npmjs.com/package/morphing-scroll">npm</a>
-        <a href="https://github.com/voodoofugu/morphing-scroll">github</a>
-        <ArticleMenu />
-        <a href="https://resume.voodoofugu.com/?lang=ru">author</a>
       </nav>
 
       <ThemeControl onTheme={onTheme} theme={theme} />
