@@ -130,13 +130,19 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 24px;
+  grid-template-columns: minmax(0, 1fr) 26px;
   align-items: center;
   margin: 1px 0;
-  transition: background-color 160ms ease;
 }
 
 .docs-tree-row.has-children:not(.is-current):not(.is-ancestor):hover {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.docs-tree-row.has-children:not(.is-current):not(.is-ancestor):hover::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   border-radius: 0 0.375rem 0.375rem 0;
   background: var(--card);
   clip-path: polygon(
@@ -146,6 +152,7 @@
     var(--docs-arrow-corner) 100%,
     0 50%
   );
+  content: "";
 }
 
 .docs-tree-row.has-children:hover > .docs-tree-link > a {
