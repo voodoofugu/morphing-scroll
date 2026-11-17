@@ -188,7 +188,11 @@
 }
 
 .docs-tree-toggle::before {
-  content: "›" / "";
+  width: 6px;
+  height: 10px;
+  background: currentcolor;
+  clip-path: polygon(0 0, 22% 0, 100% 50%, 22% 100%, 0 100%, 76% 50%);
+  content: "";
   transition: transform 180ms ease;
 }
 
