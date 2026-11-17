@@ -212,11 +212,12 @@
 
 .docs-tree-branch > div {
   min-height: 0;
+  margin-right: -4px;
   overflow: hidden;
+  padding-right: 4px;
 }
 
 .docs-tree-branch > div > ul {
-  padding-right: 4px;
   padding-bottom: 3px;
 }
 
@@ -251,15 +252,15 @@
 
 .docs-tree-row.is-ancestor::after {
   z-index: 0;
-  inset: 0.0625rem;
-  border-radius: 0 0.3125rem 0.3125rem 0;
+  inset: 0;
+  border-radius: 0 0.375rem 0.375rem 0;
   background: color-mix(in srgb, var(--accent-soft) 68%, var(--bg));
   clip-path: polygon(
-    calc(var(--docs-arrow-corner) - 0.0625rem) 0,
+    var(--docs-arrow-corner) 0,
     100% 0,
     100% 100%,
-    calc(var(--docs-arrow-corner) - 0.0625rem) 100%,
-    0 50%
+    var(--docs-arrow-corner) 100%,
+    0.0625rem 50%
   );
 }
 
