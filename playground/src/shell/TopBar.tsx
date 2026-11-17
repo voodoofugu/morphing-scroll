@@ -91,29 +91,31 @@ function TopBar({
 
   return (
     <header className="top-bar">
-      <a className="top-brand" href={here ? "#/" : "../"}>
-        {/* знак красим сами: форму берём маской, цвет — из темы */}
-        <span
-          className="top-mark"
-          style={{ "--mark": `url("${logo}")` } as React.CSSProperties}
-        />
-        <span>morphing-scroll</span>
-        <span className="top-version">v{packageInfo.version}</span>
-      </a>
-
-      <nav className="top-links">
-        <a aria-current={here ? "page" : undefined} href={here ? "#/" : "../"}>
-          docs
+      <div className="top-bar-inner">
+        <a className="top-brand" href={here ? "#/" : "../"}>
+          {/* знак красим сами: форму берём маской, цвет — из темы */}
+          <span
+            className="top-mark"
+            style={{ "--mark": `url("${logo}")` } as React.CSSProperties}
+          />
+          <span>morphing-scroll</span>
+          <span className="top-version">v{packageInfo.version}</span>
         </a>
-        <a
-          aria-current={here ? undefined : "page"}
-          href={here ? "playground/" : "#"}
-        >
-          playground
-        </a>
-      </nav>
 
-      <ThemeControl onTheme={onTheme} theme={theme} />
+        <nav className="top-links">
+          <a aria-current={here ? "page" : undefined} href={here ? "#/" : "../"}>
+            docs
+          </a>
+          <a
+            aria-current={here ? undefined : "page"}
+            href={here ? "playground/" : "#"}
+          >
+            playground
+          </a>
+        </nav>
+
+        <ThemeControl onTheme={onTheme} theme={theme} />
+      </div>
     </header>
   );
 }

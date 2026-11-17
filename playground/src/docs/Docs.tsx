@@ -342,16 +342,18 @@ function Tree({
 function Footer() {
   return (
     <footer className="site-footer">
-      <div>
-        <span>© {new Date().getFullYear()} voodoofugu</span>
+      <div className="site-footer-inner">
+        <div>
+          <span>© {new Date().getFullYear()} voodoofugu</span>
+        </div>
+        <nav aria-label="Project links">
+          <a href="https://www.npmjs.com/package/morphing-scroll">npm</a>
+          <a href="https://github.com/voodoofugu/morphing-scroll">github</a>
+          <a href="https://dev.to/voodoofugu/the-story-of-morphing-scroll-my-npm-library-1agb">article · en</a>
+          <a href="https://habr.com/ru/articles/1084664/">article · ru</a>
+          <a href="https://resume.voodoofugu.com/?lang=ru">author</a>
+        </nav>
       </div>
-      <nav aria-label="Project links">
-        <a href="https://www.npmjs.com/package/morphing-scroll">npm</a>
-        <a href="https://github.com/voodoofugu/morphing-scroll">github</a>
-        <a href="https://dev.to/voodoofugu/the-story-of-morphing-scroll-my-npm-library-1agb">article · en</a>
-        <a href="https://habr.com/ru/articles/1084664/">article · ru</a>
-        <a href="https://resume.voodoofugu.com/?lang=ru">author</a>
-      </nav>
     </footer>
   );
 }
@@ -396,7 +398,6 @@ function Docs() {
           <ChromeScroll
             controls={{ keys: true }}
             ref={page}
-            wrapper={{ margin: [24, 18, 24, 0] }}
           >
             <div className="docs-content">
               <div className="docs-body">

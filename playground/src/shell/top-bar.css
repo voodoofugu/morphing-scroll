@@ -5,14 +5,20 @@
 .top-bar {
   position: relative;
   z-index: 20;
+  border-bottom: 1px solid var(--line-soft);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.top-bar-inner {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  width: 100%;
+  max-width: 1180px;
   min-height: 58px;
-  border-bottom: 1px solid var(--line-soft);
-  background: color-mix(in srgb, var(--bg) 90%, transparent);
-  padding: 8px 22px;
-  backdrop-filter: blur(18px);
+  margin: 0 auto;
+  padding: 8px 24px;
 }
 
 .top-brand {
@@ -123,7 +129,7 @@
 }
 
 @media (max-width: 860px) {
-  .top-bar {
+  .top-bar-inner {
     grid-template-columns: 1fr auto;
     padding: 8px 16px;
   }
@@ -140,7 +146,7 @@
 }
 
 @media (max-width: 640px) {
-  .top-bar {
+  .top-bar-inner {
     padding-inline: 12px;
   }
 

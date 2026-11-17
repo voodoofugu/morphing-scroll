@@ -22,8 +22,6 @@
   width: 100%;
   min-width: 0;
   min-height: 0;
-  margin: 0 auto;
-  padding: 0 24px;
 }
 
 .docs-nav {
@@ -276,6 +274,9 @@
   align-items: start;
   min-width: 0;
   width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 24px 0;
 }
 
 .docs-page-slot {
@@ -287,11 +288,6 @@
 .site-footer {
   position: relative;
   z-index: 3;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px 28px;
-  align-items: center;
-  justify-content: space-between;
   width: 100%;
   margin-top: auto;
   border-top: 1px solid var(--line-soft);
@@ -299,11 +295,22 @@
   color: var(--ink-faint);
   font-family: var(--mono);
   font-size: 11px;
-  padding: 34px 0 24px;
 }
 
-.site-footer div,
-.site-footer nav {
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 28px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 34px 24px 24px;
+}
+
+.site-footer-inner > div,
+.site-footer-inner > nav {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 14px;
@@ -622,11 +629,12 @@
 /* #endregion */
 
 @media (max-width: 860px) {
-  .docs-shell {
-    padding: 0 16px;
+  .docs-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-inline: 16px;
   }
-
-  .docs-body { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .site-footer-inner { padding-inline: 16px; }
 
   /* на телефоне навигация — сверху, короткой прокручиваемой полосой */
   .docs-nav {
@@ -649,6 +657,11 @@
   .doc-demo-control {
     gap: 8px;
   }
+}
+
+@media (max-width: 640px) {
+  .docs-body,
+  .site-footer-inner { padding-inline: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
