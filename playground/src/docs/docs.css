@@ -207,13 +207,47 @@
 }
 
 .docs-tree-row.is-ancestor {
+  background: transparent;
+}
+
+.docs-tree-row.is-ancestor::before,
+.docs-tree-row.is-ancestor::after {
+  position: absolute;
+  inset: 0;
   border-radius: 0 0.375rem 0.375rem 0;
-  background: color-mix(in srgb, var(--accent-soft) 68%, transparent);
-  box-shadow: inset 2px 0 0 var(--accent-ink);
+  clip-path: polygon(
+    var(--docs-arrow-corner) 0,
+    100% 0,
+    100% 100%,
+    var(--docs-arrow-corner) 100%,
+    0 50%
+  );
+  content: "";
+}
+
+.docs-tree-row.is-ancestor::before {
+  z-index: -1;
+  background: color-mix(in srgb, var(--accent-ink) 72%, transparent);
+}
+
+.docs-tree-row.is-ancestor::after {
+  z-index: 0;
+  inset: 0.0625rem;
+  border-radius: 0 0.3125rem 0.3125rem 0;
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--bg));
+  clip-path: polygon(
+    calc(var(--docs-arrow-corner) - 0.0625rem) 0,
+    100% 0,
+    100% 100%,
+    calc(var(--docs-arrow-corner) - 0.0625rem) 100%,
+    0 50%
+  );
 }
 
 .docs-tree-row.is-ancestor > .docs-tree-link > a,
 .docs-tree-row.is-ancestor .docs-tree-toggle {
+  position: relative;
+  z-index: 1;
   color: var(--accent-ink);
 }
 
