@@ -139,6 +139,13 @@
 .docs-tree-row.has-children:not(.is-current):not(.is-ancestor):hover {
   border-radius: 0 0.375rem 0.375rem 0;
   background: var(--card);
+  clip-path: polygon(
+    var(--docs-arrow-corner) 0,
+    100% 0,
+    100% 100%,
+    var(--docs-arrow-corner) 100%,
+    0 50%
+  );
 }
 
 .docs-tree-row.has-children:hover > .docs-tree-link > a {
