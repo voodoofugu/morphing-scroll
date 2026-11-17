@@ -7,7 +7,6 @@ import "prismjs/components/prism-tsx";
 import "prismjs/components/prism-bash";
 
 import type { MorphScrollHandle } from "@morphing-scroll/src/types/types";
-import packageInfo from "../../../package.json";
 import docs from "virtual:ms-docs";
 import readme from "virtual:ms-readme";
 import type { ReadmeNode } from "virtual:ms-readme";
@@ -291,8 +290,10 @@ function Tree({
 
         return (
           <li key={href}>
-            <div className="docs-tree-row">
-              <span className={`docs-tree-link${isCurrent ? " is-current" : ""}`}>
+            <div
+              className={`docs-tree-row${hasChildren ? " has-children" : ""}${isCurrent ? " is-current" : ""}`}
+            >
+              <span className="docs-tree-link">
                 <a
                   aria-current={isCurrent ? "page" : inside || undefined}
                   href={href}
@@ -307,9 +308,7 @@ function Tree({
                   className="docs-tree-toggle"
                   onClick={() => onToggle(href, open)}
                   type="button"
-                >
-                  <span aria-hidden="true">›</span>
-                </button>
+                />
               )}
             </div>
             {hasChildren && (
@@ -344,8 +343,6 @@ function Footer() {
   return (
     <footer className="site-footer">
       <div>
-        <strong>morphing-scroll</strong>
-        <span>v{packageInfo.version}</span>
         <span>© {new Date().getFullYear()} voodoofugu</span>
       </div>
       <nav aria-label="Project links">
@@ -395,7 +392,15 @@ function Docs() {
       <TopBar onTheme={setTheme} page="docs" theme={theme} />
 
       <div className="docs-shell">
-        <aside className="docs-nav">
+        <main className="docs-main">
+          <ChromeScroll
+            controls={{ keys: true }}
+            ref={page}
+            wrapper={{ margin: [24, 18, 24, 0] }}
+          >
+            <div className="docs-content">
+              <div className="docs-body">
+                <aside className="docs-nav">
           <input
             aria-label="search props"
             className="docs-search"
@@ -426,16 +431,16 @@ function Docs() {
                 </ul>
               ) : (
                 <nav aria-label="contents" className="docs-tree">
-                  <span
-                    className={`docs-tree-link${route === "#/" ? " is-current" : ""}`}
-                  >
-                    <a
-                      aria-current={route === "#/" ? "page" : undefined}
-                      href="#/"
-                    >
-                      overview
-                    </a>
-                  </span>
+                  <div className={`docs-tree-row${route === "#/" ? " is-current" : ""}`}>
+                    <span className="docs-tree-link">
+                      <a
+                        aria-current={route === "#/" ? "page" : undefined}
+                        href="#/"
+                      >
+                        overview
+                      </a>
+                    </span>
+                  </div>
                   <Tree
                     current={route}
                     expanded={expanded}
@@ -446,16 +451,11 @@ function Docs() {
               )}
             </ChromeScroll>
           </div>
-        </aside>
-
-        <main className="docs-main">
-          <ChromeScroll
-            controls={{ keys: true }}
-            ref={page}
-            wrapper={{ margin: [24, 18, 24, 0] }}
-          >
-            <div className="docs-content">
-              {node ? <Page node={node} /> : <Overview />}
+                </aside>
+              <div className="docs-page-slot">
+                {node ? <Page node={node} /> : <Overview />}
+              </div>
+              </div>
               <Footer />
             </div>
           </ChromeScroll>

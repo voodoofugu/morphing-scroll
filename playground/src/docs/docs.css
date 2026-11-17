@@ -19,27 +19,31 @@
 }
 
 .docs-shell {
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  gap: 40px;
   width: 100%;
   max-width: 1180px;
+  min-width: 0;
   min-height: 0;
   margin: 0 auto;
   padding: 0 24px;
 }
 
 .docs-nav {
+  position: sticky;
+  top: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  height: calc(100dvh - 116px);
   min-height: 0;
-  padding: 18px 0 16px;
+  background: var(--bg);
+  padding: 0 0 16px;
 }
 
 .docs-nav-scroll,
 .docs-main {
   min-height: 0;
 }
+
+.docs-main { height: 100%; }
 
 .docs-search {
   width: 100%;
@@ -102,36 +106,27 @@
 
 /* компоненты — ступень выше пропсов */
 .docs-tree > ul > li > .docs-tree-row > .docs-tree-link > a,
-.docs-tree > .docs-tree-link > a {
-  margin-top: 10px;
+.docs-tree > .docs-tree-row > .docs-tree-link > a {
   color: var(--ink);
   font-family: inherit;
   font-size: 13px;
   font-weight: 750;
 }
 
-.docs-tree > .docs-tree-link > a {
-  margin-top: 0;
-}
+.docs-tree > ul > li > .docs-tree-row.has-children { margin-top: 10px; }
 
-/*
- * Тень живёт снаружи ссылки: иначе её обрежет стрелочный clip-path.
- * Сам `li` не подходит — у компонента в нём лежит ещё и вложенное дерево,
- * и filter обвёл бы всю раскрытую ветку вместо одной строки.
- */
 .docs-tree-link {
   display: block;
-  position: relative;
-  isolation: isolate;
-  &.is-current {
-    transform: translateY(-1px);
-  }
+  min-width: 0;
 }
 
 .docs-tree-row {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
+  margin: 1px 0;
 }
 
 .docs-tree-row > .docs-tree-link:last-child {
@@ -156,11 +151,12 @@
   color: var(--ink);
 }
 
-.docs-tree-toggle span {
+.docs-tree-toggle::before {
+  content: "›" / "";
   transition: transform 180ms ease;
 }
 
-.docs-tree-toggle[aria-expanded="true"] span {
+.docs-tree-toggle[aria-expanded="true"]::before {
   transform: rotate(90deg);
 }
 
@@ -183,8 +179,13 @@
   overflow: hidden;
 }
 
-.docs-tree-link.is-current::before,
-.docs-tree-link.is-current::after {
+.docs-tree-row.is-current {
+  transform: translateY(-1px);
+  filter: drop-shadow(2px 2px 0 var(--accent-ink));
+}
+
+.docs-tree-row.is-current::before,
+.docs-tree-row.is-current::after {
   position: absolute;
   inset: 0;
   border-radius: 0 0.375rem 0.375rem 0;
@@ -198,17 +199,23 @@
   content: "";
 }
 
-/* направленная тень: два пикселя влево и вниз */
-.docs-tree-link.is-current::before {
-  z-index: -2;
-  background: var(--accent-ink);
-  transform: translate(2px, 2px);
-}
-
-/* внешний полигон остаётся виден как чёткий контур */
-.docs-tree-link.is-current::after {
+.docs-tree-row.is-current::before {
   z-index: -1;
   background: var(--accent-ink);
+}
+
+.docs-tree-row.is-current::after {
+  z-index: 0;
+  inset: 0.0625rem;
+  border-radius: 0 0.3125rem 0.3125rem 0;
+  background: var(--accent-soft);
+  clip-path: polygon(
+    calc(var(--docs-arrow-corner) - 0.0625rem) 0,
+    100% 0,
+    100% 100%,
+    calc(var(--docs-arrow-corner) - 0.0625rem) 100%,
+    0 50%
+  );
 }
 
 .docs-tree a:hover,
@@ -226,25 +233,13 @@
 
 .docs-tree a[aria-current="page"] {
   position: relative;
-  isolation: isolate;
   background: transparent;
 }
 
-/* фон на пиксель меньше внешнего полигона — это и есть обводка */
-.docs-tree a[aria-current="page"]::before {
-  position: absolute;
-  z-index: -1;
-  inset: 1px;
-  border-radius: 0 0.3125rem 0.3125rem 0;
-  clip-path: polygon(
-    calc(var(--docs-arrow-corner) - 0.0625rem) 0,
-    100% 0,
-    100% 100%,
-    calc(var(--docs-arrow-corner) - 0.0625rem) 100%,
-    0 50%
-  );
-  background: var(--accent-soft);
-  content: "";
+.docs-tree-row.is-current .docs-tree-toggle {
+  position: relative;
+  z-index: 1;
+  color: var(--accent-ink);
 }
 
 .docs-found small {
@@ -271,10 +266,28 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  min-width: 0;
   width: 100%;
 }
 
+.docs-body {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  min-width: 0;
+  width: 100%;
+}
+
+.docs-page-slot {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0 clamp(72px, 10vh, 120px);
+}
+
 .site-footer {
+  position: relative;
+  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   gap: 14px 28px;
@@ -283,6 +296,7 @@
   width: 100%;
   margin-top: auto;
   border-top: 1px solid var(--line-soft);
+  background: var(--bg);
   color: var(--ink-faint);
   font-family: var(--mono);
   font-size: 11px;
@@ -297,7 +311,6 @@
   align-items: center;
 }
 
-.site-footer strong { color: var(--ink); }
 .site-footer a { color: var(--ink-soft); text-decoration: none; }
 .site-footer a:hover { color: var(--accent-ink); }
 .site-footer a::after { content: "↗" / ""; margin-left: 4px; }
@@ -611,17 +624,20 @@
 
 @media (max-width: 860px) {
   .docs-shell {
-    grid-template-rows: 32dvh minmax(0, 1fr);
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
     padding: 0 16px;
   }
 
+  .docs-body { grid-template-columns: minmax(0, 1fr); gap: 0; }
+
   /* на телефоне навигация — сверху, короткой прокручиваемой полосой */
   .docs-nav {
+    position: static;
+    height: 32dvh;
     border-bottom: 1px solid var(--line-soft);
     padding: 12px 0;
   }
+
+  .docs-page-slot { padding-top: 24px; }
 
   .doc-title {
     font-size: 24px;
@@ -638,7 +654,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .docs-tree-branch,
-  .docs-tree-toggle span {
+  .docs-tree-toggle::before {
     transition-duration: 0.01ms;
   }
 }
