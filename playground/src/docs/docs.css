@@ -32,15 +32,14 @@
 }
 
 .docs-nav {
-  position: relative;
+  position: sticky;
+  top: calc(var(--top-bar-height) + 24px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  height: min(calc(100dvh - 116px), var(--docs-nav-available, 100dvh));
+  height: calc(100dvh - 116px);
   min-height: 0;
   background: var(--bg);
   padding: 0 0 16px;
-  transform: translate3d(0, var(--docs-scroll-offset, 0px), 0);
-  will-change: transform;
 }
 
 .docs-nav-scroll,
