@@ -358,6 +358,7 @@ function Footer({
           <a href="https://github.com/voodoofugu/morphing-scroll">github</a>
           <a href="https://dev.to/voodoofugu/the-story-of-morphing-scroll-my-npm-library-1agb">article · en</a>
           <a href="https://habr.com/ru/articles/1084664/">article · ru</a>
+          <a href="https://voodoofugu.github.io/">libraries</a>
           <a href="https://resume.voodoofugu.com/?lang=ru">author</a>
         </nav>
       </div>
